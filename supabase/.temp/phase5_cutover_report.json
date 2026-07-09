@@ -1,0 +1,35 @@
+{
+  "phase": 5,
+  "status": "complete",
+  "cutoverAt": "2026-07-09T04:28:00.000Z",
+  "sourceProject": "aqofnwfgrhwiupdxwbpx",
+  "targetProject": "ujsuhujujdowqpmertmt",
+  "envUpdated": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://ujsuhujujdowqpmertmt.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": true,
+    "SUPABASE_SERVICE_ROLE_KEY": true,
+    "stripeKeysUnchanged": true
+  },
+  "smokeTests": {
+    "sydneyStorageHead": { "partnerLogo": 200, "articleHero": 200 },
+    "sydneyRestApi": { "partners": 200, "sampleCount": 3 },
+    "sydneyAuth": { "status": 400, "message": "Invalid login credentials" },
+    "localPages": {
+      "/browse-brands": 200,
+      "/discover": 200,
+      "/brands/ceres": 200,
+      "/partner-login": 200,
+      "/admin/login": 200
+    },
+    "imageHosts": {
+      "browseBrands": { "sydney": 18, "california": 0 },
+      "brandDetail": { "sydney": 14, "california": 0 }
+    }
+  },
+  "manualFollowUp": [
+    "Test partner login with a known mock account password (e.g. mark@benchmark-int.com)",
+    "Test member login with a known mock account password",
+    "When deploying to Vercel, update the same three Supabase env vars in project settings",
+    "Keep California project as backup for 7-14 days before decommissioning"
+  ]
+}

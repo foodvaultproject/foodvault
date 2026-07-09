@@ -1,0 +1,18 @@
+{
+  "source": {
+    "partner-assets": 255,
+    "article-images": 11
+  },
+  "target": {
+    "partner-assets": 255,
+    "article-images": 11
+  },
+  "buckets": [
+    "partner-assets",
+    "article-images"
+  ],
+  "remainingOldUrls": {
+    "partners": 0,
+    "articles": 0
+  }
+}

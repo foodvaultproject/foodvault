@@ -1,0 +1,26 @@
+[
+  {
+    "auth_user_id": "0c1d28bc-9220-4afd-8e8a-03ac16567af1",
+    "created_at": "2026-06-29T23:55:37.352168+00:00",
+    "email": "admin@foodvault.io",
+    "full_name": "System Administrator",
+    "id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "is_active": true,
+    "last_login_at": null,
+    "name": "System Administrator",
+    "role": "super_admin",
+    "updated_at": "2026-06-29T23:55:37.352168+00:00"
+  },
+  {
+    "auth_user_id": null,
+    "created_at": "2026-06-29T18:57:32.021587+00:00",
+    "email": "mark@benchmark-int.com",
+    "full_name": null,
+    "id": "8c9a47a1-f925-4341-9ac4-0d2aae131140",
+    "is_active": true,
+    "last_login_at": null,
+    "name": "Mark Coulston",
+    "role": "super_admin",
+    "updated_at": "2026-06-29T18:57:32.021587+00:00"
+  }
+]

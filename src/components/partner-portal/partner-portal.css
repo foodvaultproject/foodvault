@@ -1,0 +1,28 @@
+/**
+ * Partner Portal typography — loaded via PartnerPortalShell.
+ * Kept outside Tailwind layers so global h1/h2/h3 base styles cannot override these.
+ */
+
+[data-partner-portal] h1.portal-page-title,
+[data-partner-portal] .portal-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.375;
+  letter-spacing: -0.015em;
+}
+
+[data-partner-portal] h2.portal-section-title,
+[data-partner-portal] .portal-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.375;
+  letter-spacing: -0.01em;
+}
+
+[data-partner-portal] h2.portal-card-title,
+[data-partner-portal] h3.portal-card-title,
+[data-partner-portal] .portal-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.375;
+}

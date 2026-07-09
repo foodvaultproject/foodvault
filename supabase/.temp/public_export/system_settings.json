@@ -1,0 +1,82 @@
+[
+  {
+    "description": "Whether material listing edits require admin review",
+    "id": "1185a6c6-5cca-4af9-8045-132b602c7121",
+    "key": "partner_review_required",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "true"
+  },
+  {
+    "description": "Homepage hero subheading",
+    "id": "2ad6b9eb-151b-4c18-a5c4-754b67b07986",
+    "key": "homepage_hero_subheading",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "Join FOODVAULT and access exclusive member pricing from independent food and beverage brands."
+  },
+  {
+    "description": "Primary support email address",
+    "id": "35f3536b-062f-41fb-94c7-b3d9226fc16c",
+    "key": "support_email",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "hello@foodvault.com"
+  },
+  {
+    "description": "Put platform into maintenance mode",
+    "id": "3d053dcc-fc7f-46f5-8b8c-f20a0a47b6be",
+    "key": "maintenance_mode",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "false"
+  },
+  {
+    "description": "Monthly membership price in dollars",
+    "id": "454aa242-e551-4c59-99f8-c419f05b71de",
+    "key": "membership_price_monthly",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "9.99"
+  },
+  {
+    "description": "Homepage hero headline",
+    "id": "92600535-90d1-47a5-924c-1eb0a4cf474b",
+    "key": "homepage_hero_headline",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "Member pricing on the food you actually buy."
+  },
+  {
+    "description": "Platform display name",
+    "id": "e2707ee0-1b5f-4500-984a-1f0120ef61d5",
+    "key": "platform_name",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "FOODVAULT"
+  },
+  {
+    "description": "Free trial duration in days",
+    "id": "edcc0ca0-6e63-4fc4-8cac-b153ddd1e264",
+    "key": "trial_length_days",
+    "membership_price_monthly": 8.99,
+    "trial_length_days": 14,
+    "updated_at": "2026-07-06T23:39:35.646936+00:00",
+    "updated_by": null,
+    "value": "7"
+  }
+]

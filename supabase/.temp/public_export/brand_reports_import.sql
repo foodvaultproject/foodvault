@@ -1,0 +1,3 @@
+SET session_replication_role = replica;
+INSERT INTO public.brand_reports (admin_notes, assigned_admin_id, attachment_urls, brand_id, contact_permission, created_at, description, id, priority, reason, report_reference, reporter_email, reporter_user_id, reviewed_at, status, updated_at) VALUES ('internal notes test', NULL, ARRAY[]::text[], 'f3eadb58-e0da-4a17-802f-923210c81a0a', TRUE, '2026-07-06T00:50:29.13933+00:00', 'test', 'f65b957d-eed8-4fa9-8e80-46359be79a2c', 'High', 'copyright_infringement', 'BR-000001', 'test@gmail.com', '46000c5a-459c-4a9c-b711-7e02bfeba502', '2026-07-06T00:54:46.286+00:00', 'Resolved', '2026-07-06T00:54:46.286+00:00');
+RESET ALL;

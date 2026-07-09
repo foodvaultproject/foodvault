@@ -1,65 +1,161 @@
-import Image from "next/image";
+import { DiscoverSection } from "@/components/home/DiscoverSection";
+import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";
+import { HomeHero } from "@/components/home/HomeHero";
+import { HomePartnerBrowseBrands } from "@/components/home/HomePartnerBrowseBrands";
+import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
+import { HomeTestimonialsFAQ } from "@/components/home/HomeTestimonialsFAQ";
+import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
+import {
+  HomeCategories,
+  HomeFinalCTA,
+  HomePartnerBanner,
+  HomePartnerQuickLinks,
+  HomeWhyJoinFeatures,
+} from "@/components/home/HomeSections";
+import { getHomepageFaqs } from "@/data/homepage";
+import { getActiveMemberView } from "@/lib/member/active-member";
+import { getPartnerHomeView } from "@/lib/partner-home-view";
+import { getMembershipSettings } from "@/lib/member/settings";
+import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
+import { getDiscoverPageContent } from "@/lib/discover/queries";
+import {
+  BROWSE_PAGE_SIZE,
+  getFeaturedBrands,
+  getHomepageFeaturedBrands,
+  getPartnerLogos,
+  getRecentBrandCards,
+  searchPublicBrands,
+} from "@/lib/member/browse-brands";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+export const dynamic = "force-dynamic";
+
+type HomeProps = {
+  searchParams: Promise<{ department?: string; subcategory?: string }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const { department, subcategory } = await searchParams;
+  const initialDepartment = department ?? "";
+  const initialSubcategory = subcategory ?? "";
+
+  const [
+    featured,
+    logos,
+    discover,
+    settings,
+    newBrands,
+    topOffers,
+    trendingBrands,
+    favoriteContext,
+    { isActiveMember },
+    { isPartner },
+    browseFeatured,
+    partnerBrowseInitial,
+  ] = await Promise.all([
+    getHomepageFeaturedBrands(12),
+    getPartnerLogos(40),
+    getDiscoverPageContent(),
+    getMembershipSettings(),
+    getRecentBrandCards(5),
+    searchPublicBrands({ sort: "highest-discount", limit: 5, offset: 0 }),
+    searchPublicBrands({ sort: "featured", limit: 5, offset: 0 }),
+    getViewerFavoriteContext(),
+    getActiveMemberView(),
+    getPartnerHomeView(),
+    getFeaturedBrands(6),
+    searchPublicBrands({
+      sort: "featured",
+      department: initialDepartment || null,
+      subcategory: initialSubcategory || null,
+      limit: BROWSE_PAGE_SIZE,
+      offset: 0,
+    }),
+  ]);
+  const homepageFaqs = getHomepageFaqs(settings);
+
+  const featuredHeroPartners = featured
+    .filter((brand) => brand.logoUrl || brand.logoOriginalUrl)
+    .map((brand) => ({
+      id: brand.id,
+      businessName: brand.businessName,
+      slug: brand.slug,
+      logoUrl: brand.logoUrl,
+      logoOriginalUrl: brand.logoOriginalUrl,
+      logoCrop: brand.logoCrop,
+      bannerImageUrl: brand.bannerImageUrl,
+    }));
+
+  const seen = new Set(featuredHeroPartners.map((partner) => partner.id));
+  const heroPartners = [...featuredHeroPartners];
+
+  for (const partner of logos) {
+    if (heroPartners.length >= 4) break;
+    if (!partner.logoUrl && !partner.logoOriginalUrl) continue;
+    if (seen.has(partner.id)) continue;
+    heroPartners.push(partner);
+    seen.add(partner.id);
+  }
+
+  if (isPartner) {
+    return (
+      <>
+        <PartnerAffiliateSetupBanner variant="compact" />
+        <HomeHero partners={heroPartners.slice(0, 4)} isPartner />
+        <HomePartnerBrowseBrands
+          featured={browseFeatured}
+          initialExplore={partnerBrowseInitial.brands}
+          initialTotal={partnerBrowseInitial.total}
+          canFavorite={favoriteContext.canFavorite}
+          favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
+          initialDepartment={initialDepartment}
+          initialSubcategory={initialSubcategory}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <HomePartnerQuickLinks />
+        <DiscoverSection articles={discover.homepageCards} variant="partner" />
+      </>
+    );
+  }
+
+  if (isActiveMember) {
+    return (
+      <>
+        <HomeHero partners={heroPartners.slice(0, 4)} isActiveMember />
+        <HomeFeaturedBrands
+          brands={featured}
+          canFavorite={favoriteContext.canFavorite}
+          favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
+        />
+        <HomeCategories />
+        <HomeTrendingSection
+          trending={trendingBrands.brands}
+          newBrands={newBrands}
+          topOffers={topOffers.brands}
+        />
+        <DiscoverSection articles={discover.homepageCards} />
+        <HomeTestimonialsFAQ faqs={homepageFaqs} showFaq={false} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <HomeHero partners={heroPartners.slice(0, 4)} />
+      <HomeFeaturedBrands
+        brands={featured}
+        canFavorite={favoriteContext.canFavorite}
+        favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
+      />
+      <HomeWhyJoinFeatures />
+      <HomeCategories />
+      <HomeTrendingSection
+        trending={trendingBrands.brands}
+        newBrands={newBrands}
+        topOffers={topOffers.brands}
+      />
+      <DiscoverSection articles={discover.homepageCards} />
+      <HomeTestimonialsFAQ faqs={homepageFaqs} />
+      <HomePartnerBanner />
+      <HomeFinalCTA />
+    </>
   );
 }

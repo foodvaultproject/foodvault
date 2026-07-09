@@ -1,0 +1,156 @@
+[
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 9,
+    "icon": null,
+    "id": "01efa566-3966-4d56-a1ef-84ad48107e17",
+    "image_url": null,
+    "is_active": true,
+    "name": "Kitchenware",
+    "slug": "kitchenware",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 12,
+    "icon": null,
+    "id": "20b2b42d-363f-42cc-b794-5e117eb23f6a",
+    "image_url": null,
+    "is_active": true,
+    "name": "Seafood",
+    "slug": "seafood",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 4,
+    "icon": null,
+    "id": "2ca8f1ef-0641-41cc-bf55-f7d66cced476",
+    "image_url": null,
+    "is_active": true,
+    "name": "Bakery",
+    "slug": "bakery",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 5,
+    "icon": null,
+    "id": "3c31363d-07e9-436e-a901-275a272b47a1",
+    "image_url": null,
+    "is_active": true,
+    "name": "Fruit & Vegetables",
+    "slug": "fruit-vegetables",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 13,
+    "icon": null,
+    "id": "4954e5b0-0fd5-42cc-821e-5a31f557ffd4",
+    "image_url": null,
+    "is_active": true,
+    "name": "Butcher",
+    "slug": "butcher",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 10,
+    "icon": null,
+    "id": "66b4ff57-cd0d-4137-bde8-ad6a7a4b2c24",
+    "image_url": null,
+    "is_active": true,
+    "name": "Cleaning",
+    "slug": "cleaning",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 1,
+    "icon": null,
+    "id": "73a857b1-aa7f-4dc5-9d3d-73b0cb060c76",
+    "image_url": null,
+    "is_active": true,
+    "name": "Pantry",
+    "slug": "pantry",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 6,
+    "icon": null,
+    "id": "7fcb25cf-f9c8-4a9a-abc5-98541e8e1f03",
+    "image_url": null,
+    "is_active": true,
+    "name": "Organic",
+    "slug": "organic",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 3,
+    "icon": null,
+    "id": "92c54814-d69e-4c69-9d87-afdfe91c059a",
+    "image_url": null,
+    "is_active": true,
+    "name": "Coffee",
+    "slug": "coffee",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 7,
+    "icon": null,
+    "id": "a77fd9c7-ca13-4472-a71e-c29e0d135568",
+    "image_url": null,
+    "is_active": true,
+    "name": "Meal Prep",
+    "slug": "meal-prep",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 14,
+    "icon": null,
+    "id": "bd0b7f05-fc9f-46fb-90a8-bfd80d7ddb5a",
+    "image_url": null,
+    "is_active": true,
+    "name": "Health Foods",
+    "slug": "health-foods",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 2,
+    "icon": null,
+    "id": "c05bda8a-76f5-489d-a849-e8fd9c221620",
+    "image_url": null,
+    "is_active": true,
+    "name": "Protein & Supplements",
+    "slug": "protein-supplements",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 8,
+    "icon": null,
+    "id": "ea9f0031-ce6e-4ca2-a8e6-2ccb1a746805",
+    "image_url": null,
+    "is_active": true,
+    "name": "Beverages",
+    "slug": "beverages",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  },
+  {
+    "created_at": "2026-06-27T18:57:12.216183+00:00",
+    "display_order": 11,
+    "icon": null,
+    "id": "fffe5fa2-7e3d-45e2-b2d3-14e9a0b65a0b",
+    "image_url": null,
+    "is_active": true,
+    "name": "Pet Food",
+    "slug": "pet-food",
+    "updated_at": "2026-06-27T18:57:12.216183+00:00"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "admin_notes": "internal notes test",
+    "assigned_admin_id": null,
+    "attachment_urls": [],
+    "brand_id": "f3eadb58-e0da-4a17-802f-923210c81a0a",
+    "contact_permission": true,
+    "created_at": "2026-07-06T00:50:29.13933+00:00",
+    "description": "test",
+    "id": "f65b957d-eed8-4fa9-8e80-46359be79a2c",
+    "priority": "High",
+    "reason": "copyright_infringement",
+    "report_reference": "BR-000001",
+    "reporter_email": "test@gmail.com",
+    "reporter_user_id": "46000c5a-459c-4a9c-b711-7e02bfeba502",
+    "reviewed_at": "2026-07-06T00:54:46.286+00:00",
+    "status": "Resolved",
+    "updated_at": "2026-07-06T00:54:46.286+00:00"
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "sourceCounts": {
+    "admin_users": 2,
+    "members": 8,
+    "partners": 14,
+    "memberships": 2,
+    "discover_articles": 8,
+    "member_favorites": 16,
+    "brand_reports": 1,
+    "brand_report_events": 10,
+    "categories": 14,
+    "system_settings": 8
+  },
+  "targetCounts": {
+    "admin_users": 2,
+    "members": 8,
+    "partners": 14,
+    "memberships": 2,
+    "discover_articles": 8,
+    "member_favorites": 16,
+    "brand_reports": 1,
+    "brand_report_events": 10,
+    "categories": null,
+    "system_settings": 1
+  },
+  "discrepancies": [
+    {
+      "table": "categories",
+      "source": 14,
+      "target": 0,
+      "reason": "California legacy table not present in Sydney migrations"
+    },
+    {
+      "table": "system_settings",
+      "source": 8,
+      "target": 1,
+      "reason": "Schema differs (California key-value rows mapped to Sydney singleton id=1)",
+      "mapped": true
+    }
+  ],
+  "migratedTables": [
+    "admin_users",
+    "members",
+    "partners",
+    "memberships",
+    "discover_articles",
+    "member_favorites",
+    "brand_reports",
+    "brand_report_events"
+  ]
+}

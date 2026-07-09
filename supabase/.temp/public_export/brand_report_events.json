@@ -1,0 +1,104 @@
+[
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:12.202753+00:00",
+    "description": "Status updated to Awaiting Information",
+    "event_type": "status_changed",
+    "id": "04885cd6-1031-4620-aee4-72f98de26acb",
+    "metadata": {
+      "from": "New",
+      "to": "Awaiting Information"
+    },
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:49.726635+00:00",
+    "description": "Status updated to Dismissed",
+    "event_type": "status_changed",
+    "id": "1db23cec-4e93-45b0-ae6b-2b836a7f2172",
+    "metadata": {
+      "from": "Resolved",
+      "to": "Dismissed"
+    },
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:50.147024+00:00",
+    "description": "Report dismissed",
+    "event_type": "dismissed",
+    "id": "3f972180-1c3e-40a7-9884-f5f77e2f790e",
+    "metadata": {},
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:12.773002+00:00",
+    "description": "Additional information requested from reporter",
+    "event_type": "note_added",
+    "id": "40f75dde-fd5e-4587-bdcd-89257562eef3",
+    "metadata": {},
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": null,
+    "created_at": "2026-07-06T00:50:29.13933+00:00",
+    "description": "Report submitted",
+    "event_type": "submitted",
+    "id": "4646e178-55f3-45ab-81c8-b92fe3e6e996",
+    "metadata": {},
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:54:48.538778+00:00",
+    "description": "Report resolved",
+    "event_type": "resolved",
+    "id": "4b1401a5-9403-4632-bb4a-fb0b5cd476ff",
+    "metadata": {},
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:54:48.125247+00:00",
+    "description": "Status updated to Resolved",
+    "event_type": "status_changed",
+    "id": "60ff001e-cf6b-490c-b00d-7eb233f4e58e",
+    "metadata": {
+      "from": "Dismissed",
+      "to": "Resolved"
+    },
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:32.019873+00:00",
+    "description": "Status updated to Resolved",
+    "event_type": "status_changed",
+    "id": "88ec4bb6-6da2-4b51-893f-d9565174d093",
+    "metadata": {
+      "from": "Awaiting Information",
+      "to": "Resolved"
+    },
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:32.489573+00:00",
+    "description": "Report resolved",
+    "event_type": "resolved",
+    "id": "c2a9a92c-f335-4f81-b4a1-f6a4cbfddbfc",
+    "metadata": {},
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  },
+  {
+    "admin_user_id": "69c5c9d2-8f80-4a44-bba6-0add17de5115",
+    "created_at": "2026-07-06T00:53:13.153982+00:00",
+    "description": "Additional information requested from reporter",
+    "event_type": "info_requested",
+    "id": "c3603b42-fced-4631-863a-6cf096bc058b",
+    "metadata": {},
+    "report_id": "f65b957d-eed8-4fa9-8e80-46359be79a2c"
+  }
+]
