@@ -11,6 +11,7 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://foodvault.co.nz"),
   title: {
     default: "FoodVault — Member pricing on the food you actually buy",
     template: "%s | FoodVault",
