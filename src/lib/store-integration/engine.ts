@@ -45,6 +45,7 @@ export async function updateNormalizedOrderStatus(
 
   const refundAmount = "refundAmount" in event ? event.refundAmount : null;
   const externalRefundId = "externalRefundId" in event ? event.externalRefundId : null;
+  const rawPayload = "rawPayload" in event ? event.rawPayload : null;
 
   const { data, error } = await admin.rpc("update_store_order_status", {
     p_integration_id: integrationId,
@@ -52,7 +53,7 @@ export async function updateNormalizedOrderStatus(
     p_external_status: event.externalStatus,
     p_refund_amount: refundAmount,
     p_external_refund_id: externalRefundId,
-    p_raw_payload: event.rawPayload ?? {},
+    p_raw_payload: rawPayload ?? {},
   });
 
   if (error) {

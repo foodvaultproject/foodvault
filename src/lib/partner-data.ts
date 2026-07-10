@@ -237,6 +237,7 @@ export async function submitPartnerApplication(
     const record: PartnerRecord = {
       id: existing?.id ?? `dev-partner-${userId}`,
       ...payload,
+      affiliate_enabled: affiliateConfig.enabled,
     };
     writeDevPartner(record);
     return record;
@@ -527,7 +528,7 @@ async function fetchPartnerListingMediaRow(
       .maybeSingle();
 
     if (!error && data) {
-      return data as Record<string, unknown>;
+      return data as unknown as Record<string, unknown>;
     }
 
     if (error && !isPartnerListingColumnError(error.message)) {
@@ -634,7 +635,7 @@ export async function getPartnerListing(
       .maybeSingle();
 
     if (!error && data) {
-      baseRow = data as Record<string, unknown>;
+      baseRow = data as unknown as Record<string, unknown>;
       break;
     }
   }

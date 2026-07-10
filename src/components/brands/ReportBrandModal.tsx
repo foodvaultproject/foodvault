@@ -6,6 +6,7 @@ import {
   BRAND_REPORT_MAX_ATTACHMENTS,
   BRAND_REPORT_MAX_DESCRIPTION,
   BRAND_REPORT_REASONS,
+  type BrandReportReason,
 } from "@/lib/brand-reports/constants";
 import { submitBrandReportAction } from "@/lib/member/brand-report-actions";
 import { LOGIN_PATH } from "@/lib/auth";
@@ -27,7 +28,7 @@ export function ReportBrandModal({
   isLoggedIn,
   canSubmit,
 }: ReportBrandModalProps) {
-  const [reason, setReason] = useState(BRAND_REPORT_REASONS[0].value);
+  const [reason, setReason] = useState<BrandReportReason>(BRAND_REPORT_REASONS[0].value);
   const [description, setDescription] = useState("");
   const [contactPermission, setContactPermission] = useState(false);
   const [files, setFiles] = useState<File[]>([]);

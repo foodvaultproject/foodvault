@@ -1,6 +1,15 @@
+import type { ReactNode } from "react";
 import { formatTrialLengthDays } from "@/lib/member/pricing";
 
-const benefits = [
+type Benefit =
+  | { title: string; icon: ReactNode; description: string }
+  | {
+      title: string;
+      icon: ReactNode;
+      getDescription: (trialLengthDays: number) => string;
+    };
+
+const benefits: Benefit[] = [
   {
     title: "Save on Your First Order",
     description:

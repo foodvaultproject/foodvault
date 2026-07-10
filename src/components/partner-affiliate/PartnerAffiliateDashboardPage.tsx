@@ -94,6 +94,7 @@ function PartnerAffiliateDashboardContent() {
     let cancelled = false;
 
     async function load() {
+      if (!partner) return;
       setLoading(true);
       const [programData, overviewData, analyticsData, integrationData, billingData, statusData] =
         await Promise.all([

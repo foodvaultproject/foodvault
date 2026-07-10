@@ -201,9 +201,11 @@ export async function activateMemberAfterCheckout(
 }
 
 function subscriptionRenewalDate(subscription: Stripe.Subscription): string | null {
+  const legacyPeriodEnd = (
+    subscription as Stripe.Subscription & { current_period_end?: number }
+  ).current_period_end;
   const periodEnd =
-    subscription.current_period_end ??
-    subscription.items?.data?.[0]?.current_period_end;
+    legacyPeriodEnd ?? subscription.items?.data?.[0]?.current_period_end;
 
   if (typeof periodEnd !== "number") {
     return null;

@@ -61,9 +61,9 @@ export async function deleteMemberAccountAction() {
 
   if (rpcError) {
     const { error } = await memberUserFilter(
-      supabase.from("members"),
+      supabase.from("members").update({ deleted_at: new Date().toISOString() }),
       member.id
-    ).update({ deleted_at: new Date().toISOString() });
+    );
 
     if (error) {
       return { error: error.message };
@@ -90,14 +90,14 @@ export async function endTrialEarlyAction() {
 
   const member = await requireAuthenticatedMember();
   const { error } = await memberUserFilter(
-    supabase.from("members"),
+    supabase.from("members").update({
+      membership_status: "expired",
+      status: "EXPIRED",
+      subscription_status: "EXPIRED",
+      trial_ends_at: new Date().toISOString(),
+    }),
     member.id
-  ).update({
-    membership_status: "expired",
-    status: "EXPIRED",
-    subscription_status: "EXPIRED",
-    trial_ends_at: new Date().toISOString(),
-  });
+  );
 
   if (error) {
     return { error: error.message };
@@ -122,13 +122,13 @@ export async function cancelMembershipAction() {
 
   const member = await requireAuthenticatedMember();
   const { error } = await memberUserFilter(
-    supabase.from("members"),
+    supabase.from("members").update({
+      membership_status: "cancelled",
+      status: "CANCELLED",
+      subscription_status: "CANCELLED",
+    }),
     member.id
-  ).update({
-    membership_status: "cancelled",
-    status: "CANCELLED",
-    subscription_status: "CANCELLED",
-  });
+  );
 
   if (error) {
     return { error: error.message };

@@ -43,7 +43,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState(locale.country);
+  const [country, setCountry] = useState<string>(locale.country);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [marketingOptIn, setMarketingOptIn] = useState(false);

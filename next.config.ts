@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Brand reports: up to 5 attachments × 10 MB (+ multipart overhead).
-  serverActions: {
-    bodySizeLimit: "52mb",
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "52mb",
+    },
   },
   images: {
     remotePatterns: [

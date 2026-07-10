@@ -9,6 +9,17 @@ function csvEscape(value: string | number | null | undefined) {
   return text;
 }
 
+type AffiliateCommissionExportRow = {
+  created_at: string | null;
+  brand_name: string | null;
+  gross_sale: string | number | null;
+  commission_value: string | number | null;
+  currency: string | null;
+  status: string | null;
+  approved_at: string | null;
+  paid_at: string | null;
+};
+
 export async function GET() {
   const supabase = await createClient();
   const {
@@ -37,7 +48,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const rows = (data ?? []) as Record<string, unknown>[];
+  const rows = (data ?? []) as AffiliateCommissionExportRow[];
   const header = ["Date", "Brand", "Gross Sale", "Commission", "Currency", "Status", "Approved At", "Paid At"];
   const lines = [
     header.join(","),

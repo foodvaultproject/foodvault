@@ -35,9 +35,9 @@ export async function upsertMemberSignupProfile(
 
   if (existing) {
     const { error } = await memberUserFilter(
-      supabase.from("members"),
+      supabase.from("members").update(payload),
       input.authUserId
-    ).update(payload);
+    );
     return { error: error?.message ?? null };
   }
 
@@ -62,7 +62,6 @@ export async function upsertMemberSignupProfile(
   const { error: adminError } = await admin.from("members").upsert(
     {
       id: input.authUserId,
-      auth_user_id: input.authUserId,
       ...payload,
       status: "TRIAL",
       subscription_status: "TRIAL",

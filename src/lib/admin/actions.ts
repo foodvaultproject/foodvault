@@ -330,7 +330,7 @@ export async function uploadArticleHeroAction(formData: FormData) {
   if (!file) return { error: "No file provided" };
 
   if (!isSupabaseConfigured()) {
-    return { url: URL.createObjectURL ? "" : "/placeholder-hero.jpg" };
+    return { url: "" };
   }
 
   const supabase = await createClient();
