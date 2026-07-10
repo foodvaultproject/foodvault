@@ -3,7 +3,7 @@ import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomePartnerBrowseBrands } from "@/components/home/HomePartnerBrowseBrands";
 import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
-import { HomeTestimonialsFAQ } from "@/components/home/HomeTestimonialsFAQ";
+import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
 import {
   HomeCategories,
@@ -132,7 +132,6 @@ export default async function Home({ searchParams }: HomeProps) {
           topOffers={topOffers.brands}
         />
         <DiscoverSection articles={discover.homepageCards} />
-        <HomeTestimonialsFAQ faqs={homepageFaqs} showFaq={false} />
       </>
     );
   }
@@ -153,7 +152,7 @@ export default async function Home({ searchParams }: HomeProps) {
         topOffers={topOffers.brands}
       />
       <DiscoverSection articles={discover.homepageCards} />
-      <HomeTestimonialsFAQ faqs={homepageFaqs} />
+      <HomeFAQ faqs={homepageFaqs} />
       <HomePartnerBanner />
       <HomeFinalCTA />
     </>

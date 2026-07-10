@@ -13,9 +13,9 @@ type BrandTileBodyProps = {
 /** Shared layout classes for partner/brand listing cards. */
 export const brandTileSectionClass = "mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8";
 
-/** Homepage grid — 4 tiles across at lg, matching Top Brands section. */
+/** Homepage grid — 2 tiles across on mobile, 4 across at lg, matching Top Brands section. */
 export const brandTileGridClass =
-  "grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4";
+  "grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4";
 
 /** @deprecated Use brandTileGridClass */
 export const brandTileGridClassWide = brandTileGridClass;
