@@ -12,20 +12,12 @@ export function SelectedProductGrid({
 }: SelectedProductGridProps) {
   if (products.length === 0) return null;
 
-  return (
-    <div
-      className={
-        horizontal
-          ? "flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none"
-          : "grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6"
-      }
-    >
-      {products.map((product) => (
+  const cards = products.map((product) => (
         <article
           key={product.id}
           className={`flex flex-col rounded-lg border border-border bg-background p-2.5 shadow-sm ${
             horizontal
-              ? "w-[148px] shrink-0 snap-start sm:w-[168px] lg:w-auto"
+              ? "w-[28%] shrink-0 snap-start sm:w-[168px] lg:w-auto"
               : "p-3"
           }`}
         >
@@ -64,7 +56,36 @@ export function SelectedProductGrid({
             </p>
           ) : null}
         </article>
-      ))}
+  ));
+
+  if (!horizontal) {
+    return (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+        {cards}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none">
+        {cards}
+      </div>
+      {/* Scroll cue: right-edge fade hinting more products (mobile/tablet only) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 flex w-10 items-center justify-end bg-gradient-to-l from-background via-background/80 to-transparent lg:hidden"
+      >
+        <svg
+          className="h-5 w-5 text-primary/70"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
     </div>
   );
 }

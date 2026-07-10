@@ -74,7 +74,7 @@ function AboutBrandSection({ brandStory }: { brandStory: string }) {
 
   return (
     <section id="about" className={SECTION_CARD}>
-      <h2 className="text-sm font-semibold text-foreground">About the Brand</h2>
+      <h2 className="text-sm font-semibold text-foreground">About Us</h2>
       <div
         className={`mt-3 space-y-3 text-xs leading-relaxed text-muted-foreground ${
           expanded ? "" : "line-clamp-5"

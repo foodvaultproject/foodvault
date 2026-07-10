@@ -44,7 +44,7 @@ export function BrandGallery({ images, businessName }: BrandGalleryProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
         {images.map((src, index) => (
           <button
             key={`${src}-${index}`}
@@ -56,10 +56,9 @@ export function BrandGallery({ images, businessName }: BrandGalleryProps) {
             <PartnerGalleryImage
               src={src}
               alt=""
-              square
               className="rounded-lg"
               imageClassName="transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 640px) 50vw, 25vw"
+              sizes="(max-width: 640px) 33vw, 25vw"
             />
           </button>
         ))}
