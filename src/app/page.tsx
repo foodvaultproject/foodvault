@@ -14,7 +14,6 @@ import {
 } from "@/components/home/HomeSections";
 import { getHomepageFaqs } from "@/data/homepage";
 import { getActiveMemberView } from "@/lib/member/active-member";
-import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
 import { getPartnerHomeView } from "@/lib/partner-home-view";
 import { getMembershipSettings } from "@/lib/member/settings";
 import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
@@ -49,7 +48,6 @@ export default async function Home({ searchParams }: HomeProps) {
     trendingBrands,
     favoriteContext,
     { isActiveMember },
-    { isFreeTrialMember },
     { isPartner },
     browseFeatured,
     partnerBrowseInitial,
@@ -63,7 +61,6 @@ export default async function Home({ searchParams }: HomeProps) {
     searchPublicBrands({ sort: "featured", limit: 5, offset: 0 }),
     getViewerFavoriteContext(),
     getActiveMemberView(),
-    getFreeTrialMemberView(),
     getPartnerHomeView(),
     getFeaturedBrands(6),
     searchPublicBrands({
@@ -135,23 +132,6 @@ export default async function Home({ searchParams }: HomeProps) {
           topOffers={topOffers.brands}
         />
         <DiscoverSection articles={discover.homepageCards} />
-      </>
-    );
-  }
-
-  if (isFreeTrialMember) {
-    return (
-      <>
-        <HomeHero partners={heroPartners.slice(0, 4)} isFreeTrial />
-        <HomePartnerBrowseBrands
-          featured={browseFeatured}
-          initialExplore={partnerBrowseInitial.brands}
-          initialTotal={partnerBrowseInitial.total}
-          canFavorite={favoriteContext.canFavorite}
-          favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
-          initialDepartment={initialDepartment}
-          initialSubcategory={initialSubcategory}
-        />
       </>
     );
   }
