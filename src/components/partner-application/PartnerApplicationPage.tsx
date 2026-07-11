@@ -20,6 +20,7 @@ import {
   type PartnerSession,
 } from "@/lib/partner-auth";
 import { getPartnerRecord, submitPartnerApplication } from "@/lib/partner-data";
+import { notifyAdminPartnerListingSubmittedAction } from "@/lib/partner/submission-notifications";
 import { PARTNER_DASHBOARD_PATH } from "@/lib/auth";
 import {
   finalizeBusinessNameInput,
@@ -406,7 +407,7 @@ export function PartnerApplicationPage() {
     }
 
     try {
-      await submitPartnerApplication(
+      const record = await submitPartnerApplication(
         session.id,
         {
           businessName: finalizeBusinessNameInput(businessName),
@@ -445,6 +446,7 @@ export function PartnerApplicationPage() {
           galleryItems: galleryItems.slice(0, MAX_PRODUCT_GALLERY_IMAGES),
         }
       );
+      await notifyAdminPartnerListingSubmittedAction(record.id);
       clearPartnerApplicationDraft(session.id);
       router.push(PARTNER_APPLICATION_SUBMITTED_PATH);
     } catch (error) {
