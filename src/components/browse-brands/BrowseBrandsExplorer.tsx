@@ -44,6 +44,10 @@ type BrowseBrandsExplorerProps = {
   initialSubcategory?: string;
   /** Tighter top spacing when embedded on the partner homepage. */
   embedded?: boolean;
+  /** Heading for the main brand-grid section. Defaults to "Explore More". */
+  exploreHeading?: string;
+  /** Class names for the main brand-grid heading. */
+  exploreHeadingClassName?: string;
 };
 
 export function BrowseBrandsExplorer({
@@ -55,6 +59,8 @@ export function BrowseBrandsExplorer({
   initialDepartment = "",
   initialSubcategory = "",
   embedded = false,
+  exploreHeading = "Explore More",
+  exploreHeadingClassName = "text-2xl font-bold text-foreground",
 }: BrowseBrandsExplorerProps) {
   const favoritedSet = useMemo(
     () => new Set(favoritedPartnerIds),
@@ -269,7 +275,7 @@ export function BrowseBrandsExplorer({
       ) : null}
 
       <section className="mt-12">
-        <h2 className="text-2xl font-bold text-foreground">Explore More</h2>
+        <h2 className={exploreHeadingClassName}>{exploreHeading}</h2>
         {brands.length === 0 ? (
           <div className="mt-6 rounded-lg border border-border bg-background p-10 text-center">
             <p className="text-lg font-semibold text-foreground">

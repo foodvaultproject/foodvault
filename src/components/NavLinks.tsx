@@ -35,6 +35,8 @@ const PORTAL_HIDDEN_HREFS = new Set([
 
 const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, "/browse-brands"]);
 
+const ACTIVE_MEMBER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, "/browse-brands"]);
+
 const FREE_TRIAL_HIDDEN_HREFS = new Set(["/browse-brands", "/for-brands"]);
 
 export function NavLinks({
@@ -48,13 +50,12 @@ export function NavLinks({
   const isActiveMember = useIsActiveMember();
   const isFreeTrial = useIsFreeTrialMember();
 
-  const hideMarketingLinks = isActiveMember || isPartner;
   const hiddenHrefs = isPartner
     ? PARTNER_HIDDEN_HREFS
     : isFreeTrial
       ? FREE_TRIAL_HIDDEN_HREFS
-      : hideMarketingLinks
-        ? PORTAL_HIDDEN_HREFS
+      : isActiveMember
+        ? ACTIVE_MEMBER_HIDDEN_HREFS
         : null;
   const visibleLinks = hiddenHrefs
     ? navLinks.filter((link) => !hiddenHrefs.has(link.href))

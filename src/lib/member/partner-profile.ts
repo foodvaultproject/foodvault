@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import { getAdminUser } from "@/lib/admin/auth";
+import { getActiveMemberView } from "@/lib/member/active-member";
 import { formatBusinessName } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -75,6 +76,7 @@ export type CodeAccessState =
 export type ProfileViewerContext = {
   isLoggedIn: boolean;
   isPartner: boolean;
+  isActiveMember: boolean;
   isAdmin: boolean;
   canFavorite: boolean;
   isFavorited: boolean;
@@ -445,6 +447,7 @@ export async function getProfileViewerContext(
     return {
       isLoggedIn: true,
       isPartner: false,
+      isActiveMember: false,
       isAdmin: false,
       canFavorite: true,
       isFavorited: false,
@@ -462,6 +465,7 @@ export async function getProfileViewerContext(
     return {
       isLoggedIn: false,
       isPartner: false,
+      isActiveMember: false,
       isAdmin: false,
       canFavorite: false,
       isFavorited: false,
@@ -474,6 +478,7 @@ export async function getProfileViewerContext(
   const admin = await getAdminUser();
   const isAdmin = Boolean(admin);
   const canFavorite = !isPartner && !isAdmin;
+  const { isActiveMember } = await getActiveMemberView();
 
   let isFavorited = false;
   if (canFavorite) {
@@ -506,6 +511,7 @@ export async function getProfileViewerContext(
   return {
     isLoggedIn: true,
     isPartner,
+    isActiveMember,
     isAdmin,
     canFavorite,
     isFavorited,

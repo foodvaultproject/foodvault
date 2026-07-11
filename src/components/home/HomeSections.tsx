@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
+import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 import { testimonials } from "@/data/homepage";
 import {
   HOME_SECTION_PY,
@@ -205,7 +206,7 @@ const shopCategories: {
   { label: "More", href: "/browse-brands", Icon: IconMore },
 ];
 
-export function HomeCategories() {
+export function HomeCategories({ onHomepage = false }: { onHomepage?: boolean }) {
   return (
     <section className={`border-y border-border bg-background ${SECTION_PY_HOME_REFINE}`}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -220,7 +221,8 @@ export function HomeCategories() {
           {shopCategories.map(({ label, href, Icon }) => (
             <Link
               key={label}
-              href={href}
+              href={onHomepage ? toHomepageBrowseHref(href) : href}
+              scroll={!onHomepage}
               className="group flex w-[4.75rem] shrink-0 snap-start flex-col items-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 lg:w-auto"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background text-primary shadow-sm transition-all duration-200 group-hover:border-primary group-hover:bg-primary/5 group-hover:shadow-md">

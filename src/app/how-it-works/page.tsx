@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HowItWorksPageContent } from "@/components/how-it-works/HowItWorksSections";
+import { getActiveMemberView } from "@/lib/member/active-member";
 import { getHomepageFeaturedBrands } from "@/lib/member/browse-brands";
 import { getMembershipSettings } from "@/lib/member/settings";
 
@@ -10,12 +11,17 @@ export const metadata: Metadata = {
 };
 
 export default async function HowItWorksPage() {
-  const [featuredBrands, settings] = await Promise.all([
+  const [featuredBrands, settings, { isActiveMember }] = await Promise.all([
     getHomepageFeaturedBrands(6),
     getMembershipSettings(),
+    getActiveMemberView(),
   ]);
 
   return (
-    <HowItWorksPageContent featuredBrands={featuredBrands} settings={settings} />
+    <HowItWorksPageContent
+      featuredBrands={featuredBrands}
+      settings={settings}
+      isActiveMember={isActiveMember}
+    />
   );
 }

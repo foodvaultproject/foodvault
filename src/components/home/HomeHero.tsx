@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
+import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 import { HOME_HERO_PY_COMPACT } from "@/components/home/section-spacing";
 import {
   IconBakery,
@@ -89,6 +90,7 @@ type HomeHeroProps = {
   isActiveMember?: boolean;
   isFreeTrial?: boolean;
   isPartner?: boolean;
+  memberName?: string | null;
 };
 
 export function HomeHero({
@@ -96,6 +98,7 @@ export function HomeHero({
   isActiveMember = false,
   isFreeTrial = false,
   isPartner = false,
+  memberName = null,
 }: HomeHeroProps) {
   const [partner1, partner2, partner3, partner4] = partners;
   const trustIndicators: readonly { label: string }[] = isPartner
@@ -106,11 +109,19 @@ export function HomeHero({
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
 
   return (
-    <section className="border-b border-border bg-background">
+    <section
+      className={`border-b border-border ${
+        isActiveMember ? "bg-[#EEF2FF]" : "bg-background"
+      }`}
+    >
       <div
-        className={`mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
-          isCompactHero ? COMPACT_HERO_PY : HOME_HERO_PY_COMPACT
-        } ${isCompactHero ? COMPACT_HERO_GRID_GAP : "gap-8 lg:gap-12"}`}
+        className={
+          isActiveMember
+            ? "mx-auto max-w-[1200px] px-4 py-2.5 sm:px-6 sm:py-3 lg:px-8"
+            : `mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
+                isCompactHero ? COMPACT_HERO_PY : HOME_HERO_PY_COMPACT
+              } ${isCompactHero ? COMPACT_HERO_GRID_GAP : "gap-8 lg:gap-12"}`
+        }
       >
         <div>
           {isPartner ? (
@@ -151,22 +162,20 @@ export function HomeHero({
             </>
           ) : isActiveMember ? (
             <>
-              <h1 className="text-lg font-bold leading-snug tracking-tight text-foreground">
-                Welcome back. Your membership is{" "}
-                <span className="text-primary">active.</span>
+              <h1 className="text-[22px] font-bold leading-snug tracking-tight text-foreground">
+                Welcome back
+                {memberName ? (
+                  <>
+                    , <span className="text-primary">{memberName}</span>.
+                  </>
+                ) : (
+                  "."
+                )}
               </h1>
               <p className="mt-2.5 max-w-xl text-xs leading-relaxed text-muted-foreground">
                 Start exploring New Zealand brands and unlock your exclusive member
                 savings — buy direct on each partner&apos;s own website.
               </p>
-              <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
-                <Link
-                  href="/browse-brands"
-                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-5 py-2 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
-                >
-                  Browse Brands
-                </Link>
-              </div>
             </>
           ) : (
             <>
@@ -193,7 +202,7 @@ export function HomeHero({
               </div>
             </>
           )}
-          {!isFreeTrial ? (
+          {!isFreeTrial && !isActiveMember ? (
             <ul className={`flex flex-wrap gap-x-5 gap-y-2 ${isCompactHero ? "mt-3" : "mt-5"}`}>
               {trustIndicators.map((item) => (
                 <li
@@ -217,46 +226,48 @@ export function HomeHero({
           ) : null}
         </div>
 
-        <div
-          className={
-            isCompactHero
-              ? COMPACT_LOGO_GRID_CLASS
-              : "mx-auto hidden w-[64%] max-w-[19.2rem] lg:block"
-          }
-        >
-          <div className={`grid grid-cols-2 ${isCompactHero ? "gap-1.5" : "gap-2.5"}`}>
-            <div className={isCompactHero ? "space-y-1.5" : "space-y-2.5"}>
-              <HeroPartnerFrame
-                partner={partner1}
-                priority
-                enterFrom="top"
-                delayMs={0}
-                compact={isCompactHero}
-              />
-              <HeroPartnerFrame
-                partner={partner3}
-                enterFrom="left"
-                delayMs={160}
-                compact={isCompactHero}
-              />
-            </div>
-            <div className={isCompactHero ? "space-y-1.5 pt-2.5" : "space-y-2.5 pt-5"}>
-              <HeroPartnerFrame
-                partner={partner2}
-                enterFrom="right"
-                delayMs={80}
-                compact={isCompactHero}
-              />
-              <HeroPartnerFrame
-                partner={partner4}
-                priority
-                enterFrom="bottom"
-                delayMs={240}
-                compact={isCompactHero}
-              />
+        {!isActiveMember ? (
+          <div
+            className={
+              isCompactHero
+                ? COMPACT_LOGO_GRID_CLASS
+                : "mx-auto hidden w-[64%] max-w-[19.2rem] lg:block"
+            }
+          >
+            <div className={`grid grid-cols-2 ${isCompactHero ? "gap-1.5" : "gap-2.5"}`}>
+              <div className={isCompactHero ? "space-y-1.5" : "space-y-2.5"}>
+                <HeroPartnerFrame
+                  partner={partner1}
+                  priority
+                  enterFrom="top"
+                  delayMs={0}
+                  compact={isCompactHero}
+                />
+                <HeroPartnerFrame
+                  partner={partner3}
+                  enterFrom="left"
+                  delayMs={160}
+                  compact={isCompactHero}
+                />
+              </div>
+              <div className={isCompactHero ? "space-y-1.5 pt-2.5" : "space-y-2.5 pt-5"}>
+                <HeroPartnerFrame
+                  partner={partner2}
+                  enterFrom="right"
+                  delayMs={80}
+                  compact={isCompactHero}
+                />
+                <HeroPartnerFrame
+                  partner={partner4}
+                  priority
+                  enterFrom="bottom"
+                  delayMs={240}
+                  compact={isCompactHero}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       {!isPartner ? (
@@ -274,19 +285,22 @@ export function HomeHero({
               {TRENDING_SEARCHES.map(({ label, href, Icon }) => (
                 <Link
                   key={label}
-                  href={href}
+                  href={isActiveMember ? toHomepageBrowseHref(href) : href}
+                  scroll={!isActiveMember}
                   className="group inline-flex items-center gap-2 rounded-full border border-border bg-background px-3.5 py-2 text-xs font-medium text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:bg-primary/5 hover:text-primary hover:shadow-md"
                 >
                   <Icon className="h-4 w-4 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
                   {label}
                 </Link>
               ))}
-              <Link
-                href="/browse-brands"
-                className="inline-flex items-center rounded-full px-3 py-2 text-xs font-semibold text-primary transition-colors duration-200 hover:text-primary-hover"
-              >
-                View all →
-              </Link>
+              {isActiveMember ? null : (
+                <Link
+                  href="/browse-brands"
+                  className="inline-flex items-center rounded-full px-3 py-2 text-xs font-semibold text-primary transition-colors duration-200 hover:text-primary-hover"
+                >
+                  View all →
+                </Link>
+              )}
             </div>
           </div>
         </div>

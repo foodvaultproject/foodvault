@@ -10,6 +10,8 @@ type HomeTrendingSectionProps = {
   trending: BrandCard[];
   newBrands: BrandCard[];
   topOffers: BrandCard[];
+  /** Hide the "View all" links that navigate to the standalone Discover page. */
+  hideViewAll?: boolean;
 };
 
 type TrendingColumnProps = {
@@ -18,6 +20,7 @@ type TrendingColumnProps = {
   brands: BrandCard[];
   viewAllHref: string;
   viewAllLabel: string;
+  hideViewAll?: boolean;
 };
 
 function TrendingBrandRow({ brand }: { brand: BrandCard }) {
@@ -53,7 +56,14 @@ function TrendingBrandRow({ brand }: { brand: BrandCard }) {
   );
 }
 
-function TrendingColumn({ title, icon, brands, viewAllHref, viewAllLabel }: TrendingColumnProps) {
+function TrendingColumn({
+  title,
+  icon,
+  brands,
+  viewAllHref,
+  viewAllLabel,
+  hideViewAll = false,
+}: TrendingColumnProps) {
   if (brands.length === 0) return null;
 
   return (
@@ -71,12 +81,14 @@ function TrendingColumn({ title, icon, brands, viewAllHref, viewAllLabel }: Tren
         ))}
       </div>
 
-      <Link
-        href={viewAllHref}
-        className="mt-3 text-xs font-semibold text-primary transition-colors duration-200 hover:text-primary-hover"
-      >
-        {viewAllLabel}
-      </Link>
+      {hideViewAll ? null : (
+        <Link
+          href={viewAllHref}
+          className="mt-3 text-xs font-semibold text-primary transition-colors duration-200 hover:text-primary-hover"
+        >
+          {viewAllLabel}
+        </Link>
+      )}
     </div>
   );
 }
@@ -85,6 +97,7 @@ export function HomeTrendingSection({
   trending,
   newBrands,
   topOffers,
+  hideViewAll = false,
 }: HomeTrendingSectionProps) {
   if (trending.length === 0 && newBrands.length === 0 && topOffers.length === 0) {
     return null;
@@ -104,6 +117,7 @@ export function HomeTrendingSection({
             brands={trending}
             viewAllHref="/browse-brands"
             viewAllLabel="View all trending →"
+            hideViewAll={hideViewAll}
           />
           <TrendingColumn
             title="New brands"
@@ -115,6 +129,7 @@ export function HomeTrendingSection({
             brands={newBrands}
             viewAllHref="/browse-brands"
             viewAllLabel="View all new brands →"
+            hideViewAll={hideViewAll}
           />
           <TrendingColumn
             title="Top member offers"
@@ -126,6 +141,7 @@ export function HomeTrendingSection({
             brands={topOffers}
             viewAllHref="/browse-brands"
             viewAllLabel="View all offers →"
+            hideViewAll={hideViewAll}
           />
         </div>
       </div>

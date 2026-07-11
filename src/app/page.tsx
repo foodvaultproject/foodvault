@@ -48,7 +48,7 @@ export default async function Home({ searchParams }: HomeProps) {
     topOffers,
     trendingBrands,
     favoriteContext,
-    { isActiveMember },
+    { isActiveMember, memberName: activeMemberName },
     { isFreeTrialMember },
     { isPartner },
     browseFeatured,
@@ -122,17 +122,28 @@ export default async function Home({ searchParams }: HomeProps) {
   if (isActiveMember) {
     return (
       <>
-        <HomeHero partners={heroPartners.slice(0, 4)} isActiveMember />
-        <HomeFeaturedBrands
-          brands={featured}
+        <HomeHero
+          partners={heroPartners.slice(0, 4)}
+          isActiveMember
+          memberName={activeMemberName}
+        />
+        <HomePartnerBrowseBrands
+          key={`browse-${initialDepartment}-${initialSubcategory}`}
+          featured={browseFeatured}
+          initialExplore={partnerBrowseInitial.brands}
+          initialTotal={partnerBrowseInitial.total}
           canFavorite={favoriteContext.canFavorite}
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
+          initialDepartment={initialDepartment}
+          initialSubcategory={initialSubcategory}
+          exploreHeading="Search. Discover. Save!"
+          exploreHeadingClassName="text-[14px] font-bold text-foreground"
         />
-        <HomeCategories />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
+          hideViewAll
         />
         <DiscoverSection articles={discover.homepageCards} />
       </>

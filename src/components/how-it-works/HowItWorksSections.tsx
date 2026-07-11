@@ -349,17 +349,19 @@ const howItWorksPartnerFaqs: FAQItem[] = [
 type HowItWorksPageProps = {
   featuredBrands: BrandCard[];
   settings: MembershipSettings;
+  isActiveMember?: boolean;
 };
 
 export function HowItWorksPageContent({
   featuredBrands,
   settings,
+  isActiveMember = false,
 }: HowItWorksPageProps) {
   const formattedPrice = formatMembershipPrice(settings.membershipPriceMonthly);
 
   return (
     <>
-      <HowItWorksHero brands={featuredBrands} />
+      <HowItWorksHero brands={featuredBrands} isActiveMember={isActiveMember} />
       <HeroValueCardsSection />
       <TrustSentence />
       <HowFoodVaultWorksSection />
@@ -367,15 +369,25 @@ export function HowItWorksPageContent({
       <ComparisonSection />
       <WhyMembersLoveSection />
       <BrowseCategoriesSection />
-      <MembershipPricingSection formattedPrice={formattedPrice} trialDays={settings.trialLengthDays} />
+      <MembershipPricingSection
+        formattedPrice={formattedPrice}
+        trialDays={settings.trialLengthDays}
+        isActiveMember={isActiveMember}
+      />
       <PartnerSection />
       <HowItWorksFAQ memberFaqs={howItWorksMemberFaqs} partnerFaqs={howItWorksPartnerFaqs} />
-      <FinalCTASection />
+      <FinalCTASection isActiveMember={isActiveMember} />
     </>
   );
 }
 
-function HowItWorksHero({ brands }: { brands: BrandCard[] }) {
+function HowItWorksHero({
+  brands,
+  isActiveMember = false,
+}: {
+  brands: BrandCard[];
+  isActiveMember?: boolean;
+}) {
   return (
     <section className="border-b border-border bg-background">
       <div className="fv-content-width grid items-center gap-8 py-10 lg:grid-cols-2 lg:gap-12 lg:py-[60px]">
@@ -392,12 +404,14 @@ function HowItWorksHero({ brands }: { brands: BrandCard[] }) {
             partner.
           </p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <MemberSignupCtaLink
-              variant="start-free-trial"
-              className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-[14px] font-semibold text-primary-foreground sm:w-auto"
-            />
+            {isActiveMember ? null : (
+              <MemberSignupCtaLink
+                variant="start-free-trial"
+                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-[14px] font-semibold text-primary-foreground sm:w-auto"
+              />
+            )}
             <Link
-              href="/browse-brands"
+              href={isActiveMember ? "/" : "/browse-brands"}
               className="inline-flex w-full items-center justify-center rounded-sm border border-primary bg-background px-6 py-2.5 text-[14px] font-semibold text-primary transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/5 sm:w-auto"
             >
               Browse Brands
@@ -598,9 +612,11 @@ function BrowseCategoriesSection() {
 function MembershipPricingSection({
   formattedPrice,
   trialDays,
+  isActiveMember = false,
 }: {
   formattedPrice: string;
   trialDays: number;
+  isActiveMember?: boolean;
 }) {
   return (
     <section className={sectionClass}>
@@ -618,10 +634,12 @@ function MembershipPricingSection({
                   </li>
                 ))}
               </ul>
-              <MemberSignupCtaLink
-                variant="start-free-trial"
-                className="mt-6 inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-2.5 text-[14px] font-semibold text-navy transition-[transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/90 sm:w-auto"
-              />
+              {isActiveMember ? null : (
+                <MemberSignupCtaLink
+                  variant="start-free-trial"
+                  className="mt-6 inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-2.5 text-[14px] font-semibold text-navy transition-[transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/90 sm:w-auto"
+                />
+              )}
             </div>
             <div className="flex flex-col items-center justify-center p-8 text-center lg:p-10">
               <p className="text-[12px] font-semibold uppercase tracking-wide text-primary">
@@ -737,7 +755,7 @@ function PartnerSection() {
   );
 }
 
-function FinalCTASection() {
+function FinalCTASection({ isActiveMember = false }: { isActiveMember?: boolean }) {
   return (
     <section className="bg-navy py-[60px]">
       <div className="fv-content-width">
@@ -752,12 +770,14 @@ function FinalCTASection() {
               pricing.
             </p>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <MemberSignupCtaLink
-                variant="start-free-trial"
-                className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-2.5 text-[14px] font-semibold text-navy transition-[transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/90 sm:w-auto"
-              />
+              {isActiveMember ? null : (
+                <MemberSignupCtaLink
+                  variant="start-free-trial"
+                  className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-2.5 text-[14px] font-semibold text-navy transition-[transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/90 sm:w-auto"
+                />
+              )}
               <Link
-                href="/browse-brands"
+                href={isActiveMember ? "/" : "/browse-brands"}
                 className="inline-flex w-full items-center justify-center rounded-sm border border-white/30 px-6 py-2.5 text-[14px] font-semibold text-white transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
               >
                 Browse Brands
