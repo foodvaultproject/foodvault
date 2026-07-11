@@ -12,17 +12,19 @@ import { createClient } from "@/lib/supabase/client";
 export type ClientMembershipView = {
   isFreeTrial: boolean;
   isActiveMember: boolean;
+  trialEndsAt: string | null;
 };
 
 export async function resolveClientMembershipView(): Promise<ClientMembershipView> {
   const session = await getAuthSession();
 
   if (!session || session.accountType !== "member") {
-    return { isFreeTrial: false, isActiveMember: false };
+    return { isFreeTrial: false, isActiveMember: false, trialEndsAt: null };
   }
 
   if (!isSupabaseConfigured()) {
-    return { isFreeTrial: true, isActiveMember: false };
+    const trialEndsAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
+    return { isFreeTrial: true, isActiveMember: false, trialEndsAt };
   }
 
   const supabase = createClient();
@@ -32,6 +34,7 @@ export async function resolveClientMembershipView(): Promise<ClientMembershipVie
   return {
     isFreeTrial: isFreeTrialMemberRow(member),
     isActiveMember: isActiveMemberRow(member),
+    trialEndsAt: member?.trial_ends_at ?? null,
   };
 }
 

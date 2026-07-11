@@ -16,6 +16,7 @@ import {
   useIsFreeTrialMember,
 } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOut } from "@/lib/auth";
+import { FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM } from "@/components/member/FreeTrialCountdownBar";
 
 const navLinks = [
   { href: "/browse-brands", label: "Discover" },
@@ -34,6 +35,8 @@ const PORTAL_HIDDEN_HREFS = new Set([
 
 const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, "/browse-brands"]);
 
+const FREE_TRIAL_HIDDEN_HREFS = new Set(["/browse-brands", "/for-brands"]);
+
 export function NavLinks({
   mobile = false,
   isPartner = false,
@@ -43,10 +46,17 @@ export function NavLinks({
 }) {
   const pathname = usePathname();
   const isActiveMember = useIsActiveMember();
+  const isFreeTrial = useIsFreeTrialMember();
 
   const hideMarketingLinks = isActiveMember || isPartner;
-  const hiddenHrefs = isPartner ? PARTNER_HIDDEN_HREFS : PORTAL_HIDDEN_HREFS;
-  const visibleLinks = hideMarketingLinks
+  const hiddenHrefs = isPartner
+    ? PARTNER_HIDDEN_HREFS
+    : isFreeTrial
+      ? FREE_TRIAL_HIDDEN_HREFS
+      : hideMarketingLinks
+        ? PORTAL_HIDDEN_HREFS
+        : null;
+  const visibleLinks = hiddenHrefs
     ? navLinks.filter((link) => !hiddenHrefs.has(link.href))
     : navLinks;
 
@@ -171,9 +181,20 @@ function MobileAuthSection({
   );
 }
 
-export function MobileMenu({ auth }: { auth: NavAuthState }) {
+export function MobileMenu({
+  auth,
+  menuTop,
+}: {
+  auth: NavAuthState;
+  menuTop?: string;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const overlayTop = menuTop ?? "calc(4.25rem + 1.5rem)";
+  const panelTop = menuTop ?? "calc(4.25rem + 1.5rem)";
+  const panelMaxHeight = menuTop
+    ? `calc(100vh - 4.25rem - 1.5rem - ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
+    : "calc(100vh - 4.25rem - 1.5rem)";
 
   useEffect(() => {
     setOpen(false);
@@ -213,13 +234,15 @@ export function MobileMenu({ auth }: { auth: NavAuthState }) {
         <>
           <button
             type="button"
-            className="fixed inset-0 top-[calc(4.25rem+1.5rem)] z-40 bg-foreground/20 backdrop-blur-sm md:top-[calc(4.25rem+1.75rem)]"
+            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
+            style={{ top: overlayTop }}
             onClick={closeMenu}
             aria-label="Close menu overlay"
           />
           <div
             id="mobile-nav"
-            className="fixed inset-x-0 top-[calc(4.25rem+1.5rem)] z-50 max-h-[calc(100vh-4.25rem-1.5rem)] overflow-y-auto border-b border-border bg-white px-4 py-5 shadow-card sm:px-6 md:top-[calc(4.25rem+1.75rem)] md:max-h-[calc(100vh-4.25rem-1.75rem)]"
+            className="fixed inset-x-0 z-50 overflow-y-auto border-b border-border bg-white px-4 py-5 shadow-card sm:px-6 md:max-h-[calc(100vh-4.25rem-1.75rem)]"
+            style={{ top: panelTop, maxHeight: panelMaxHeight }}
           >
             <nav className="space-y-1" aria-label="Mobile navigation">
               <NavLinks mobile isPartner={auth.status === "partner"} />

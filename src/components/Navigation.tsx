@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MobileMenu } from "@/components/NavLinks";
 import { NavLinks } from "@/components/NavLinks";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import { useIsFreeTrialMember } from "@/components/member/MemberSignupCtaProvider";
+import {
+  useIsFreeTrialMember,
+  useTrialEndsAt,
+} from "@/components/member/MemberSignupCtaProvider";
 import {
   getAuthSession,
   isSupabaseConfigured,
@@ -27,6 +30,11 @@ import { createClient } from "@/lib/supabase/client";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
+import {
+  FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM,
+  FreeTrialCountdownBar,
+} from "@/components/member/FreeTrialCountdownBar";
+import { getTrialCountdownParts } from "@/lib/member/trial-countdown";
 
 export type { NavAuthState } from "@/lib/nav-auth";
 
@@ -247,6 +255,16 @@ function DesktopAuthActions({ auth }: { auth: NavAuthState }) {
 
 export function Navigation() {
   const auth = useNavAuth();
+  const isFreeTrial = useIsFreeTrialMember();
+  const trialEndsAt = useTrialEndsAt();
+  const showCountdownBar =
+    auth.status === "member" &&
+    isFreeTrial &&
+    Boolean(trialEndsAt) &&
+    !getTrialCountdownParts(trialEndsAt).expired;
+  const mobileMenuTop = showCountdownBar
+    ? `calc(4.25rem + 1.5rem + ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
+    : undefined;
 
   return (
     <header className="sticky top-0 z-50 bg-white">
@@ -270,9 +288,10 @@ export function Navigation() {
 
         <div className="flex items-center gap-3 sm:gap-4">
           <DesktopAuthActions auth={auth} />
-          <MobileMenu auth={auth} />
+          <MobileMenu auth={auth} menuTop={mobileMenuTop} />
         </div>
       </nav>
+      <FreeTrialCountdownBar />
     </header>
   );
 }

@@ -87,12 +87,14 @@ type HeroEnterDirection = "top" | "left" | "right" | "bottom";
 type HomeHeroProps = {
   partners: PartnerLogoItem[];
   isActiveMember?: boolean;
+  isFreeTrial?: boolean;
   isPartner?: boolean;
 };
 
 export function HomeHero({
   partners,
   isActiveMember = false,
+  isFreeTrial = false,
   isPartner = false,
 }: HomeHeroProps) {
   const [partner1, partner2, partner3, partner4] = partners;
@@ -101,7 +103,7 @@ export function HomeHero({
     : isActiveMember
       ? MEMBER_TRUST_INDICATORS
       : TRUST_INDICATORS;
-  const isCompactHero = isPartner || isActiveMember;
+  const isCompactHero = isPartner || isActiveMember || isFreeTrial;
 
   return (
     <section className="border-b border-border bg-background">
@@ -128,6 +130,23 @@ export function HomeHero({
                 >
                   Partner Dashboard
                 </Link>
+              </div>
+            </>
+          ) : isFreeTrial ? (
+            <>
+              <h1 className="text-[22px] font-bold leading-snug tracking-tight text-foreground">
+                Welcome Back!
+              </h1>
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Unlock exclusive member discounts from participating New Zealand food,
+                beverage, household and health brands — and buy direct on each partner&apos;s
+                own website.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <MemberSignupCtaLink
+                  variant="start-free-trial"
+                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
+                />
               </div>
             </>
           ) : isActiveMember ? (

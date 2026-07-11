@@ -17,12 +17,14 @@ import { createClient } from "@/lib/supabase/client";
 type MemberSignupCtaContextValue = {
   isFreeTrial: boolean;
   isActiveMember: boolean;
+  trialEndsAt: string | null;
   isLoading: boolean;
 };
 
 const MemberSignupCtaContext = createContext<MemberSignupCtaContextValue>({
   isFreeTrial: false,
   isActiveMember: false,
+  trialEndsAt: null,
   isLoading: true,
 });
 
@@ -31,6 +33,7 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<MemberSignupCtaContextValue>({
     isFreeTrial: false,
     isActiveMember: false,
+    trialEndsAt: null,
     isLoading: true,
   });
 
@@ -41,7 +44,12 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
       const view = await resolveClientMembershipView();
       setState({ ...view, isLoading: false });
     } catch {
-      setState({ isFreeTrial: false, isActiveMember: false, isLoading: false });
+      setState({
+        isFreeTrial: false,
+        isActiveMember: false,
+        trialEndsAt: null,
+        isLoading: false,
+      });
     }
   }, []);
 
@@ -83,4 +91,8 @@ export function useIsFreeTrialMember(): boolean {
 
 export function useIsActiveMember(): boolean {
   return useMemberSignupCtaContext().isActiveMember;
+}
+
+export function useTrialEndsAt(): string | null {
+  return useMemberSignupCtaContext().trialEndsAt;
 }
