@@ -13,6 +13,7 @@ import {
 import { createMemberAccountAction } from "@/lib/member/signup-actions";
 import type { MembershipSettings } from "@/lib/member/pricing";
 import { locale } from "@/lib/locale";
+import { createClient } from "@/lib/supabase/client";
 
 function GoogleIcon() {
   return (
@@ -92,6 +93,21 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     }
     if (!isSupabaseConfigured()) {
       createDevSession(email.trim(), "member");
+    } else {
+      // The account is created via a server action, so the browser Supabase
+      // client is unaware of the new session. Sign in on the client to hydrate
+      // it — this fires onAuthStateChange so the navigation renders the
+      // logged-in state immediately, with no manual refresh. Non-fatal: the
+      // session cookies are already set server-side, so navigation still works
+      // even if this client sign-in is skipped.
+      try {
+        await createClient().auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+      } catch {
+        // Ignore — server-side session cookies are already in place.
+      }
     }
     router.push(result.redirectTo ?? "/signup/welcome");
     router.refresh();
