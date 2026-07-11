@@ -7,7 +7,7 @@ const baseFaqs = [
   {
     question: "How does a FoodVault membership help me save?",
     answer:
-      "Your membership unlocks exclusive member pricing from 900+ independent food and beverage brands across New Zealand. When you shop direct on each partner's website, member rates are applied at their checkout — typically saving 20–40% on products you already buy.",
+      "Your FoodVault membership gives you access to exclusive discounts and offers from participating New Zealand food, beverage and household brands. Shop directly with our partner brands and use your member discount codes at checkout to unlock exclusive savings.",
   },
   {
     question: "Can I cancel my membership anytime?",

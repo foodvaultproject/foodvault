@@ -169,11 +169,11 @@ export function PricingFinalCTA() {
         <div className="flex flex-col items-center justify-between gap-6 rounded-sm bg-primary px-6 py-10 sm:flex-row sm:gap-8 sm:px-8 sm:py-12 md:px-10 md:py-12 lg:px-12 lg:py-14">
           <div className="text-center sm:text-left">
             <h2 className={heading2OnDark}>
-              Ready to start saving?
+              Spend less. Save more.
             </h2>
             <p className="mt-3 max-w-lg text-sm text-white/80 sm:mt-4 sm:text-base">
-              Join thousands of New Zealand members saving on independent food
-              and beverage brands every week.
+              Join FoodVault and unlock exclusive member pricing from
+              participating New Zealand brands—all in one place.
             </p>
           </div>
           <Link
