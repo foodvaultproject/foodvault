@@ -87,12 +87,14 @@ type HeroEnterDirection = "top" | "left" | "right" | "bottom";
 type HomeHeroProps = {
   partners: PartnerLogoItem[];
   isActiveMember?: boolean;
+  isFreeTrial?: boolean;
   isPartner?: boolean;
 };
 
 export function HomeHero({
   partners,
   isActiveMember = false,
+  isFreeTrial = false,
   isPartner = false,
 }: HomeHeroProps) {
   const [partner1, partner2, partner3, partner4] = partners;
@@ -101,7 +103,7 @@ export function HomeHero({
     : isActiveMember
       ? MEMBER_TRUST_INDICATORS
       : TRUST_INDICATORS;
-  const isCompactHero = isPartner || isActiveMember;
+  const isCompactHero = isPartner || isActiveMember || isFreeTrial;
 
   return (
     <section className="border-b border-border bg-background">
@@ -129,6 +131,16 @@ export function HomeHero({
                   Partner Dashboard
                 </Link>
               </div>
+            </>
+          ) : isFreeTrial ? (
+            <>
+              <h1 className="text-lg font-bold leading-snug tracking-tight text-foreground">
+                Welcome Back!
+              </h1>
+              <p className="mt-2.5 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                Your free trial is active — explore participating brands and unlock
+                exclusive member savings below.
+              </p>
             </>
           ) : isActiveMember ? (
             <>
@@ -238,7 +250,7 @@ export function HomeHero({
         </div>
       </div>
 
-      {!isPartner ? (
+      {!isPartner && !isFreeTrial ? (
         <div className="border-t border-border bg-background">
           <div
             className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
