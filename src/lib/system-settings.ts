@@ -8,12 +8,15 @@ export const DEFAULT_HOMEPAGE_SUBHEADING =
   "FoodVault connects New Zealand members with independent food, beverage and household brands offering exclusive member pricing.";
 
 export type SystemSettingsRow = {
+  id?: number | string | null;
   platform_name?: string | null;
   membership_price_monthly?: number | string | null;
   trial_length_days?: number | string | null;
   support_email?: string | null;
   homepage_headline?: string | null;
   homepage_subheading?: string | null;
+  key?: string | null;
+  value?: string | null;
 };
 
 export type ParsedSystemSettings = {

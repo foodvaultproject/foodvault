@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getMembershipSettings } from "@/lib/member/settings";
 
 export type StartMemberTrialParams = {
   authUserId: string;
@@ -40,17 +41,8 @@ async function startMemberTrialViaAdmin(params: StartMemberTrialParams) {
     };
   }
 
-  const { data: settings, error: settingsError } = await admin
-    .from("system_settings")
-    .select("trial_length_days")
-    .limit(1)
-    .maybeSingle();
-
-  if (settingsError) {
-    return { error: settingsError.message };
-  }
-
-  const trialDays = settings?.trial_length_days ?? 7;
+  const settings = await getMembershipSettings();
+  const trialDays = settings.trialLengthDays;
   const trialStartedAt = new Date();
   const trialEndsAt = new Date(trialStartedAt);
   trialEndsAt.setDate(trialEndsAt.getDate() + trialDays);

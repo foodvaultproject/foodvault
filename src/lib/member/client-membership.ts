@@ -7,7 +7,13 @@ import {
   fetchMemberBillingRows,
   pickCanonicalMemberRow,
 } from "@/lib/member/member-record";
+import { resolveEffectiveTrialEndsAt } from "@/lib/member/trial-ends-at";
 import { createClient } from "@/lib/supabase/client";
+import { fetchSystemSettingsRow } from "@/lib/system-settings-db";
+import {
+  DEFAULT_TRIAL_LENGTH_DAYS,
+  parseSystemSettingsRow,
+} from "@/lib/system-settings";
 
 export type ClientMembershipView = {
   isFreeTrial: boolean;
@@ -23,21 +29,28 @@ export async function resolveClientMembershipView(): Promise<ClientMembershipVie
   }
 
   if (!isSupabaseConfigured()) {
-    const trialEndsAt = new Date(Date.now() + 14 * 86_400_000).toISOString();
+    const trialEndsAt = new Date(
+      Date.now() + DEFAULT_TRIAL_LENGTH_DAYS * 86_400_000
+    ).toISOString();
     return { isFreeTrial: true, isActiveMember: false, trialEndsAt };
   }
 
   const supabase = createClient();
-  const rows = await fetchMemberBillingRows(supabase, session.id);
+  const [rows, settingsRow] = await Promise.all([
+    fetchMemberBillingRows(supabase, session.id),
+    fetchSystemSettingsRow(supabase),
+  ]);
   const member = pickCanonicalMemberRow(rows);
+  const trialLengthDays = parseSystemSettingsRow(settingsRow).trial_length_days;
 
   return {
     isFreeTrial: isFreeTrialMemberRow(member),
     isActiveMember: isActiveMemberRow(member),
-    trialEndsAt: member?.trial_ends_at ?? null,
+    trialEndsAt: resolveEffectiveTrialEndsAt(
+      member?.trial_started_at,
+      member?.trial_ends_at,
+      trialLengthDays,
+      member?.joined_at
+    ),
   };
-}
-
-export async function resolveClientFreeTrialStatus(): Promise<boolean> {
-  return (await resolveClientMembershipView()).isFreeTrial;
 }

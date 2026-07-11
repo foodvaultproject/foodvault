@@ -12,7 +12,9 @@ export type MemberRow = {
   full_name: string | null;
   membership_status: string | null;
   status: string | null;
+  trial_started_at: string | null;
   trial_ends_at: string | null;
+  joined_at: string | null;
   renewal_date: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
@@ -23,7 +25,7 @@ const MEMBER_PROFILE_COLUMNS =
   "id, auth_user_id, first_name, last_name, email, country, location, full_name, membership_status, deleted_at";
 
 const MEMBER_BILLING_COLUMNS =
-  "id, auth_user_id, membership_status, status, trial_ends_at, renewal_date, stripe_customer_id, stripe_subscription_id, deleted_at";
+  "id, auth_user_id, membership_status, status, trial_started_at, trial_ends_at, joined_at, renewal_date, stripe_customer_id, stripe_subscription_id, deleted_at";
 
 function activeMembershipRank(status: string | null | undefined) {
   if (status === "active") return 3;

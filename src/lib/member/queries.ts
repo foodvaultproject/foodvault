@@ -6,6 +6,7 @@ import {
 } from "@/lib/member/member-record";
 import { isTrialingStatus } from "@/lib/member/membership-status";
 import { getMembershipSettings } from "@/lib/member/settings";
+import { resolveEffectiveTrialEndsAt } from "@/lib/member/trial-ends-at";
 import { createClient } from "@/lib/supabase/server";
 
 export type MemberProfile = {
@@ -180,12 +181,19 @@ export async function getMemberTrialBanner(
     return null;
   }
 
-  const daysRemaining = daysUntil(data.trial_ends_at);
+  const effectiveTrialEndsAt = resolveEffectiveTrialEndsAt(
+    data.trial_started_at,
+    data.trial_ends_at,
+    settings.trialLengthDays,
+    data.joined_at
+  );
+
+  const daysRemaining = daysUntil(effectiveTrialEndsAt);
 
   return {
     daysRemaining,
     trialLengthDays: settings.trialLengthDays,
-    trialEndsAt: data.trial_ends_at,
+    trialEndsAt: effectiveTrialEndsAt,
     membershipPriceMonthly: settings.membershipPriceMonthly,
     showTrialBanner: true,
   };

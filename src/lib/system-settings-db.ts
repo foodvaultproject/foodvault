@@ -14,9 +14,57 @@ const FULL_SETTINGS_SELECT =
 
 const CORE_SETTINGS_SELECT = "membership_price_monthly, trial_length_days, updated_at";
 
+const KEY_VALUE_SELECT = "key, value, trial_length_days, membership_price_monthly, platform_name, support_email, homepage_headline, homepage_subheading, updated_at";
+
+const KEY_VALUE_SETTING_FIELDS = new Set([
+  "platform_name",
+  "membership_price_monthly",
+  "trial_length_days",
+  "support_email",
+  "homepage_headline",
+  "homepage_subheading",
+]);
+
 function isMissingColumnError(error: { message?: string } | null) {
   if (!error?.message) return false;
   return /could not find the .* column|schema cache/i.test(error.message);
+}
+
+function mergeSettingsRows(
+  ...rows: Array<SystemSettingsRow | null | undefined>
+): SystemSettingsRow | null {
+  const merged: SystemSettingsRow = {};
+
+  for (const row of rows) {
+    if (!row) continue;
+
+    for (const [field, value] of Object.entries(row)) {
+      if (
+        value == null ||
+        value === "" ||
+        field === "key" ||
+        field === "value" ||
+        field === "id" ||
+        field === "updated_at"
+      ) {
+        continue;
+      }
+
+      merged[field as keyof SystemSettingsRow] = value as never;
+    }
+
+    const settingKey = row.key?.trim();
+    if (
+      settingKey &&
+      KEY_VALUE_SETTING_FIELDS.has(settingKey) &&
+      row.value != null &&
+      row.value !== ""
+    ) {
+      merged[settingKey as keyof SystemSettingsRow] = row.value as never;
+    }
+  }
+
+  return Object.keys(merged).length > 0 ? merged : null;
 }
 
 /** Prefer service role on the server so public pages can read pricing settings. */
@@ -76,17 +124,87 @@ async function queryLatestSettingsRow<T extends string>(
   return { data: null, error: fallback.error ?? ordered.error };
 }
 
+async function fetchSingletonSettingsRow(
+  supabase: SupabaseClient
+): Promise<SystemSettingsRow | null> {
+  for (const select of [FULL_SETTINGS_SELECT, CORE_SETTINGS_SELECT]) {
+    const { data, error } = await supabase
+      .from("system_settings")
+      .select(select)
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (!error && data) {
+      return data as SystemSettingsRow;
+    }
+
+    if (error && !isMissingColumnError(error)) {
+      break;
+    }
+  }
+
+  return null;
+}
+
+async function fetchKeyValueSettingsRows(
+  supabase: SupabaseClient
+): Promise<SystemSettingsRow[]> {
+  const { data, error } = await supabase
+    .from("system_settings")
+    .select(KEY_VALUE_SELECT)
+    .not("key", "is", null);
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return data as SystemSettingsRow[];
+}
+
 export async function fetchSystemSettingsRow(
   supabase: SupabaseClient
 ): Promise<SystemSettingsRow | null> {
-  for (const select of [FULL_SETTINGS_SELECT, CORE_SETTINGS_SELECT, "membership_price_monthly, trial_length_days"]) {
-    const { data, error } = await queryLatestSettingsRow(supabase, select);
+  const [singleton, keyValueRows, latest] = await Promise.all([
+    fetchSingletonSettingsRow(supabase),
+    fetchKeyValueSettingsRows(supabase),
+    queryLatestSettingsRow(supabase, FULL_SETTINGS_SELECT),
+  ]);
+
+  const merged = mergeSettingsRows(
+    singleton,
+    ...keyValueRows,
+    latest.data ?? undefined
+  );
+
+  if (merged) {
+    return merged;
+  }
+
+  for (const select of [CORE_SETTINGS_SELECT, "membership_price_monthly, trial_length_days"]) {
+    const { data } = await queryLatestSettingsRow(supabase, select);
     if (data) {
       return data;
     }
-    if (error && !isMissingColumnError(error)) {
-      continue;
-    }
+  }
+
+  return null;
+}
+
+async function syncKeyValueSetting(
+  supabase: SupabaseClient,
+  key: string,
+  value: string | number
+) {
+  const { error } = await supabase
+    .from("system_settings")
+    .update({
+      value: String(value),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("key", key);
+
+  if (error && !isMissingColumnError(error)) {
+    return error;
   }
 
   return null;
@@ -99,6 +217,7 @@ export async function updateSystemSettingsRow(
   const corePayload = {
     membership_price_monthly: payload.membership_price_monthly,
     trial_length_days: payload.trial_length_days,
+    updated_at: payload.updated_at ?? new Date().toISOString(),
   };
 
   const { data: existingRows, error: readError } = await supabase
@@ -111,6 +230,7 @@ export async function updateSystemSettingsRow(
 
   if (!existingRows?.length) {
     const { error: insertError } = await supabase.from("system_settings").insert({
+      id: 1,
       membership_price_monthly:
         payload.membership_price_monthly ?? DEFAULT_MEMBERSHIP_PRICE_MONTHLY,
       trial_length_days: payload.trial_length_days ?? DEFAULT_TRIAL_LENGTH_DAYS,
@@ -123,6 +243,15 @@ export async function updateSystemSettingsRow(
       return { error: insertError.message };
     }
   } else {
+    const { error: singletonError } = await supabase
+      .from("system_settings")
+      .update(corePayload)
+      .eq("id", 1);
+
+    if (singletonError && !isMissingColumnError(singletonError)) {
+      return { error: singletonError.message };
+    }
+
     const { error: coreError } = await supabase
       .from("system_settings")
       .update(corePayload)
@@ -130,6 +259,28 @@ export async function updateSystemSettingsRow(
 
     if (coreError) {
       return { error: coreError.message };
+    }
+  }
+
+  if (payload.trial_length_days !== undefined) {
+    const keyError = await syncKeyValueSetting(
+      supabase,
+      "trial_length_days",
+      payload.trial_length_days as number
+    );
+    if (keyError) {
+      return { error: keyError.message };
+    }
+  }
+
+  if (payload.membership_price_monthly !== undefined) {
+    const keyError = await syncKeyValueSetting(
+      supabase,
+      "membership_price_monthly",
+      payload.membership_price_monthly as number
+    );
+    if (keyError) {
+      return { error: keyError.message };
     }
   }
 
