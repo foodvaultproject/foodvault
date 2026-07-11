@@ -3,6 +3,7 @@ import { memberUserFilter } from "@/lib/member/auth";
 import {
   createMemberCheckoutSession,
   getMemberPriceId,
+  getMemberProductId,
 } from "@/lib/payment-service/providers/stripe-member";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +14,7 @@ export async function POST() {
     return NextResponse.json({ error: "Payment service is not configured" }, { status: 503 });
   }
 
-  if (!getMemberPriceId()) {
+  if (!getMemberPriceId() && !getMemberProductId()) {
     return NextResponse.json(
       { error: "Member subscription price is not configured" },
       { status: 503 }

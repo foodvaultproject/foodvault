@@ -52,13 +52,19 @@ function mergeSettingsRows(
 
       merged[field as keyof SystemSettingsRow] = value as never;
     }
+  }
+
+  // Key-value `value` fields only fill gaps — column values from admin saves win.
+  for (const row of rows) {
+    if (!row) continue;
 
     const settingKey = row.key?.trim();
     if (
       settingKey &&
       KEY_VALUE_SETTING_FIELDS.has(settingKey) &&
       row.value != null &&
-      row.value !== ""
+      row.value !== "" &&
+      merged[settingKey as keyof SystemSettingsRow] == null
     ) {
       merged[settingKey as keyof SystemSettingsRow] = row.value as never;
     }
@@ -161,19 +167,51 @@ async function fetchKeyValueSettingsRows(
   return data as SystemSettingsRow[];
 }
 
+async function fetchDedicatedCoreSettingsRow(
+  supabase: SupabaseClient
+): Promise<SystemSettingsRow | null> {
+  const { data, error } = await supabase
+    .from("system_settings")
+    .select("key, value, membership_price_monthly, trial_length_days, updated_at")
+    .in("key", ["membership_price_monthly", "trial_length_days"]);
+
+  if (error || !data?.length) {
+    return null;
+  }
+
+  const merged: SystemSettingsRow = {};
+
+  for (const row of data as SystemSettingsRow[]) {
+    const key = row.key?.trim();
+    if (
+      key === "membership_price_monthly" &&
+      row.membership_price_monthly != null
+    ) {
+      merged.membership_price_monthly = row.membership_price_monthly;
+    }
+    if (key === "trial_length_days" && row.trial_length_days != null) {
+      merged.trial_length_days = row.trial_length_days;
+    }
+  }
+
+  return Object.keys(merged).length > 0 ? merged : null;
+}
+
 export async function fetchSystemSettingsRow(
   supabase: SupabaseClient
 ): Promise<SystemSettingsRow | null> {
-  const [singleton, keyValueRows, latest] = await Promise.all([
+  const [singleton, keyValueRows, latest, dedicatedCore] = await Promise.all([
     fetchSingletonSettingsRow(supabase),
     fetchKeyValueSettingsRows(supabase),
     queryLatestSettingsRow(supabase, FULL_SETTINGS_SELECT),
+    fetchDedicatedCoreSettingsRow(supabase),
   ]);
 
   const merged = mergeSettingsRows(
-    singleton,
     ...keyValueRows,
-    latest.data ?? undefined
+    latest.data ?? undefined,
+    dedicatedCore ?? undefined,
+    singleton
   );
 
   if (merged) {

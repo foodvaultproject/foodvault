@@ -4,6 +4,7 @@ import {
   memberRowHasPaidSubscription,
   resolveMemberBillingRow,
 } from "@/lib/member/member-record";
+import { getMembershipSettings } from "@/lib/member/settings";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 import { syncMemberProfileFromAuth } from "@/lib/member/upsert-signup-profile";
@@ -19,13 +20,55 @@ export function getMemberPriceId(): string {
   return process.env.STRIPE_MEMBER_PRICE_ID ?? "";
 }
 
+export function getMemberProductId(): string {
+  return process.env.STRIPE_MEMBER_PRODUCT_ID ?? "";
+}
+
+async function buildMemberCheckoutLineItem(
+  membershipPriceMonthly: number
+): Promise<Stripe.Checkout.SessionCreateParams.LineItem> {
+  const stripe = getStripeClient();
+  const productId = getMemberProductId();
+  const configuredPriceId = getMemberPriceId();
+
+  if (productId) {
+    return {
+      price_data: {
+        currency: "nzd",
+        product: productId,
+        unit_amount: Math.round(membershipPriceMonthly * 100),
+        recurring: { interval: "month" },
+      },
+      quantity: 1,
+    };
+  }
+
+  if (configuredPriceId) {
+    const configuredPrice = await stripe.prices.retrieve(configuredPriceId);
+    const resolvedProductId =
+      typeof configuredPrice.product === "string"
+        ? configuredPrice.product
+        : configuredPrice.product.id;
+
+    return {
+      price_data: {
+        currency: configuredPrice.currency,
+        product: resolvedProductId,
+        unit_amount: Math.round(membershipPriceMonthly * 100),
+        recurring: { interval: "month" },
+      },
+      quantity: 1,
+    };
+  }
+
+  throw new Error("Member subscription price is not configured");
+}
+
 export async function createMemberCheckoutSession(
   input: CreateMemberCheckoutSessionInput
 ) {
-  const memberPriceId = getMemberPriceId();
-  if (!memberPriceId) {
-    throw new Error("Member subscription price is not configured");
-  }
+  const { membershipPriceMonthly } = await getMembershipSettings();
+  const lineItem = await buildMemberCheckoutLineItem(membershipPriceMonthly);
 
   const stripe = getStripeClient();
   const { appUrl } = getPaymentServiceConfig();
@@ -33,7 +76,7 @@ export async function createMemberCheckoutSession(
 
   return stripe.checkout.sessions.create({
     mode: "subscription",
-    line_items: [{ price: memberPriceId, quantity: 1 }],
+    line_items: [lineItem],
     success_url: `${baseUrl}${SIGNUP_WELCOME_PATH}?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}${SIGNUP_PAYMENT_PATH}?cancelled=1`,
     client_reference_id: input.authUserId,
