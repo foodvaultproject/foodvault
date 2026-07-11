@@ -193,26 +193,28 @@ export function HomeHero({
               </div>
             </>
           )}
-          <ul className={`flex flex-wrap gap-x-5 gap-y-2 ${isCompactHero ? "mt-3" : "mt-5"}`}>
-            {trustIndicators.map((item) => (
-              <li
-                key={item.label}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground"
-              >
-                <svg
-                  className="h-3.5 w-3.5 shrink-0 text-success"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  aria-hidden="true"
+          {!isFreeTrial ? (
+            <ul className={`flex flex-wrap gap-x-5 gap-y-2 ${isCompactHero ? "mt-3" : "mt-5"}`}>
+              {trustIndicators.map((item) => (
+                <li
+                  key={item.label}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>{item.label}</span>
-              </li>
-            ))}
-          </ul>
+                  <svg
+                    className="h-3.5 w-3.5 shrink-0 text-success"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>{item.label}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <div

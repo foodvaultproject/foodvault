@@ -45,7 +45,7 @@ export function FreeTrialCountdownBar() {
 
   return (
     <div
-      className="border-t border-primary/20 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white"
+      className="border-t border-red-800/30 bg-gradient-to-r from-[#B91C1C] to-[#EA580C] text-white"
       role="timer"
       aria-live="polite"
       aria-label={`Free Trial Ends In ${formatCountdownLine(parts)}`}
