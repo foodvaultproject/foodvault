@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     "Learn how FoodVault works for members and brands. Unlock exclusive member pricing, shop direct with New Zealand partners, or grow your brand with free listing and 0% commission.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function HowItWorksPage() {
   const [featuredBrands, settings, { isActiveMember }] = await Promise.all([
     getHomepageFeaturedBrands(6),
