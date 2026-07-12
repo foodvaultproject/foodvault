@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "diagnose:settings": "npx tsx scripts/diagnose-membership-settings.ts"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",

@@ -37,9 +37,12 @@ function parseCoreSettingValue(
     return fromColumn;
   }
 
-  const fromKey = Number(String(keyValue ?? "").trim());
-  if (Number.isFinite(fromKey)) {
-    return fromKey;
+  const fromKeyRaw = String(keyValue ?? "").trim();
+  if (fromKeyRaw !== "") {
+    const fromKey = Number(fromKeyRaw);
+    if (Number.isFinite(fromKey)) {
+      return fromKey;
+    }
   }
 
   return null;
