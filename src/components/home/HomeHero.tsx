@@ -180,13 +180,12 @@ export function HomeHero({
           ) : (
             <>
               <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
-                Pay Less For The Food{" "}
-                <span className="text-primary">You Already Buy.</span>
+                Built to <span className="text-primary">Save Kiwis Money</span>.
               </h1>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Unlock exclusive member discounts from participating New Zealand food,
-                beverage, household and health brands — and buy direct on each partner&apos;s
-                own website.
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                FoodVault exists for one reason — to help Kiwis spend less on the products they
+                already buy. We connect you with New Zealand brands offering exclusive member
+                pricing, so saving becomes part of your everyday shopping.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <MemberSignupCtaLink
