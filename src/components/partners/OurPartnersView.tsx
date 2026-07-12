@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 
@@ -16,9 +17,13 @@ type PartnerLogoItem = {
 
 type OurPartnersViewProps = {
   partners: PartnerLogoItem[];
+  isActiveMember?: boolean;
 };
 
-export function OurPartnersView({ partners }: OurPartnersViewProps) {
+export function OurPartnersView({
+  partners,
+  isActiveMember = false,
+}: OurPartnersViewProps) {
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -43,7 +48,11 @@ export function OurPartnersView({ partners }: OurPartnersViewProps) {
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href="/browse-brands"
+            href={
+              isActiveMember
+                ? toHomepageBrowseHref("/browse-brands")
+                : "/browse-brands"
+            }
             className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
           >
             Browse Brands

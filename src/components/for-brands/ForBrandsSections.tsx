@@ -164,10 +164,8 @@ export function ForBrandsHero() {
               <span className="text-primary">It&apos;s Literally Free!</span>
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              FoodVault helps New Zealand food, beverage, household and health brands connect with
-              members actively looking to discover and buy direct. Showcase your brand, promote
-              exclusive member offers, and drive customers to your own website—while keeping
-              complete control of your products, pricing and customer relationships.
+              We help more Kiwi consumers discover your brand and shop directly from your website.
+              You keep every sale and stay in control. The best part? It&apos;s completely free!
             </p>
 
             <div className="mt-6">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { OurPartnersView } from "@/components/partners/OurPartnersView";
+import { getActiveMemberView } from "@/lib/member/active-member";
 import { searchPublicBrands } from "@/lib/member/browse-brands";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function OurPartnersPage() {
-  const result = await searchPublicBrands({
-    sort: "alphabetical",
-    limit: 200,
-    offset: 0,
-  });
+  const [{ isActiveMember }, result] = await Promise.all([
+    getActiveMemberView(),
+    searchPublicBrands({
+      sort: "alphabetical",
+      limit: 200,
+      offset: 0,
+    }),
+  ]);
 
   const partners = result.brands.map((brand) => ({
     id: brand.id,
@@ -26,5 +30,5 @@ export default async function OurPartnersPage() {
     logoCrop: brand.logoCrop,
   }));
 
-  return <OurPartnersView partners={partners} />;
+  return <OurPartnersView partners={partners} isActiveMember={isActiveMember} />;
 }

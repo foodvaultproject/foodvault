@@ -140,9 +140,10 @@ function HowItWorksHero({
             Built to <span className="text-primary">Save Kiwis Money</span>.
           </h1>
           <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-            FoodVault exists for one reason — to help Kiwis spend less on the products they already
-            buy. We connect you with New Zealand brands offering exclusive member pricing, so saving
-            becomes part of your everyday shopping.
+            Our mission is simple: to help you spend less on all the things you need. We connect you
+            directly with Kiwi brands offering exclusive member pricing, helping you save more every
+            time you shop. Food, drinks, household essentials and more! It&apos;s all here on
+            FoodVault. Enjoy the things you love, for less.
           </p>
           {isActiveMember ? null : (
             <div className="mt-5">

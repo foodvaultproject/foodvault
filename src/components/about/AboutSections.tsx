@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import {
   HOME_HERO_PY_COMPACT,
   SECTION_PY_HOME_REFINE,
@@ -129,25 +128,19 @@ export function AboutHero() {
         className={`mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8 ${HOME_HERO_PY_COMPACT}`}
       >
         <h1 className="mx-auto max-w-3xl text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
-          Discover brands. Unlock member savings. Shop direct.
+          Supporting Kiwi Families and Kiwi Brands
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          FoodVault is a membership platform connecting consumers with New Zealand
-          food, beverage and household brands. Members pay a monthly subscription to
-          access exclusive discounts and offers, then purchase directly from partner
-          businesses.
-        </p>
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <MemberSignupCtaLink
-            variant="start-free-trial"
-            className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
-          />
-          <Link
-            href="/browse-brands"
-            className="inline-flex w-full items-center justify-center rounded-sm border border-primary bg-transparent px-6 py-3 text-sm font-medium text-primary transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/5 sm:w-auto"
-          >
-            Explore Brands
-          </Link>
+        <div className="mx-auto mt-4 max-w-2xl space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <p>Let&apos;s be honest—everything costs more these days.</p>
+          <p>FoodVault was created to make saving a little easier.</p>
+          <p>
+            We bring together Kiwi brands offering exclusive member pricing, so you can shop
+            smarter, spend less, and keep more money for the things that matter most.
+          </p>
+          <p>
+            It&apos;s a simple idea: help Kiwis save money while supporting Kiwi businesses at the
+            same time.
+          </p>
         </div>
       </div>
     </section>
