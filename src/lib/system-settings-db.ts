@@ -28,6 +28,52 @@ function isMissingColumnError(error: { message?: string } | null) {
   return /could not find the .* column|schema cache/i.test(error.message);
 }
 
+function parseCoreSettingValue(
+  columnValue: unknown,
+  keyValue: unknown
+): number | null {
+  const fromColumn = Number(columnValue);
+  if (Number.isFinite(fromColumn)) {
+    return fromColumn;
+  }
+
+  const fromKey = Number(String(keyValue ?? "").trim());
+  if (Number.isFinite(fromKey)) {
+    return fromKey;
+  }
+
+  return null;
+}
+
+function applyCanonicalCoreSettings(
+  merged: SystemSettingsRow,
+  keyValueRows: SystemSettingsRow[]
+): SystemSettingsRow {
+  const next = { ...merged };
+
+  for (const row of keyValueRows) {
+    const key = row.key?.trim();
+    if (key === "membership_price_monthly") {
+      const resolved = parseCoreSettingValue(
+        row.membership_price_monthly,
+        row.value
+      );
+      if (resolved != null) {
+        next.membership_price_monthly = resolved;
+      }
+    }
+
+    if (key === "trial_length_days") {
+      const resolved = parseCoreSettingValue(row.trial_length_days, row.value);
+      if (resolved != null) {
+        next.trial_length_days = Math.trunc(resolved);
+      }
+    }
+  }
+
+  return next;
+}
+
 function mergeSettingsRows(
   ...rows: Array<SystemSettingsRow | null | undefined>
 ): SystemSettingsRow | null {
@@ -176,14 +222,20 @@ async function fetchDedicatedCoreSettingsRow(
 
   for (const row of data as SystemSettingsRow[]) {
     const key = row.key?.trim();
-    if (
-      key === "membership_price_monthly" &&
-      row.membership_price_monthly != null
-    ) {
-      merged.membership_price_monthly = row.membership_price_monthly;
+    if (key === "membership_price_monthly") {
+      const resolved = parseCoreSettingValue(
+        row.membership_price_monthly,
+        row.value
+      );
+      if (resolved != null) {
+        merged.membership_price_monthly = resolved;
+      }
     }
-    if (key === "trial_length_days" && row.trial_length_days != null) {
-      merged.trial_length_days = row.trial_length_days;
+    if (key === "trial_length_days") {
+      const resolved = parseCoreSettingValue(row.trial_length_days, row.value);
+      if (resolved != null) {
+        merged.trial_length_days = Math.trunc(resolved);
+      }
     }
   }
 
@@ -201,20 +253,20 @@ export async function fetchSystemSettingsRow(
   ]);
 
   const merged = mergeSettingsRows(
-    ...keyValueRows,
+    singleton,
     latest.data ?? undefined,
-    dedicatedCore ?? undefined,
-    singleton
+    ...keyValueRows,
+    dedicatedCore ?? undefined
   );
 
   if (merged) {
-    return merged;
+    return applyCanonicalCoreSettings(merged, keyValueRows);
   }
 
   for (const select of [CORE_SETTINGS_SELECT, "membership_price_monthly, trial_length_days"]) {
     const { data } = await queryLatestSettingsRow(supabase, select);
     if (data) {
-      return data;
+      return applyCanonicalCoreSettings(data, keyValueRows);
     }
   }
 
@@ -230,6 +282,10 @@ async function syncKeyValueSetting(
     .from("system_settings")
     .update({
       value: String(value),
+      ...(key === "membership_price_monthly"
+        ? { membership_price_monthly: value }
+        : {}),
+      ...(key === "trial_length_days" ? { trial_length_days: value } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("key", key);
