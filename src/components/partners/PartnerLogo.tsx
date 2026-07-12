@@ -49,9 +49,9 @@ const SIZE_STYLES: Record<
     sizes: "96px",
   },
   directory: {
-    box: "h-[4.5rem] w-[4.5rem] rounded-full sm:h-20 sm:w-20 lg:h-[5.25rem] lg:w-[5.25rem]",
+    box: "h-[4.5rem] w-[4.5rem] rounded-full sm:h-20 sm:w-20 lg:h-[4.5rem] lg:w-[4.5rem]",
     fallback: "text-xl sm:text-2xl",
-    sizes: "(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 12vw",
+    sizes: "(max-width: 1024px) 33vw, 10vw",
   },
   tile: {
     box: "aspect-square h-full w-full rounded-full",

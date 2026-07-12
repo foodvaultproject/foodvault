@@ -94,11 +94,11 @@ export function ContactForm() {
         <legend className="text-sm font-bold uppercase tracking-wide text-foreground">
           1. I am contacting as a...
         </legend>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-4 grid grid-cols-5 gap-1.5 sm:gap-3">
           {contactTypes.map((type) => (
             <label
               key={type.id}
-              className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors ${
+              className={`flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-center transition-colors sm:gap-2 sm:p-4 ${
                 contactType === type.id
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border bg-background text-muted-foreground hover:border-primary/40"
@@ -112,8 +112,8 @@ export function ContactForm() {
                 onChange={() => setContactType(type.id)}
                 className="sr-only"
               />
-              {type.icon}
-              <span className="text-xs font-semibold sm:text-sm">{type.label}</span>
+              <span className="[&>svg]:h-5 [&>svg]:w-5 sm:[&>svg]:h-6 sm:[&>svg]:w-6">{type.icon}</span>
+              <span className="text-[10px] font-semibold leading-tight sm:text-sm">{type.label}</span>
             </label>
           ))}
         </div>

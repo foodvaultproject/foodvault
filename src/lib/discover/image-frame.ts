@@ -1,8 +1,8 @@
 /** Portrait frame for Discover listing tiles and article hero (4:5). */
 export const DISCOVER_TILE_IMAGE_CLASS = "relative aspect-[4/5] overflow-hidden";
 
-/** Matches fixed-width Discover card (16rem / 256px). */
-export const DISCOVER_TILE_WIDTH_CLASS = "w-full max-w-[16rem] sm:w-64";
+/** Matches fixed-width Discover card (~30% smaller than original 16rem / 256px). */
+export const DISCOVER_TILE_WIDTH_CLASS = "w-full max-w-[11.2rem] sm:w-[11.2rem]";
 
 export const DISCOVER_TILE_CARD_BASE_CLASS =
   "flex flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm transition-shadow hover:shadow-md";

@@ -12,7 +12,7 @@ import {
   DISCOVER_TILE_IMAGE_CLASS,
 } from "@/lib/discover/image-frame";
 
-const TILE_IMAGE_SIZES = "240px";
+const TILE_IMAGE_SIZES = "168px";
 
 type DiscoverArticleTileProps = {
   article: DiscoverArticleCard;
@@ -68,7 +68,7 @@ export function DiscoverArticleTile({
           />
         </div>
       </Link>
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
           {article.category}
         </p>

@@ -91,7 +91,7 @@ export function OurPartnersView({ partners }: OurPartnersViewProps) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 md:grid-cols-4 lg:grid-cols-6 lg:gap-x-5 xl:grid-cols-7 2xl:grid-cols-8">
+          <div className="grid grid-cols-3 gap-x-2 gap-y-6 sm:gap-x-3 sm:gap-y-7 lg:grid-cols-10 lg:gap-x-3 lg:gap-y-8">
             {filtered.map((partner) => (
               <PartnerDirectoryItem key={partner.id} partner={partner} />
             ))}
@@ -133,7 +133,7 @@ function PartnerDirectoryItem({ partner }: { partner: PartnerLogoItem }) {
   return (
     <Link
       href={partnerProfilePathFromSlug(partner.slug)}
-      className="group flex min-h-[8.5rem] cursor-pointer flex-col items-center gap-2.5 text-center sm:min-h-[9rem] sm:gap-3"
+      className="group flex min-h-[7.5rem] cursor-pointer flex-col items-center gap-2 text-center sm:min-h-[9rem] sm:gap-3"
       aria-label={`View ${partner.businessName}`}
     >
       <PartnerLogo

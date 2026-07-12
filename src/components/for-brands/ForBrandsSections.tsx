@@ -237,7 +237,7 @@ export function PartnerBenefitsSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className={`text-center ${heading2}`}>Partner Benefits</h2>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {partnerBenefits.map((card) => (
             <div
               key={card.title}
@@ -262,7 +262,7 @@ export function HowItWorksSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h2 className={`text-center ${heading2}`}>How It Works</h2>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
           {howItWorksSteps.map((step) => (
             <div
               key={step.title}
