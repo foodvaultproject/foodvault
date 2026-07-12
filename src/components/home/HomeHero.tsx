@@ -18,6 +18,7 @@ import {
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
+import { DEFAULT_TRIAL_LENGTH_DAYS } from "@/lib/system-settings";
 import type { ComponentType, SVGProps } from "react";
 
 const TRENDING_SEARCHES: {
@@ -57,11 +58,18 @@ const TRENDING_SEARCHES: {
   { label: "Bakery", href: "/browse-brands?department=Bakery", Icon: IconBakery },
 ];
 
-const TRUST_INDICATORS = [
-  { label: "Free Trial" },
-  { label: "Kiwi Owned" },
-  { label: "Shop Directly With Brands" },
-] as const;
+function visitorTrustIndicators(trialLengthDays: number) {
+  return [
+    {
+      label:
+        trialLengthDays === 1
+          ? "1-Day Free Trial"
+          : `${trialLengthDays}-Day Free Trial`,
+    },
+    { label: "Kiwi Owned" },
+    { label: "Shop Directly With Brands" },
+  ] as const;
+}
 
 const MEMBER_TRUST_INDICATORS = [
   { label: "Membership Active" },
@@ -91,6 +99,7 @@ type HomeHeroProps = {
   isFreeTrial?: boolean;
   isPartner?: boolean;
   memberName?: string | null;
+  trialLengthDays?: number;
 };
 
 export function HomeHero({
@@ -99,13 +108,14 @@ export function HomeHero({
   isFreeTrial = false,
   isPartner = false,
   memberName = null,
+  trialLengthDays = DEFAULT_TRIAL_LENGTH_DAYS,
 }: HomeHeroProps) {
   const [partner1, partner2, partner3, partner4] = partners;
   const trustIndicators: readonly { label: string }[] = isPartner
     ? PARTNER_TRUST_INDICATORS
     : isActiveMember
       ? MEMBER_TRUST_INDICATORS
-      : TRUST_INDICATORS;
+      : visitorTrustIndicators(trialLengthDays);
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
 
   return (
@@ -183,9 +193,9 @@ export function HomeHero({
                 Built to <span className="text-primary">Save Kiwis Money</span>.
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                FoodVault exists for one reason — to help Kiwis spend less on the products they
-                already buy. We connect you with New Zealand brands offering exclusive member
-                pricing, so saving becomes part of your everyday shopping.
+                FoodVault exists for one reason: to help you spend less on the products you love.
+                We connect you directly with Kiwi brands offering exclusive member pricing, helping
+                you save more on the things you love!
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <MemberSignupCtaLink

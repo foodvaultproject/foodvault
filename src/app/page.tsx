@@ -153,7 +153,11 @@ export default async function Home({ searchParams }: HomeProps) {
   if (isFreeTrialMember) {
     return (
       <>
-        <HomeHero partners={heroPartners.slice(0, 4)} isFreeTrial />
+        <HomeHero
+        partners={heroPartners.slice(0, 4)}
+        isFreeTrial
+        trialLengthDays={settings.trialLengthDays}
+      />
         <HomePartnerBrowseBrands
           featured={browseFeatured}
           initialExplore={partnerBrowseInitial.brands}
@@ -173,14 +177,17 @@ export default async function Home({ searchParams }: HomeProps) {
         <DiscoverSection articles={discover.homepageCards} />
         <HomeFAQ faqs={homepageFaqs} />
         <HomePartnerBanner />
-        <HomeFinalCTA />
+        <HomeFinalCTA settings={settings} />
       </>
     );
   }
 
   return (
     <>
-      <HomeHero partners={heroPartners.slice(0, 4)} />
+      <HomeHero
+        partners={heroPartners.slice(0, 4)}
+        trialLengthDays={settings.trialLengthDays}
+      />
       <HomeFeaturedBrands
         brands={featured}
         canFavorite={favoriteContext.canFavorite}
@@ -196,7 +203,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <DiscoverSection articles={discover.homepageCards} />
       <HomeFAQ faqs={homepageFaqs} />
       <HomePartnerBanner />
-      <HomeFinalCTA />
+      <HomeFinalCTA settings={settings} />
     </>
   );
 }

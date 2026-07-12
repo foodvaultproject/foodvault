@@ -1,5 +1,8 @@
 import type { MembershipSettings } from "@/lib/member/pricing";
-import { formatTrialLengthDays } from "@/lib/member/pricing";
+import {
+  formatMembershipPriceMonthly,
+  formatTrialLengthDays,
+} from "@/lib/member/pricing";
 
 export type FAQItem = {
   question: string;
@@ -35,16 +38,15 @@ const memberFaqsBase: FAQItem[] = [
   },
 ];
 
-export function getMemberFaqs(
-  settings: Pick<MembershipSettings, "trialLengthDays">
-): FAQItem[] {
+export function getMemberFaqs(settings: MembershipSettings): FAQItem[] {
   const trialLabel = formatTrialLengthDays(settings.trialLengthDays);
+  const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
 
   return memberFaqsBase.map((faq) =>
     faq.question === "What about free trials and payment?"
       ? {
           ...faq,
-          answer: `We offer a ${trialLabel} free trial so you can explore the network and see the potential savings for yourself. After the trial period, your selected membership plan will begin. You can manage your billing, update payment methods, and view invoices at any time through your Member Account settings.`,
+          answer: `We offer a ${trialLabel} free trial so you can explore the network and see the potential savings for yourself. After the trial period, membership continues at ${priceLabel}. You can manage your billing, update payment methods, and view invoices at any time through your Member Account settings.`,
         }
       : faq
   );

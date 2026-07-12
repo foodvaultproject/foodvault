@@ -21,7 +21,7 @@ export default async function FAQPage() {
 
   return (
     <>
-      <FAQHero />
+      <FAQHero settings={settings} />
       <FAQMainContent memberFaqs={memberFaqs} />
       <FAQContactCTA />
     </>

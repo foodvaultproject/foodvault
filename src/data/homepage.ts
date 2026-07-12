@@ -1,5 +1,6 @@
 import { formatCurrency } from "@/lib/locale";
 import type { MembershipSettings } from "@/lib/member/pricing";
+import { formatMembershipPriceMonthly, formatTrialLengthDays } from "@/lib/member/pricing";
 
 export const categories = [
   { label: "Coffee", emoji: "☕" },
@@ -183,13 +184,9 @@ export const testimonials = [
   },
 ];
 
-export function getHomepageFaqs(
-  settings: Pick<MembershipSettings, "trialLengthDays">
-) {
-  const trialLabel =
-    settings.trialLengthDays === 1
-      ? "1-day"
-      : `${settings.trialLengthDays}-day`;
+export function getHomepageFaqs(settings: MembershipSettings) {
+  const trialLabel = formatTrialLengthDays(settings.trialLengthDays);
+  const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
 
   return [
     {
@@ -205,7 +202,7 @@ export function getHomepageFaqs(
     {
       question: "What about free trials and payment?",
       answer:
-        `We offer a ${trialLabel} free trial, giving you plenty of time to explore participating brands and experience the savings before choosing whether to continue with a paid membership.`,
+        `We offer a ${trialLabel} free trial, giving you plenty of time to explore participating brands and experience the savings before choosing whether to continue with a paid membership at ${priceLabel}.`,
     },
   ];
 }

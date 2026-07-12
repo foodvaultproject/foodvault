@@ -11,7 +11,11 @@ import {
   signInWithGoogle,
 } from "@/lib/auth";
 import { createMemberAccountAction } from "@/lib/member/signup-actions";
-import type { MembershipSettings } from "@/lib/member/pricing";
+import {
+  formatFreeTrialLabel,
+  formatMembershipPriceMonthly,
+  type MembershipSettings,
+} from "@/lib/member/pricing";
 import { locale } from "@/lib/locale";
 import { createClient } from "@/lib/supabase/client";
 
@@ -39,7 +43,8 @@ function GoogleIcon() {
 }
 
 export function SignupStep1Form({ settings }: { settings: MembershipSettings }) {
-  void settings;
+  const trialLabel = formatFreeTrialLabel(settings.trialLengthDays);
+  const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -168,7 +173,8 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
         <div className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Create Your Account</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Secure your access to exclusive vaulted food savings.
+            Start a {trialLabel}, or join for {priceLabel}. Secure your access to
+            exclusive vaulted food savings.
           </p>
 
           <button
@@ -295,7 +301,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
               disabled={loading !== null}
               className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
             >
-              {loading === "trial" ? "Creating account..." : "Start Free Trial Now"}
+              {loading === "trial" ? "Creating account..." : `Start ${formatFreeTrialLabel(settings.trialLengthDays)}`}
             </button>
 
             <div className="relative py-2 text-center">
