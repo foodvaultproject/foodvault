@@ -179,7 +179,6 @@ export default async function Home({ searchParams }: HomeProps) {
         />
         <DiscoverSection articles={discover.homepageCards} />
         <HomeFAQ faqs={homepageFaqs} />
-        <HomeFinalCTA settings={settings} />
       </>
     );
   }
