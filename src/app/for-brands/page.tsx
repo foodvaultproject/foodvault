@@ -1,34 +1,33 @@
 import type { Metadata } from "next";
 import { ForBrandsFAQSection } from "@/components/for-brands/ForBrandsFAQSection";
+import { ForBrandsPartnerLogosSection } from "@/components/for-brands/ForBrandsPartnerLogosSection";
 import {
-  DashboardPreviewSection,
-  EverythingYouManageSection,
+  AffiliateProgrammeSection,
   ForBrandsFinalCTA,
   ForBrandsHero,
-  FreeAffiliateProgramSection,
-  PartnerJourneySection,
-  WhyBrandsJoinSection,
-  WhyFoodVaultIsDifferentSection,
-  WhyItsFreeSection,
+  HowItWorksSection,
+  PartnerBenefitsSection,
+  WhyFoodVaultSection,
 } from "@/components/for-brands/ForBrandsSections";
+import { getPartnerLogos } from "@/lib/member/browse-brands";
 
 export const metadata: Metadata = {
   title: "For Brands",
   description:
-    "Grow your New Zealand brand with FoodVault. Drive website traffic, own every customer, launch a free affiliate program and pay 0% commission on product sales.",
+    "Grow your New Zealand brand with FoodVault. Showcase your brand, promote exclusive member offers, and drive customers to your own website—while keeping complete control.",
 };
 
-export default function ForBrandsPage() {
+export default async function ForBrandsPage() {
+  const logos = await getPartnerLogos(40);
+
   return (
     <>
       <ForBrandsHero />
-      <WhyBrandsJoinSection />
-      <WhyFoodVaultIsDifferentSection />
-      <EverythingYouManageSection />
-      <FreeAffiliateProgramSection />
-      <PartnerJourneySection />
-      <DashboardPreviewSection />
-      <WhyItsFreeSection />
+      <ForBrandsPartnerLogosSection logos={logos} />
+      <WhyFoodVaultSection />
+      <PartnerBenefitsSection />
+      <HowItWorksSection />
+      <AffiliateProgrammeSection />
       <ForBrandsFAQSection />
       <ForBrandsFinalCTA />
     </>
