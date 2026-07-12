@@ -1,6 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import {
   DEFAULT_MEMBERSHIP_PRICE_MONTHLY,
   DEFAULT_PLATFORM_NAME,
@@ -71,11 +69,6 @@ function mergeSettingsRows(
   }
 
   return Object.keys(merged).length > 0 ? merged : null;
-}
-
-/** Prefer service role on the server so public pages can read pricing settings. */
-export async function createSettingsReadClient(): Promise<SupabaseClient> {
-  return createAdminClient() ?? (await createClient());
 }
 
 async function queryLatestSettingsRow<T extends string>(

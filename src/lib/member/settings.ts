@@ -1,16 +1,20 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "@/lib/auth";
 import type { MembershipSettings } from "@/lib/member/pricing";
 import {
   DEFAULT_SYSTEM_SETTINGS,
   parseSystemSettingsRow,
 } from "@/lib/system-settings";
-import {
-  createSettingsReadClient,
-  fetchSystemSettingsRow,
-} from "@/lib/system-settings-db";
+import { fetchSystemSettingsRow } from "@/lib/system-settings-db";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type { MembershipSettings } from "@/lib/member/pricing";
+
+/** Prefer service role on the server so public pages can read pricing settings. */
+async function createSettingsReadClient(): Promise<SupabaseClient> {
+  return createAdminClient() ?? (await createClient());
+}
 
 const DEV_SETTINGS: MembershipSettings = {
   membershipPriceMonthly: DEFAULT_SYSTEM_SETTINGS.membership_price_monthly,

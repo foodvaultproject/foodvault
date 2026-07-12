@@ -1,0 +1,26 @@
+warning: in the working copy of 'src/app/how-it-works/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/brands/PartnerProfileView.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/browse-brands/BrowseBrandsExplorer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/home/HomePartnerBrowseBrands.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/home/HomeSections.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/home/HomeTrendingSection.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/how-it-works/HowItWorksSections.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/member/active-member.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/member/partner-profile.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/member/settings.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/lib/system-settings-db.ts', LF will be replaced by CRLF the next time Git touches it
+ src/app/how-it-works/page.tsx                      |  10 [32m+[m[31m-[m
+ src/app/page.tsx                                   |  21 [32m+++[m[31m-[m
+ src/components/NavLinks.tsx                        |   7 [32m+[m[31m-[m
+ src/components/brands/PartnerProfileView.tsx       |   3 [32m+[m[31m-[m
+ .../browse-brands/BrowseBrandsExplorer.tsx         |   8 [32m+[m[31m-[m
+ src/components/home/HomeHero.tsx                   | 136 [32m++++++++++++[m[31m---------[m
+ src/components/home/HomePartnerBrowseBrands.tsx    |  25 [32m+++[m[31m-[m
+ src/components/home/HomeSections.tsx               |   6 [32m+[m[31m-[m
+ src/components/home/HomeTrendingSection.tsx        |  30 [32m+++[m[31m--[m
+ src/components/how-it-works/HowItWorksSections.tsx |  58 [32m++++++[m[31m---[m
+ src/lib/member/active-member.ts                    |  46 [32m++++++[m[31m-[m
+ src/lib/member/partner-profile.ts                  |   6 [32m+[m
+ src/lib/member/settings.ts                         |  12 [32m+[m[31m-[m
+ src/lib/system-settings-db.ts                      |   7 [31m--[m
+ 14 files changed, 257 insertions(+), 118 deletions(-)
