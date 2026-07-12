@@ -17,7 +17,7 @@ type CreateMemberCheckoutSessionInput = {
 };
 
 export function getMemberPriceId(): string {
-  return process.env.STRIPE_MEMBER_PRICE_ID ?? "";
+  return process.env.STRIPE_MEMBER_PRICE_ID ?? process.env.STRIPE_PRICE_ID ?? "";
 }
 
 export function getMemberProductId(): string {

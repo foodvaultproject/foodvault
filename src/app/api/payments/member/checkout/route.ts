@@ -5,13 +5,18 @@ import {
   getMemberPriceId,
   getMemberProductId,
 } from "@/lib/payment-service/providers/stripe-member";
-import { getPaymentServiceConfig } from "@/lib/payment-service/config";
+import {
+  getPaymentServiceConfig,
+} from "@/lib/payment-service/config";
 import { createClient } from "@/lib/supabase/server";
+
+const STRIPE_CONFIG_ERROR =
+  "Stripe is not configured correctly. Set STRIPE_SECRET_KEY (and related Stripe env vars) in Vercel to your real test or live keys — not the .env.example placeholders.";
 
 export async function POST() {
   const { isConfigured } = getPaymentServiceConfig();
   if (!isConfigured) {
-    return NextResponse.json({ error: "Payment service is not configured" }, { status: 503 });
+    return NextResponse.json({ error: STRIPE_CONFIG_ERROR }, { status: 503 });
   }
 
   if (!getMemberPriceId() && !getMemberProductId()) {
@@ -61,8 +66,13 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to start checkout";
+    const isAuthError = /invalid api key/i.test(message);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to start checkout" },
+      {
+        error: isAuthError ? STRIPE_CONFIG_ERROR : message,
+      },
       { status: 500 }
     );
   }
