@@ -20,7 +20,7 @@ function firstWord(value: string | null | undefined): string | null {
   return trimmed.split(/\s+/)[0] ?? null;
 }
 
-function resolveMemberFirstName(
+export function resolveMemberFirstName(
   profile: MemberRow | null,
   user: User
 ): string | null {

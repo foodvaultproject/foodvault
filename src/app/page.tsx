@@ -49,7 +49,7 @@ export default async function Home({ searchParams }: HomeProps) {
     trendingBrands,
     favoriteContext,
     { isActiveMember, memberName: activeMemberName },
-    { isFreeTrialMember },
+    { isFreeTrialMember, memberName: freeTrialMemberName },
     { isPartner },
     browseFeatured,
     partnerBrowseInitial,
@@ -154,11 +154,13 @@ export default async function Home({ searchParams }: HomeProps) {
     return (
       <>
         <HomeHero
-        partners={heroPartners.slice(0, 4)}
-        isFreeTrial
-        trialLengthDays={settings.trialLengthDays}
-      />
+          partners={heroPartners.slice(0, 4)}
+          isFreeTrial
+          memberName={freeTrialMemberName}
+          trialLengthDays={settings.trialLengthDays}
+        />
         <HomePartnerBrowseBrands
+          key={`browse-${initialDepartment}-${initialSubcategory}`}
           featured={browseFeatured}
           initialExplore={partnerBrowseInitial.brands}
           initialTotal={partnerBrowseInitial.total}
@@ -168,15 +170,15 @@ export default async function Home({ searchParams }: HomeProps) {
           initialSubcategory={initialSubcategory}
         />
         <HomeWhyJoinFeatures />
-        <HomeCategories />
+        <HomeCategories onHomepage />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
+          hideViewAll
         />
         <DiscoverSection articles={discover.homepageCards} />
         <HomeFAQ faqs={homepageFaqs} />
-        <HomePartnerBanner />
         <HomeFinalCTA settings={settings} />
       </>
     );

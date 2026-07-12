@@ -117,6 +117,9 @@ export function HomeHero({
       ? MEMBER_TRUST_INDICATORS
       : visitorTrustIndicators(trialLengthDays);
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
+  // Trial and active members browse the embedded homepage explorer rather than
+  // the standalone Discover page, so keep their category links on the homepage.
+  const keepBrowseOnHomepage = isActiveMember || isFreeTrial;
 
   return (
     <section
@@ -156,7 +159,14 @@ export function HomeHero({
           ) : isFreeTrial ? (
             <>
               <h1 className="text-[22px] font-bold leading-snug tracking-tight text-foreground">
-                Welcome Back!
+                Welcome Back
+                {memberName ? (
+                  <>
+                    , <span className="text-primary">{memberName}</span>
+                  </>
+                ) : (
+                  "!"
+                )}
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Unlock exclusive member discounts from participating New Zealand food,
@@ -294,15 +304,15 @@ export function HomeHero({
               {TRENDING_SEARCHES.map(({ label, href, Icon }) => (
                 <Link
                   key={label}
-                  href={isActiveMember ? toHomepageBrowseHref(href) : href}
-                  scroll={!isActiveMember}
+                  href={keepBrowseOnHomepage ? toHomepageBrowseHref(href) : href}
+                  scroll={!keepBrowseOnHomepage}
                   className="group inline-flex items-center gap-2 rounded-full border border-border bg-background px-3.5 py-2 text-xs font-medium text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:bg-primary/5 hover:text-primary hover:shadow-md"
                 >
                   <Icon className="h-4 w-4 text-muted-foreground transition-colors duration-200 group-hover:text-primary" />
                   {label}
                 </Link>
               ))}
-              {isActiveMember ? null : (
+              {keepBrowseOnHomepage ? null : (
                 <Link
                   href="/browse-brands"
                   className="inline-flex items-center rounded-full px-3 py-2 text-xs font-semibold text-primary transition-colors duration-200 hover:text-primary-hover"

@@ -1,6 +1,7 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import { getAdminUser } from "@/lib/admin/auth";
 import { getActiveMemberView } from "@/lib/member/active-member";
+import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
 import { formatBusinessName } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -77,6 +78,7 @@ export type ProfileViewerContext = {
   isLoggedIn: boolean;
   isPartner: boolean;
   isActiveMember: boolean;
+  isFreeTrialMember: boolean;
   isAdmin: boolean;
   canFavorite: boolean;
   isFavorited: boolean;
@@ -448,6 +450,7 @@ export async function getProfileViewerContext(
       isLoggedIn: true,
       isPartner: false,
       isActiveMember: false,
+      isFreeTrialMember: false,
       isAdmin: false,
       canFavorite: true,
       isFavorited: false,
@@ -466,6 +469,7 @@ export async function getProfileViewerContext(
       isLoggedIn: false,
       isPartner: false,
       isActiveMember: false,
+      isFreeTrialMember: false,
       isAdmin: false,
       canFavorite: false,
       isFavorited: false,
@@ -478,7 +482,10 @@ export async function getProfileViewerContext(
   const admin = await getAdminUser();
   const isAdmin = Boolean(admin);
   const canFavorite = !isPartner && !isAdmin;
-  const { isActiveMember } = await getActiveMemberView();
+  const [{ isActiveMember }, { isFreeTrialMember }] = await Promise.all([
+    getActiveMemberView(),
+    getFreeTrialMemberView(),
+  ]);
 
   let isFavorited = false;
   if (canFavorite) {
@@ -512,6 +519,7 @@ export async function getProfileViewerContext(
     isLoggedIn: true,
     isPartner,
     isActiveMember,
+    isFreeTrialMember,
     isAdmin,
     canFavorite,
     isFavorited,

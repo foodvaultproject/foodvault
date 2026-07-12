@@ -136,14 +136,15 @@ function resolvePriceFromRows(rows: SettingsRow[]) {
   const fromKeyValue =
     fromKeyValueRaw === "" ? Number.NaN : Number(fromKeyValueRaw);
 
-  const resolved = [fromKeyColumn, fromKeyValue, fromSingleton].find((n) =>
-    Number.isFinite(n)
-  );
+  const resolved: number | null =
+    [fromKeyColumn, fromKeyValue, fromSingleton].find((n) =>
+      Number.isFinite(n)
+    ) ?? null;
 
   return {
     singleton: summarizeRow(singleton),
     keyRow: summarizeRow(keyRow),
-    resolved: Number.isFinite(resolved) ? resolved : null,
+    resolved,
   };
 }
 
@@ -217,11 +218,20 @@ async function diagnoseKey(label: string, url: string, apiKey: string) {
     }
   }
 
+  const toNumberOrNull = (value: unknown): number | null => {
+    if (value == null || value === "") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   const priceResolution = resolvePriceFromRows(allRows.rows);
   const parsed = parseSystemSettingsRow({
     membership_price_monthly:
-      priceResolution.resolved ?? id1.rows[0]?.membership_price_monthly,
-    trial_length_days: id1.rows[0]?.trial_length_days ?? allRows.rows[0]?.trial_length_days,
+      priceResolution.resolved ??
+      toNumberOrNull(id1.rows[0]?.membership_price_monthly),
+    trial_length_days:
+      toNumberOrNull(id1.rows[0]?.trial_length_days) ??
+      toNumberOrNull(allRows.rows[0]?.trial_length_days),
   });
 
   console.log("\n[What /pricing would use]");
