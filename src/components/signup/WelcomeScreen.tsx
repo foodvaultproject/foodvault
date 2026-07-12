@@ -3,7 +3,9 @@ import { MEMBER_DASHBOARD_PATH } from "@/lib/auth";
 
 export type WelcomePlan = "trial" | "paid";
 
-const EXPLORE_BRANDS_PATH = "/browse-brands";
+// Discover/browse now lives on the homepage for member states, so the
+// welcome CTA links home rather than to the standalone browse page.
+const EXPLORE_BRANDS_PATH = "/";
 
 type WelcomeContent = {
   heroSupport: string;
