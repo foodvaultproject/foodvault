@@ -45,10 +45,18 @@ export const brandCardCategorySlotClass = "mt-2 min-h-[3.25rem]";
 export const brandCardDescriptionClass =
   "mt-2.5 min-h-[2.75rem] flex-1 line-clamp-2 text-sm leading-snug text-muted-foreground";
 
-export const brandCardFooterClass = "mt-auto w-full shrink-0 pt-4";
+/** Badge + CTA grouped at the card foot with a tight 8px gap. */
+export const brandCardOfferFooterGroupClass =
+  "mt-auto flex w-full shrink-0 flex-col gap-2";
+
+/** Fixed-height slot so offer badges align consistently across cards. */
+export const brandCardOfferBadgeSlotClass = "flex min-h-[1.75rem] items-start";
+
+/** @deprecated Use brandCardOfferFooterGroupClass on the badge+CTA wrapper. */
+export const brandCardFooterClass = brandCardOfferFooterGroupClass;
 
 export const partnerBrandCardCtaClass =
-  "fv-btn-primary inline-flex h-10 w-full items-center justify-center rounded-sm text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5";
+  "fv-btn-primary flex h-10 w-full items-center justify-center rounded-sm border-0 p-0 text-sm font-medium leading-none text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5";
 
 export const brandCardCtaClass = partnerBrandCardCtaClass;
 

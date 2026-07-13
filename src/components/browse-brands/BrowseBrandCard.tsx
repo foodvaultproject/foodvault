@@ -7,8 +7,9 @@ import {
   brandCardContentClass,
   brandCardFavoriteButtonActiveClass,
   brandCardFavoriteButtonClass,
-  brandCardFooterClass,
   brandCardLogoClass,
+  brandCardOfferBadgeSlotClass,
+  brandCardOfferFooterGroupClass,
   partnerBrandCardBodyClass,
   partnerBrandCardCtaClass,
   partnerBrandCardShellClass,
@@ -107,7 +108,7 @@ export function BrowseBrandCard({
           className={brandCardLogoClass}
         />
         <div className={brandCardContentClass}>
-          <div className="flex items-start justify-between gap-2">
+          <div className="mt-3 flex min-h-[2.5rem] items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h3 className="line-clamp-1 text-sm font-bold text-foreground">
                 {brand.businessName}
@@ -131,26 +132,30 @@ export function BrowseBrandCard({
               >
                 <FavoriteHeartIcon favorited={favorited} size="sm" />
               </button>
-            ) : null}
+            ) : (
+              <span aria-hidden className="h-9 w-9 shrink-0" />
+            )}
           </div>
 
-          <div className="mt-3 min-h-[1.75rem] flex-1">
-            <BrandOfferBadge
-              discountPercent={brand.discountPercent}
-              discountLabel={brand.discountLabel}
-            />
-          </div>
+          <div className={brandCardOfferFooterGroupClass}>
+            <div className={brandCardOfferBadgeSlotClass}>
+              <BrandOfferBadge
+                discountPercent={brand.discountPercent}
+                discountLabel={brand.discountLabel}
+              />
+            </div>
 
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              openProfile();
-            }}
-            className={`${brandCardFooterClass} ${partnerBrandCardCtaClass}`}
-          >
-            {ctaLabel}
-          </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                openProfile();
+              }}
+              className={partnerBrandCardCtaClass}
+            >
+              {ctaLabel}
+            </button>
+          </div>
         </div>
       </div>
     </article>
