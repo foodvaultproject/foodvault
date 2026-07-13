@@ -5,6 +5,12 @@ export const MAX_AFFILIATE_DESCRIPTION_LENGTH = 300;
 export const MAX_AFFILIATE_TERMS_LENGTH = 1000;
 export const DEFAULT_AFFILIATE_COOKIE_DURATION: AffiliateCookieDurationDays = 30;
 
+/** Temporary flag while the partner affiliate setup flow is still being built. */
+export const AFFILIATE_PROGRAM_COMING_SOON = true;
+
+export const AFFILIATE_PROGRAM_COMING_SOON_MESSAGE =
+  "We're still perfecting this feature so hold tight, the best part is its going to be completely free for you to add to your profile!";
+
 export const AFFILIATE_COOKIE_DURATION_OPTIONS: {
   value: AffiliateCookieDurationDays;
   label: string;

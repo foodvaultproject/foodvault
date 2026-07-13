@@ -28,7 +28,7 @@ const partnerSupportTopics = [
     title: "Creating your exclusive member offer",
     answer: [
       "Set up your offer in Partner Portal under My Listing → Member Offer. Choose whether your discount applies to your entire store or selected products, then enter your discount percentage.",
-      "FoodVault generates a suggested member discount code for your brand. Members reveal your offer on FoodVault, then complete their purchase on your own website using that code.",
+      "FoodVault generates your member discount code for your business. You must ensure this code is loaded into your online store. Members reveal your offer on FoodVault, then complete their purchase on your own website using that code.",
       "FoodVault does not process orders or take commission on sales. Every purchase happens directly on your site, and you keep the customer relationship.",
     ],
   },

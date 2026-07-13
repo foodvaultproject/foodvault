@@ -64,6 +64,7 @@ import {
 } from "@/lib/partner-offer";
 import {
   defaultAffiliateProgramConfig,
+  AFFILIATE_PROGRAM_COMING_SOON,
   validateAffiliateProgram,
   type AffiliateProgramConfig,
 } from "@/lib/partner-affiliate";
@@ -290,7 +291,7 @@ export function PartnerApplicationPage() {
             );
           }
           setAffiliateProgram({
-            enabled: draft.affiliateEnabled ?? false,
+            enabled: AFFILIATE_PROGRAM_COMING_SOON ? false : (draft.affiliateEnabled ?? false),
             commissionPercent: draft.affiliateCommissionPercent ?? "",
             cookieDurationDays:
               draft.affiliateCookieDurationDays ??
@@ -450,7 +451,9 @@ export function PartnerApplicationPage() {
       return;
     }
 
-    const affiliateValidation = validateAffiliateProgram(affiliateProgram);
+    const affiliateValidation = AFFILIATE_PROGRAM_COMING_SOON
+      ? ({ ok: true } as const)
+      : validateAffiliateProgram(affiliateProgram);
     if (!affiliateValidation.ok) {
       setSubmitError(affiliateValidation.message);
       setSubmitting(false);
@@ -478,11 +481,15 @@ export function PartnerApplicationPage() {
           linkedin,
           tiktok,
           youtube,
-          affiliateEnabled: affiliateProgram.enabled,
-          affiliateCommissionPercent: affiliateProgram.commissionPercent,
+          affiliateEnabled: AFFILIATE_PROGRAM_COMING_SOON ? false : affiliateProgram.enabled,
+          affiliateCommissionPercent: AFFILIATE_PROGRAM_COMING_SOON
+            ? ""
+            : affiliateProgram.commissionPercent,
           affiliateCookieDurationDays: affiliateProgram.cookieDurationDays,
-          affiliateProgramDescription: affiliateProgram.programDescription,
-          affiliateTerms: affiliateProgram.affiliateTerms,
+          affiliateProgramDescription: AFFILIATE_PROGRAM_COMING_SOON
+            ? ""
+            : affiliateProgram.programDescription,
+          affiliateTerms: AFFILIATE_PROGRAM_COMING_SOON ? "" : affiliateProgram.affiliateTerms,
         },
         {
           bannerUpload: bannerUpload
@@ -812,9 +819,9 @@ export function PartnerApplicationPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border border-border bg-background p-6 opacity-95 shadow-sm sm:p-8">
               <SectionHeader
-                title="Affiliate Program (Optional)"
+                title="Affiliate Program (Coming Soon)"
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />

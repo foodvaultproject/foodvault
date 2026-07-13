@@ -24,12 +24,14 @@ import {
 import {
   buildStorewideDiscountTitle,
   deriveSelectedProductsDiscount,
+  sanitizeDiscountValue,
   selectedProductToDraft,
   validateOfferForm,
   type OfferScope,
   type SelectedProductDraft,
 } from "@/lib/partner-offer";
 import {
+  AFFILIATE_PROGRAM_COMING_SOON,
   DEFAULT_AFFILIATE_COOKIE_DURATION,
   validateAffiliateProgram,
   type AffiliateCookieDurationDays,
@@ -222,7 +224,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     galleryItems: galleryItemsFromData(data),
     profileSlug:
       data.slug || partnerProfileSlug(data.companyName || partner.business_name || ""),
-    affiliateEnabled: data.affiliateEnabled,
+    affiliateEnabled: AFFILIATE_PROGRAM_COMING_SOON ? false : data.affiliateEnabled,
     affiliateCommissionPercent: data.affiliateCommissionPercent,
     affiliateCookieDurationDays: data.affiliateCookieDurationDays,
     affiliateProgramDescription: data.affiliateProgramDescription,
@@ -311,10 +313,9 @@ export function PartnerListingEditor() {
 
   function updateOfferValue(raw: string) {
     if (!canEditOffer) return;
-    const numeric = raw.replace(/[^0-9.]/g, "");
     setListing((prev) => ({
       ...prev,
-      offerValue: numeric,
+      offerValue: sanitizeDiscountValue(raw),
     }));
   }
 
@@ -503,13 +504,15 @@ export function PartnerListingEditor() {
       return;
     }
 
-    const affiliateValidation = validateAffiliateProgram({
-      enabled: listing.affiliateEnabled,
-      commissionPercent: listing.affiliateCommissionPercent,
-      cookieDurationDays: listing.affiliateCookieDurationDays,
-      programDescription: listing.affiliateProgramDescription,
-      affiliateTerms: listing.affiliateTerms,
-    });
+    const affiliateValidation = AFFILIATE_PROGRAM_COMING_SOON
+      ? ({ ok: true } as const)
+      : validateAffiliateProgram({
+          enabled: listing.affiliateEnabled,
+          commissionPercent: listing.affiliateCommissionPercent,
+          cookieDurationDays: listing.affiliateCookieDurationDays,
+          programDescription: listing.affiliateProgramDescription,
+          affiliateTerms: listing.affiliateTerms,
+        });
     if (!affiliateValidation.ok) {
       setStatus({ type: "error", message: affiliateValidation.message });
       return;
@@ -575,11 +578,15 @@ export function PartnerListingEditor() {
       slug:
         listing.profileSlug ||
         partnerProfileSlug(companyName || partner.business_name || ""),
-      affiliateEnabled: listing.affiliateEnabled,
-      affiliateCommissionPercent: listing.affiliateCommissionPercent,
+      affiliateEnabled: AFFILIATE_PROGRAM_COMING_SOON ? false : listing.affiliateEnabled,
+      affiliateCommissionPercent: AFFILIATE_PROGRAM_COMING_SOON
+        ? ""
+        : listing.affiliateCommissionPercent,
       affiliateCookieDurationDays: listing.affiliateCookieDurationDays,
-      affiliateProgramDescription: listing.affiliateProgramDescription,
-      affiliateTerms: listing.affiliateTerms,
+      affiliateProgramDescription: AFFILIATE_PROGRAM_COMING_SOON
+        ? ""
+        : listing.affiliateProgramDescription,
+      affiliateTerms: AFFILIATE_PROGRAM_COMING_SOON ? "" : listing.affiliateTerms,
       affiliateCreatedAt: listing.affiliateCreatedAt,
       affiliateUpdatedAt: null,
     };
@@ -869,8 +876,8 @@ export function PartnerListingEditor() {
           </div>
         </section>
 
-        <section id="affiliate" className={`${portalCard} mt-6 scroll-mt-20`}>
-          <h2 className={portalSectionTitle}>Affiliate Program (Optional)</h2>
+        <section id="affiliate" className={`${portalCard} mt-6 scroll-mt-20 opacity-95`}>
+          <h2 className={portalSectionTitle}>Affiliate Program (Coming Soon)</h2>
           <div className={portalCardContent}>
             <AffiliateProgramFields
               value={{

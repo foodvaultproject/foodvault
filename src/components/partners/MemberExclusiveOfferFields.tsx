@@ -48,7 +48,7 @@ function DiscountValueField({
   return (
     <div>
       <label htmlFor={id} className={labelClass}>
-        Discount Value
+        Discount Value <span className="text-red-600">*</span>
       </label>
       <div className={`relative max-w-xs ${fieldGapClass}`}>
         <input
