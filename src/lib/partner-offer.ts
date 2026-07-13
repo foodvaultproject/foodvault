@@ -2,6 +2,7 @@ export type OfferScope = "entire_store" | "selected_products";
 
 export const MAX_SELECTED_PRODUCTS = 20;
 export const MAX_PRODUCT_DESCRIPTION_LENGTH = 50;
+export const MAX_PRODUCT_NAME_LENGTH = 40;
 
 export type SelectedProduct = {
   id: string;
@@ -10,6 +11,7 @@ export type SelectedProduct = {
   shortDescription: string;
   productUrl: string;
   discountPercent: number;
+  normalPrice: number;
   conditions?: string | null;
   sortOrder: number;
 };
@@ -19,16 +21,72 @@ export type SelectedProductDraft = {
   id: string;
   imageUrl: string | null;
   imageFile: File | null;
+  imageOriginalUrl?: string | null;
+  imageCrop?: import("@/lib/partner-gallery-crop").GalleryCropSettings | null;
   name: string;
   shortDescription: string;
   productUrl: string;
   discountValue: string;
+  normalPrice: string;
   conditions: string;
   sortOrder: number;
 };
 
 export function sanitizeDiscountValue(raw: string): string {
   return raw.replace(/\D/g, "").slice(0, 2);
+}
+
+export function sanitizePriceValue(raw: string): string {
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const [whole = "", ...fractionParts] = cleaned.split(".");
+  const fraction = fractionParts.join("").slice(0, 2);
+  if (!fractionParts.length) {
+    return whole.slice(0, 6);
+  }
+  return `${whole.slice(0, 6)}.${fraction}`;
+}
+
+export function parsePriceValue(raw: string): number | null {
+  const value = Number(sanitizePriceValue(raw));
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+export function formatNzPrice(value: number): string {
+  return `$${value.toFixed(2)}`;
+}
+
+export function calculateMemberPriceLabel(
+  normalPrice: string,
+  discountValue: string
+): string {
+  const price = parsePriceValue(normalPrice);
+  const discount = Number(sanitizeDiscountValue(discountValue));
+  if (!price || !discount) return "";
+  return formatNzPrice(price * (1 - discount / 100));
+}
+
+export function formatProductNameInput(
+  raw: string,
+  maxLength = MAX_PRODUCT_NAME_LENGTH
+): string {
+  if (!raw) return "";
+  const collapsed = raw.replace(/\s+/g, " ");
+  const leadingSpace = raw.startsWith(" ") ? " " : "";
+  const trimmed = collapsed.trimStart();
+  if (!trimmed) {
+    return leadingSpace.slice(0, maxLength);
+  }
+  const formatted = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return (leadingSpace + formatted).slice(0, maxLength);
+}
+
+export function finalizeProductNameInput(
+  raw: string,
+  maxLength = MAX_PRODUCT_NAME_LENGTH
+): string {
+  const trimmed = raw.replace(/\s+/g, " ").trim();
+  if (!trimmed) return "";
+  return (trimmed.charAt(0).toUpperCase() + trimmed.slice(1)).slice(0, maxLength);
 }
 
 export function createSelectedProductDraft(sortOrder: number): SelectedProductDraft {
@@ -40,6 +98,7 @@ export function createSelectedProductDraft(sortOrder: number): SelectedProductDr
     shortDescription: "",
     productUrl: "",
     discountValue: "",
+    normalPrice: "",
     conditions: "",
     sortOrder,
   };
@@ -66,6 +125,7 @@ function parseProductRow(value: unknown, index: number): SelectedProduct | null 
   const name = String(row.name ?? "").trim();
   const productUrl = String(row.productUrl ?? row.product_url ?? "").trim();
   const discountPercent = Number(row.discountPercent ?? row.discount_percent);
+  const rawNormalPrice = Number(row.normalPrice ?? row.normal_price);
   const shortDescription = String(
     row.shortDescription ?? row.short_description ?? ""
   ).trim();
@@ -74,6 +134,9 @@ function parseProductRow(value: unknown, index: number): SelectedProduct | null 
     return null;
   }
 
+  const normalPrice =
+    Number.isFinite(rawNormalPrice) && rawNormalPrice > 0 ? rawNormalPrice : 0;
+
   return {
     id: String(row.id ?? `product-${index}`),
     imageUrl,
@@ -81,6 +144,7 @@ function parseProductRow(value: unknown, index: number): SelectedProduct | null 
     shortDescription: shortDescription.slice(0, MAX_PRODUCT_DESCRIPTION_LENGTH),
     productUrl,
     discountPercent,
+    normalPrice,
     conditions:
       typeof row.conditions === "string" && row.conditions.trim()
         ? row.conditions.trim()
@@ -108,6 +172,7 @@ export function selectedProductToDraft(product: SelectedProduct): SelectedProduc
     shortDescription: product.shortDescription,
     productUrl: product.productUrl,
     discountValue: String(product.discountPercent),
+    normalPrice: product.normalPrice > 0 ? product.normalPrice.toFixed(2) : "",
     conditions: product.conditions ?? "",
     sortOrder: product.sortOrder,
   };
@@ -118,19 +183,21 @@ export function draftToStoredProduct(draft: SelectedProductDraft): SelectedProdu
   const name = draft.name.trim();
   const productUrl = draft.productUrl.trim();
   const discountPercent = Number(sanitizeDiscountValue(draft.discountValue));
+  const normalPrice = parsePriceValue(draft.normalPrice);
 
-  if (!imageUrl || !name || !productUrl || !discountPercent) {
+  if (!imageUrl || !name || !productUrl || !discountPercent || !normalPrice) {
     return null;
   }
 
   return {
     id: draft.id,
     imageUrl,
-    name,
+    name: finalizeProductNameInput(name),
     shortDescription: draft.shortDescription.trim().slice(0, MAX_PRODUCT_DESCRIPTION_LENGTH),
     productUrl,
     discountPercent,
-    conditions: draft.conditions.trim() || null,
+    normalPrice,
+    conditions: null,
     sortOrder: draft.sortOrder,
   };
 }
@@ -202,6 +269,12 @@ export function validateOfferForm(
     if (!product.name.trim()) {
       return { ok: false, message: `${label}: product name is required.` };
     }
+    if (product.name.trim().length > MAX_PRODUCT_NAME_LENGTH) {
+      return {
+        ok: false,
+        message: `${label}: product name must be ${MAX_PRODUCT_NAME_LENGTH} characters or fewer.`,
+      };
+    }
     if (!product.shortDescription.trim()) {
       return { ok: false, message: `${label}: short description is required.` };
     }
@@ -220,6 +293,10 @@ export function validateOfferForm(
         ok: false,
         message: `${label}: enter a discount between 1 and 99.`,
       };
+    }
+    const normalPrice = parsePriceValue(product.normalPrice);
+    if (!normalPrice) {
+      return { ok: false, message: `${label}: normal price is required.` };
     }
   }
 

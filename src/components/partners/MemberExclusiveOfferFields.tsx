@@ -91,13 +91,6 @@ export function MemberExclusiveOfferFields({
           compact={compact}
         />
       )}
-
-      <div className="rounded-lg border border-success/20 bg-background px-4 py-3">
-        <p className={`${helperClass} leading-relaxed`}>
-          FoodVault takes no commission on sales. Your offer is direct to members on your
-          platform.
-        </p>
-      </div>
     </div>
   );
 }

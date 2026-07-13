@@ -6,12 +6,18 @@ import {
   DEFAULT_GALLERY_CROP,
   GALLERY_ASPECT,
   getCroppedGalleryBlob,
+  getCroppedImageBlob,
   type GalleryCropSettings,
 } from "@/lib/partner-gallery-crop";
 
 type GalleryCropEditorProps = {
   imageSrc: string;
   initialCrop?: GalleryCropSettings;
+  aspect?: number;
+  outputWidth?: number;
+  outputHeight?: number;
+  title?: string;
+  description?: string;
   onCancel: () => void;
   onSave: (result: {
     croppedBlob: Blob;
@@ -23,6 +29,11 @@ type GalleryCropEditorProps = {
 export function GalleryCropEditor({
   imageSrc,
   initialCrop = DEFAULT_GALLERY_CROP,
+  aspect = GALLERY_ASPECT,
+  outputWidth,
+  outputHeight,
+  title = "Adjust Gallery Image",
+  description = "Drag and zoom your image inside the frame. This crop is how it will appear across FoodVault.",
   onCancel,
   onSave,
 }: GalleryCropEditorProps) {
@@ -44,7 +55,15 @@ export function GalleryCropEditor({
     if (!croppedAreaPixels) return;
     setSaving(true);
     try {
-      const croppedBlob = await getCroppedGalleryBlob(imageSrc, croppedAreaPixels);
+      const croppedBlob =
+        outputWidth && outputHeight
+          ? await getCroppedImageBlob(
+              imageSrc,
+              croppedAreaPixels,
+              outputWidth,
+              outputHeight
+            )
+          : await getCroppedGalleryBlob(imageSrc, croppedAreaPixels);
       const previewUrl = URL.createObjectURL(croppedBlob);
       onSave({
         croppedBlob,
@@ -66,12 +85,9 @@ export function GalleryCropEditor({
       <div className="flex max-h-[95vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-border bg-background shadow-xl">
         <div className="border-b border-border px-5 py-4 sm:px-6">
           <h2 id="gallery-crop-title" className="text-lg font-bold text-foreground">
-            Adjust Gallery Image
+            {title}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Drag and zoom your image inside the portrait frame. This 4:5 crop is how
-            it will appear across FoodVault.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
 
         <div className="relative h-80 bg-[#111827] sm:h-96">
@@ -79,7 +95,7 @@ export function GalleryCropEditor({
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={GALLERY_ASPECT}
+            aspect={aspect}
             cropShape="rect"
             showGrid
             onCropChange={setCrop}

@@ -62,10 +62,12 @@ function rotateSize(width: number, height: number, rotation: number) {
   };
 }
 
-/** Render a 4:5 JPEG from the crop area (1080×1350 display asset). */
-export async function getCroppedGalleryBlob(
+/** Render a JPEG from the crop area at the requested output size. */
+export async function getCroppedImageBlob(
   imageSrc: string,
   pixelCrop: Area,
+  outputWidth: number,
+  outputHeight: number,
   rotation = 0
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
@@ -98,8 +100,8 @@ export async function getCroppedGalleryBlob(
     throw new Error("Unable to create output canvas context.");
   }
 
-  outputCanvas.width = GALLERY_OUTPUT_WIDTH;
-  outputCanvas.height = GALLERY_OUTPUT_HEIGHT;
+  outputCanvas.width = outputWidth;
+  outputCanvas.height = outputHeight;
 
   outputCtx.drawImage(
     canvas,
@@ -109,15 +111,15 @@ export async function getCroppedGalleryBlob(
     pixelCrop.height,
     0,
     0,
-    GALLERY_OUTPUT_WIDTH,
-    GALLERY_OUTPUT_HEIGHT
+    outputWidth,
+    outputHeight
   );
 
   return new Promise((resolve, reject) => {
     outputCanvas.toBlob(
       (blob) => {
         if (!blob) {
-          reject(new Error("Gallery crop export failed."));
+          reject(new Error("Image crop export failed."));
           return;
         }
         resolve(blob);
@@ -126,6 +128,38 @@ export async function getCroppedGalleryBlob(
       0.92
     );
   });
+}
+
+/** Render a 4:5 JPEG from the crop area (1080×1350 display asset). */
+export async function getCroppedGalleryBlob(
+  imageSrc: string,
+  pixelCrop: Area,
+  rotation = 0
+): Promise<Blob> {
+  return getCroppedImageBlob(
+    imageSrc,
+    pixelCrop,
+    GALLERY_OUTPUT_WIDTH,
+    GALLERY_OUTPUT_HEIGHT,
+    rotation
+  );
+}
+
+export const PRODUCT_ASPECT = 1;
+export const PRODUCT_OUTPUT_SIZE = 800;
+
+export async function getCroppedProductBlob(
+  imageSrc: string,
+  pixelCrop: Area,
+  rotation = 0
+): Promise<Blob> {
+  return getCroppedImageBlob(
+    imageSrc,
+    pixelCrop,
+    PRODUCT_OUTPUT_SIZE,
+    PRODUCT_OUTPUT_SIZE,
+    rotation
+  );
 }
 
 export function revokeIfBlobUrl(url: string | undefined) {
