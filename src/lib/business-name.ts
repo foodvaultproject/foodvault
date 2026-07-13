@@ -1,4 +1,5 @@
 export const MAX_BUSINESS_NAME_LENGTH = 25;
+export const MAX_CONTACT_NAME_LENGTH = 50;
 
 function capitalizeWord(word: string): string {
   const match = word.match(/^([^A-Za-z]*)([A-Za-z])([\s\S]*)$/);

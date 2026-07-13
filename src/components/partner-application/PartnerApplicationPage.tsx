@@ -26,6 +26,7 @@ import {
   finalizeBusinessNameInput,
   formatBusinessNameInput,
   MAX_BUSINESS_NAME_LENGTH,
+  MAX_CONTACT_NAME_LENGTH,
 } from "@/lib/business-name";
 import {
   PartnerLogoUploadField,
@@ -84,17 +85,26 @@ function sanitizePhoneNumber(raw: string): string {
 function SectionHeader({
   icon,
   title,
+  description,
 }: {
   icon: React.ReactNode;
   title: string;
+  description?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 border-b border-border pb-4">
-      <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary/10 text-primary">
-        {icon}
-      </span>
-      <h2 className="text-lg font-bold text-foreground">{title}</h2>
-    </div>
+    <>
+      <div className="flex items-center gap-3 border-b border-border pb-4">
+        <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary/10 text-primary">
+          {icon}
+        </span>
+        <h2 className="text-lg font-bold text-foreground">{title}</h2>
+      </div>
+      {description ? (
+        <div className="mt-6 space-y-3 text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -187,6 +197,7 @@ export function PartnerApplicationPage() {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProductDraft[]>([]);
   const [supportEmail, setSupportEmail] = useState("");
   const [supportPhone, setSupportPhone] = useState("");
+  const [contactName, setContactName] = useState("");
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -242,6 +253,9 @@ export function PartnerApplicationPage() {
         );
         setSupportEmail(draft.supportEmail ?? partnerSession.email);
         setSupportPhone(sanitizePhoneNumber(draft.supportPhone ?? ""));
+        setContactName(
+          formatBusinessNameInput(draft.contactName ?? "", MAX_CONTACT_NAME_LENGTH)
+        );
         setInstagram(draft.instagram ?? "");
         setFacebook(draft.facebook ?? "");
         setLinkedin(draft.linkedin ?? "");
@@ -291,6 +305,7 @@ export function PartnerApplicationPage() {
       })),
       supportEmail,
       supportPhone,
+      contactName,
       instagram,
       facebook,
       linkedin,
@@ -314,6 +329,7 @@ export function PartnerApplicationPage() {
     selectedProducts,
     supportEmail,
     supportPhone,
+    contactName,
     instagram,
     facebook,
     linkedin,
@@ -421,6 +437,7 @@ export function PartnerApplicationPage() {
           selectedProducts,
           supportEmail,
           supportPhone,
+          contactName: finalizeBusinessNameInput(contactName, MAX_CONTACT_NAME_LENGTH),
           instagram,
           facebook,
           linkedin,
@@ -526,6 +543,7 @@ export function PartnerApplicationPage() {
             <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
               <SectionHeader
                 title="Business Details"
+                description={<p>Tell us about your business.</p>}
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75z" />
@@ -591,6 +609,15 @@ export function PartnerApplicationPage() {
             <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
               <SectionHeader
                 title="Brand Details"
+                description={
+                  <>
+                    <p>Show members what makes your brand special.</p>
+                    <p>
+                      Add your logo, banner and a short description. Don&apos;t overthink
+                      it—you can update everything later.
+                    </p>
+                  </>
+                }
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -698,6 +725,21 @@ export function PartnerApplicationPage() {
             <section className="rounded-lg border border-success/20 bg-success-light/40 p-6 sm:p-8">
               <SectionHeader
                 title="Member Exclusive Offer"
+                description={
+                  <>
+                    <p className="font-semibold text-foreground">Your Exclusive Member Offer</p>
+                    <p>
+                      How you use FoodVault is completely up to you. Offer one discount across
+                      your whole website or create different deals on selected products. You can
+                      change your offers whenever you like, so you&apos;re always in control.
+                    </p>
+                    <p>
+                      FoodVault members are here because they&apos;re actively looking for great
+                      deals, so a strong member offer gives them another reason to choose your
+                      brand.
+                    </p>
+                  </>
+                }
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
@@ -720,7 +762,7 @@ export function PartnerApplicationPage() {
 
             <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
               <SectionHeader
-                title="Affiliate Program"
+                title="Affiliate Program (Optional)"
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
@@ -741,18 +783,60 @@ export function PartnerApplicationPage() {
 
             <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
               <SectionHeader
-                title="Contact Details"
+                title={SOCIAL_PRESENCE_SECTION_TITLE}
+                description={<p>{SOCIAL_PRESENCE_SECTION_DESCRIPTION}</p>}
+                icon={
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.935-2.186 2.25 2.25 0 00-3.935 2.186z" />
+                  </svg>
+                }
+              />
+              <PartnerSocialFields
+                values={socialValues}
+                onChange={handleSocialChange}
+                errors={socialErrors}
+                inputClassName={inputClass}
+                labelClassName={labelClass}
+                layout="stack"
+                idPrefix="application-social"
+              />
+            </section>
+
+            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+              <SectionHeader
+                title="Contact Details (Internal Use Only)"
+                description={<p>We&apos;ll only use these details if we need to contact you.</p>}
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                   </svg>
                 }
               />
-              <p className="mt-6 text-sm text-muted-foreground">
-                This information is for internal use only and will not be shared on
-                your public profile.
-              </p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="contactName" className={labelClass}>
+                    Contact Name
+                  </label>
+                  <input
+                    id="contactName"
+                    name="contactName"
+                    required
+                    maxLength={MAX_CONTACT_NAME_LENGTH}
+                    value={contactName}
+                    onChange={(e) =>
+                      setContactName(
+                        formatBusinessNameInput(e.target.value, MAX_CONTACT_NAME_LENGTH)
+                      )
+                    }
+                    onBlur={(e) =>
+                      setContactName(
+                        finalizeBusinessNameInput(e.target.value, MAX_CONTACT_NAME_LENGTH)
+                      )
+                    }
+                    placeholder="e.g. Jane Smith"
+                    className={`mt-2 ${inputClass}`}
+                  />
+                </div>
                 <div>
                   <label htmlFor="supportEmail" className={labelClass}>
                     Customer Support Email
@@ -785,29 +869,6 @@ export function PartnerApplicationPage() {
                   />
                 </div>
               </div>
-            </section>
-
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
-              <SectionHeader
-                title={SOCIAL_PRESENCE_SECTION_TITLE}
-                icon={
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.935-2.186 2.25 2.25 0 00-3.935 2.186z" />
-                  </svg>
-                }
-              />
-              <p className="mt-6 text-sm text-muted-foreground">
-                {SOCIAL_PRESENCE_SECTION_DESCRIPTION}
-              </p>
-              <PartnerSocialFields
-                values={socialValues}
-                onChange={handleSocialChange}
-                errors={socialErrors}
-                inputClassName={inputClass}
-                labelClassName={labelClass}
-                layout="stack"
-                idPrefix="application-social"
-              />
             </section>
 
             <section className="space-y-4">

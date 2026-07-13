@@ -36,6 +36,7 @@ export type PartnerApplicationDraft = {
   offerAppliesTo?: string;
   supportEmail?: string;
   supportPhone?: string;
+  contactName?: string;
   instagram?: string;
   facebook?: string;
   linkedin?: string;

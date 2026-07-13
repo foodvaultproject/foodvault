@@ -14,7 +14,7 @@ export type SocialFieldErrors = Partial<Record<SocialFieldKey, string>>;
 export const SOCIAL_PRESENCE_SECTION_TITLE = "Social Presence (Optional)";
 
 export const SOCIAL_PRESENCE_SECTION_DESCRIPTION =
-  "Share your social media profiles to help members learn more about your brand and stay connected. All fields are optional.";
+  "Optional, but recommended. Help members discover more about your brand and build trust by linking your social channels.";
 
 export const EMPTY_PARTNER_SOCIAL_LINKS: PartnerSocialLinks = {
   instagram: "",

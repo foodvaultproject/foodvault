@@ -12,7 +12,7 @@ import {
 import { portalTextarea } from "@/lib/partner-portal-classes";
 
 export const AFFILIATE_PROGRAM_SECTION_DESCRIPTION =
-  "Increase your brand's reach with a free affiliate program. Affiliates promote your products to their audiences, bringing you new customers, and you only pay commission when a sale is made. FoodVault handles all tracking and payouts automatically.";
+  "Want more people talking about your brand? Turn on the affiliate program and let approved creators promote your products. You choose the commission and can disable it at any time.";
 
 type AffiliateProgramFieldsProps = {
   value: AffiliateProgramConfig;

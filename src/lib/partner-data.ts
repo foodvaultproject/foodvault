@@ -224,6 +224,7 @@ export async function submitPartnerApplication(
     offer_terms: null,
     support_email: draft.supportEmail ?? null,
     support_phone: draft.supportPhone ?? null,
+    contact_name: formatBusinessNameOrNull(draft.contactName),
     instagram: normalizeSocialValueForStorage(draft.instagram),
     facebook: normalizeSocialValueForStorage(draft.facebook),
     linkedin: normalizeSocialValueForStorage(draft.linkedin),
@@ -393,6 +394,7 @@ export async function submitPartnerApplication(
       category_groups: categoryFields.category_groups,
       primary_categories: categoryFields.primary_categories,
       youtube: normalizeSocialValueForStorage(draft.youtube),
+      contact_name: formatBusinessNameOrNull(draft.contactName),
       ...affiliatePayload,
     })
     .eq("user_id", userId);
@@ -453,6 +455,7 @@ export type PartnerListingData = {
   selectedProducts: SelectedProduct[];
   supportEmail: string;
   supportPhone: string;
+  contactName: string;
   instagram: string;
   facebook: string;
   linkedin: string;
@@ -478,7 +481,7 @@ export type PartnerListingData = {
 };
 
 const LISTING_COLUMNS_CORE =
-  "business_name, website_url, short_description, brand_story, primary_category, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, support_email, support_phone, instagram, facebook, tiktok, banner_image_url, logo_url, gallery_image_urls, slug";
+  "business_name, website_url, short_description, brand_story, primary_category, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, support_email, support_phone, contact_name, instagram, facebook, tiktok, banner_image_url, logo_url, gallery_image_urls, slug";
 
 const LISTING_COLUMNS_SOCIAL =
   `${LISTING_COLUMNS_CORE}, linkedin, youtube`;
@@ -580,6 +583,7 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
     selectedProducts: parseSelectedProducts(row.selected_products),
     supportEmail: str(row.support_email),
     supportPhone: str(row.support_phone),
+    contactName: formatBusinessName(str(row.contact_name)),
     instagram: str(row.instagram),
     facebook: str(row.facebook),
     linkedin: str(row.linkedin),
@@ -687,6 +691,7 @@ function buildPartnerListingUpdatePayload(
     offer_terms: null,
     support_email: data.supportEmail || null,
     support_phone: data.supportPhone || null,
+    contact_name: formatBusinessNameOrNull(data.contactName),
     instagram: normalizeSocialValueForStorage(data.instagram),
     facebook: normalizeSocialValueForStorage(data.facebook),
     linkedin: normalizeSocialValueForStorage(data.linkedin),

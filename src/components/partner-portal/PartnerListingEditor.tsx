@@ -50,6 +50,7 @@ import {
   finalizeBusinessNameInput,
   formatBusinessNameInput,
   MAX_BUSINESS_NAME_LENGTH,
+  MAX_CONTACT_NAME_LENGTH,
 } from "@/lib/business-name";
 import {
   partnerProfilePathFromSlug,
@@ -108,6 +109,7 @@ type EditorListing = {
   memberCode: string;
   supportEmail: string;
   supportPhone: string;
+  contactName: string;
   instagram: string;
   facebook: string;
   linkedin: string;
@@ -143,6 +145,7 @@ const emptyListing: EditorListing = {
   memberCode: "",
   supportEmail: "",
   supportPhone: "",
+  contactName: "",
   instagram: "",
   facebook: "",
   linkedin: "",
@@ -198,6 +201,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     memberCode: partner.member_code ?? "",
     supportEmail: data.supportEmail,
     supportPhone: data.supportPhone,
+    contactName: data.contactName,
     instagram: data.instagram,
     facebook: data.facebook,
     linkedin: data.linkedin,
@@ -544,6 +548,7 @@ export function PartnerListingEditor() {
       selectedProducts,
       supportEmail: listing.supportEmail,
       supportPhone: listing.supportPhone,
+      contactName: finalizeBusinessNameInput(listing.contactName, MAX_CONTACT_NAME_LENGTH),
       instagram: listing.instagram,
       facebook: listing.facebook,
       linkedin: listing.linkedin,
@@ -646,6 +651,7 @@ export function PartnerListingEditor() {
           <div className={`min-w-0 ${portalSectionStack}`}>
             <section className={portalCard}>
               <h2 className={portalSectionTitle}>Business Details</h2>
+              <p className={`${portalHelper} mt-1`}>Tell us about your business.</p>
               <div className={`${portalFormGrid} ${portalCardContent}`}>
                 <div>
                   <label className={labelClass}>Company Name</label>
@@ -672,9 +678,13 @@ export function PartnerListingEditor() {
 
             <section className={portalCard}>
               <h2 className={portalSectionTitle}>Brand Images</h2>
-              <p className={`${portalHelper} mt-1`}>
-                Cover banner and circular logo shown on your public profile.
-              </p>
+              <div className={`${portalHelper} mt-1 space-y-2`}>
+                <p>Show members what makes your brand special.</p>
+                <p>
+                  Add your logo, banner and a short description. Don&apos;t overthink
+                  it—you can update everything later.
+                </p>
+              </div>
               <div className={`grid gap-5 lg:grid-cols-2 ${portalCardContent}`}>
                 <div>
                   <PartnerBannerUploadField
@@ -805,6 +815,18 @@ export function PartnerListingEditor() {
               {offerConfirmed ? "Confirmed" : "Not Confirmed"}
             </span>
           </div>
+          <div className={`${portalHelper} mt-1 space-y-2`}>
+            <p className="font-semibold text-foreground">Your Exclusive Member Offer</p>
+            <p>
+              How you use FoodVault is completely up to you. Offer one discount across your
+              whole website or create different deals on selected products. You can change your
+              offers whenever you like, so you&apos;re always in control.
+            </p>
+            <p>
+              FoodVault members are here because they&apos;re actively looking for great deals,
+              so a strong member offer gives them another reason to choose your brand.
+            </p>
+          </div>
           <div className={portalCardContent}>
             <MemberExclusiveOfferFields
               offerScope={listing.offerScope}
@@ -835,7 +857,7 @@ export function PartnerListingEditor() {
         </section>
 
         <section id="affiliate" className={`${portalCard} mt-6 scroll-mt-20`}>
-          <h2 className={portalSectionTitle}>Affiliate Program</h2>
+          <h2 className={portalSectionTitle}>Affiliate Program (Optional)</h2>
           <div className={portalCardContent}>
             <AffiliateProgramFields
               value={{
@@ -868,28 +890,6 @@ export function PartnerListingEditor() {
         <fieldset disabled={!isListingEditable} className={`mt-6 ${portalSectionStack} disabled:opacity-90`}>
           <div className={`min-w-0 ${portalSectionStack}`}>
             <section className={portalCard}>
-              <h2 className={portalSectionTitle}>Contact Details</h2>
-              <div className={`${portalFormGrid} ${portalCardContent}`}>
-                <div>
-                  <label className={labelClass}>Customer Support Email</label>
-                  <input
-                    value={listing.supportEmail}
-                    onChange={(e) => update("supportEmail", e.target.value)}
-                    className={`${portalFieldGap} ${inputClass}`}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Support Phone (Internal Use Only)</label>
-                  <input
-                    value={listing.supportPhone}
-                    onChange={(e) => update("supportPhone", e.target.value)}
-                    className={`${portalFieldGap} ${inputClass}`}
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section className={portalCard}>
               <h2 className={portalSectionTitle}>{SOCIAL_PRESENCE_SECTION_TITLE}</h2>
               <p className={`${portalHelper} mt-1`}>{SOCIAL_PRESENCE_SECTION_DESCRIPTION}</p>
               <PartnerSocialFields
@@ -903,6 +903,54 @@ export function PartnerListingEditor() {
                 layout="grid"
                 idPrefix="listing-social"
               />
+            </section>
+
+            <section className={portalCard}>
+              <h2 className={portalSectionTitle}>Contact Details (Internal Use Only)</h2>
+              <p className={`${portalHelper} mt-1`}>
+                We&apos;ll only use these details if we need to contact you.
+              </p>
+              <div className={`${portalFormGrid} ${portalCardContent}`}>
+                <div>
+                  <label className={labelClass}>Contact Name</label>
+                  <input
+                    value={listing.contactName}
+                    onChange={(e) =>
+                      update(
+                        "contactName",
+                        formatBusinessNameInput(e.target.value, MAX_CONTACT_NAME_LENGTH)
+                      )
+                    }
+                    onBlur={() =>
+                      setListing((prev) => ({
+                        ...prev,
+                        contactName: finalizeBusinessNameInput(
+                          prev.contactName,
+                          MAX_CONTACT_NAME_LENGTH
+                        ),
+                      }))
+                    }
+                    maxLength={MAX_CONTACT_NAME_LENGTH}
+                    className={`${portalFieldGap} ${inputClass}`}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Customer Support Email</label>
+                  <input
+                    value={listing.supportEmail}
+                    onChange={(e) => update("supportEmail", e.target.value)}
+                    className={`${portalFieldGap} ${inputClass}`}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Support Phone (Optional)</label>
+                  <input
+                    value={listing.supportPhone}
+                    onChange={(e) => update("supportPhone", e.target.value)}
+                    className={`${portalFieldGap} ${inputClass}`}
+                  />
+                </div>
+              </div>
             </section>
           </div>
         </fieldset>
