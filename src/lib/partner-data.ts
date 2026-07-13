@@ -481,7 +481,9 @@ export type PartnerListingData = {
 };
 
 const LISTING_COLUMNS_CORE =
-  "business_name, website_url, short_description, brand_story, primary_category, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, support_email, support_phone, contact_name, instagram, facebook, tiktok, banner_image_url, logo_url, gallery_image_urls, slug";
+  "business_name, website_url, short_description, brand_story, primary_category, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, support_email, support_phone, instagram, facebook, tiktok, banner_image_url, logo_url, gallery_image_urls, slug";
+
+const LISTING_COLUMNS_CORE_WITH_CONTACT = `${LISTING_COLUMNS_CORE}, contact_name`;
 
 const LISTING_COLUMNS_SOCIAL =
   `${LISTING_COLUMNS_CORE}, linkedin, youtube`;
@@ -498,16 +500,24 @@ const LISTING_COLUMNS_WITH_LOGO =
 const LISTING_COLUMNS_AFFILIATE =
   `${LISTING_COLUMNS_WITH_LOGO}, banner_original_url, banner_crop, gallery_original_urls, gallery_image_crops, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, affiliate_created_at, affiliate_updated_at`;
 
+const LISTING_COLUMNS_AFFILIATE_WITH_CONTACT =
+  `${LISTING_COLUMNS_AFFILIATE}, contact_name`;
+
 const LISTING_COLUMNS = LISTING_COLUMNS_AFFILIATE;
 
 const LISTING_COLUMN_TIERS = [
+  LISTING_COLUMNS_AFFILIATE_WITH_CONTACT,
   LISTING_COLUMNS_AFFILIATE,
   LISTING_COLUMNS_WITH_LOGO,
   LISTING_COLUMNS_BASE,
   LISTING_COLUMNS_MULTI_CATEGORY,
   LISTING_COLUMNS_SOCIAL,
+  LISTING_COLUMNS_CORE_WITH_CONTACT,
   LISTING_COLUMNS_CORE,
 ] as const;
+
+const LISTING_FALLBACK_COLUMNS =
+  "business_name, website_url, short_description, brand_story, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_scope, selected_products, support_email, support_phone, instagram, facebook, linkedin, tiktok, youtube, banner_image_url, logo_url, gallery_image_urls, slug, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, affiliate_created_at, affiliate_updated_at, logo_original_url, logo_crop, banner_original_url, banner_crop, gallery_original_urls, gallery_image_crops";
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -642,6 +652,22 @@ export async function getPartnerListing(
       baseRow = data as unknown as Record<string, unknown>;
       break;
     }
+
+    if (error && !isPartnerListingColumnError(error.message)) {
+      break;
+    }
+  }
+
+  if (!baseRow) {
+    const { data, error } = await supabase
+      .from("partners")
+      .select(LISTING_FALLBACK_COLUMNS)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      baseRow = data as unknown as Record<string, unknown>;
+    }
   }
 
   if (!baseRow) {
@@ -649,7 +675,23 @@ export async function getPartnerListing(
   }
 
   const mediaRow = await fetchPartnerListingMediaRow(supabase, userId);
-  return mapPartnerListingRow(mergePartnerListingRows(baseRow, mediaRow));
+  const listing = mapPartnerListingRow(mergePartnerListingRows(baseRow, mediaRow));
+
+  if (!listing.contactName) {
+    const { data, error } = await supabase
+      .from("partners")
+      .select("contact_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      listing.contactName = formatBusinessName(
+        str((data as Record<string, unknown>).contact_name)
+      );
+    }
+  }
+
+  return listing;
 }
 
 function isPartnerListingColumnError(message: string | undefined): boolean {

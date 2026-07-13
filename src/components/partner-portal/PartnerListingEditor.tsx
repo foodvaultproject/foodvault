@@ -647,6 +647,19 @@ export function PartnerListingEditor() {
           </Link>
         </div>
 
+        <section className="mt-6 rounded-lg border-2 border-violet-200 bg-violet-50 px-5 py-4 shadow-sm">
+          <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">
+            Member Discount Code
+          </p>
+          <p className={`${portalMetricValue} mt-0.5 text-primary`}>{listing.memberCode}</p>
+          <p className={`${portalHelper} mt-2 font-bold text-foreground`}>
+            This is your official FoodVault member discount code. Members will enter this code on
+            your website to receive their exclusive discount. Please make sure this exact code has
+            been entered and is active in your online store at all times. This code cannot be
+            changed.
+          </p>
+        </section>
+
         <fieldset disabled={!isListingEditable} className={`mt-6 ${portalSectionStack} disabled:opacity-90`}>
           <div className={`min-w-0 ${portalSectionStack}`}>
             <section className={portalCard}>
@@ -846,13 +859,6 @@ export function PartnerListingEditor() {
               compact
               discountHelperText="Updates the discount shown on your public brand profile."
             />
-          </div>
-          <div className={`rounded-lg border border-border bg-surface-lavender px-4 py-2.5 ${portalCardContent}`}>
-            <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">
-              Member Discount Code
-            </p>
-            <p className={`${portalMetricValue} mt-0.5 text-primary`}>{listing.memberCode}</p>
-            <p className={`${portalHelper} mt-0.5`}>FoodVault suggested code</p>
           </div>
         </section>
 
