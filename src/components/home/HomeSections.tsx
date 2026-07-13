@@ -29,6 +29,7 @@ import {
   IconShoppingBag,
   IconSupplements,
   IconTrendingUp,
+  IconUser,
 } from "@/components/home/home-icons";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
 import type { ComponentType, ReactNode, SVGProps } from "react";
@@ -125,12 +126,11 @@ const partnerQuickLinks: {
     icon: <IconTrendingUp className="h-11 w-11" />,
   },
   {
-    title: "Account & Billing",
-    description:
-      "Manage your partner account details, contacts and subscription in one place.",
+    title: "My Account",
+    description: "Manage your Account details here.",
     href: "/partner/account",
     cta: "Open account",
-    icon: <IconDollarSign className="h-11 w-11" />,
+    icon: <IconUser className="h-11 w-11" />,
   },
   {
     title: "Partner Support",
