@@ -174,11 +174,7 @@ export function PartnerProfileView({
 
   const memberExclusiveOfferCard = (
     <div id="offer" className={memberOfferCardClassName}>
-      <span className="inline-flex text-[11px] font-bold uppercase tracking-wide text-primary">
-        Member Exclusive Offer
-      </span>
-
-      <div className="mt-2">
+      <div>
         <MemberOfferHeadline profile={profile} />
       </div>
 

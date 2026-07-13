@@ -7,6 +7,7 @@ import {
   brandCardContentClass,
   brandCardFavoriteButtonActiveClass,
   brandCardFavoriteButtonClass,
+  brandCardFooterClass,
   brandCardLogoClass,
   partnerBrandCardBodyClass,
   partnerBrandCardCtaClass,
@@ -133,7 +134,7 @@ export function BrowseBrandCard({
             ) : null}
           </div>
 
-          <div className="mt-3">
+          <div className="mt-3 min-h-[1.75rem] flex-1">
             <BrandOfferBadge
               discountPercent={brand.discountPercent}
               discountLabel={brand.discountLabel}
@@ -146,7 +147,7 @@ export function BrowseBrandCard({
               event.stopPropagation();
               openProfile();
             }}
-            className={`${partnerBrandCardCtaClass} mt-4`}
+            className={`${brandCardFooterClass} ${partnerBrandCardCtaClass}`}
           >
             {ctaLabel}
           </button>
