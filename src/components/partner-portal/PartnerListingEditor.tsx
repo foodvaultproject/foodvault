@@ -23,6 +23,7 @@ import {
 } from "@/lib/partner-social";
 import {
   buildStorewideDiscountTitle,
+  deriveSelectedProductsDiscount,
   selectedProductToDraft,
   validateOfferForm,
   type OfferScope,
@@ -186,6 +187,11 @@ function listingFromPartnerRecord(partner: PartnerRecord): EditorListing {
 }
 
 function listingFromData(data: PartnerListingData, partner: PartnerRecord): EditorListing {
+  const offerValue =
+    data.offerScope === "entire_store"
+      ? data.offerValue
+      : data.offerValue || deriveSelectedProductsDiscount(data.selectedProducts);
+
   return {
     companyName: data.companyName || partner.business_name || "",
     websiteUrl: data.websiteUrl || partner.website_url || "",
@@ -194,7 +200,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     categoryGroups:
       data.categoryGroups.length > 0 ? data.categoryGroups : [emptyCategoryGroup()],
     offerType: data.offerType || "Percentage Discount",
-    offerValue: data.offerValue,
+    offerValue,
     offerTitle: data.offerTitle,
     offerScope: data.offerScope,
     selectedProductDrafts: data.selectedProducts.map(selectedProductToDraft),
@@ -522,7 +528,8 @@ export function PartnerListingEditor() {
     try {
       selectedProducts = await uploadSelectedProductDrafts(
         partner.user_id,
-        listing.selectedProductDrafts
+        listing.selectedProductDrafts,
+        listing.offerValue
       );
     } catch (error) {
       setSaving(false);
@@ -542,7 +549,7 @@ export function PartnerListingEditor() {
       subcategories: listing.categoryGroups[0]?.subcategories ?? [],
       categoryGroups: listing.categoryGroups,
       offerType: "Percentage Discount",
-      offerValue: listing.offerScope === "entire_store" ? listing.offerValue : "",
+      offerValue: listing.offerValue,
       offerTitle,
       offerScope: listing.offerScope,
       selectedProducts,
@@ -911,7 +918,7 @@ export function PartnerListingEditor() {
               />
             </section>
 
-            <section className={portalCard}>
+            <section className="rounded-lg border-2 border-emerald-200 bg-emerald-50 px-5 py-4 shadow-sm">
               <h2 className={portalSectionTitle}>Contact Details (Internal Use Only)</h2>
               <p className={`${portalHelper} mt-1`}>
                 We&apos;ll only use these details if we need to contact you.

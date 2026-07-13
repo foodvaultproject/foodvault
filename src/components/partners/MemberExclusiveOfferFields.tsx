@@ -24,6 +24,57 @@ type MemberExclusiveOfferFieldsProps = {
   discountHelperText?: string;
 };
 
+function DiscountValueField({
+  id,
+  discountValue,
+  onDiscountValueChange,
+  disabled,
+  inputClass,
+  labelClass,
+  helperClass,
+  fieldGapClass,
+  helperText,
+}: {
+  id: string;
+  discountValue: string;
+  onDiscountValueChange: (value: string) => void;
+  disabled?: boolean;
+  inputClass: string;
+  labelClass: string;
+  helperClass: string;
+  fieldGapClass: string;
+  helperText: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className={labelClass}>
+        Discount Value
+      </label>
+      <div className={`relative max-w-xs ${fieldGapClass}`}>
+        <input
+          id={id}
+          name={id}
+          type="text"
+          inputMode="numeric"
+          maxLength={2}
+          required
+          disabled={disabled}
+          value={discountValue}
+          onChange={(event) =>
+            onDiscountValueChange(sanitizeDiscountValue(event.target.value))
+          }
+          placeholder="10"
+          className={`${inputClass} pr-10`}
+        />
+        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.9375rem] text-muted-foreground">
+          %
+        </span>
+      </div>
+      <p className={`${helperClass} mt-1`}>{helperText}</p>
+    </div>
+  );
+}
+
 export function MemberExclusiveOfferFields({
   offerScope,
   onOfferScopeChange,
@@ -53,43 +104,51 @@ export function MemberExclusiveOfferFields({
       </div>
 
       {offerScope === "entire_store" ? (
-        <div>
-          <label htmlFor="discountValue" className={labelClass}>
-            Discount Value
-          </label>
-          <div className={`relative max-w-xs ${fieldGapClass}`}>
-            <input
-              id="discountValue"
-              name="discountValue"
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              required
-              disabled={disabled}
-              value={discountValue}
-              onChange={(event) =>
-                onDiscountValueChange(sanitizeDiscountValue(event.target.value))
-              }
-              placeholder="10"
-              className={`${inputClass} pr-10`}
-            />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.9375rem] text-muted-foreground">
-              %
-            </span>
-          </div>
-          <p className={`${helperClass} mt-1`}>{discountHelperText}</p>
-        </div>
-      ) : (
-        <SelectedProductsEditor
-          products={selectedProducts}
-          onChange={onSelectedProductsChange}
+        <DiscountValueField
+          id="discountValue"
+          discountValue={discountValue}
+          onDiscountValueChange={onDiscountValueChange}
           disabled={disabled}
           inputClass={inputClass}
           labelClass={labelClass}
           helperClass={helperClass}
           fieldGapClass={fieldGapClass}
-          compact={compact}
+          helperText={discountHelperText}
         />
+      ) : (
+        <div className="space-y-4">
+          <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+            <p className={`${helperClass} text-foreground`}>
+              Choose one discount percentage for your selected products. The same discount
+              applies to every product you add below (up to 20). Members will see the
+              discounted member price calculated from each product&apos;s normal price.
+            </p>
+          </div>
+
+          <DiscountValueField
+            id="selectedProductsDiscountValue"
+            discountValue={discountValue}
+            onDiscountValueChange={onDiscountValueChange}
+            disabled={disabled}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            helperClass={helperClass}
+            fieldGapClass={fieldGapClass}
+            helperText="Enter a number from 1 to 99. This discount applies to all products in your selection."
+          />
+
+          <SelectedProductsEditor
+            products={selectedProducts}
+            onChange={onSelectedProductsChange}
+            sharedDiscountValue={discountValue}
+            disabled={disabled}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            helperClass={helperClass}
+            fieldGapClass={fieldGapClass}
+            compact={compact}
+          />
+        </div>
       )}
     </div>
   );

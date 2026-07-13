@@ -35,13 +35,13 @@ export function SelectedProductGrid({
             : "p-3"
         }`}
       >
-        <div className="relative aspect-square overflow-hidden rounded-lg bg-surface">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-surface">
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-            className="object-contain p-1"
+            className="object-cover p-1"
           />
           <span className="absolute right-1.5 top-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
             {product.discountPercent}% OFF

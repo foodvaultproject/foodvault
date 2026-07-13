@@ -167,7 +167,8 @@ export async function submitPartnerApplication(
   const selectedProductDrafts = draft.selectedProducts ?? [];
   const storedProducts = await uploadSelectedProductDrafts(
     userId,
-    selectedProductDrafts
+    selectedProductDrafts,
+    draft.discountValue ?? ""
   );
   const memberCode = generateMemberCode(
     businessName ?? "Partner",
@@ -1000,7 +1001,8 @@ export async function persistPartnerLogo(
 
 export async function uploadSelectedProductDrafts(
   userId: string,
-  drafts: SelectedProductDraft[]
+  drafts: SelectedProductDraft[],
+  sharedDiscountPercent = ""
 ): Promise<SelectedProduct[]> {
   const results: SelectedProduct[] = [];
 
@@ -1012,10 +1014,13 @@ export async function uploadSelectedProductDrafts(
       imageUrl = await uploadPartnerAsset(userId, draft.imageFile, "offer-product");
     }
 
-    const stored = draftToStoredProduct({
-      ...draft,
-      imageUrl: imageUrl ?? "",
-    });
+    const stored = draftToStoredProduct(
+      {
+        ...draft,
+        imageUrl: imageUrl ?? "",
+      },
+      sharedDiscountPercent
+    );
 
     if (!stored || !imageUrl) {
       throw new Error(`Product ${index + 1} is missing a required image.`);

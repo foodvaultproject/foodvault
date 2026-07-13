@@ -57,6 +57,7 @@ import {
   offerScopeFromLegacyAppliesTo,
   sanitizeDiscountValue,
   createSelectedProductDraft,
+  deriveSelectedProductsDiscount,
   validateOfferForm,
   type OfferScope,
   type SelectedProductDraft,
@@ -250,7 +251,12 @@ export function PartnerApplicationPage() {
           setWebsiteUrl(draft.websiteUrl ?? "");
           setShortDescription(draft.shortDescription ?? "");
           setBrandStory(draft.brandStory ?? "");
-          setDiscountValue(sanitizeDiscountValue(draft.discountValue ?? "10"));
+          setDiscountValue(
+            sanitizeDiscountValue(
+              draft.discountValue ??
+                (deriveSelectedProductsDiscount(draft.selectedProducts ?? []) || "10")
+            )
+          );
           setOfferScope(
             draft.offerScope ??
               offerScopeFromLegacyAppliesTo(draft.offerAppliesTo)
@@ -848,7 +854,7 @@ export function PartnerApplicationPage() {
               />
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border-2 border-emerald-200 bg-emerald-50 p-6 shadow-sm sm:p-8">
               <SectionHeader
                 title="Contact Details (Internal Use Only)"
                 description={<p>We&apos;ll only use these details if we need to contact you.</p>}

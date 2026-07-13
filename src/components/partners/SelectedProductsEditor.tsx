@@ -10,8 +10,9 @@ import {
 } from "@/lib/partner-portal-classes";
 import {
   DEFAULT_GALLERY_CROP,
-  PRODUCT_ASPECT,
-  PRODUCT_OUTPUT_SIZE,
+  GALLERY_ASPECT,
+  GALLERY_OUTPUT_HEIGHT,
+  GALLERY_OUTPUT_WIDTH,
   revokeIfBlobUrl,
   type GalleryCropSettings,
 } from "@/lib/partner-gallery-crop";
@@ -23,7 +24,6 @@ import {
   createSelectedProductDraft,
   finalizeProductNameInput,
   formatProductNameInput,
-  sanitizeDiscountValue,
   sanitizePriceValue,
   type SelectedProductDraft,
 } from "@/lib/partner-offer";
@@ -31,6 +31,7 @@ import {
 type SelectedProductsEditorProps = {
   products: SelectedProductDraft[];
   onChange: (products: SelectedProductDraft[]) => void;
+  sharedDiscountValue: string;
   disabled?: boolean;
   inputClass: string;
   labelClass: string;
@@ -46,18 +47,15 @@ function productPreviewUrl(product: SelectedProductDraft): string | null {
 function ProductImageThumbnail({
   product,
   disabled,
-  compact,
   onUpload,
   onEditCrop,
 }: {
   product: SelectedProductDraft;
   disabled?: boolean;
-  compact?: boolean;
   onUpload: () => void;
   onEditCrop: () => void;
 }) {
   const preview = productPreviewUrl(product);
-  const thumbClass = compact ? portalThumbGallery : "h-36 w-36";
 
   return (
     <div>
@@ -65,7 +63,7 @@ function ProductImageThumbnail({
         type="button"
         disabled={disabled}
         onClick={preview ? onEditCrop : onUpload}
-        className={`flex items-center justify-center overflow-hidden rounded-lg border bg-surface transition-colors ${thumbClass} ${
+        className={`flex items-center justify-center overflow-hidden rounded-lg border bg-surface transition-colors ${portalThumbGallery} ${
           preview
             ? "cursor-pointer border-border border-solid shadow-sm hover:border-primary/40"
             : "cursor-pointer border-2 border-dashed border-border hover:border-primary/40 hover:bg-primary/5"
@@ -73,16 +71,16 @@ function ProductImageThumbnail({
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="h-full w-full object-contain" />
+          <img src={preview} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="px-2 text-center">
             <span className="block text-xs font-semibold text-foreground">Upload</span>
-            <span className="mt-1 block text-[10px] text-muted-foreground">Required</span>
+            <span className="mt-1 block text-[10px] text-muted-foreground">4:5 portrait</span>
           </div>
         )}
       </button>
       {preview && !disabled ? (
-        <div className={`mt-1 flex flex-wrap gap-x-2 ${compact ? "" : "gap-2"}`}>
+        <div className="mt-1 flex flex-wrap gap-x-2">
           <button type="button" onClick={onUpload} className={portalTextAction}>
             Replace
           </button>
@@ -97,6 +95,7 @@ function ProductImageThumbnail({
 
 function ProductFields({
   product,
+  sharedDiscountValue,
   disabled,
   inputClass,
   labelClass,
@@ -106,6 +105,7 @@ function ProductFields({
   onUpdate,
 }: {
   product: SelectedProductDraft;
+  sharedDiscountValue: string;
   disabled?: boolean;
   inputClass: string;
   labelClass: string;
@@ -114,58 +114,33 @@ function ProductFields({
   compact?: boolean;
   onUpdate: (next: SelectedProductDraft) => void;
 }) {
-  const memberPrice = calculateMemberPriceLabel(product.normalPrice, product.discountValue);
+  const memberPrice = calculateMemberPriceLabel(product.normalPrice, sharedDiscountValue);
   const gapClass = compact ? fieldGapClass : "mt-2";
 
   return (
     <div className={compact ? "min-w-0 flex-1 space-y-3" : "space-y-4"}>
-      <div className={compact ? "grid gap-3 sm:grid-cols-2" : "space-y-4"}>
-        <div>
-          <label className={labelClass}>Product Name</label>
-          <input
-            type="text"
-            required
-            maxLength={MAX_PRODUCT_NAME_LENGTH}
-            disabled={disabled}
-            value={product.name}
-            onChange={(event) =>
-              onUpdate({
-                ...product,
-                name: formatProductNameInput(event.target.value),
-              })
-            }
-            onBlur={() =>
-              onUpdate({
-                ...product,
-                name: finalizeProductNameInput(product.name),
-              })
-            }
-            className={`${gapClass} ${inputClass}`}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>Discount Value</label>
-          <div className={`relative max-w-[140px] ${gapClass}`}>
-            <input
-              type="text"
-              inputMode="numeric"
-              required
-              maxLength={2}
-              disabled={disabled}
-              value={product.discountValue}
-              onChange={(event) =>
-                onUpdate({
-                  ...product,
-                  discountValue: sanitizeDiscountValue(event.target.value),
-                })
-              }
-              className={`${inputClass} pr-10`}
-            />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-              %
-            </span>
-          </div>
-        </div>
+      <div>
+        <label className={labelClass}>Product Name</label>
+        <input
+          type="text"
+          required
+          maxLength={MAX_PRODUCT_NAME_LENGTH}
+          disabled={disabled}
+          value={product.name}
+          onChange={(event) =>
+            onUpdate({
+              ...product,
+              name: formatProductNameInput(event.target.value),
+            })
+          }
+          onBlur={() =>
+            onUpdate({
+              ...product,
+              name: finalizeProductNameInput(product.name),
+            })
+          }
+          className={`${gapClass} ${inputClass}`}
+        />
       </div>
 
       <div className={compact ? "grid gap-3 sm:grid-cols-2" : "grid gap-4 sm:grid-cols-2"}>
@@ -198,9 +173,16 @@ function ProductFields({
             type="text"
             readOnly
             value={memberPrice}
-            placeholder="Calculated automatically"
+            placeholder={
+              sharedDiscountValue ? "Calculated automatically" : "Enter discount above first"
+            }
             className={`${gapClass} ${inputClass} bg-surface text-foreground`}
           />
+          {sharedDiscountValue ? (
+            <p className={`${helperClass} mt-1`}>
+              Based on your {sharedDiscountValue}% discount for all selected products.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -251,6 +233,7 @@ function ProductFields({
 function ProductEditorCard({
   product,
   index,
+  sharedDiscountValue,
   disabled,
   inputClass,
   labelClass,
@@ -264,6 +247,7 @@ function ProductEditorCard({
 }: {
   product: SelectedProductDraft;
   index: number;
+  sharedDiscountValue: string;
   disabled?: boolean;
   inputClass: string;
   labelClass: string;
@@ -304,13 +288,13 @@ function ProductEditorCard({
             <ProductImageThumbnail
               product={product}
               disabled={disabled}
-              compact={compact}
               onUpload={onUploadImage}
               onEditCrop={onEditCrop}
             />
           </div>
           <ProductFields
             product={product}
+            sharedDiscountValue={sharedDiscountValue}
             disabled={disabled}
             inputClass={inputClass}
             labelClass={labelClass}
@@ -325,6 +309,7 @@ function ProductEditorCard({
           <div className="space-y-4">
             <div>
               <label className={labelClass}>Product Image</label>
+              <p className={`${helperClass} mt-1`}>4:5 portrait — same ratio as gallery images.</p>
               <div className="mt-2">
                 <ProductImageThumbnail
                   product={product}
@@ -337,6 +322,7 @@ function ProductEditorCard({
           </div>
           <ProductFields
             product={product}
+            sharedDiscountValue={sharedDiscountValue}
             disabled={disabled}
             inputClass={inputClass}
             labelClass={labelClass}
@@ -353,6 +339,7 @@ function ProductEditorCard({
 export function SelectedProductsEditor({
   products,
   onChange,
+  sharedDiscountValue,
   disabled = false,
   inputClass,
   labelClass,
@@ -468,11 +455,12 @@ export function SelectedProductsEditor({
     <div className="space-y-3">
       <div>
         <h3 className={compact ? portalCardTitle : "text-sm font-bold text-foreground"}>
-          Selected Products
+          Your Selected Products
         </h3>
         <p className={`${helperClass} mt-0.5`}>
-          Add the products that this member offer applies to. Each product can have its own
-          image, description, direct product link and individual member discount.
+          Add up to {MAX_SELECTED_PRODUCTS} products for this offer. Upload a 4:5 portrait
+          image for each product, then add the name, normal price, short description, and
+          product link. The discount you entered above applies to every product in this list.
         </p>
       </div>
 
@@ -481,6 +469,7 @@ export function SelectedProductsEditor({
           key={product.id}
           product={product}
           index={index}
+          sharedDiscountValue={sharedDiscountValue}
           disabled={disabled}
           inputClass={inputClass}
           labelClass={labelClass}
@@ -525,11 +514,11 @@ export function SelectedProductsEditor({
         <GalleryCropEditor
           imageSrc={editorSrc}
           initialCrop={initialCrop}
-          aspect={PRODUCT_ASPECT}
-          outputWidth={PRODUCT_OUTPUT_SIZE}
-          outputHeight={PRODUCT_OUTPUT_SIZE}
+          aspect={GALLERY_ASPECT}
+          outputWidth={GALLERY_OUTPUT_WIDTH}
+          outputHeight={GALLERY_OUTPUT_HEIGHT}
           title="Adjust Product Image"
-          description="Drag and zoom your image inside the square frame. This is how it will appear on your brand profile."
+          description="Drag and zoom your image inside the 4:5 portrait frame. This is how it will appear on your brand profile."
           onCancel={closeEditor}
           onSave={handleSaveCrop}
         />

@@ -178,11 +178,36 @@ export function selectedProductToDraft(product: SelectedProduct): SelectedProduc
   };
 }
 
-export function draftToStoredProduct(draft: SelectedProductDraft): SelectedProduct | null {
+export function deriveSelectedProductsDiscount(
+  products: Array<{ discountPercent?: number; discountValue?: string }>
+): string {
+  for (const product of products) {
+    const fromDraft =
+      "discountValue" in product && product.discountValue
+        ? Number(sanitizeDiscountValue(product.discountValue))
+        : 0;
+    const fromStored =
+      "discountPercent" in product && product.discountPercent
+        ? product.discountPercent
+        : 0;
+    const value = fromDraft || fromStored;
+    if (value > 0) {
+      return String(value);
+    }
+  }
+  return "";
+}
+
+export function draftToStoredProduct(
+  draft: SelectedProductDraft,
+  sharedDiscountPercent = ""
+): SelectedProduct | null {
   const imageUrl = draft.imageUrl?.trim();
   const name = draft.name.trim();
   const productUrl = draft.productUrl.trim();
-  const discountPercent = Number(sanitizeDiscountValue(draft.discountValue));
+  const discountPercent = Number(
+    sanitizeDiscountValue(sharedDiscountPercent || draft.discountValue)
+  );
   const normalPrice = parsePriceValue(draft.normalPrice);
 
   if (!imageUrl || !name || !productUrl || !discountPercent || !normalPrice) {
@@ -205,26 +230,13 @@ export function draftToStoredProduct(draft: SelectedProductDraft): SelectedProdu
 export function memberCodeDiscountFromOffer(
   scope: OfferScope,
   discountValue: string,
-  products: SelectedProductDraft[] | SelectedProduct[]
+  _products: SelectedProductDraft[] | SelectedProduct[] = []
 ): string {
   if (scope === "entire_store") {
     return sanitizeDiscountValue(discountValue) || "10";
   }
 
-  const discounts = products
-    .map((product) =>
-      Number(
-        sanitizeDiscountValue(
-          "discountValue" in product
-            ? product.discountValue
-            : String(product.discountPercent)
-        )
-      )
-    )
-    .filter((value) => value > 0);
-
-  if (discounts.length === 0) return "10";
-  return String(Math.max(...discounts));
+  return sanitizeDiscountValue(discountValue) || deriveSelectedProductsDiscount(_products) || "10";
 }
 
 export type OfferValidationResult = { ok: true } | { ok: false; message: string };
@@ -241,6 +253,14 @@ export function validateOfferForm(
       return { ok: false, message: "Enter a discount between 1 and 99." };
     }
     return { ok: true };
+  }
+
+  const sharedDiscount = Number(sanitizeDiscountValue(discountValue));
+  if (!sharedDiscount || sharedDiscount < 1 || sharedDiscount > 99) {
+    return {
+      ok: false,
+      message: "Enter a discount between 1 and 99 for your selected products.",
+    };
   }
 
   if (products.length === 0) {
@@ -286,13 +306,6 @@ export function validateOfferForm(
     }
     if (!product.productUrl.trim()) {
       return { ok: false, message: `${label}: product URL is required.` };
-    }
-    const discount = Number(sanitizeDiscountValue(product.discountValue));
-    if (!discount || discount < 1 || discount > 99) {
-      return {
-        ok: false,
-        message: `${label}: enter a discount between 1 and 99.`,
-      };
     }
     const normalPrice = parsePriceValue(product.normalPrice);
     if (!normalPrice) {
