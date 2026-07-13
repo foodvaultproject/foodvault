@@ -56,6 +56,7 @@ import {
 import {
   offerScopeFromLegacyAppliesTo,
   sanitizeDiscountValue,
+  createSelectedProductDraft,
   validateOfferForm,
   type OfferScope,
   type SelectedProductDraft,
@@ -214,78 +215,106 @@ export function PartnerApplicationPage() {
     () => Array.from({ length: MIN_PRODUCT_GALLERY_IMAGES }, () => null)
   );
   const [affiliateProgram, setAffiliateProgram] = useState<AffiliateProgramConfig>(
-    defaultAffiliateProgramConfig
+    defaultAffiliateProgramConfig()
   );
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    getPartnerSession().then(async (partnerSession) => {
-      if (!partnerSession) {
-        router.replace(PARTNER_CREATE_ACCOUNT_PATH);
-        return;
-      }
+    let cancelled = false;
 
-      const existingRecord = await getPartnerRecord(partnerSession.id);
-      if (existingRecord) {
-        router.replace(PARTNER_DASHBOARD_PATH);
-        return;
-      }
+    async function initApplication() {
+      try {
+        const partnerSession = await getPartnerSession();
+        if (cancelled) return;
 
-      setSession(partnerSession);
+        if (!partnerSession) {
+          router.replace(PARTNER_CREATE_ACCOUNT_PATH);
+          return;
+        }
 
-      const draft = loadPartnerApplicationDraft(partnerSession.id);
-      if (draft) {
-        setBusinessName(formatBusinessNameInput(draft.businessName ?? ""));
-        setWebsiteUrl(draft.websiteUrl ?? "");
-        setShortDescription(draft.shortDescription ?? "");
-        setBrandStory(draft.brandStory ?? "");
-        setDiscountValue(sanitizeDiscountValue(draft.discountValue ?? "10"));
-        setOfferScope(
-          draft.offerScope ??
-            offerScopeFromLegacyAppliesTo(draft.offerAppliesTo)
-        );
-        setSelectedProducts(
-          (draft.selectedProducts ?? []).map((product) => ({
-            ...product,
-            imageFile: null,
-          }))
-        );
-        setSupportEmail(draft.supportEmail ?? partnerSession.email);
-        setSupportPhone(sanitizePhoneNumber(draft.supportPhone ?? ""));
-        setContactName(
-          formatBusinessNameInput(draft.contactName ?? "", MAX_CONTACT_NAME_LENGTH)
-        );
-        setInstagram(draft.instagram ?? "");
-        setFacebook(draft.facebook ?? "");
-        setLinkedin(draft.linkedin ?? "");
-        setTiktok(draft.tiktok ?? "");
-        setYoutube(draft.youtube ?? "");
-        if (draft.categoryGroups?.length) {
-          setCategoryGroups(draft.categoryGroups);
+        const existingRecord = await getPartnerRecord(partnerSession.id);
+        if (cancelled) return;
+
+        if (existingRecord) {
+          router.replace(PARTNER_DASHBOARD_PATH);
+          return;
+        }
+
+        setSession(partnerSession);
+
+        const draft = loadPartnerApplicationDraft(partnerSession.id);
+        if (draft) {
+          setBusinessName(formatBusinessNameInput(draft.businessName ?? ""));
+          setWebsiteUrl(draft.websiteUrl ?? "");
+          setShortDescription(draft.shortDescription ?? "");
+          setBrandStory(draft.brandStory ?? "");
+          setDiscountValue(sanitizeDiscountValue(draft.discountValue ?? "10"));
+          setOfferScope(
+            draft.offerScope ??
+              offerScopeFromLegacyAppliesTo(draft.offerAppliesTo)
+          );
+          setSelectedProducts(
+            (draft.selectedProducts ?? []).map((product, index) => ({
+              ...createSelectedProductDraft(product.sortOrder ?? index),
+              ...product,
+              imageFile: null,
+              normalPrice: product.normalPrice ?? "",
+            }))
+          );
+          setSupportEmail(draft.supportEmail ?? partnerSession.email);
+          setSupportPhone(sanitizePhoneNumber(draft.supportPhone ?? ""));
+          setContactName(
+            formatBusinessNameInput(draft.contactName ?? "", MAX_CONTACT_NAME_LENGTH)
+          );
+          setInstagram(draft.instagram ?? "");
+          setFacebook(draft.facebook ?? "");
+          setLinkedin(draft.linkedin ?? "");
+          setTiktok(draft.tiktok ?? "");
+          setYoutube(draft.youtube ?? "");
+          if (draft.categoryGroups?.length) {
+            setCategoryGroups(draft.categoryGroups);
+          } else {
+            setCategoryGroups(
+              categoryGroupsFromLegacy(
+                draft.primaryDepartment ?? "",
+                draft.subcategories ?? []
+              )
+            );
+          }
+          setAffiliateProgram({
+            enabled: draft.affiliateEnabled ?? false,
+            commissionPercent: draft.affiliateCommissionPercent ?? "",
+            cookieDurationDays:
+              draft.affiliateCookieDurationDays ??
+              defaultAffiliateProgramConfig().cookieDurationDays,
+            programDescription: draft.affiliateProgramDescription ?? "",
+            affiliateTerms: draft.affiliateTerms ?? "",
+          });
         } else {
-          setCategoryGroups(
-            categoryGroupsFromLegacy(
-              draft.primaryDepartment ?? "",
-              draft.subcategories ?? []
-            )
+          setSupportEmail(partnerSession.email);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load your application. Please refresh and try again."
           );
         }
-        setAffiliateProgram({
-          enabled: draft.affiliateEnabled ?? false,
-          commissionPercent: draft.affiliateCommissionPercent ?? "",
-          cookieDurationDays:
-            draft.affiliateCookieDurationDays ??
-            defaultAffiliateProgramConfig().cookieDurationDays,
-          programDescription: draft.affiliateProgramDescription ?? "",
-          affiliateTerms: draft.affiliateTerms ?? "",
-        });
-      } else {
-        setSupportEmail(partnerSession.email);
+      } finally {
+        if (!cancelled) {
+          setCheckingSession(false);
+        }
       }
+    }
 
-      setCheckingSession(false);
-    });
+    void initApplication();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   useEffect(() => {
@@ -478,6 +507,23 @@ export function PartnerApplicationPage() {
     return (
       <div className="flex min-h-[40vh] items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Loading your application...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <p className="text-sm text-red-600">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="fv-btn-primary mt-4 inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
