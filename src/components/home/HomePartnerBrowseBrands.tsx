@@ -26,6 +26,7 @@ type HomePartnerBrowseBrandsProps = {
   initialSubcategory?: string;
   exploreHeading?: string;
   exploreHeadingClassName?: string;
+  showTrendingSearches?: boolean;
 };
 
 export function HomePartnerBrowseBrands({
@@ -38,6 +39,7 @@ export function HomePartnerBrowseBrands({
   initialSubcategory = "",
   exploreHeading,
   exploreHeadingClassName,
+  showTrendingSearches = false,
 }: HomePartnerBrowseBrandsProps) {
   return (
     <section
@@ -56,6 +58,7 @@ export function HomePartnerBrowseBrands({
           exploreHeading={exploreHeading}
           exploreHeadingClassName={exploreHeadingClassName}
           embedded
+          showTrendingSearches={showTrendingSearches}
         />
       </div>
     </section>

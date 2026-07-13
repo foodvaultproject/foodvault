@@ -112,6 +112,13 @@ export default async function Home({ searchParams }: HomeProps) {
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
+          showTrendingSearches
+        />
+        <HomeTrendingSection
+          trending={trendingBrands.brands}
+          newBrands={newBrands}
+          topOffers={topOffers.brands}
+          hideViewAll
         />
         <HomePartnerQuickLinks />
         <DiscoverSection articles={discover.homepageCards} variant="partner" />

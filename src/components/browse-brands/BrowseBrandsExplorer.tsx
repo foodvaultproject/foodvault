@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
+import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import {
   PARTNER_CATEGORY_TAXONOMY,
   PRIMARY_DEPARTMENTS,
@@ -48,6 +49,8 @@ type BrowseBrandsExplorerProps = {
   exploreHeading?: string;
   /** Class names for the main brand-grid heading. */
   exploreHeadingClassName?: string;
+  /** Show trending search chips below the filter form (partner homepage). */
+  showTrendingSearches?: boolean;
 };
 
 export function BrowseBrandsExplorer({
@@ -61,6 +64,7 @@ export function BrowseBrandsExplorer({
   embedded = false,
   exploreHeading = "Explore More",
   exploreHeadingClassName = "text-2xl font-bold text-foreground",
+  showTrendingSearches = false,
 }: BrowseBrandsExplorerProps) {
   const favoritedSet = useMemo(
     () => new Set(favoritedPartnerIds),
@@ -254,6 +258,14 @@ export function BrowseBrandsExplorer({
           </div>
         </div>
       </form>
+
+      {showTrendingSearches ? (
+        <HomeTrendingSearches
+          keepBrowseOnHomepage
+          hideViewAll
+          className="mt-6 rounded-lg border border-border bg-background p-5 shadow-sm"
+        />
+      ) : null}
 
       {featured.length > 0 ? (
         <section className="mt-12">
