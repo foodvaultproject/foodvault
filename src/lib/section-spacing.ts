@@ -58,3 +58,12 @@ export const SECTION_PY_HOME = "py-8 sm:py-11 md:py-14";
 
 /** Homepage refined section padding (~30% tighter than prior HOME_REFINE). */
 export const SECTION_PY_HOME_REFINE = "py-7 sm:py-8 md:py-11";
+
+/** Partner homepage section padding (~50% tighter than member homepage sections). */
+export const SECTION_PY_HOME_PARTNER = "py-3.5 sm:py-4 md:py-[1.375rem]";
+
+/** Partner homepage wide section padding (~50% tighter than SECTION_PY_HOME). */
+export const SECTION_PY_HOME_PARTNER_WIDE = "py-4 sm:py-[1.375rem] md:py-7";
+
+/** Partner homepage hero padding (~50% tighter than compact member hero). */
+export const HOME_HERO_PY_PARTNER = "py-2 sm:py-2.5 lg:py-3";

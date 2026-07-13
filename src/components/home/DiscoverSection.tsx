@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DiscoverArticleTile } from "@/components/discover/DiscoverArticleTile";
-import { SECTION_PY_HOME } from "@/components/home/section-spacing";
+import { SECTION_PY_HOME, SECTION_PY_HOME_PARTNER_WIDE } from "@/components/home/section-spacing";
 import { type DiscoverArticleCard } from "@/lib/discover/queries";
 
 const HOMEPAGE_DISCOVER_LIMIT = 4;
@@ -11,6 +11,7 @@ type DiscoverSectionVariant = "default" | "partner";
 type DiscoverSectionProps = {
   articles: DiscoverArticleCard[];
   variant?: DiscoverSectionVariant;
+  compactSpacing?: boolean;
 };
 
 const DISCOVER_COPY: Record<
@@ -33,6 +34,7 @@ const DISCOVER_COPY: Record<
 export function DiscoverSection({
   articles,
   variant = "default",
+  compactSpacing = false,
 }: DiscoverSectionProps) {
   const homepageArticles = articles.slice(0, HOMEPAGE_DISCOVER_LIMIT);
   if (homepageArticles.length === 0) return null;
@@ -40,7 +42,11 @@ export function DiscoverSection({
   const copy = DISCOVER_COPY[variant];
 
   return (
-    <section className={`bg-background ${SECTION_PY_HOME}`}>
+    <section
+      className={`bg-background ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER_WIDE : SECTION_PY_HOME
+      }`}
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between gap-4">
           <div>
@@ -57,7 +63,7 @@ export function DiscoverSection({
           </Link>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className={`${compactSpacing ? "mt-3" : "mt-6"} grid grid-cols-2 gap-4 lg:grid-cols-4`}>
           {homepageArticles.map((article) => (
             <DiscoverArticleTile
               key={article.id}

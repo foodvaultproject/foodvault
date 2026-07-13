@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
-import { HOME_HERO_PY_COMPACT } from "@/components/home/section-spacing";
+import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER } from "@/components/home/section-spacing";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
@@ -36,6 +36,7 @@ const PARTNER_TRUST_INDICATORS = [
 const HERO_LOGO_INSET = "inset-[8%]";
 
 const COMPACT_HERO_PY = "py-3.5 sm:py-5 lg:py-6";
+const PARTNER_HERO_PY = HOME_HERO_PY_PARTNER;
 const COMPACT_HERO_GRID_GAP = "gap-5 lg:gap-7";
 const COMPACT_LOGO_GRID_CLASS =
   "mx-auto hidden w-[32%] max-w-[9.6rem] lg:block";
@@ -81,8 +82,18 @@ export function HomeHero({
           isActiveMember
             ? "mx-auto max-w-[1200px] px-4 py-2.5 sm:px-6 sm:py-3 lg:px-8"
             : `mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
-                isCompactHero ? COMPACT_HERO_PY : HOME_HERO_PY_COMPACT
-              } ${isCompactHero ? COMPACT_HERO_GRID_GAP : "gap-8 lg:gap-12"}`
+                isPartner
+                  ? PARTNER_HERO_PY
+                  : isCompactHero
+                    ? COMPACT_HERO_PY
+                    : HOME_HERO_PY_COMPACT
+              } ${
+                isPartner
+                  ? "gap-2.5 lg:gap-3.5"
+                  : isCompactHero
+                    ? COMPACT_HERO_GRID_GAP
+                    : "gap-8 lg:gap-12"
+              }`
         }
       >
         <div>

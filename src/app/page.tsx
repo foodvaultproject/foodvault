@@ -113,15 +113,17 @@ export default async function Home({ searchParams }: HomeProps) {
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
           showTrendingSearches
+          exploreHeading=""
         />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
           hideViewAll
+          compactSpacing
         />
-        <HomePartnerQuickLinks />
-        <DiscoverSection articles={discover.homepageCards} variant="partner" />
+        <HomePartnerQuickLinks compactSpacing />
+        <DiscoverSection articles={discover.homepageCards} variant="partner" compactSpacing />
       </>
     );
   }

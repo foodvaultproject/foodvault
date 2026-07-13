@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandOfferBadge } from "@/components/home/BrandOfferBadge";
-import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -12,6 +12,7 @@ type HomeTrendingSectionProps = {
   topOffers: BrandCard[];
   /** Hide the "View all" links that navigate to the standalone Discover page. */
   hideViewAll?: boolean;
+  compactSpacing?: boolean;
 };
 
 type TrendingColumnProps = {
@@ -98,13 +99,18 @@ export function HomeTrendingSection({
   newBrands,
   topOffers,
   hideViewAll = false,
+  compactSpacing = false,
 }: HomeTrendingSectionProps) {
   if (trending.length === 0 && newBrands.length === 0 && topOffers.length === 0) {
     return null;
   }
 
   return (
-    <section className={`bg-surface-lavender ${SECTION_PY_HOME_REFINE}`}>
+    <section
+      className={`bg-surface-lavender ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+      }`}
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="grid gap-4 md:grid-cols-3 md:gap-5">
           <TrendingColumn

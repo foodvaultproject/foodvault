@@ -12,6 +12,7 @@ import {
   HOME_STRIP_PY,
   SECTION_PY_HOME,
   SECTION_PY_HOME_REFINE,
+  SECTION_PY_HOME_PARTNER,
 } from "@/components/home/section-spacing";
 import {
   IconBakery,
@@ -141,11 +142,15 @@ const partnerQuickLinks: {
   },
 ];
 
-export function HomePartnerQuickLinks() {
+export function HomePartnerQuickLinks({ compactSpacing = false }: { compactSpacing?: boolean }) {
   return (
-    <section className={`bg-background ${SECTION_PY_HOME_REFINE}`}>
+    <section
+      className={`bg-background ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+      }`}
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-5">
+        <div className={compactSpacing ? "mb-2.5" : "mb-5"}>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
             Manage Your FoodVault Presence
           </h2>

@@ -138,6 +138,10 @@ export function BrowseBrandsExplorer({
     ? "rounded-lg border border-border bg-background p-5 shadow-sm"
     : "mt-10 rounded-lg border border-border bg-background p-5 shadow-sm sm:mt-14 lg:mt-16";
 
+  const blockGap = showTrendingSearches ? "mt-6" : "mt-12";
+  const gridGap = showTrendingSearches ? "mt-3" : "mt-6";
+  const trendingGap = showTrendingSearches ? "mt-3" : "mt-6";
+
   return (
     <>
       <form onSubmit={handleSearchSubmit} className={formClassName}>
@@ -263,17 +267,17 @@ export function BrowseBrandsExplorer({
         <HomeTrendingSearches
           keepBrowseOnHomepage
           hideViewAll
-          className="mt-6 rounded-lg border border-border bg-background p-5 shadow-sm"
+          className={`${trendingGap} rounded-lg border border-border bg-background p-5 shadow-sm`}
         />
       ) : null}
 
       {featured.length > 0 ? (
-        <section className="mt-12">
+        <section className={blockGap}>
           <h2 className="text-2xl font-bold text-foreground">Featured Brands</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Discover a selection of participating brands chosen by FoodVault.
           </p>
-          <div className={`mt-6 ${brandTileGridClass}`}>
+          <div className={`${gridGap} ${brandTileGridClass}`}>
             {featured.map((brand) => (
               <BrowseBrandCard
                 key={`featured-${brand.id}`}
@@ -286,10 +290,12 @@ export function BrowseBrandsExplorer({
         </section>
       ) : null}
 
-      <section className="mt-12">
-        <h2 className={exploreHeadingClassName}>{exploreHeading}</h2>
+      <section className={blockGap}>
+        {exploreHeading ? (
+          <h2 className={exploreHeadingClassName}>{exploreHeading}</h2>
+        ) : null}
         {brands.length === 0 ? (
-          <div className="mt-6 rounded-lg border border-border bg-background p-10 text-center">
+          <div className={`${gridGap} rounded-lg border border-border bg-background p-10 text-center`}>
             <p className="text-lg font-semibold text-foreground">
               No brands match your filters
             </p>
@@ -299,7 +305,7 @@ export function BrowseBrandsExplorer({
           </div>
         ) : (
           <>
-            <div className={`mt-6 ${brandTileGridClass}`}>
+            <div className={`${exploreHeading ? gridGap : "mt-0"} ${brandTileGridClass}`}>
               {brands.map((brand) => (
                 <BrowseBrandCard
                   key={brand.id}
