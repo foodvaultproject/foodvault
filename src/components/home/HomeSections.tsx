@@ -390,14 +390,16 @@ export function HomePartnerBanner() {
                 Partner with us
               </Link>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {partnerFeatures.map((feature) => (
                 <div
                   key={feature.label}
-                  className="flex flex-col items-center rounded-lg border border-white/10 bg-white/5 px-3 py-4 text-center"
+                  className="flex flex-col items-center rounded-lg border border-white/10 bg-white/5 px-2 py-3 text-center sm:px-3 sm:py-4"
                 >
                   <span className="text-white/80">{feature.icon}</span>
-                  <p className="mt-2 text-xs font-medium text-white/80">{feature.label}</p>
+                  <p className="mt-2 text-[10px] font-medium leading-tight text-white/80 sm:text-xs">
+                    {feature.label}
+                  </p>
                 </div>
               ))}
             </div>

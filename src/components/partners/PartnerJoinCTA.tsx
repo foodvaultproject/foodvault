@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
-import { heading2, heading3 } from "@/lib/ui-classes";
+import { heading2 } from "@/lib/ui-classes";
 
 const partnerHighlights = [
   {
@@ -96,17 +96,19 @@ export function PartnerJoinCTA({
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-1">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-1 sm:gap-4">
               {partnerHighlights.map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-lg border border-border bg-surface/60 p-5 sm:p-6"
+                  className="rounded-lg border border-border bg-surface/60 p-3 text-center sm:p-6 sm:text-left"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary sm:mx-0 sm:h-11 sm:w-11">
                     {item.icon}
                   </div>
-                  <h3 className={`mt-4 ${heading3}`}>{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <h3 className="mt-3 text-[11px] font-bold leading-tight text-foreground sm:mt-4 sm:text-sm">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 hidden text-sm leading-relaxed text-muted-foreground sm:block">
                     {item.description}
                   </p>
                 </div>

@@ -208,7 +208,7 @@ export function AboutMembersSection() {
     <section className={`bg-background ${SECTION_PY_HOME_REFINE}`}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <SectionHeader title="Benefits for members" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {memberBenefits.map((benefit) => (
             <BenefitCard
               key={benefit.title}
@@ -264,7 +264,7 @@ export function AboutValuesSection() {
     <section className={`bg-background ${SECTION_PY_HOME_REFINE}`}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <SectionHeader title="What drives FoodVault" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {values.map((value) => (
             <div
               key={value.title}

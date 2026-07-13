@@ -11,8 +11,7 @@ const membershipFeatures = [
   "Unlimited access",
   "All categories",
   "Favourite brands",
-  "Weekly new brands",
-  "Member-only giveaways",
+  "Shop smarter. Start saving",
   "Cancel anytime",
 ];
 
