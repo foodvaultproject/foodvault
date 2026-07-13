@@ -166,6 +166,251 @@ export function PartnerProfileView({
   const showSelectedProducts =
     profile.offerScope === "selected_products" &&
     profile.selectedProducts.length > 0;
+  const isSelectedProductsOffer = profile.offerScope === "selected_products";
+
+  const memberOfferCardClassName = isSelectedProductsOffer
+    ? "w-full rounded-lg border border-primary/30 bg-primary/[0.04] p-4"
+    : "w-full shrink-0 rounded-lg border border-primary/30 bg-primary/[0.04] p-4 lg:max-w-sm";
+
+  const memberExclusiveOfferCard = (
+    <div id="offer" className={memberOfferCardClassName}>
+      <span className="inline-flex text-[11px] font-bold uppercase tracking-wide text-primary">
+        Member Exclusive Offer
+      </span>
+
+      <div className="mt-2">
+        <MemberOfferHeadline profile={profile} />
+      </div>
+
+      {profile.offerScope === "entire_store" && profile.offerAppliesTo ? (
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          <span className="font-semibold uppercase tracking-wide">Applies to: </span>
+          {profile.offerAppliesTo}
+        </p>
+      ) : null}
+
+      <div className="mt-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Discount Code
+        </p>
+        <DiscountCodeBlock
+          code={code}
+          state={codeState}
+          compact={isSelectedProductsOffer}
+        />
+        {isSelectedProductsOffer && codeState === "visible" && code ? (
+          <>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              This member discount code only applies to the products listed below. Copy your
+              code, then scroll down to view all eligible products included in this offer.
+            </p>
+            <div className="mt-2 rounded-md border border-primary/15 bg-primary/5 px-3 py-2.5">
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                Other products on this website are not included in this member offer unless
+                displayed below.
+              </p>
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  const brandHeader = (
+    <div className="min-w-0 flex-1">
+      <div className="flex gap-4">
+        <PartnerLogo
+          src={profile.logoUrl}
+          originalSrc={profile.logoOriginalUrl}
+          alt={`${profile.businessName} logo`}
+          businessName={profile.businessName}
+          size="md"
+          bordered
+          shadow
+          crop={profile.logoCrop}
+          className="relative z-10 -mt-12 shrink-0 sm:-mt-14"
+          priority
+        />
+
+        <div className="min-w-0 flex-1 pt-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-lg font-bold text-foreground">{profile.businessName}</h1>
+            {profile.department ? (
+              <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                {profile.department}
+              </span>
+            ) : null}
+          </div>
+
+          {profile.shortDescription ? (
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+              {profile.shortDescription}
+            </p>
+          ) : null}
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {profile.websiteUrl ? (
+              <a
+                href={profile.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="fv-btn-primary inline-flex items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+              >
+                Visit Website
+                <span aria-hidden="true">&#8599;</span>
+              </a>
+            ) : null}
+
+            {viewer.canFavorite ? (
+              <FavoriteToggleButton
+                partnerId={profile.id}
+                initialFavorited={viewer.isFavorited}
+              />
+            ) : !viewer.isLoggedIn ? (
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
+              >
+                Save to Favorites
+              </Link>
+            ) : null}
+          </div>
+
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Purchases are completed securely on the partner&apos;s own website.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const selectedProductsSection = showSelectedProducts ? (
+    <section id="selected-products" className={SECTION_CARD}>
+      <h2 className="text-sm font-semibold text-foreground">
+        {isSelectedProductsOffer ? "Products Included In This Offer" : "Selected Products"}
+      </h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {isSelectedProductsOffer
+          ? "These are the products this member discount code can be used on. Simply copy your code above, then purchase any of the products below directly from the partner's website."
+          : "These products qualify for this exclusive member offer."}
+      </p>
+      <div className="mt-3">
+        <SelectedProductGrid products={profile.selectedProducts} horizontal />
+      </div>
+    </section>
+  ) : null;
+
+  const aboutSection = profile.brandStory ? (
+    <AboutBrandSection brandStory={profile.brandStory} />
+  ) : null;
+
+  const gallerySection = hasGallery ? (
+    <section id="gallery" className={SECTION_CARD}>
+      <h2 className="text-sm font-semibold text-foreground">Gallery</h2>
+      <div className="mt-3">
+        <BrandGallery images={profile.galleryImageUrls} businessName={profile.businessName} />
+      </div>
+    </section>
+  ) : null;
+
+  const businessInfoSection = (
+    <div className={`grid gap-4 ${showAffiliate ? "lg:grid-cols-2" : ""}`}>
+      <section id="info" className={SECTION_CARD}>
+        <h2 className="text-sm font-semibold text-foreground">Business Information</h2>
+        <dl className="mt-3 space-y-3">
+          {profile.websiteUrl ? (
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Website
+              </dt>
+              <dd className="mt-1">
+                <a
+                  href={profile.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fv-btn-primary inline-flex items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+                >
+                  Visit Website
+                  <span aria-hidden="true">&#8599;</span>
+                </a>
+              </dd>
+            </div>
+          ) : null}
+          {profile.country ? (
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Country
+              </dt>
+              <dd className="mt-1 text-xs text-foreground">{profile.country}</dd>
+            </div>
+          ) : null}
+          {profile.department ? (
+            <div>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Primary Departments
+              </dt>
+              <dd className="mt-1.5 flex flex-wrap gap-1.5">
+                {profile.departments.map((department) => (
+                  <Link
+                    key={department}
+                    href={categoryBrowseHref(department)}
+                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20"
+                  >
+                    {department}
+                  </Link>
+                ))}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+
+        {profile.categoryGroups.some((group) => group.subcategories.length > 0) ? (
+          <PartnerProfileCategories
+            categoryGroups={profile.categoryGroups}
+            browseCategoryHref={categoryBrowseHref}
+          />
+        ) : null}
+
+        {socials.length > 0 ? (
+          <div className="mt-4 border-t border-border pt-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Follow This Brand
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {socials.map((social) => (
+                <a
+                  key={social.platform}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d={SOCIAL_ICONS[social.platform]} />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      {showAffiliate ? (
+        <AffiliateProgramProfileSection
+          profile={profile}
+          businessName={profile.businessName}
+          viewerIsAffiliate={affiliateContext.isAffiliate}
+          referralUrl={affiliateContext.referralUrl}
+        />
+      ) : null}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -181,7 +426,6 @@ export function PartnerProfileView({
           />
         ) : null}
 
-        {/* Hero + brand header */}
         <section className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
           <PartnerBanner
             src={profile.bannerImageUrl}
@@ -193,247 +437,37 @@ export function PartnerProfileView({
           </PartnerBanner>
 
           <div className="relative p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              {/* Left: brand info */}
-              <div className="min-w-0 flex-1">
-                <div className="flex gap-4">
-                  <PartnerLogo
-                    src={profile.logoUrl}
-                    originalSrc={profile.logoOriginalUrl}
-                    alt={`${profile.businessName} logo`}
-                    businessName={profile.businessName}
-                    size="md"
-                    bordered
-                    shadow
-                    crop={profile.logoCrop}
-                    className="relative z-10 -mt-12 shrink-0 sm:-mt-14"
-                    priority
-                  />
-
-                  <div className="min-w-0 flex-1 pt-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-lg font-bold text-foreground">
-                        {profile.businessName}
-                      </h1>
-                      {profile.department ? (
-                        <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                          {profile.department}
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {profile.shortDescription ? (
-                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                        {profile.shortDescription}
-                      </p>
-                    ) : null}
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {profile.websiteUrl ? (
-                        <a
-                          href={profile.websiteUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="fv-btn-primary inline-flex items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-                        >
-                          Visit Website
-                          <span aria-hidden="true">&#8599;</span>
-                        </a>
-                      ) : null}
-
-                      {viewer.canFavorite ? (
-                        <FavoriteToggleButton
-                          partnerId={profile.id}
-                          initialFavorited={viewer.isFavorited}
-                        />
-                      ) : !viewer.isLoggedIn ? (
-                        <Link
-                          href="/signup"
-                          className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
-                        >
-                          Save to Favorites
-                        </Link>
-                      ) : null}
-                    </div>
-
-                    <p className="mt-2 text-[11px] text-muted-foreground">
-                      Purchases are completed securely on the partner&apos;s own website.
-                    </p>
-                  </div>
-                </div>
+            {isSelectedProductsOffer ? (
+              brandHeader
+            ) : (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                {brandHeader}
+                {memberExclusiveOfferCard}
               </div>
-
-              {/* Right: member exclusive offer */}
-              <div
-                id="offer"
-                className="w-full shrink-0 rounded-lg border border-primary/30 bg-primary/[0.04] p-4 lg:max-w-sm"
-              >
-                <span className="inline-flex text-[11px] font-bold uppercase tracking-wide text-primary">
-                  Member Exclusive Offer
-                </span>
-
-                <div className="mt-2">
-                  <MemberOfferHeadline profile={profile} />
-                </div>
-
-                {profile.offerScope === "entire_store" && profile.offerAppliesTo ? (
-                  <p className="mt-2 text-[11px] text-muted-foreground">
-                    <span className="font-semibold uppercase tracking-wide">
-                      Applies to:{" "}
-                    </span>
-                    {profile.offerAppliesTo}
-                  </p>
-                ) : null}
-
-                <div className="mt-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Discount Code
-                  </p>
-                  <DiscountCodeBlock code={code} state={codeState} />
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 
-        {/* Main content */}
+        {isSelectedProductsOffer ? (
+          <div className="mt-4">{memberExclusiveOfferCard}</div>
+        ) : null}
+
         <div className="mt-4 space-y-4">
-          {profile.brandStory ? (
-            <AboutBrandSection brandStory={profile.brandStory} />
-          ) : null}
-
-          {showSelectedProducts ? (
-            <section id="selected-products" className={SECTION_CARD}>
-              <h2 className="text-sm font-semibold text-foreground">
-                Selected Products
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                These products qualify for this exclusive member offer.
-              </p>
-              <div className="mt-3">
-                <SelectedProductGrid
-                  products={profile.selectedProducts}
-                  horizontal
-                />
-              </div>
-            </section>
-          ) : null}
-
-          {hasGallery ? (
-            <section id="gallery" className={SECTION_CARD}>
-              <h2 className="text-sm font-semibold text-foreground">Gallery</h2>
-              <div className="mt-3">
-                <BrandGallery
-                  images={profile.galleryImageUrls}
-                  businessName={profile.businessName}
-                />
-              </div>
-            </section>
-          ) : null}
-
-          {/* Business info + affiliate */}
-          <div
-            className={`grid gap-4 ${showAffiliate ? "lg:grid-cols-2" : ""}`}
-          >
-            <section id="info" className={SECTION_CARD}>
-              <h2 className="text-sm font-semibold text-foreground">
-                Business Information
-              </h2>
-              <dl className="mt-3 space-y-3">
-                {profile.websiteUrl ? (
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Website
-                    </dt>
-                    <dd className="mt-1">
-                      <a
-                        href={profile.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="fv-btn-primary inline-flex items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-                      >
-                        Visit Website
-                        <span aria-hidden="true">&#8599;</span>
-                      </a>
-                    </dd>
-                  </div>
-                ) : null}
-                {profile.country ? (
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Country
-                    </dt>
-                    <dd className="mt-1 text-xs text-foreground">
-                      {profile.country}
-                    </dd>
-                  </div>
-                ) : null}
-                {profile.department ? (
-                  <div>
-                    <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Primary Departments
-                    </dt>
-                    <dd className="mt-1.5 flex flex-wrap gap-1.5">
-                      {profile.departments.map((department) => (
-                        <Link
-                          key={department}
-                          href={categoryBrowseHref(department)}
-                          className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/20"
-                        >
-                          {department}
-                        </Link>
-                      ))}
-                    </dd>
-                  </div>
-                ) : null}
-              </dl>
-
-              {profile.categoryGroups.some((group) => group.subcategories.length > 0) ? (
-                <PartnerProfileCategories
-                  categoryGroups={profile.categoryGroups}
-                  browseCategoryHref={categoryBrowseHref}
-                />
-              ) : null}
-
-              {socials.length > 0 ? (
-                <div className="mt-4 border-t border-border pt-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Follow This Brand
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {socials.map((social) => (
-                      <a
-                        key={social.platform}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={social.label}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path d={SOCIAL_ICONS[social.platform]} />
-                        </svg>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {showAffiliate ? (
-              <AffiliateProgramProfileSection
-                profile={profile}
-                businessName={profile.businessName}
-                viewerIsAffiliate={affiliateContext.isAffiliate}
-                referralUrl={affiliateContext.referralUrl}
-              />
-            ) : null}
-          </div>
+          {isSelectedProductsOffer ? (
+            <>
+              {selectedProductsSection}
+              {aboutSection}
+              {gallerySection}
+              {businessInfoSection}
+            </>
+          ) : (
+            <>
+              {aboutSection}
+              {selectedProductsSection}
+              {gallerySection}
+              {businessInfoSection}
+            </>
+          )}
         </div>
       </div>
 
