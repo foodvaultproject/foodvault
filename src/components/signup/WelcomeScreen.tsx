@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { MEMBER_DASHBOARD_PATH } from "@/lib/auth";
 
 export type WelcomePlan = "trial" | "paid";
 
@@ -122,14 +121,8 @@ export function WelcomeScreen({
         <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
           {content.heroSupport}
         </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div className="mt-8 flex justify-center">
           <ExploreBrandsButton className="w-full sm:w-auto" />
-          <Link
-            href={MEMBER_DASHBOARD_PATH}
-            className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-6 py-3.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
-          >
-            Go to Dashboard
-          </Link>
         </div>
       </div>
 

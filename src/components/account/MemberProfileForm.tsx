@@ -11,10 +11,10 @@ import {
 import type { MemberProfile } from "@/lib/member/queries";
 
 const inputClass =
-  "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const readOnlyClass =
-  "w-full rounded-md border border-border bg-surface px-4 py-3 text-sm text-foreground";
+  "w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground";
 
 function CardShell({
   title,
@@ -28,13 +28,13 @@ function CardShell({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-border bg-background p-6 shadow-sm">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+    <section className="rounded-lg border border-border bg-background p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
             {icon}
           </span>
-          <h2 className="text-lg font-bold text-foreground">{title}</h2>
+          <h2 className="text-[14px] font-bold text-foreground">{title}</h2>
         </div>
         {action}
       </div>
@@ -115,11 +115,11 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
   return (
     <>
       <div className="min-h-screen bg-[#f3f4f6]">
-        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:py-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:py-5">
+          <h1 className="text-[18px] font-bold tracking-tight text-foreground">
             My Account
           </h1>
-          <p className="mt-3 text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             Manage your personal information and security settings.
           </p>
 
@@ -134,7 +134,7 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
             </p>
           ) : null}
 
-          <div className="mt-8 space-y-6">
+          <div className="mt-5 space-y-4">
             <CardShell
               title="Identity"
               icon={
@@ -152,7 +152,7 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
                 </button>
               }
             >
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-muted-foreground">
                     First Name
@@ -195,7 +195,7 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
                 </button>
               }
             >
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-muted-foreground">
                     Email Address
@@ -254,7 +254,7 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
             </CardShell>
           </div>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => void handleSave()}

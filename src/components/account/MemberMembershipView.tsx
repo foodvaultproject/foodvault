@@ -63,6 +63,9 @@ const faqs = [
 
 type Feedback = { type: "error" | "success" | "info"; text: string };
 
+const memberStatusSectionClass =
+  "rounded-lg border border-primary/30 bg-violet-50 p-4 shadow-sm";
+
 type MemberMembershipViewProps = {
   trialBanner: MemberTrialBanner | null;
   membership: MembershipRecord | null;
@@ -144,11 +147,11 @@ export function MemberMembershipView({
   return (
     <>
       <div className="min-h-screen bg-[#f3f4f6]">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:py-5">
+          <h1 className="text-[18px] font-bold tracking-tight text-foreground">
             Membership
           </h1>
-          <p className="mt-3 text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {isPaidMember
               ? "Manage your FoodVault membership, billing and subscription."
               : "View your FoodVault membership status and benefits."}
@@ -162,49 +165,52 @@ export function MemberMembershipView({
             </p>
           ) : null}
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
             {isPaidMember ? (
-              <section className="rounded-lg border border-border bg-background p-6 shadow-sm">
+              <section className={memberStatusSectionClass}>
                 <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
                   Active Member
                 </span>
-                <p className="mt-4 text-3xl font-bold text-foreground">
+                <p className="mt-3 text-xl font-bold text-foreground">
                   FoodVault Member
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Your paid membership is active. Manage your billing details below.
                 </p>
               </section>
             ) : isTrialing && trialBanner ? (
-              <MemberTrialBannerCard trialBanner={trialBanner} />
+              <MemberTrialBannerCard
+                trialBanner={trialBanner}
+                className={`${memberStatusSectionClass} !bg-violet-50 !p-4 sm:!p-4`}
+              />
             ) : (
-              <section className="rounded-lg border border-border bg-background p-6 shadow-sm">
+              <section className={memberStatusSectionClass}>
                 <span className="inline-flex rounded-full bg-surface px-3 py-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                   Membership Inactive
                 </span>
-                <p className="mt-4 text-3xl font-bold text-foreground">
+                <p className="mt-3 text-xl font-bold text-foreground">
                   FoodVault Member
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-muted-foreground">
                   You don&apos;t have an active paid membership right now.
                 </p>
               </section>
             )}
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-foreground">
+            <section className="rounded-lg border border-border bg-background p-4 shadow-sm">
+              <h2 className="text-[14px] font-bold text-foreground">
                 Membership Includes
               </h2>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {features.map((feature) => (
-                  <div key={feature.title} className="rounded-lg bg-surface p-4">
-                    <span className="text-xl" aria-hidden="true">
+                  <div key={feature.title} className="rounded-lg bg-surface p-3">
+                    <span className="text-lg" aria-hidden="true">
                       {feature.icon}
                     </span>
-                    <h3 className="mt-3 text-sm font-bold text-foreground">
+                    <h3 className="mt-2 text-[12px] font-bold text-foreground">
                       {feature.title}
                     </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {feature.description}
                     </p>
                   </div>
@@ -214,9 +220,9 @@ export function MemberMembershipView({
           </div>
 
           {isPaidMember ? (
-            <section className="mt-6 rounded-lg border border-border bg-background p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-foreground">Billing Details</h2>
-              <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+            <section className="mt-4 rounded-lg border border-border bg-background p-4 shadow-sm">
+              <h2 className="text-[14px] font-bold text-foreground">Billing Details</h2>
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm text-muted-foreground">Current Plan</dt>
                   <dd className="mt-1 font-semibold text-foreground">
@@ -240,12 +246,12 @@ export function MemberMembershipView({
                   </dd>
                 </div>
               </dl>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
                 <button
                   type="button"
                   onClick={() => void openBillingPortal("payment")}
                   disabled={loadingAction === "payment"}
-                  className="inline-flex items-center justify-center rounded-sm border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-surface disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-sm border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface disabled:opacity-60"
                 >
                   {loadingAction === "payment" ? "Opening..." : "Update Payment Method"}
                 </button>
@@ -253,7 +259,7 @@ export function MemberMembershipView({
                   type="button"
                   onClick={() => void openBillingPortal("history")}
                   disabled={loadingAction === "history"}
-                  className="inline-flex items-center justify-center rounded-sm border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-surface disabled:opacity-60"
+                  className="inline-flex items-center justify-center rounded-sm border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface disabled:opacity-60"
                 >
                   {loadingAction === "history" ? "Opening..." : "View Billing History"}
                 </button>
@@ -267,9 +273,9 @@ export function MemberMembershipView({
               </div>
             </section>
           ) : (
-            <section className="mt-6 rounded-lg border border-dashed border-border bg-background p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-foreground">Billing Details</h2>
-              <p className="mt-3 text-sm text-muted-foreground">
+            <section className="mt-4 rounded-lg border border-dashed border-border bg-background p-4 shadow-sm">
+              <h2 className="text-[14px] font-bold text-foreground">Billing Details</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
                 {isTrialing
                   ? "Billing management will be available once your paid membership begins. There's nothing to pay or manage during your free trial."
                   : "Billing management becomes available once you start a paid membership."}
@@ -277,16 +283,16 @@ export function MemberMembershipView({
             </section>
           )}
 
-          <section className="mt-6 rounded-lg border border-border bg-background p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-foreground">Help &amp; Support</h2>
-            <div className="mt-5 space-y-4">
+          <section className="mt-4 rounded-lg border border-border bg-background p-4 shadow-sm">
+            <h2 className="text-[14px] font-bold text-foreground">Help &amp; Support</h2>
+            <div className="mt-3 space-y-3">
               {faqs.map((faq) => (
                 <div
                   key={faq.question}
-                  className="border-b border-border pb-4 last:border-b-0 last:pb-0"
+                  className="border-b border-border pb-3 last:border-b-0 last:pb-0"
                 >
-                  <h3 className="text-sm font-bold text-foreground">{faq.question}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{faq.answer}</p>
+                  <h3 className="text-[12px] font-bold text-foreground">{faq.question}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">{faq.answer}</p>
                 </div>
               ))}
             </div>

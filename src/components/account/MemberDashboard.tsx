@@ -66,8 +66,8 @@ export function MemberDashboard({
 }: MemberDashboardProps) {
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
-      <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:py-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+      <div className="mx-auto max-w-[1200px] px-4 py-4 sm:px-6 lg:py-5">
+        <h1 className="text-[18px] font-bold tracking-tight text-foreground">
           My Dashboard
         </h1>
 
@@ -78,22 +78,22 @@ export function MemberDashboard({
         ) : null}
 
         {trialBanner?.showTrialBanner ? (
-          <MemberTrialBannerCard trialBanner={trialBanner} className="mt-8" />
+          <MemberTrialBannerCard trialBanner={trialBanner} className="mt-5 !p-4 sm:!p-4" />
         ) : null}
 
-        <section className="mt-10">
-          <h2 className="text-xl font-bold text-foreground">Quick Actions</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-6">
+          <h2 className="text-[14px] font-bold text-foreground">Quick Actions</h2>
+          <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((action) => (
               <Link
                 key={action.label}
                 href={action.href}
-                className="flex flex-col items-center rounded-lg border border-border bg-background px-6 py-8 text-center shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+                className="flex flex-col items-center rounded-lg border border-border bg-background px-4 py-5 text-center shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                   {action.icon}
                 </span>
-                <span className="mt-4 text-sm font-semibold text-foreground">
+                <span className="mt-2 text-sm font-semibold text-foreground">
                   {action.label}
                 </span>
               </Link>
@@ -102,14 +102,14 @@ export function MemberDashboard({
         </section>
 
         {brands.length > 0 ? (
-          <section className="mt-12">
+          <section className="mt-7">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold text-foreground">New This Week</h2>
+              <h2 className="text-[14px] font-bold text-foreground">New This Week</h2>
               <Link href="/browse-brands" className="text-sm font-semibold text-primary hover:text-primary-hover">
                 View All
               </Link>
             </div>
-            <div className={`mt-6 ${brandTileGridClass}`}>
+            <div className={`mt-3.5 ${brandTileGridClass}`}>
               {brands.map((brand) => (
                 <BrowseBrandCard
                   key={brand.id}
