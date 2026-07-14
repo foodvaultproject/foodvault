@@ -8,8 +8,8 @@ import {
 } from "@/lib/auth/email-verification";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import {
+  MEMBER_HOME_PATH,
   SIGNUP_MEMBERSHIP_PATH,
-  SIGNUP_WELCOME_PATH,
 } from "@/lib/member/paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -48,12 +48,12 @@ export async function createMemberAccountAction(
   if (!isSupabaseConfigured()) {
     return {
       success: true as const,
-      redirectTo: mode === "trial" ? SIGNUP_WELCOME_PATH : SIGNUP_MEMBERSHIP_PATH,
+      redirectTo: mode === "trial" ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH,
     };
   }
 
   const email = data.email.trim();
-  const nextPath = mode === "trial" ? SIGNUP_WELCOME_PATH : SIGNUP_MEMBERSHIP_PATH;
+  const nextPath = mode === "trial" ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH;
 
   const sendResult = await issueAndSendSignupVerification({
     email,

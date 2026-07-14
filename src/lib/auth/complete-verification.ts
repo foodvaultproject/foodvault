@@ -3,8 +3,8 @@ import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { sendMemberFreeTrialStartedEmail } from "@/lib/email-templates/dispatch";
 import {
+  MEMBER_HOME_PATH,
   SIGNUP_MEMBERSHIP_PATH,
-  SIGNUP_WELCOME_PATH,
 } from "@/lib/member/paths";
 import { startMemberTrial } from "@/lib/member/start-trial";
 import { upsertMemberSignupProfile } from "@/lib/member/upsert-signup-profile";
@@ -60,7 +60,7 @@ export async function completeSignupVerification(
     const signupMode = readMetadataString(metadata, "signup_mode", "trial");
     return {
       redirectPath:
-        signupMode === "membership" ? SIGNUP_MEMBERSHIP_PATH : SIGNUP_WELCOME_PATH,
+        signupMode === "membership" ? SIGNUP_MEMBERSHIP_PATH : MEMBER_HOME_PATH,
     };
   }
 
@@ -105,7 +105,7 @@ export async function completeSignupVerification(
     });
 
     if (trialError) {
-      return { redirectPath: SIGNUP_WELCOME_PATH, error: trialError };
+      return { redirectPath: MEMBER_HOME_PATH, error: trialError };
     }
 
     void sendMemberFreeTrialStartedEmail({
@@ -125,7 +125,7 @@ export async function completeSignupVerification(
       },
     });
 
-    return { redirectPath: SIGNUP_WELCOME_PATH };
+    return { redirectPath: MEMBER_HOME_PATH };
   }
 
   if (accountType === "partner") {
@@ -165,5 +165,5 @@ export async function completeSignupVerification(
     return { redirectPath: AFFILIATE_DASHBOARD_PATH };
   }
 
-  return { redirectPath: SIGNUP_WELCOME_PATH };
+  return { redirectPath: MEMBER_HOME_PATH };
 }

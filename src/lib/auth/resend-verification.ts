@@ -6,8 +6,8 @@ import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
 import {
+  MEMBER_HOME_PATH,
   SIGNUP_MEMBERSHIP_PATH,
-  SIGNUP_WELCOME_PATH,
 } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,7 +20,7 @@ function defaultNextPathForAccount(accountType: AccountType) {
       return AFFILIATE_DASHBOARD_PATH;
     case "member":
     default:
-      return SIGNUP_WELCOME_PATH;
+      return MEMBER_HOME_PATH;
   }
 }
 

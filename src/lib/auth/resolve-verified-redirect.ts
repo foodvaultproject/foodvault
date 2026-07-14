@@ -1,8 +1,8 @@
 import type { AccountType } from "@/lib/auth";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import {
+  MEMBER_HOME_PATH,
   SIGNUP_MEMBERSHIP_PATH,
-  SIGNUP_WELCOME_PATH,
 } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
@@ -21,7 +21,7 @@ export function resolveVerifiedRedirectPath(
   const signupMode =
     typeof metadata?.signup_mode === "string" ? metadata.signup_mode : "trial";
 
-  return signupMode === "membership" ? SIGNUP_MEMBERSHIP_PATH : SIGNUP_WELCOME_PATH;
+  return signupMode === "membership" ? SIGNUP_MEMBERSHIP_PATH : MEMBER_HOME_PATH;
 }
 
 export function signupPathForAccount(account: AccountType) {

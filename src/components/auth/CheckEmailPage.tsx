@@ -45,7 +45,7 @@ function continueCopy(account: AccountType) {
   if (account === "affiliate") {
     return "open your affiliate dashboard";
   }
-  return "continue where you left off";
+  return "continue on the FoodVault homepage";
 }
 
 function CheckEmailContent() {
@@ -76,10 +76,10 @@ function CheckEmailContent() {
       stopPolling();
       setIsRedirecting(true);
       clearPendingSignup();
-      router.push(path);
-      router.refresh();
+      // Full navigation ensures auth cookies are applied before the next page loads.
+      window.location.assign(path);
     },
-    [router, stopPolling]
+    [stopPolling]
   );
 
   const tryCompleteVerifiedSession = useCallback(async (options?: { silent?: boolean }) => {
@@ -114,6 +114,7 @@ function CheckEmailContent() {
     } = await supabase.auth.getUser();
 
     if (user?.email_confirmed_at) {
+      await supabase.auth.refreshSession();
       return tryCompleteVerifiedSession(options);
     }
 
@@ -145,6 +146,8 @@ function CheckEmailContent() {
       }
       return false;
     }
+
+    await supabase.auth.refreshSession();
 
     clearPendingSignup();
 
