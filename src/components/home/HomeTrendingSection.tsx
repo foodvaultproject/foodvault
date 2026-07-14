@@ -112,7 +112,7 @@ export function HomeTrendingSection({
       }`}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 md:grid-cols-3 md:gap-5">
+        <div className={`grid gap-4 md:grid-cols-3 ${compactSpacing ? "md:gap-2.5" : "md:gap-5"}`}>
           <TrendingColumn
             title="Trending this week"
             icon={

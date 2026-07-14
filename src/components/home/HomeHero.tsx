@@ -80,7 +80,7 @@ export function HomeHero({
       <div
         className={
           isActiveMember
-            ? "mx-auto max-w-[1200px] px-4 py-2.5 sm:px-6 sm:py-3 lg:px-8"
+            ? "mx-auto max-w-[1200px] px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8"
             : `mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
                 isPartner
                   ? PARTNER_HERO_PY
@@ -154,10 +154,6 @@ export function HomeHero({
                   "."
                 )}
               </h1>
-              <p className="mt-2.5 max-w-xl text-xs leading-relaxed text-muted-foreground">
-                Start exploring New Zealand brands and unlock your exclusive member
-                savings — buy direct on each partner&apos;s own website.
-              </p>
             </>
           ) : (
             <>
@@ -252,7 +248,7 @@ export function HomeHero({
         ) : null}
       </div>
 
-      {!isPartner && !isFreeTrial ? (
+      {!isPartner && !isFreeTrial && !isActiveMember ? (
         <div className="border-t border-border bg-background">
           <div
             className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${

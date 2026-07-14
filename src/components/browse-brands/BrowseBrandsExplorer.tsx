@@ -51,6 +51,8 @@ type BrowseBrandsExplorerProps = {
   exploreHeadingClassName?: string;
   /** Show trending search chips below the filter form (partner homepage). */
   showTrendingSearches?: boolean;
+  /** Tighter vertical rhythm for active member homepage. */
+  compactSpacing?: boolean;
 };
 
 export function BrowseBrandsExplorer({
@@ -65,6 +67,7 @@ export function BrowseBrandsExplorer({
   exploreHeading = "Explore More",
   exploreHeadingClassName = "text-2xl font-bold text-foreground",
   showTrendingSearches = false,
+  compactSpacing = false,
 }: BrowseBrandsExplorerProps) {
   const favoritedSet = useMemo(
     () => new Set(favoritedPartnerIds),
@@ -134,13 +137,27 @@ export function BrowseBrandsExplorer({
     return () => observer.disconnect();
   }, [brands.length, hasMore, isPending, runSearch]);
 
+  const formPadding = compactSpacing ? "p-3" : "p-5";
   const formClassName = embedded
-    ? "rounded-lg border border-border bg-background p-5 shadow-sm"
-    : "mt-10 rounded-lg border border-border bg-background p-5 shadow-sm sm:mt-14 lg:mt-16";
+    ? `rounded-lg border border-border bg-background ${formPadding} shadow-sm`
+    : `mt-10 rounded-lg border border-border bg-background ${formPadding} shadow-sm sm:mt-14 lg:mt-16`;
 
-  const blockGap = showTrendingSearches ? "mt-6" : "mt-12";
-  const gridGap = showTrendingSearches ? "mt-3" : "mt-6";
-  const trendingGap = showTrendingSearches ? "mt-3" : "mt-6";
+  const blockGap = compactSpacing
+    ? showTrendingSearches
+      ? "mt-3"
+      : "mt-6"
+    : showTrendingSearches
+      ? "mt-6"
+      : "mt-12";
+  const gridGap = compactSpacing
+    ? showTrendingSearches
+      ? "mt-1.5"
+      : "mt-3"
+    : showTrendingSearches
+      ? "mt-3"
+      : "mt-6";
+  const trendingGap = compactSpacing ? "mt-1.5" : showTrendingSearches ? "mt-3" : "mt-6";
+  const trendingPadding = compactSpacing ? "p-3" : "p-5";
 
   return (
     <>
@@ -267,7 +284,8 @@ export function BrowseBrandsExplorer({
         <HomeTrendingSearches
           keepBrowseOnHomepage
           hideViewAll
-          className={`${trendingGap} rounded-lg border border-border bg-background p-5 shadow-sm`}
+          compact={compactSpacing}
+          className={`${trendingGap} rounded-lg border border-border bg-background ${trendingPadding} shadow-sm`}
         />
       ) : null}
 

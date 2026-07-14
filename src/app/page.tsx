@@ -145,16 +145,18 @@ export default async function Home({ searchParams }: HomeProps) {
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
-          exploreHeading="Search. Discover. Save!"
-          exploreHeadingClassName="text-[14px] font-bold text-foreground"
+          exploreHeading=""
+          showTrendingSearches
+          compactSpacing
         />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
           hideViewAll
+          compactSpacing
         />
-        <DiscoverSection articles={discover.homepageCards} />
+        <DiscoverSection articles={discover.homepageCards} compactSpacing />
       </>
     );
   }

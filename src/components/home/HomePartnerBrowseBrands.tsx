@@ -27,6 +27,7 @@ type HomePartnerBrowseBrandsProps = {
   exploreHeading?: string;
   exploreHeadingClassName?: string;
   showTrendingSearches?: boolean;
+  compactSpacing?: boolean;
 };
 
 export function HomePartnerBrowseBrands({
@@ -40,12 +41,15 @@ export function HomePartnerBrowseBrands({
   exploreHeading,
   exploreHeadingClassName,
   showTrendingSearches = false,
+  compactSpacing = false,
 }: HomePartnerBrowseBrandsProps) {
   return (
     <section
       id={HOME_BROWSE_ANCHOR}
       className={`scroll-mt-24 bg-[#f3f4f6] ${
-        showTrendingSearches ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+        showTrendingSearches || compactSpacing
+          ? SECTION_PY_HOME_PARTNER
+          : SECTION_PY_HOME_REFINE
       }`}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -61,6 +65,7 @@ export function HomePartnerBrowseBrands({
           exploreHeadingClassName={exploreHeadingClassName}
           embedded
           showTrendingSearches={showTrendingSearches}
+          compactSpacing={compactSpacing}
         />
       </div>
     </section>
