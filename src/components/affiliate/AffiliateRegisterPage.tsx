@@ -10,6 +10,7 @@ import {
   seedDevAffiliateRecord,
 } from "@/lib/affiliate/auth";
 import { createDevSession, isSupabaseConfigured } from "@/lib/auth";
+import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import { AFFILIATE_LOGIN_PATH } from "@/lib/affiliate/paths";
 
 const inputClass =
@@ -80,6 +81,11 @@ export function AffiliateRegisterPage() {
     }
 
     if (result.needsEmailConfirmation) {
+      savePendingSignup({
+        email: form.email.trim(),
+        password: form.password,
+        account: "affiliate",
+      });
       router.push(result.checkEmailPath ?? "/auth/check-email");
       return;
     }

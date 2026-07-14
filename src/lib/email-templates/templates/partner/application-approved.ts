@@ -12,7 +12,6 @@ export type PartnerApplicationApprovedEmailParams = {
   appUrl: string;
   contactName?: string | null;
   businessName: string;
-  brandProfileUrl?: string | null;
 };
 
 export function renderPartnerApplicationApprovedEmail(
@@ -22,33 +21,33 @@ export function renderPartnerApplicationApprovedEmail(
   const greeting = contactName ? `Kia ora ${escapeHtml(contactName)},` : "Kia ora,";
   const businessName = escapeHtml(params.businessName);
   const listingUrl = `${params.appUrl.replace(/\/$/, "")}/partner/listing`;
-  const profileUrl =
-    params.brandProfileUrl ??
-    `${params.appUrl.replace(/\/$/, "")}/browse-brands`;
 
   const content = [
-    emailHeading("Your brand is now live on FoodVault!"),
+    emailHeading("Your application has been approved!"),
     emailParagraph(greeting),
     emailParagraph(
-      `Great news — <strong>${businessName}</strong> has been approved and your listing is now live on FoodVault. Members can start discovering your brand straight away.`
+      `Great news — <strong>${businessName}</strong> has been approved on FoodVault.`
+    ),
+    emailParagraph(
+      "Before your listing goes live, add your FoodVault member discount code to your website, then confirm in your partner dashboard."
     ),
     emailList([
-      "Your brand profile is visible to FoodVault members",
-      "Members can browse your offers and shop on your website",
-      "Keep your offers and product listings up to date anytime",
+      "Log in to FoodVault and open My Listing",
+      "Add your member discount code to your online store",
+      'Click "I\'ve Activated My Member Offer" once your code is live',
     ]),
-    emailButton(profileUrl, "View Your Live Listing"),
+    emailButton(listingUrl, "Go to My Listing"),
     emailParagraph(
-      `Manage your listing anytime from your <a href="${escapeHtml(listingUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">partner dashboard</a>.`
+      "We'll email you again as soon as your brand is live and visible to members."
     ),
   ].join("");
 
   return {
-    subject: "Your brand is now live on FoodVault!",
+    subject: "Your FoodVault application has been approved",
     html: wrapEmailContent(
       params.appUrl,
       content,
-      "Your FoodVault brand application has been approved."
+      "Your FoodVault brand application has been approved — one more step before going live."
     ),
   };
 }

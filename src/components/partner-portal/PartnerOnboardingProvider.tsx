@@ -9,7 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { isSupabaseConfigured } from "@/lib/auth";
 import { getPartnerSession } from "@/lib/partner-auth";
+import { confirmMemberOfferLiveAction } from "@/lib/partner/confirm-offer-live-action";
 import {
   confirmMemberOfferLive,
   getPartnerRecord,
@@ -87,13 +89,21 @@ export function PartnerOnboardingProvider({ children }: { children: ReactNode })
 
     setConfirmingActivation(true);
     try {
-      const updated = await confirmMemberOfferLive(session.id, partner.id);
-      setPartner(updated);
+      if (isSupabaseConfigured()) {
+        const result = await confirmMemberOfferLiveAction(partner.id);
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        await refreshPartner();
+      } else {
+        const updated = await confirmMemberOfferLive(session.id, partner.id);
+        setPartner(updated);
+      }
       setShowActivationDialog(false);
     } finally {
       setConfirmingActivation(false);
     }
-  }, [partner]);
+  }, [partner, refreshPartner]);
 
   const value = useMemo<PartnerOnboardingContextValue>(
     () => ({

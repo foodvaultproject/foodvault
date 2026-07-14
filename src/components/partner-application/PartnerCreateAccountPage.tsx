@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createPartnerAccountWithEmail, getPartnerSession, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
 import { createDevSession, isSupabaseConfigured, PARTNER_LOGIN_PATH } from "@/lib/auth";
+import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 
 const inputClass =
@@ -157,6 +158,11 @@ export function PartnerCreateAccountPage() {
     }
 
     if (result.needsEmailConfirmation) {
+      savePendingSignup({
+        email: email.trim(),
+        password,
+        account: "partner",
+      });
       router.push(result.checkEmailPath ?? "/auth/check-email");
       return;
     }

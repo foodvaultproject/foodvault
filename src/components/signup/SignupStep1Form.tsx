@@ -11,6 +11,7 @@ import {
   signInWithGoogle,
 } from "@/lib/auth";
 import { createMemberAccountAction } from "@/lib/member/signup-actions";
+import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import {
   formatFreeTrialLabel,
   formatMembershipPriceMonthly,
@@ -91,6 +92,11 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     setLoading(mode);
     const result = await createMemberAccountAction(formData, mode);
     if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+      savePendingSignup({
+        email: email.trim(),
+        password,
+        account: "member",
+      });
       router.push(result.checkEmailPath ?? "/auth/check-email");
       setLoading(null);
       return;

@@ -21,6 +21,7 @@ export {
   renderMemberPasswordResetEmail,
   renderPartnerApplicationReceivedEmail,
   renderPartnerApplicationApprovedEmail,
+  renderPartnerListingLiveEmail,
   renderPartnerApplicationRejectedEmail,
   renderAdminNewBrandApplicationEmail,
 } from "@/lib/email-templates/render";
@@ -37,9 +38,11 @@ export {
   sendMemberMembershipActivatedEmail,
   sendPartnerApplicationReceivedEmail,
   sendPartnerApplicationApprovedEmail,
+  sendPartnerListingLiveEmail,
   sendPartnerApplicationRejectedEmail,
   sendAdminNewBrandApplicationEmail,
   sendPartnerApprovalEmail,
+  sendPartnerListingLiveEmailForPartner,
   sendPartnerRejectionEmail,
   notifyPartnerLifecycleEmails,
 } from "@/lib/email-templates/dispatch";

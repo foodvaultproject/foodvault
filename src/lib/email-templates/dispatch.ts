@@ -11,6 +11,7 @@ import {
   renderPartnerApplicationReceivedEmail,
   renderPartnerApplicationRejectedEmail,
 } from "@/lib/email-templates/render";
+import { renderPartnerListingLiveEmail } from "@/lib/email-templates/templates/partner/listing-live";
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
 import { getMembershipSettings } from "@/lib/member/settings";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
@@ -119,6 +120,23 @@ export async function sendPartnerApplicationApprovedEmail(input: {
   to: string;
   contactName?: string | null;
   businessName: string;
+}) {
+  const appUrl = getEmailAppUrl();
+
+  return sendPlatformEmailSafe({
+    to: input.to,
+    rendered: renderPartnerApplicationApprovedEmail({
+      appUrl,
+      contactName: input.contactName,
+      businessName: input.businessName,
+    }),
+  });
+}
+
+export async function sendPartnerListingLiveEmail(input: {
+  to: string;
+  contactName?: string | null;
+  businessName: string;
   slug?: string | null;
 }) {
   const appUrl = getEmailAppUrl();
@@ -128,7 +146,7 @@ export async function sendPartnerApplicationApprovedEmail(input: {
 
   return sendPlatformEmailSafe({
     to: input.to,
-    rendered: renderPartnerApplicationApprovedEmail({
+    rendered: renderPartnerListingLiveEmail({
       appUrl,
       contactName: input.contactName,
       businessName: input.businessName,
@@ -245,6 +263,37 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
   if (!contactEmail) return { sent: false as const, reason: "missing_email" as const };
 
   return sendPartnerApplicationApprovedEmail({
+    to: contactEmail,
+    contactName:
+      partner.contact_name?.trim() ||
+      resolveContactName(userData?.user?.user_metadata) ||
+      null,
+    businessName: partner.business_name?.trim() || "your brand",
+  });
+}
+
+export async function sendPartnerListingLiveEmailForPartner(partnerId: string) {
+  const admin = createAdminClient();
+  if (!admin) return { sent: false as const, reason: "admin_unavailable" as const };
+
+  const { data: partner } = await admin
+    .from("partners")
+    .select("business_name, support_email, slug, user_id, contact_name, listing_status_v2")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (!partner) return { sent: false as const, reason: "partner_not_found" as const };
+
+  if (String(partner.listing_status_v2).toUpperCase() !== "LIVE") {
+    return { sent: false as const, reason: "listing_not_live" as const };
+  }
+
+  const { data: userData } = await admin.auth.admin.getUserById(String(partner.user_id));
+  const contactEmail =
+    partner.support_email?.trim() || userData?.user?.email?.trim() || "";
+  if (!contactEmail) return { sent: false as const, reason: "missing_email" as const };
+
+  return sendPartnerListingLiveEmail({
     to: contactEmail,
     contactName:
       partner.contact_name?.trim() ||
