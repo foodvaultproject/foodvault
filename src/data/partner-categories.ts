@@ -57,7 +57,6 @@ export const PARTNER_CATEGORY_TAXONOMY: Record<
     "Vegan & Vegetarian",
   ],
   Bakery: [
-    "Bakery In Store",
     "Sliced & Packaged Bread",
     "Buns, Rolls & Bread Sticks",
     "Wraps, Pita & Pizza Bases",

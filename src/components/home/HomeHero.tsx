@@ -160,7 +160,8 @@ export function HomeHero({
           ) : (
             <>
               <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
-                Built to <span className="text-primary">Save Kiwis Money</span>.
+                Discover Kiwi Brands.{" "}
+                <span className="text-primary">Enjoy Member Savings.</span>
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                 FoodVault exists for one reason: to help you spend less on the products you love.
