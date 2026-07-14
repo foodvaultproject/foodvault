@@ -17,7 +17,6 @@ import {
   type MembershipSettings,
 } from "@/lib/member/pricing";
 import { locale } from "@/lib/locale";
-import { createClient } from "@/lib/supabase/client";
 
 function GoogleIcon() {
   return (
@@ -92,9 +91,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     setLoading(mode);
     const result = await createMemberAccountAction(formData, mode);
     if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
-      setError(
-        `${result.message} We sent a confirmation link to ${result.email}. After confirming, log in to continue.`
-      );
+      router.push(result.checkEmailPath ?? "/auth/check-email");
       setLoading(null);
       return;
     }
@@ -105,31 +102,10 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     }
     if (!isSupabaseConfigured()) {
       createDevSession(email.trim(), "member");
-    } else {
-      // Hydrate the browser Supabase client after the server action sets session cookies.
-      try {
-        const { error: signInError } = await createClient().auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (signInError) {
-          setError(
-            "Your account was created, but we couldn't sign you in automatically. Please log in with your email and password."
-          );
-          setLoading(null);
-          return;
-        }
-      } catch {
-        setError(
-          "Your account was created, but we couldn't sign you in automatically. Please log in with your email and password."
-        );
-        setLoading(null);
-        return;
-      }
-    }
-    if ("redirectTo" in result) {
-      router.push(result.redirectTo ?? "/signup/welcome");
+      router.push(mode === "trial" ? "/signup/welcome" : "/signup/membership");
       router.refresh();
+      setLoading(null);
+      return;
     }
   }
 

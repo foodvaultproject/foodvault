@@ -1,12 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import {
-  createDevSession,
   getAuthSession,
   isSupabaseConfigured,
   signInWithEmail,
   type AuthSession,
 } from "@/lib/auth";
-import { registerAffiliateProfile } from "@/lib/affiliate/data";
 import type { AffiliateRegistrationInput } from "@/lib/affiliate/types";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 
@@ -30,6 +28,22 @@ function readDevAffiliate(userId: string) {
 function writeDevAffiliate(userId: string, record: Record<string, unknown>) {
   if (typeof window === "undefined") return;
   localStorage.setItem(getDevAffiliateKey(userId), JSON.stringify(record));
+}
+
+export function seedDevAffiliateRecord(
+  userId: string,
+  record: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  }
+) {
+  writeDevAffiliate(userId, {
+    first_name: record.firstName.trim(),
+    last_name: record.lastName.trim(),
+    email: record.email.trim(),
+    referral_code: "DEVAFF01",
+  });
 }
 
 export async function getAffiliateSession(): Promise<AuthSession | null> {
@@ -57,80 +71,17 @@ export async function isAffiliateAccount(userId: string): Promise<boolean> {
 
 export async function createAffiliateAccount(
   input: AffiliateRegistrationInput
-): Promise<{ error?: string }> {
-  if (!input.firstName.trim() || !input.lastName.trim()) {
-    return { error: "First name and last name are required." };
-  }
-
-  if (!input.email.trim()) {
-    return { error: "Email address is required." };
-  }
-
-  if (!isSupabaseConfigured()) {
-    createDevSession(input.email.trim(), "affiliate");
-    writeDevAffiliate(`dev-${input.email.trim()}`, {
-      first_name: input.firstName.trim(),
-      last_name: input.lastName.trim(),
-      email: input.email.trim(),
-      referral_code: "DEVAFF01",
-    });
-    return {};
-  }
-
-  const supabase = createClient();
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email: input.email.trim(),
-    password: input.password,
-    options: {
-      data: {
-        account_type: "affiliate",
-        affiliate_account_created: true,
-        first_name: input.firstName.trim(),
-        last_name: input.lastName.trim(),
-        capabilities: ["affiliate"],
-      },
-    },
-  });
-
-  if (signUpError) {
-    return { error: signUpError.message };
-  }
-
-  if (!signUpData.user) {
-    return { error: "Unable to create affiliate account." };
-  }
-
-  if (!signUpData.session) {
-    const signIn = await signInWithEmail(
-      input.email.trim(),
-      input.password,
-      "affiliate"
-    );
-    if (signIn.error) {
-      return {
-        error:
-          "Account created. Please confirm your email, then sign in to finish setup.",
-      };
-    }
-  }
-
-  try {
-    await registerAffiliateProfile({
-      firstName: input.firstName,
-      lastName: input.lastName,
-      email: input.email,
-      country: input.country,
-    });
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Account created but affiliate profile setup failed.",
-    };
-  }
-
-  return {};
+): Promise<{
+  error?: string;
+  needsEmailConfirmation?: true;
+  email?: string;
+  checkEmailPath?: string;
+  success?: true;
+}> {
+  const { createAffiliateAccountAction } = await import(
+    "@/lib/affiliate/signup-actions"
+  );
+  return createAffiliateAccountAction(input);
 }
 
 export async function signInAffiliateWithEmail(

@@ -7,7 +7,6 @@ import {
   renderMemberFreeTrialReminderEmail,
   renderMemberFreeTrialStartedEmail,
   renderMemberMembershipActivatedEmail,
-  renderMemberWelcomeEmail,
   renderPartnerApplicationApprovedEmail,
   renderPartnerApplicationReceivedEmail,
   renderPartnerApplicationRejectedEmail,
@@ -36,20 +35,6 @@ function resolveContactName(metadata: Record<string, unknown> | undefined) {
     typeof metadata.last_name === "string" ? metadata.last_name.trim() : "";
   const combined = `${firstName} ${lastName}`.trim();
   return combined || null;
-}
-
-export async function sendMemberWelcomeEmail(input: {
-  to: string;
-  firstName?: string | null;
-}) {
-  const appUrl = getEmailAppUrl();
-  return sendPlatformEmailSafe({
-    to: input.to,
-    rendered: renderMemberWelcomeEmail({
-      appUrl,
-      firstName: input.firstName,
-    }),
-  });
 }
 
 export async function sendMemberFreeTrialStartedEmail(input: {
@@ -295,24 +280,4 @@ export async function sendPartnerRejectionEmail(partnerId: string) {
       null,
     businessName: partner.business_name?.trim() || "your brand",
   });
-}
-
-export async function sendMemberSignupEmails(input: {
-  to: string;
-  firstName?: string | null;
-  mode: "trial" | "membership";
-  trialLengthDays?: number;
-}) {
-  await sendMemberWelcomeEmail({
-    to: input.to,
-    firstName: input.firstName,
-  });
-
-  if (input.mode === "trial") {
-    await sendMemberFreeTrialStartedEmail({
-      to: input.to,
-      firstName: input.firstName,
-      trialLengthDays: input.trialLengthDays,
-    });
-  }
 }

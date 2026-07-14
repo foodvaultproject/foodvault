@@ -3,13 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import {
-  createPartnerAccountWithEmail,
-  getPartnerSession,
-  PARTNER_APPLICATION_PATH,
-  signInPartnerWithGoogle,
-} from "@/lib/partner-auth";
-import { PARTNER_LOGIN_PATH } from "@/lib/auth";
+import { createPartnerAccountWithEmail, getPartnerSession, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
+import { createDevSession, isSupabaseConfigured, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 
 const inputClass =
@@ -159,6 +154,15 @@ export function PartnerCreateAccountPage() {
       setError(result.error);
       setSubmitting(false);
       return;
+    }
+
+    if (result.needsEmailConfirmation) {
+      router.push(result.checkEmailPath ?? "/auth/check-email");
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
+      createDevSession(email.trim(), "partner");
     }
 
     router.push(PARTNER_APPLICATION_PATH);

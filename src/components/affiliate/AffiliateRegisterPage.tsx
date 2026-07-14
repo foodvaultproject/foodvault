@@ -7,7 +7,9 @@ import { AffiliateGuestGuard } from "@/components/affiliate/AffiliateAuthGuard";
 import {
   createAffiliateAccount,
   resolveAffiliatePostLoginPath,
+  seedDevAffiliateRecord,
 } from "@/lib/affiliate/auth";
+import { createDevSession, isSupabaseConfigured } from "@/lib/auth";
 import { AFFILIATE_LOGIN_PATH } from "@/lib/affiliate/paths";
 
 const inputClass =
@@ -75,6 +77,20 @@ export function AffiliateRegisterPage() {
       setError(result.error);
       setSubmitting(false);
       return;
+    }
+
+    if (result.needsEmailConfirmation) {
+      router.push(result.checkEmailPath ?? "/auth/check-email");
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
+      createDevSession(form.email.trim(), "affiliate");
+      seedDevAffiliateRecord(`dev-${form.email.trim()}`, {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+      });
     }
 
     router.push(resolveAffiliatePostLoginPath());

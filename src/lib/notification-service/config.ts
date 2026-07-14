@@ -1,21 +1,13 @@
 /**
  * FoodVault uses two separate email channels:
  *
- * 1. Supabase Auth (dashboard: Authentication → Email Templates)
- *    - Signup email verification
- *    - Password reset links
- *    - Partner / affiliate account confirmation
- *    Triggered by supabase.auth.signUp(), resetPasswordForEmail(), etc.
- *    The app does not send these — Supabase Auth delivers them.
+ * 1. Supabase Auth
+ *    - Password reset links only (resetPasswordForEmail)
+ *    Signup verification is sent by the app via Resend (admin generateLink only).
  *
  * 2. Resend via notification-service (RESEND_API_KEY)
- *    - Affiliate program notifications (pre-existing)
- *    - Partner admin alerts, welcome, trial, approval emails (email-templates)
+ *    - Signup verification, trial lifecycle, partner lifecycle, admin alerts
  *    Triggered from server actions / cron when RESEND_API_KEY is set.
- *
- * Supabase Auth cannot send arbitrary transactional emails (welcome, trial
- * reminders, partner approved, etc.). Resend was already in the project before
- * the email template system — templates reuse that existing integration.
  */
 export function getNotificationServiceConfig() {
   const resendApiKey = process.env.RESEND_API_KEY ?? "";

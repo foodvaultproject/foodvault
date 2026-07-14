@@ -31,7 +31,6 @@ export {
 } from "@/lib/email-templates/send";
 export {
   PARTNER_SUBMISSION_ADMIN_EMAIL,
-  sendMemberWelcomeEmail,
   sendMemberFreeTrialStartedEmail,
   sendMemberFreeTrialReminderEmail,
   sendMemberFreeTrialEndedEmail,
@@ -40,7 +39,6 @@ export {
   sendPartnerApplicationApprovedEmail,
   sendPartnerApplicationRejectedEmail,
   sendAdminNewBrandApplicationEmail,
-  sendMemberSignupEmails,
   sendPartnerApprovalEmail,
   sendPartnerRejectionEmail,
   notifyPartnerLifecycleEmails,

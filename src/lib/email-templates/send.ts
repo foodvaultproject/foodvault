@@ -2,6 +2,10 @@ import { getNotificationServiceConfig } from "@/lib/notification-service/config"
 import { sendResendEmail } from "@/lib/notification-service/providers/resend";
 import type { RenderedEmail } from "@/lib/email-templates/types";
 
+/**
+ * Sends application transactional email through the existing Resend integration
+ * in notification-service. Supabase Auth is only used for password reset delivery.
+ */
 export type SendPlatformEmailInput = {
   to: string;
   rendered: RenderedEmail;

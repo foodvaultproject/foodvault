@@ -1,6 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
 import {
-  createDevSession,
   getAuthSession,
   isSupabaseConfigured,
   PARTNER_DASHBOARD_PATH,
@@ -138,55 +136,20 @@ export async function resolvePartnerPostLoginPath(
   return PARTNER_DASHBOARD_PATH;
 }
 
-async function ensurePartnerAccountMetadata() {
-  if (!isSupabaseConfigured()) return;
-
-  const supabase = createClient();
-  await supabase.auth.updateUser({
-    data: {
-      account_type: "partner",
-      partner_account_created: true,
-      onboarding_step: 2,
-    },
-  });
-}
-
 export async function createPartnerAccountWithEmail(
   email: string,
   password: string
-): Promise<{ error?: string }> {
-  if (!isSupabaseConfigured()) {
-    createDevSession(email, "partner");
-    return {};
-  }
-
-  const supabase = createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        account_type: "partner",
-        partner_account_created: true,
-        onboarding_step: 2,
-      },
-      emailRedirectTo: `${window.location.origin}/auth/callback?next=${PARTNER_APPLICATION_PATH}&account=partner`,
-    },
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  if (data.user && !data.session) {
-    return {
-      error:
-        "Please check your email to confirm your account before continuing.",
-    };
-  }
-
-  await ensurePartnerAccountMetadata();
-  return {};
+): Promise<{
+  error?: string;
+  needsEmailConfirmation?: true;
+  email?: string;
+  checkEmailPath?: string;
+  success?: true;
+}> {
+  const { createPartnerAccountAction } = await import(
+    "@/lib/partner/signup-actions"
+  );
+  return createPartnerAccountAction(email, password);
 }
 
 export async function signInPartnerWithEmail(

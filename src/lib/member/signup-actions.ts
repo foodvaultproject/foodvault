@@ -2,18 +2,16 @@
 
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, SIGNUP_PATH } from "@/lib/auth";
-import { sendMemberSignupEmails } from "@/lib/email-templates/dispatch";
-import { createClient } from "@/lib/supabase/server";
+import {
+  AUTH_CHECK_EMAIL_PATH,
+  issueAndSendSignupVerification,
+} from "@/lib/auth/email-verification";
+import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import {
   SIGNUP_MEMBERSHIP_PATH,
   SIGNUP_WELCOME_PATH,
 } from "@/lib/member/paths";
-import {
-  syncMemberProfileFromAuth,
-  upsertMemberSignupProfile,
-} from "@/lib/member/upsert-signup-profile";
-import { establishMemberSignupSession } from "@/lib/member/establish-signup-session";
-import { startMemberTrial } from "@/lib/member/start-trial";
+import { createClient } from "@/lib/supabase/server";
 
 export type SignupFormData = {
   firstName: string;
@@ -54,97 +52,35 @@ export async function createMemberAccountAction(
     };
   }
 
-  const supabase = await createClient();
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.foodvault.co.nz").replace(
-    /\/$/,
-    ""
-  );
+  const email = data.email.trim();
+  const nextPath = mode === "trial" ? SIGNUP_WELCOME_PATH : SIGNUP_MEMBERSHIP_PATH;
 
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email: data.email.trim(),
+  const sendResult = await issueAndSendSignupVerification({
+    email,
     password: data.password,
-    options: {
-      data: {
-        account_type: "member",
-        first_name: data.firstName.trim(),
-        last_name: data.lastName.trim(),
-      },
-      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(SIGNUP_WELCOME_PATH)}&account=member`,
+    firstName: data.firstName.trim(),
+    next: nextPath,
+    account: "member",
+    linkType: "signup",
+    userMetadata: {
+      account_type: "member",
+      first_name: data.firstName.trim(),
+      last_name: data.lastName.trim(),
+      signup_mode: mode,
+      country: data.country,
+      marketing_opt_in: data.marketingOptIn,
     },
   });
 
-  if (signUpError) {
-    if (signUpError.message.toLowerCase().includes("already registered")) {
-      return { error: "This email is already registered. Please log in instead." };
-    }
-    return { error: signUpError.message };
+  if ("error" in sendResult && sendResult.error) {
+    console.error("[signup] Member verification email failed", sendResult);
+    return { error: sendResult.error };
   }
-
-  if (!signUpData.user) {
-    return { error: "Unable to create account." };
-  }
-
-  const sessionResult = await establishMemberSignupSession(supabase, {
-    authUserId: signUpData.user.id,
-    email: data.email.trim(),
-    password: data.password,
-    hasSession: Boolean(signUpData.session),
-  });
-
-  if (!sessionResult.ok) {
-    return {
-      needsEmailConfirmation: true as const,
-      email: data.email.trim(),
-      message: sessionResult.message,
-    };
-  }
-
-  if (mode === "trial") {
-    const { error: trialError } = await startMemberTrial(supabase, {
-      authUserId: signUpData.user.id,
-      email: signUpData.user.email ?? data.email.trim(),
-      firstName: data.firstName.trim(),
-      lastName: data.lastName.trim(),
-      country: data.country,
-      marketingOptIn: data.marketingOptIn,
-    });
-
-    if (trialError) {
-      return { error: trialError };
-    }
-  } else {
-    await supabase.auth.updateUser({
-      data: { account_type: "member" },
-    });
-
-    const { error: profileError } = await upsertMemberSignupProfile(supabase, {
-      authUserId: signUpData.user.id,
-      email: signUpData.user.email ?? data.email.trim(),
-      firstName: data.firstName.trim(),
-      lastName: data.lastName.trim(),
-      country: data.country,
-      marketingOptIn: data.marketingOptIn,
-    });
-
-    if (profileError) {
-      return { error: profileError };
-    }
-  }
-
-  void sendMemberSignupEmails({
-    to: signUpData.user.email ?? data.email.trim(),
-    firstName: data.firstName.trim(),
-    mode,
-  }).catch((emailError) => {
-    console.error("[signup] Failed to send member signup emails", {
-      email: data.email.trim(),
-      error: emailError instanceof Error ? emailError.message : emailError,
-    });
-  });
 
   return {
-    success: true as const,
-    redirectTo: mode === "trial" ? SIGNUP_WELCOME_PATH : SIGNUP_MEMBERSHIP_PATH,
+    needsEmailConfirmation: true as const,
+    email,
+    checkEmailPath: `${AUTH_CHECK_EMAIL_PATH}?email=${encodeURIComponent(email)}&account=member`,
   };
 }
 
@@ -162,35 +98,15 @@ export async function requireMemberSession() {
     redirect(SIGNUP_PATH);
   }
 
+  if (!user.email_confirmed_at) {
+    redirect(
+      `${AUTH_CHECK_EMAIL_PATH}?email=${encodeURIComponent(user.email)}&account=member`
+    );
+  }
+
   return { id: user.id, email: user.email };
 }
 
 export async function resendMemberSignupConfirmationAction(email: string) {
-  if (!isSupabaseConfigured()) {
-    return { error: "Email confirmation is not configured in this environment." };
-  }
-
-  const trimmed = email.trim();
-  if (!trimmed) {
-    return { error: "Enter your email address first." };
-  }
-
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.foodvault.co.nz").replace(
-    /\/$/,
-    ""
-  );
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resend({
-    type: "signup",
-    email: trimmed,
-    options: {
-      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(SIGNUP_WELCOME_PATH)}&account=member`,
-    },
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  return { success: true as const };
+  return resendSignupVerificationAction(email, "member");
 }

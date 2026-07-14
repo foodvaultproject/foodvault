@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "diagnose:settings": "npx tsx scripts/diagnose-membership-settings.ts",
-    "diagnose:stripe": "npx tsx scripts/diagnose-stripe-config.ts"
+    "diagnose:stripe": "npx tsx scripts/diagnose-stripe-config.ts",
+    "diagnose:signup-auth": "npx tsx scripts/diagnose-signup-auth.ts"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",

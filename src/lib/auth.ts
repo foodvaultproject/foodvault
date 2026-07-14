@@ -84,7 +84,7 @@ export async function getAuthSession(): Promise<AuthSession | null> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) return null;
+  if (!user?.email || !user.email_confirmed_at) return null;
 
   return {
     id: user.id,
