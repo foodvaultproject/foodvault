@@ -91,7 +91,14 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     setError(null);
     setLoading(mode);
     const result = await createMemberAccountAction(formData, mode);
-    if (result.error) {
+    if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+      setError(
+        `${result.message} We sent a confirmation link to ${result.email}. After confirming, log in to continue.`
+      );
+      setLoading(null);
+      return;
+    }
+    if ("error" in result && result.error) {
       setError(result.error);
       setLoading(null);
       return;
@@ -99,23 +106,31 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     if (!isSupabaseConfigured()) {
       createDevSession(email.trim(), "member");
     } else {
-      // The account is created via a server action, so the browser Supabase
-      // client is unaware of the new session. Sign in on the client to hydrate
-      // it — this fires onAuthStateChange so the navigation renders the
-      // logged-in state immediately, with no manual refresh. Non-fatal: the
-      // session cookies are already set server-side, so navigation still works
-      // even if this client sign-in is skipped.
+      // Hydrate the browser Supabase client after the server action sets session cookies.
       try {
-        await createClient().auth.signInWithPassword({
+        const { error: signInError } = await createClient().auth.signInWithPassword({
           email: email.trim(),
           password,
         });
+        if (signInError) {
+          setError(
+            "Your account was created, but we couldn't sign you in automatically. Please log in with your email and password."
+          );
+          setLoading(null);
+          return;
+        }
       } catch {
-        // Ignore — server-side session cookies are already in place.
+        setError(
+          "Your account was created, but we couldn't sign you in automatically. Please log in with your email and password."
+        );
+        setLoading(null);
+        return;
       }
     }
-    router.push(result.redirectTo ?? "/signup/welcome");
-    router.refresh();
+    if ("redirectTo" in result) {
+      router.push(result.redirectTo ?? "/signup/welcome");
+      router.refresh();
+    }
   }
 
   return (

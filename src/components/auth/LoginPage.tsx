@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
+import { resendMemberSignupConfirmationAction } from "@/lib/member/signup-actions";
 import {
   FORGOT_PASSWORD_PATH,
   getAuthSession,
@@ -67,6 +68,11 @@ function LoginForm() {
     messageForAuthError(searchParams.get("error"))
   );
   const [submitting, setSubmitting] = useState(false);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
+  const [confirmationResent, setConfirmationResent] = useState(false);
+
+  const showResendConfirmation =
+    Boolean(error) && /email not confirmed/i.test(error ?? "");
 
   useEffect(() => {
     getAuthSession().then((session) => {
@@ -87,6 +93,7 @@ function LoginForm() {
 
     if (result.error) {
       setError(result.error);
+      setConfirmationResent(false);
       setSubmitting(false);
       return;
     }
@@ -94,8 +101,28 @@ function LoginForm() {
     router.push(resolvePostLoginRedirect("member", nextPath));
   };
 
+  async function handleResendConfirmation() {
+    if (!email.trim()) {
+      setError("Enter your email address above, then resend the confirmation email.");
+      return;
+    }
+
+    setResendingConfirmation(true);
+    setConfirmationResent(false);
+    const result = await resendMemberSignupConfirmationAction(email.trim());
+    setResendingConfirmation(false);
+
+    if ("error" in result && result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setConfirmationResent(true);
+  }
+
   const handleGoogleSignIn = async () => {
     setError(null);
+    setConfirmationResent(false);
     const result = await signInWithGoogle({
       accountType: "member",
       nextPath: nextPath ?? undefined,
@@ -196,9 +223,26 @@ function LoginForm() {
             </div>
 
             {error && (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </p>
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p>{error}</p>
+                {showResendConfirmation ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleResendConfirmation()}
+                    disabled={resendingConfirmation}
+                    className="mt-3 font-semibold text-primary underline-offset-2 hover:underline disabled:opacity-60"
+                  >
+                    {resendingConfirmation
+                      ? "Sending confirmation email..."
+                      : "Resend confirmation email"}
+                  </button>
+                ) : null}
+                {confirmationResent ? (
+                  <p className="mt-2 text-success">
+                    Confirmation email sent. Check your inbox and spam folder.
+                  </p>
+                ) : null}
+              </div>
             )}
 
             <button

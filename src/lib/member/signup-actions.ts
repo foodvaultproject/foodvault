@@ -12,6 +12,7 @@ import {
   syncMemberProfileFromAuth,
   upsertMemberSignupProfile,
 } from "@/lib/member/upsert-signup-profile";
+import { establishMemberSignupSession } from "@/lib/member/establish-signup-session";
 import { startMemberTrial } from "@/lib/member/start-trial";
 
 export type SignupFormData = {
@@ -54,6 +55,11 @@ export async function createMemberAccountAction(
   }
 
   const supabase = await createClient();
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.foodvault.co.nz").replace(
+    /\/$/,
+    ""
+  );
+
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email: data.email.trim(),
     password: data.password,
@@ -63,6 +69,7 @@ export async function createMemberAccountAction(
         first_name: data.firstName.trim(),
         last_name: data.lastName.trim(),
       },
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(SIGNUP_WELCOME_PATH)}&account=member`,
     },
   });
 
@@ -75,6 +82,21 @@ export async function createMemberAccountAction(
 
   if (!signUpData.user) {
     return { error: "Unable to create account." };
+  }
+
+  const sessionResult = await establishMemberSignupSession(supabase, {
+    authUserId: signUpData.user.id,
+    email: data.email.trim(),
+    password: data.password,
+    hasSession: Boolean(signUpData.session),
+  });
+
+  if (!sessionResult.ok) {
+    return {
+      needsEmailConfirmation: true as const,
+      email: data.email.trim(),
+      message: sessionResult.message,
+    };
   }
 
   if (mode === "trial") {
@@ -141,4 +163,34 @@ export async function requireMemberSession() {
   }
 
   return { id: user.id, email: user.email };
+}
+
+export async function resendMemberSignupConfirmationAction(email: string) {
+  if (!isSupabaseConfigured()) {
+    return { error: "Email confirmation is not configured in this environment." };
+  }
+
+  const trimmed = email.trim();
+  if (!trimmed) {
+    return { error: "Enter your email address first." };
+  }
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.foodvault.co.nz").replace(
+    /\/$/,
+    ""
+  );
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: trimmed,
+    options: {
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(SIGNUP_WELCOME_PATH)}&account=member`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true as const };
 }
