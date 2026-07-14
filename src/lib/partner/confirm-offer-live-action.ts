@@ -35,12 +35,14 @@ export async function confirmMemberOfferLiveAction(partnerId: string) {
   }
 
   if (wasNotLive) {
-    void sendPartnerListingLiveEmailForPartner(partnerId).catch((emailError) => {
-      console.error("[partner] Failed to send listing live email", {
+    const emailResult = await sendPartnerListingLiveEmailForPartner(partnerId);
+    if (emailResult.sent === false) {
+      console.error("[partner] Listing live email was not sent", {
         partnerId,
-        error: emailError instanceof Error ? emailError.message : emailError,
+        reason:
+          "reason" in emailResult ? emailResult.reason : "unknown",
       });
-    });
+    }
   }
 
   return { success: true as const };

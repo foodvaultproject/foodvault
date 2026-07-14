@@ -120,6 +120,7 @@ export async function sendPartnerApplicationApprovedEmail(input: {
   to: string;
   contactName?: string | null;
   businessName: string;
+  memberCode?: string | null;
 }) {
   const appUrl = getEmailAppUrl();
 
@@ -129,6 +130,7 @@ export async function sendPartnerApplicationApprovedEmail(input: {
       appUrl,
       contactName: input.contactName,
       businessName: input.businessName,
+      memberCode: input.memberCode,
     }),
   });
 }
@@ -251,7 +253,7 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
 
   const { data: partner } = await admin
     .from("partners")
-    .select("business_name, support_email, slug, user_id, contact_name")
+    .select("business_name, support_email, slug, user_id, contact_name, member_code")
     .eq("id", partnerId)
     .maybeSingle();
 
@@ -269,6 +271,7 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
       resolveContactName(userData?.user?.user_metadata) ||
       null,
     businessName: partner.business_name?.trim() || "your brand",
+    memberCode: partner.member_code?.trim() || null,
   });
 }
 

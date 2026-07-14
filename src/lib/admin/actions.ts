@@ -43,14 +43,18 @@ export async function approvePartnerApplicationAction(partnerId: string) {
 
   if (error) return { error: error.message };
 
-  void sendPartnerApprovalEmail(partnerId).catch((emailError) => {
-    console.error("[admin] Failed to send partner approval email", {
+  const emailResult = await sendPartnerApprovalEmail(partnerId);
+  if (emailResult.sent === false) {
+    console.error("[admin] Partner approval email was not sent", {
       partnerId,
-      error: emailError instanceof Error ? emailError.message : emailError,
+      reason:
+        "reason" in emailResult ? emailResult.reason : "unknown",
     });
-  });
+  }
 
-  await logAuditAction("approve_partner_application", "partner", partnerId);
+  await logAuditAction("approve_partner_application", "partner", partnerId, {
+    email_sent: emailResult.sent === true,
+  });
   revalidatePath("/admin/partner-applications");
   revalidatePath("/admin/dashboard");
   revalidatePath("/admin/partners");

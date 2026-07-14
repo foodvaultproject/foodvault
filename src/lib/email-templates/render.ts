@@ -81,6 +81,7 @@ export function renderEmailTemplate(
         appUrl: String(params.appUrl ?? ""),
         contactName: params.contactName as string | null | undefined,
         businessName: String(params.businessName ?? ""),
+        memberCode: params.memberCode as string | null | undefined,
       });
     case "partner.listing-live":
       return renderPartnerListingLiveEmail({

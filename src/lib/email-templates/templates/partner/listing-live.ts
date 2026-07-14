@@ -30,7 +30,7 @@ export function renderPartnerListingLiveEmail(
     emailHeading("Your brand is now live on FoodVault!"),
     emailParagraph(greeting),
     emailParagraph(
-      `Great news — <strong>${businessName}</strong> has been approved and your listing is now live on FoodVault. Members can start discovering your brand straight away.`
+      `Great news — <strong>${businessName}</strong> is now live on FoodVault. Members can start discovering your brand straight away.`
     ),
     emailList([
       "Your brand profile is visible to FoodVault members",
