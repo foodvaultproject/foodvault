@@ -20,13 +20,15 @@ export async function sendResendEmail(input: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }) {
-  const { fromEmail } = getNotificationServiceConfig();
+  const { fromEmail, replyToEmail } = getNotificationServiceConfig();
   const resend = getResendClient();
 
   return resend.emails.send({
     from: fromEmail,
     to: input.to,
+    replyTo: input.replyTo ?? replyToEmail,
     subject: input.subject,
     html: input.html,
   });

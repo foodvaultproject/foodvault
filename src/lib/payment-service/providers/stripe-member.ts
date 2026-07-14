@@ -271,6 +271,9 @@ async function activatePaidMemberSubscription(params: {
     );
   }
 
+  const existingMember = await resolveMemberBillingRow(admin, params.authUserId);
+  const wasAlreadyPaid = memberRowHasPaidSubscription(existingMember);
+
   const { error } = await admin.rpc("upgrade_to_paid_membership_webhook", {
     p_auth_user_id: params.authUserId,
     p_stripe_customer_id: params.stripeCustomerId,
@@ -318,7 +321,7 @@ async function activatePaidMemberSubscription(params: {
     .or(`auth_user_id.eq.${params.authUserId},id.eq.${params.authUserId}`)
     .maybeSingle();
 
-  if (member?.email) {
+  if (member?.email && !wasAlreadyPaid) {
     void sendMemberMembershipActivatedEmail({
       to: member.email,
       firstName: member.first_name,
