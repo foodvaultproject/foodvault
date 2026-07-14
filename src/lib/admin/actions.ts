@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { isSupabaseConfigured } from "@/lib/auth";
+import {
+  sendPartnerApprovalEmail,
+  sendPartnerRejectionEmail,
+} from "@/lib/email-templates/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
 import { getBrandReportEvents } from "@/lib/admin/queries";
@@ -39,6 +43,13 @@ export async function approvePartnerApplicationAction(partnerId: string) {
 
   if (error) return { error: error.message };
 
+  void sendPartnerApprovalEmail(partnerId).catch((emailError) => {
+    console.error("[admin] Failed to send partner approval email", {
+      partnerId,
+      error: emailError instanceof Error ? emailError.message : emailError,
+    });
+  });
+
   await logAuditAction("approve_partner_application", "partner", partnerId);
   revalidatePath("/admin/partner-applications");
   revalidatePath("/admin/dashboard");
@@ -63,7 +74,13 @@ export async function rejectPartnerApplicationAction(partnerId: string) {
 
   if (error) return { error: error.message };
 
-  // Rejection email would be sent via Supabase Edge Function or email service.
+  void sendPartnerRejectionEmail(partnerId).catch((emailError) => {
+    console.error("[admin] Failed to send partner rejection email", {
+      partnerId,
+      error: emailError instanceof Error ? emailError.message : emailError,
+    });
+  });
+
   await logAuditAction("reject_partner_application", "partner", partnerId, {
     email_sent: true,
   });

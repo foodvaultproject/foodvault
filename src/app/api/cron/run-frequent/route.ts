@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
 import { approveExpiredCommissions } from "@/lib/store-integration/engine";
 import { processPendingNotifications } from "@/lib/notification-service/engine";
 import { recordScheduledJobRun } from "@/lib/audit-service";
@@ -29,7 +30,14 @@ export async function POST(request: NextRequest) {
       result: { processed },
     });
 
-    return NextResponse.json({ ok: true, approved, processed });
+    const trialEmails = await processMemberTrialEmails();
+    await recordScheduledJobRun({
+      jobName: "process_member_trial_emails",
+      status: "success",
+      result: trialEmails,
+    });
+
+    return NextResponse.json({ ok: true, approved, processed, trialEmails });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Cron failed";
     await recordScheduledJobRun({

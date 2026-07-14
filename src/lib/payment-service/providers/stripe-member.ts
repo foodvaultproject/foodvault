@@ -1,3 +1,4 @@
+import { sendMemberMembershipActivatedEmail } from "@/lib/email-templates/dispatch";
 import type Stripe from "stripe";
 import { SIGNUP_PAYMENT_PATH, SIGNUP_WELCOME_PATH } from "@/lib/member/paths";
 import {
@@ -310,6 +311,24 @@ async function activatePaidMemberSubscription(params: {
     .eq("auth_user_id", params.authUserId);
 
   await syncMemberProfileFromAuth(params.authUserId);
+
+  const { data: member } = await admin
+    .from("members")
+    .select("email, first_name")
+    .or(`auth_user_id.eq.${params.authUserId},id.eq.${params.authUserId}`)
+    .maybeSingle();
+
+  if (member?.email) {
+    void sendMemberMembershipActivatedEmail({
+      to: member.email,
+      firstName: member.first_name,
+    }).catch((emailError) => {
+      console.error("[stripe-member] Failed to send membership activated email", {
+        authUserId: params.authUserId,
+        error: emailError instanceof Error ? emailError.message : emailError,
+      });
+    });
+  }
 }
 
 export async function completeMemberSubscriptionFromCheckout(

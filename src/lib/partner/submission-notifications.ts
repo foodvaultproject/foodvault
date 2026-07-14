@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdminPartnerListingSubmitted } from "@/lib/notification-service/partner-submission-admin-email";
+import { sendPartnerApplicationReceivedEmail } from "@/lib/email-templates/dispatch";
 
 /**
  * Sends the admin notification after a partner listing is submitted for review.
@@ -32,7 +33,26 @@ export async function notifyAdminPartnerListingSubmittedAction(partnerId: string
   }
 
   try {
-    return await notifyAdminPartnerListingSubmitted(partnerId);
+    const adminResult = await notifyAdminPartnerListingSubmitted(partnerId);
+
+    const { data: partnerDetails } = await supabase
+      .from("partners")
+      .select("business_name, support_email, contact_name")
+      .eq("id", partnerId)
+      .maybeSingle();
+
+    const partnerEmail =
+      partnerDetails?.support_email?.trim() || user.email?.trim() || "";
+
+    if (partnerEmail && partnerDetails?.business_name) {
+      await sendPartnerApplicationReceivedEmail({
+        to: partnerEmail,
+        contactName: partnerDetails.contact_name ?? user.user_metadata?.first_name ?? null,
+        businessName: partnerDetails.business_name,
+      });
+    }
+
+    return adminResult;
   } catch (error) {
     console.error("[partner-submission] Failed to send admin notification", {
       partnerId,

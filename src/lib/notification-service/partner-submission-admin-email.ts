@@ -1,9 +1,11 @@
+import {
+  PARTNER_SUBMISSION_ADMIN_EMAIL,
+  sendAdminNewBrandApplicationEmail,
+} from "@/lib/email-templates/dispatch";
+import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getNotificationServiceConfig } from "@/lib/notification-service/config";
-import { sendResendEmail } from "@/lib/notification-service/providers/resend";
 
-export const PARTNER_SUBMISSION_ADMIN_EMAIL =
-  process.env.PARTNER_SUBMISSION_ADMIN_EMAIL ?? "mark@benchmark-int.com";
+export { PARTNER_SUBMISSION_ADMIN_EMAIL };
 
 export type PartnerSubmissionAdminEmailInput = {
   businessName: string;
@@ -12,75 +14,31 @@ export type PartnerSubmissionAdminEmailInput = {
   submittedAt: Date;
 };
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function formatSubmissionDateTime(date: Date) {
-  return new Intl.DateTimeFormat("en-NZ", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone: "Pacific/Auckland",
-  }).format(date);
-}
-
 export function renderPartnerSubmissionAdminEmail(
   input: PartnerSubmissionAdminEmailInput
 ) {
-  const businessName = escapeHtml(input.businessName);
-  const contactName = escapeHtml(input.contactName);
-  const contactEmail = escapeHtml(input.contactEmail);
-  const submittedAt = escapeHtml(formatSubmissionDateTime(input.submittedAt));
-  const { appUrl } = getNotificationServiceConfig();
-  const adminUrl = `${appUrl.replace(/\/$/, "")}/admin/partner-applications`;
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-  const subject = "New Partner Listing Submitted for Review";
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
-      <p>A new partner has submitted their FoodVault listing for approval.</p>
-      <p><strong>Business Name:</strong><br />${businessName}</p>
-      <p><strong>Contact:</strong><br />${contactName}</p>
-      <p><strong>Email:</strong><br />${contactEmail}</p>
-      <p><strong>Submitted:</strong><br />${submittedAt}</p>
-      <p>
-        Please log in to the FoodVault Admin Dashboard to review this application.
-      </p>
-      <p>
-        <a href="${adminUrl}" style="color: #4f46e5; font-weight: 600;">
-          Open Partner Applications
-        </a>
-      </p>
-    </div>
-  `.trim();
-
-  return { subject, html };
+  return renderAdminNewBrandApplicationEmail({
+    appUrl,
+    brandName: input.businessName,
+    businessName: input.businessName,
+    contactName: input.contactName,
+    contactEmail: input.contactEmail,
+    submittedAt: input.submittedAt,
+  });
 }
 
 export async function sendPartnerSubmissionAdminEmail(
   input: PartnerSubmissionAdminEmailInput
 ) {
-  const { isConfigured } = getNotificationServiceConfig();
-  if (!isConfigured) {
-    console.warn(
-      "[partner-submission] Skipping admin email — Resend is not configured"
-    );
-    return { sent: false as const, reason: "not_configured" as const };
-  }
-
-  const rendered = renderPartnerSubmissionAdminEmail(input);
-
-  await sendResendEmail({
-    to: PARTNER_SUBMISSION_ADMIN_EMAIL,
-    subject: rendered.subject,
-    html: rendered.html,
+  return sendAdminNewBrandApplicationEmail({
+    brandName: input.businessName,
+    businessName: input.businessName,
+    contactName: input.contactName,
+    contactEmail: input.contactEmail,
+    submittedAt: input.submittedAt,
   });
-
-  return { sent: true as const };
 }
 
 function resolveContactName(metadata: Record<string, unknown> | undefined) {

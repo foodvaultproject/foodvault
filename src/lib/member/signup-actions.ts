@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, SIGNUP_PATH } from "@/lib/auth";
+import { sendMemberSignupEmails } from "@/lib/email-templates/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import {
   SIGNUP_MEMBERSHIP_PATH,
@@ -107,6 +108,17 @@ export async function createMemberAccountAction(
       return { error: profileError };
     }
   }
+
+  void sendMemberSignupEmails({
+    to: signUpData.user.email ?? data.email.trim(),
+    firstName: data.firstName.trim(),
+    mode,
+  }).catch((emailError) => {
+    console.error("[signup] Failed to send member signup emails", {
+      email: data.email.trim(),
+      error: emailError instanceof Error ? emailError.message : emailError,
+    });
+  });
 
   return {
     success: true as const,
