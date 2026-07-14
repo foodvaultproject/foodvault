@@ -84,11 +84,13 @@ export function HomeHero({
             : `mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
                 isPartner
                   ? PARTNER_HERO_PY
-                  : isCompactHero
-                    ? COMPACT_HERO_PY
-                    : HOME_HERO_PY_COMPACT
+                  : isFreeTrial
+                    ? PARTNER_HERO_PY
+                    : isCompactHero
+                      ? COMPACT_HERO_PY
+                      : HOME_HERO_PY_COMPACT
               } ${
-                isPartner
+                isPartner || isFreeTrial
                   ? "gap-2.5 lg:gap-3.5"
                   : isCompactHero
                     ? COMPACT_HERO_GRID_GAP
@@ -128,12 +130,12 @@ export function HomeHero({
                   "!"
                 )}
               </h1>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Unlock exclusive member discounts from participating New Zealand food,
                 beverage, household and health brands — and buy direct on each partner&apos;s
                 own website.
               </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-3 flex flex-col gap-2.5 sm:flex-row sm:items-center">
                 <MemberSignupCtaLink
                   variant="start-free-trial"
                   className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
@@ -250,7 +252,7 @@ export function HomeHero({
         ) : null}
       </div>
 
-      {!isPartner ? (
+      {!isPartner && !isFreeTrial ? (
         <div className="border-t border-border bg-background">
           <div
             className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${

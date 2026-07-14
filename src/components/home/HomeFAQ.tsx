@@ -2,20 +2,24 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+import { SECTION_PY_HOME_REFINE, SECTION_PY_HOME_PARTNER } from "@/components/home/section-spacing";
 import type { FAQItem } from "@/data/faq";
 
 type HomeFAQProps = {
   faqs: FAQItem[];
 };
 
-export function HomeFAQ({ faqs }: HomeFAQProps) {
+export function HomeFAQ({ faqs, compactSpacing = false }: HomeFAQProps & { compactSpacing?: boolean }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   if (faqs.length === 0) return null;
 
   return (
-    <section className={`bg-background ${SECTION_PY_HOME_REFINE}`}>
+    <section
+      className={`bg-background ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+      }`}
+    >
       <div className="mx-auto max-w-[800px] px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Frequently Asked Questions
@@ -23,7 +27,11 @@ export function HomeFAQ({ faqs }: HomeFAQProps) {
         <p className="mt-1 text-sm text-muted-foreground">
           Quick answers about membership and savings.
         </p>
-        <div className="mt-4 divide-y divide-border rounded-lg border border-border bg-background shadow-sm">
+        <div
+          className={`${
+            compactSpacing ? "mt-2" : "mt-4"
+          } divide-y divide-border rounded-lg border border-border bg-background shadow-sm`}
+        >
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
 

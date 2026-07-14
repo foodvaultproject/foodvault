@@ -71,11 +71,15 @@ const whyJoinFeatures = [
   },
 ];
 
-export function HomeWhyJoinFeatures() {
+export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing?: boolean }) {
   return (
-    <section className={`bg-background ${SECTION_PY_HOME_REFINE}`}>
+    <section
+      className={`bg-background ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+      }`}
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-5">
+        <div className={compactSpacing ? "mb-2.5" : "mb-5"}>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Why Join FoodVault</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Save more. Discover more. Shop smarter.
@@ -216,11 +220,21 @@ const shopCategories: {
   { label: "More", href: "/browse-brands", Icon: IconMore },
 ];
 
-export function HomeCategories({ onHomepage = false }: { onHomepage?: boolean }) {
+export function HomeCategories({
+  onHomepage = false,
+  compactSpacing = false,
+}: {
+  onHomepage?: boolean;
+  compactSpacing?: boolean;
+}) {
   return (
-    <section className={`border-y border-border bg-background ${SECTION_PY_HOME_REFINE}`}>
+    <section
+      className={`border-y border-border bg-background ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+      }`}
+    >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="mb-4">
+        <div className={compactSpacing ? "mb-2" : "mb-4"}>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Shop by Category</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Discover exclusive member savings across New Zealand&apos;s favourite brands,

@@ -177,17 +177,20 @@ export default async function Home({ searchParams }: HomeProps) {
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
+          exploreHeading=""
+          showTrendingSearches
         />
-        <HomeWhyJoinFeatures />
-        <HomeCategories onHomepage />
+        <HomeWhyJoinFeatures compactSpacing />
+        <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
           hideViewAll
+          compactSpacing
         />
-        <DiscoverSection articles={discover.homepageCards} />
-        <HomeFAQ faqs={homepageFaqs} />
+        <DiscoverSection articles={discover.homepageCards} compactSpacing />
+        <HomeFAQ faqs={homepageFaqs} compactSpacing />
       </>
     );
   }
