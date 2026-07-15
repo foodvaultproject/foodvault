@@ -35,10 +35,7 @@ const footerSections = [
 ];
 
 const socialLinks = [
-  { href: "https://facebook.com", label: "Facebook" },
-  { href: "https://instagram.com", label: "Instagram" },
-  { href: "https://tiktok.com", label: "TikTok" },
-  { href: "https://youtube.com", label: "YouTube" },
+  { href: "https://www.instagram.com/foodvault_nz/", label: "Instagram" },
   { href: "https://linkedin.com", label: "LinkedIn" },
 ];
 
