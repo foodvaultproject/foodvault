@@ -191,7 +191,7 @@ export function HomeHero({
               </div>
             </>
           )}
-          {!isFreeTrial && !isActiveMember ? (
+          {isPartner ? (
             <ul className={`flex flex-wrap gap-x-5 gap-y-2 ${isCompactHero ? "mt-3" : "mt-5"}`}>
               {trustIndicators.map((item) => (
                 <li
@@ -199,7 +199,7 @@ export function HomeHero({
                   className="flex items-center gap-1.5 text-xs text-muted-foreground"
                 >
                   <svg
-                    className={`h-3.5 w-3.5 shrink-0 ${isVisitorHero ? "text-white" : "text-success"}`}
+                    className="h-3.5 w-3.5 shrink-0 text-success"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
