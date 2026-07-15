@@ -236,10 +236,6 @@ export function HomeCategories({
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className={compactSpacing ? "mb-2" : "mb-4"}>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Shop by Category</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Discover exclusive member savings across New Zealand&apos;s favourite brands,
-            organised by category to help you find exactly what you&apos;re looking for.
-          </p>
         </div>
         <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 lg:grid lg:grid-cols-10 lg:gap-2 lg:overflow-visible lg:snap-none">
           {shopCategories.map(({ label, href, Icon }) => (

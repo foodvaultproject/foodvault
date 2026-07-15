@@ -549,56 +549,17 @@ export function PartnerApplicationPage() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl lg:px-8">
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-              Join FOODVAULT
+              Let&apos;s get started!
             </h1>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Apply today and connect with members actively looking to save money
-              while discovering new food, beverage and lifestyle brands.
+              We&apos;re excited to see what your brand has to offer! Complete the application
+              below with as much detail as possible. Once approved, your brand will be live on
+              FoodVault, where Kiwi members can discover you, visit your website, and access your
+              exclusive member offer.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {[
-              {
-                title: "Reach New Customers",
-                description: "Connect with members searching for new brands and better value.",
-                icon: (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                ),
-              },
-              {
-                title: "Drive Direct Sales",
-                description:
-                  "Members purchase directly from your website. You keep control of the customer experience.",
-                icon: (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                ),
-              },
-              {
-                title: "Grow Your Brand",
-                description:
-                  "Gain exposure through search categories and promotions across FoodVault.",
-                icon: (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                ),
-              },
-            ].map((card) => (
-              <div
-                key={card.title}
-                className="rounded-lg border border-border bg-background p-5 shadow-sm sm:p-6"
-              >
-                <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-primary/10 text-primary">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    {card.icon}
-                  </svg>
-                </span>
-                <h3 className="mt-4 font-bold text-foreground">{card.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} className="mt-12 space-y-10">
+          <form onSubmit={handleSubmit} className="mt-10 space-y-10">
             <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
               <SectionHeader
                 title="Business Details"
