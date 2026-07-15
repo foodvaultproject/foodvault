@@ -13,19 +13,19 @@ export type FAQItem = {
 
 const memberFaqsBase: FAQItem[] = [
   {
-    question: "What is FOODVAULT?",
+    question: "What is FoodVault?",
     answer:
-      'FOODVAULT is a premium membership platform for food enthusiasts in New Zealand. We partner with top-tier food and grocery brands to bring our members exclusive "vaulted" savings, early access to new products, and a curated discovery experience designed to maximise your grocery budget.',
+      "FoodVault is a membership platform that helps Kiwis save money by connecting them with exclusive discounts from participating New Zealand brands. Members can discover new products, unlock member-only offers, and shop directly with the brands they know and love.",
   },
   {
     question: "Is FoodVault an online store?",
     answer:
-      "No, FoodVault is a membership platform, not a direct retailer. We provide the gateway to exclusive pricing. When you find a brand you love in our directory, you shop directly on their official website using your member-exclusive access.",
+      "No. FoodVault doesn't sell products or process orders. We help you discover great New Zealand brands and provide exclusive member discount codes. When you're ready to buy, you'll be taken directly to the brand's own website to complete your purchase.",
   },
   {
     question: "How do I receive discounts?",
     answer:
-      'Once you are a member, you\'ll have access to our "Member Vault." From there, you can browse participating brands and reveal your exclusive pricing. When you click through to a partner\'s site, your member discount is often applied automatically at checkout, or you\'ll be provided with a unique member code.',
+      "Once you're a FoodVault member, you'll have access to exclusive discount codes on every participating brand's profile. Simply copy the code, click through to the brand's website, and apply it at checkout to receive your member discount.",
   },
   {
     question: "What about free trials and payment?",
