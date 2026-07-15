@@ -136,10 +136,15 @@ export function BrowseBrandsExplorer({
     return () => observer.disconnect();
   }, [brands.length, hasMore, isPending, runSearch]);
 
+  const formTopMargin = embedded
+    ? ""
+    : compactSpacing
+      ? "mt-5 sm:mt-7 lg:mt-8"
+      : "mt-10 sm:mt-14 lg:mt-16";
   const formPadding = compactSpacing ? "p-3" : "p-5";
   const formClassName = embedded
     ? `rounded-lg border border-border bg-background ${formPadding} shadow-sm`
-    : `mt-10 rounded-lg border border-border bg-background ${formPadding} shadow-sm sm:mt-14 lg:mt-16`;
+    : `${formTopMargin} rounded-lg border border-border bg-background ${formPadding} shadow-sm`;
 
   const blockGap = compactSpacing
     ? showTrendingSearches
@@ -303,7 +308,7 @@ export function BrowseBrandsExplorer({
             {hasMore ? (
               <div
                 ref={loadMoreRef}
-                className="mt-8 flex min-h-12 items-center justify-center"
+                className={`${compactSpacing ? "mt-4" : "mt-8"} flex min-h-12 items-center justify-center`}
                 aria-live="polite"
               >
                 {isPending ? (
