@@ -204,25 +204,138 @@ export function ForBrandsHero() {
   );
 }
 
+const whyFoodVaultCards = [
+  {
+    id: "discovery",
+    label: "Discovery",
+    title: "Get discovered by more customers",
+    description:
+      "Foodvault helps more customers find your brand when they are searching for different products.",
+    accent: "indigo" as const,
+  },
+  {
+    id: "direct",
+    label: "Direct traffic",
+    title: "Send customers to your website",
+    description:
+      "Instead, we help members discover your brand, then direct them to your own website to complete their purchase.",
+    accent: "violet" as const,
+  },
+  {
+    id: "control",
+    label: "Control & exposure",
+    title: "Full control + more exposure",
+    description:
+      "That means you maintain complete control of your business while gaining additional exposure to highly engaged shoppers.",
+    accent: "indigo" as const,
+  },
+];
+
+function WhyFoodVaultIllustration({ id, accent }: { id: string; accent: "indigo" | "violet" }) {
+  const stroke = accent === "indigo" ? "#4f46e5" : "#7c3aed";
+
+  if (id === "discovery") {
+    return (
+      <svg viewBox="0 0 160 120" className="h-[120px] w-full" aria-hidden="true">
+        <rect x="8" y="16" width="64" height="88" rx="10" fill="#fff" stroke={stroke} strokeWidth="2" />
+        <circle cx="40" cy="48" r="14" fill={stroke} opacity="0.15" />
+        <path d="M28 78h24M28 86h18" stroke={stroke} strokeWidth="3" strokeLinecap="round" opacity="0.35" />
+        <circle cx="108" cy="52" r="28" fill="#fff" stroke={stroke} strokeWidth="2.5" />
+        <path d="M96 52h24M108 40v24" stroke={stroke} strokeWidth="3" strokeLinecap="round" />
+        <path
+          d="M72 60c10-8 22-8 32 0"
+          stroke={stroke}
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.5"
+        />
+      </svg>
+    );
+  }
+
+  if (id === "direct") {
+    return (
+      <svg viewBox="0 0 160 120" className="h-[120px] w-full" aria-hidden="true">
+        <rect x="10" y="34" width="44" height="52" rx="8" fill={stroke} opacity="0.12" stroke={stroke} strokeWidth="2" />
+        <text x="16" y="58" fontSize="9" fontWeight="800" fill={stroke}>
+          FV
+        </text>
+        <path d="M58 60h34" stroke={stroke} strokeWidth="3" strokeLinecap="round" markerEnd="url(#why-fv-arrow)" />
+        <defs>
+          <marker id="why-fv-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill={stroke} />
+          </marker>
+        </defs>
+        <rect x="98" y="24" width="52" height="72" rx="8" fill="#fff" stroke={stroke} strokeWidth="2.5" />
+        <circle cx="124" cy="44" r="10" fill={stroke} opacity="0.15" />
+        <path d="M108 68h32M108 78h24" stroke={stroke} strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 160 120" className="h-[120px] w-full" aria-hidden="true">
+      <path
+        d="M80 22l34 12v24c0 20-14 38-34 44-20-6-34-24-34-44V34l34-12z"
+        fill="#fff"
+        stroke={stroke}
+        strokeWidth="2.5"
+      />
+      <path
+        d="M66 58l10 10 20-22"
+        stroke={stroke}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <circle cx="34" cy="88" r="8" fill={stroke} opacity="0.2" />
+      <circle cx="52" cy="96" r="6" fill={stroke} opacity="0.15" />
+      <circle cx="108" cy="92" r="7" fill={stroke} opacity="0.18" />
+      <circle cx="126" cy="84" r="9" fill={stroke} opacity="0.22" />
+      <path d="M118 34v18M110 42h16" stroke={stroke} strokeWidth="2.5" strokeLinecap="round" opacity="0.45" />
+    </svg>
+  );
+}
+
 export function WhyFoodVaultSection() {
   return (
     <section id="why-foodvault" className="scroll-mt-24 bg-background py-8 sm:py-10">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h2 className={`text-center ${heading2}`}>Why FoodVault?</h2>
-        <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-          <p>FoodVault is a discovery platform—not an online marketplace.</p>
-          <p>
-            We don&apos;t sell your products, process your orders or take ownership of your
-            customers.
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className={heading2}>Why FoodVault?</h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Built for Kiwi brands who want more discovery
           </p>
-          <p>
-            Instead, we help members discover your brand, then direct them to your own website to
-            complete their purchase.
-          </p>
-          <p>
-            That means you maintain complete control of your business while gaining additional
-            exposure to highly engaged shoppers.
-          </p>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {whyFoodVaultCards.map((card) => (
+            <div
+              key={card.id}
+              className="flex flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm"
+            >
+              <div
+                className={`border-b border-border px-5 pb-2 pt-5 ${
+                  card.accent === "indigo" ? "bg-primary/10" : "bg-primary-accent/10"
+                }`}
+              >
+                <WhyFoodVaultIllustration id={card.id} accent={card.accent} />
+              </div>
+              <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <p
+                  className={`text-xs font-bold uppercase tracking-wider ${
+                    card.accent === "indigo" ? "text-primary" : "text-primary-accent"
+                  }`}
+                >
+                  {card.label}
+                </p>
+                <h3 className={`mt-2 ${heading3}`}>{card.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{card.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
