@@ -234,9 +234,6 @@ export function HomeCategories({
       }`}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className={compactSpacing ? "mb-2" : "mb-4"}>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Shop by Category</h2>
-        </div>
         <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 lg:grid lg:grid-cols-10 lg:gap-2 lg:overflow-visible lg:snap-none">
           {shopCategories.map(({ label, href, Icon }) => (
             <Link

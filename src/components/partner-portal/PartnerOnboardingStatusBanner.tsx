@@ -156,7 +156,9 @@ export function PartnerOnboardingStatusBanner({
             </svg>
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className={`${portalPageTitle} text-white`}>Application Under Review</h1>
+            <h1 className="text-[18px] font-bold leading-snug text-white">
+              Application Under Review
+            </h1>
             <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-white/90">
               Thank you for applying to FoodVault. Our team is currently reviewing
               your business and member offer. Your listing cannot be edited or
