@@ -75,13 +75,17 @@ export function HomeHero({
   return (
     <section
       className={`relative overflow-hidden border-b border-border ${
-        isActiveMember ? "bg-[#EEF2FF]" : "bg-background"
+        isActiveMember
+          ? "bg-[#EEF2FF]"
+          : isVisitorHero
+            ? "bg-primary"
+            : "bg-background"
       }`}
     >
       {isVisitorHero ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 bg-[url('/home/hero-kiwi-bg.png')] bg-cover bg-center bg-no-repeat opacity-50"
+          className="pointer-events-none absolute inset-0 z-0 bg-[url('/home/hero-visitor-bg.jpg')] bg-cover bg-[center_right] bg-no-repeat"
         />
       ) : null}
       <div
