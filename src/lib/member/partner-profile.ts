@@ -435,11 +435,28 @@ export async function getPartnerDiscountCode(
     return { code: null, state: "anon" };
   }
 
-  if (user.user_metadata?.account_type === "partner") {
+  if (isPartnerUser(user) || (await userHasPartnerRecord(supabase, user.id))) {
     return { code: null, state: "partner-other" };
   }
 
   return { code: null, state: "member-required" };
+}
+
+function isPartnerUser(user: { user_metadata?: Record<string, unknown> }) {
+  return user.user_metadata?.account_type === "partner";
+}
+
+async function userHasPartnerRecord(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+) {
+  const { data } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return Boolean(data);
 }
 
 export async function getProfileViewerContext(
@@ -478,7 +495,13 @@ export async function getProfileViewerContext(
     };
   }
 
-  const isPartner = user.user_metadata?.account_type === "partner";
+  const { data: ownPartner } = await supabase
+    .from("partners")
+    .select("id, application_status_v2, listing_status_v2")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const isPartner = isPartnerUser(user) || Boolean(ownPartner);
   const admin = await getAdminUser();
   const isAdmin = Boolean(admin);
   const canFavorite = !isPartner && !isAdmin;
@@ -500,12 +523,6 @@ export async function getProfileViewerContext(
 
   let isOwnProfile = false;
   let ownOnboardingState: PartnerOnboardingState | null = null;
-
-  const { data: ownPartner } = await supabase
-    .from("partners")
-    .select("id, application_status_v2, listing_status_v2")
-    .eq("user_id", user.id)
-    .maybeSingle();
 
   if (ownPartner && ownPartner.id === partnerId) {
     isOwnProfile = true;

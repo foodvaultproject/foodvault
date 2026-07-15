@@ -21,10 +21,9 @@ export function renderPartnerListingLiveEmail(
   const contactName = params.contactName?.trim();
   const greeting = contactName ? `Kia ora ${escapeHtml(contactName)},` : "Kia ora,";
   const businessName = escapeHtml(params.businessName);
-  const listingUrl = `${params.appUrl.replace(/\/$/, "")}/partner/listing`;
-  const profileUrl =
-    params.brandProfileUrl ??
-    `${params.appUrl.replace(/\/$/, "")}/browse-brands`;
+  const appBase = params.appUrl.replace(/\/$/, "");
+  const partnerPortalUrl = `${appBase}/partner-login?next=${encodeURIComponent("/partner/listing")}`;
+  const memberPreviewUrl = params.brandProfileUrl ?? null;
 
   const content = [
     emailHeading("Your brand is now live on FoodVault!"),
@@ -37,11 +36,18 @@ export function renderPartnerListingLiveEmail(
       "Members can browse your offers and shop on your website",
       "Keep your offers and product listings up to date anytime",
     ]),
-    emailButton(profileUrl, "View Your Live Listing"),
+    emailButton(partnerPortalUrl, "View Your Live Listing"),
+    memberPreviewUrl
+      ? emailParagraph(
+          `Want to see how members view your brand? <a href="${escapeHtml(memberPreviewUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">Preview your public listing</a>.`
+        )
+      : "",
     emailParagraph(
-      `Manage your listing anytime from your <a href="${escapeHtml(listingUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">partner dashboard</a>.`
+      `Log in with your partner account to manage your listing in <a href="${escapeHtml(partnerPortalUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">My Listing</a>.`
     ),
-  ].join("");
+  ]
+    .filter(Boolean)
+    .join("");
 
   return {
     subject: "Your brand is now live on FoodVault!",
