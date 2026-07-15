@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { HowItWorksPageContent } from "@/components/how-it-works/HowItWorksSections";
 import { getActiveMemberView } from "@/lib/member/active-member";
-import { getHomepageFeaturedBrands } from "@/lib/member/browse-brands";
 
 export const metadata: Metadata = {
   title: "How It Works",
@@ -12,12 +11,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function HowItWorksPage() {
-  const [{ isActiveMember }, featuredBrands] = await Promise.all([
-    getActiveMemberView(),
-    getHomepageFeaturedBrands(6),
-  ]);
+  const { isActiveMember } = await getActiveMemberView();
 
-  return (
-    <HowItWorksPageContent featuredBrands={featuredBrands} isActiveMember={isActiveMember} />
-  );
+  return <HowItWorksPageContent isActiveMember={isActiveMember} />;
 }
