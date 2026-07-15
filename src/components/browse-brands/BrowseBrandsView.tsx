@@ -26,15 +26,16 @@ export function BrowseBrandsView({
 }: BrowseBrandsViewProps) {
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
-      <section className="w-full leading-none">
+      <section aria-label="Browse Brands" className="w-full overflow-hidden leading-none">
         <Image
           src="/browse-brands/hero-banner.png"
           alt="Browse Brands — Discover participating brands"
-          width={1600}
-          height={280}
+          width={1024}
+          height={106}
           priority
-          className="block h-auto w-full"
+          className="block h-auto w-full max-w-none select-none"
           sizes="100vw"
+          draggable={false}
         />
       </section>
 
