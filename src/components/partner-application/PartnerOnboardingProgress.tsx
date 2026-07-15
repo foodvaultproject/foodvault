@@ -40,7 +40,7 @@ function StepIcon({
 export function PartnerOnboardingProgress({ currentStep }: PartnerOnboardingProgressProps) {
   return (
     <div className="border-b border-border bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <ol className="mx-auto flex max-w-3xl items-center">
           {steps.map((step, index) => {
             const isActive = step.number === currentStep;

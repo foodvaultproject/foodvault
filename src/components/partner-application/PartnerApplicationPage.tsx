@@ -96,14 +96,14 @@ function SectionHeader({
 }) {
   return (
     <>
-      <div className="flex items-center gap-3 border-b border-border pb-4">
+      <div className="flex items-center gap-3 border-b border-border pb-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary/10 text-primary">
           {icon}
         </span>
         <h2 className="text-lg font-bold text-foreground">{title}</h2>
       </div>
       {description ? (
-        <div className="mt-6 space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <div className="mt-3 space-y-1.5 text-sm leading-relaxed text-muted-foreground">
           {description}
         </div>
       ) : null}
@@ -545,13 +545,13 @@ export function PartnerApplicationPage() {
     <>
       <PartnerOnboardingProgress currentStep={2} />
 
-      <section className="bg-background py-6 sm:py-7 md:py-10">
+      <section className="bg-background py-3 sm:py-3.5 md:py-5">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-4xl lg:px-8">
           <div className="text-center lg:text-left">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+            <h1 className="text-[18px] font-bold tracking-tight text-primary">
               Let&apos;s get started!
             </h1>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
               We&apos;re excited to see what your brand has to offer! Complete the application
               below with as much detail as possible. Once approved, your brand will be live on
               FoodVault, where Kiwi members can discover you, visit your website, and access your
@@ -559,8 +559,8 @@ export function PartnerApplicationPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-10 space-y-10">
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+          <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+            <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Business Details"
                 description={<p>Tell us about your business.</p>}
@@ -570,7 +570,7 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div>
                   <label htmlFor="businessName" className={labelClass}>
                     Business Name
@@ -588,7 +588,7 @@ export function PartnerApplicationPage() {
                       setBusinessName(finalizeBusinessNameInput(e.target.value))
                     }
                     placeholder="e.g. Artisan Coffee Co"
-                    className={`mt-2 ${inputClass}`}
+                    className={`mt-1 ${inputClass}`}
                   />
                 </div>
                 <div>
@@ -603,11 +603,11 @@ export function PartnerApplicationPage() {
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="https://yourbrand.com"
-                    className={`mt-2 ${inputClass}`}
+                    className={`mt-1 ${inputClass}`}
                   />
                 </div>
               </div>
-              <div className="mt-4">
+              <div className="mt-2">
                 <label htmlFor="location" className={labelClass}>
                   Main Operating Location
                 </label>
@@ -616,7 +616,7 @@ export function PartnerApplicationPage() {
                   name="location"
                   disabled
                   value="New Zealand"
-                  className={`mt-2 ${inputClass} bg-surface text-muted-foreground`}
+                  className={`mt-1 ${inputClass} bg-surface text-muted-foreground`}
                 >
                   <option value="New Zealand">New Zealand</option>
                 </select>
@@ -626,7 +626,7 @@ export function PartnerApplicationPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Brand Details"
                 description={
@@ -644,7 +644,7 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <div className="mt-6 grid gap-5 lg:grid-cols-2">
+              <div className="mt-3 grid gap-2.5 lg:grid-cols-2">
                 <PartnerBannerUploadField
                   variant="compact"
                   previewUrl={bannerUpload?.previewUrl}
@@ -662,7 +662,7 @@ export function PartnerApplicationPage() {
                   onChange={setLogoUpload}
                 />
               </div>
-              <div className="mt-4">
+              <div className="mt-2">
                 <label htmlFor="shortDescription" className={labelClass}>
                   Short Description (Max 100 chars)
                 </label>
@@ -677,7 +677,7 @@ export function PartnerApplicationPage() {
                   className={`mt-2 ${inputClass}`}
                 />
               </div>
-              <div className="mt-4">
+              <div className="mt-2">
                 <label htmlFor="brandStory" className={labelClass}>
                   Your Story
                 </label>
@@ -689,12 +689,12 @@ export function PartnerApplicationPage() {
                   value={brandStory}
                   onChange={(e) => setBrandStory(e.target.value)}
                   placeholder="Tell members about your brand, values, and what makes your products special..."
-                  className={`mt-2 resize-y ${inputClass}`}
+                  className={`mt-1 resize-y ${inputClass}`}
                 />
               </div>
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Products & Brand Images"
                 icon={
@@ -703,14 +703,14 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <p className="mt-6 text-sm text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 Upload at least {MIN_PRODUCT_GALLERY_IMAGES} high-quality images of your
                 products or brand (maximum {MAX_PRODUCT_GALLERY_IMAGES}). Images are
                 cropped to a 4:5 portrait format, like Instagram.
               </p>
               <PartnerGalleryDraftGrid
                 variant="compact"
-                className="mt-4"
+                className="mt-2"
                 items={galleryDraftItems}
                 minItems={MIN_PRODUCT_GALLERY_IMAGES}
                 maxItems={MAX_PRODUCT_GALLERY_IMAGES}
@@ -719,7 +719,7 @@ export function PartnerApplicationPage() {
               />
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Categories"
                 icon={
@@ -730,7 +730,7 @@ export function PartnerApplicationPage() {
               />
               <PartnerCategoriesEditor
                 idPrefix="application"
-                className="mt-6"
+                className="mt-3"
                 departmentLabel="Primary Department"
                 categoryGroups={categoryGroups}
                 onChange={(groups) => {
@@ -742,7 +742,7 @@ export function PartnerApplicationPage() {
               />
             </section>
 
-            <section className="rounded-lg border border-success/20 bg-success-light/40 p-6 sm:p-8">
+            <section className="rounded-lg border border-success/20 bg-success-light/40 p-3 sm:p-4">
               <SectionHeader
                 title="Member Exclusive Offer"
                 description={
@@ -766,7 +766,7 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <div className="mt-6">
+              <div className="mt-3">
                 <MemberExclusiveOfferFields
                   offerScope={offerScope}
                   onOfferScopeChange={setOfferScope}
@@ -780,7 +780,7 @@ export function PartnerApplicationPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 opacity-95 shadow-sm sm:p-8">
+            <section className="rounded-lg border border-border bg-background p-3 opacity-95 shadow-sm sm:p-4">
               <SectionHeader
                 title="Affiliate Program (Coming Soon)"
                 icon={
@@ -789,7 +789,7 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <div className="mt-6">
+              <div className="mt-3">
                 <AffiliateProgramFields
                   value={affiliateProgram}
                   onChange={setAffiliateProgram}
@@ -801,7 +801,7 @@ export function PartnerApplicationPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title={SOCIAL_PRESENCE_SECTION_TITLE}
                 description={<p>{SOCIAL_PRESENCE_SECTION_DESCRIPTION}</p>}
@@ -822,7 +822,7 @@ export function PartnerApplicationPage() {
               />
             </section>
 
-            <section className="rounded-lg border-2 border-emerald-200 bg-emerald-50 p-6 shadow-sm sm:p-8">
+            <section className="rounded-lg border-2 border-emerald-200 bg-emerald-50 p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Contact Details (Internal Use Only)"
                 description={<p>We&apos;ll only use these details if we need to contact you.</p>}
@@ -832,7 +832,7 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div>
                   <label htmlFor="contactName" className={labelClass}>
                     Contact Name
@@ -854,7 +854,7 @@ export function PartnerApplicationPage() {
                       )
                     }
                     placeholder="e.g. Jane Smith"
-                    className={`mt-2 ${inputClass}`}
+                    className={`mt-1 ${inputClass}`}
                   />
                 </div>
                 <div>
@@ -869,7 +869,7 @@ export function PartnerApplicationPage() {
                     value={supportEmail}
                     onChange={(e) => setSupportEmail(e.target.value)}
                     placeholder="support@yourbrand.co.nz"
-                    className={`mt-2 ${inputClass}`}
+                    className={`mt-1 ${inputClass}`}
                   />
                 </div>
                 <div>
@@ -885,13 +885,13 @@ export function PartnerApplicationPage() {
                     value={supportPhone}
                     onChange={(e) => setSupportPhone(sanitizePhoneNumber(e.target.value))}
                     placeholder="64210000000"
-                    className={`mt-2 ${inputClass}`}
+                    className={`mt-1 ${inputClass}`}
                   />
                 </div>
               </div>
             </section>
 
-            <section className="space-y-4">
+            <section className="space-y-2">
               <label className="flex items-start gap-3">
                 <input
                   type="checkbox"
@@ -923,7 +923,7 @@ export function PartnerApplicationPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="fv-btn-primary inline-flex w-full items-center justify-center gap-2 rounded-sm px-6 py-4 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+                className="fv-btn-primary inline-flex w-full items-center justify-center gap-2 rounded-sm px-6 py-2 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? "Submitting..." : "Submit Application"}
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
