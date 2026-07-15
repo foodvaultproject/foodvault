@@ -1,9 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import {
-  HOME_HERO_PY_COMPACT,
-  SECTION_PY_HOME_REFINE,
-} from "@/components/home/section-spacing";
+import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
+import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 import {
   IconCompass,
   IconDollarSign,
@@ -123,24 +122,66 @@ function BenefitCard({
 
 export function AboutHero() {
   return (
-    <section className="border-b border-border bg-background">
+    <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-[#EEF2FF] via-background to-primary/5">
       <div
-        className={`mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8 ${HOME_HERO_PY_COMPACT}`}
-      >
-        <h1 className="mx-auto max-w-3xl text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
-          Supporting Kiwi Families and Kiwi Brands
-        </h1>
-        <div className="mx-auto mt-4 max-w-2xl space-y-4 text-sm leading-relaxed text-muted-foreground">
-          <p>Let&apos;s be honest—everything costs more these days.</p>
-          <p>FoodVault was created to make saving a little easier.</p>
-          <p>
-            We bring together Kiwi brands offering exclusive member pricing, so you can shop
-            smarter, spend less, and keep more money for the things that matter most.
-          </p>
-          <p>
-            It&apos;s a simple idea: help Kiwis save money while supporting Kiwi businesses at the
-            same time.
-          </p>
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-24 top-8 h-80 w-80 rounded-full bg-primary/15 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-violet-300/30 blur-3xl"
+      />
+
+      <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:px-8 lg:py-16">
+        <div className="text-center lg:text-left">
+          <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+            Kiwi Owned &amp; Built
+          </span>
+          <h1 className="mt-4 text-3xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
+            Supporting Kiwi Families and{" "}
+            <span className="text-primary">Kiwi Brands</span>
+          </h1>
+          <div className="mx-auto mt-5 max-w-xl space-y-3 text-sm leading-relaxed text-muted-foreground sm:text-base lg:mx-0">
+            <p className="font-medium text-foreground">
+              Let&apos;s be honest—everything costs more these days.
+            </p>
+            <p>
+              FoodVault was created to make saving a little easier. We bring together Kiwi
+              brands offering exclusive member pricing, so you can shop smarter, spend less,
+              and keep more money for the things that matter most.
+            </p>
+            <p>
+              It&apos;s a simple idea: help Kiwis save money while supporting Kiwi businesses
+              at the same time.
+            </p>
+          </div>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+            <MemberSignupCtaLink
+              variant="start-free-trial"
+              className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 sm:w-auto"
+            />
+            <Link
+              href="/browse-brands"
+              className="inline-flex w-full items-center justify-center rounded-sm border border-primary bg-transparent px-6 py-3 text-sm font-semibold text-primary transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/5 sm:w-auto"
+            >
+              Explore Brands
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-primary/20 via-violet-400/20 to-primary/10 blur-2xl" />
+          <div className="relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-primary/15">
+            <Image
+              src="/about/hero-trolley.png"
+              alt="A vibrant collection of grocery and household products representing FoodVault member savings"
+              width={1024}
+              height={1024}
+              priority
+              className="h-auto w-full object-cover"
+              sizes="(max-width: 1024px) 90vw, 540px"
+            />
+          </div>
         </div>
       </div>
     </section>
