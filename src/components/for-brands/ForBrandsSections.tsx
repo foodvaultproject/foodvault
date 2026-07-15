@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
 import { heading1, heading2, heading2OnDark, heading3 } from "@/lib/ui-classes";
+import { PartnerBenefitsScatterIcons } from "@/components/for-brands/PartnerBenefitsScatterIcons";
 
 const heroBenefits = [
   "No Fees. Ever.",
@@ -344,15 +345,21 @@ export function WhyFoodVaultSection() {
 
 export function PartnerBenefitsSection() {
   return (
-    <section id="partner-benefits" className="scroll-mt-24 bg-surface py-8 sm:py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className={`text-center ${heading2}`}>Partner Benefits</h2>
+    <section id="partner-benefits" className="relative scroll-mt-24 overflow-hidden py-8 sm:py-10">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[url('/for-brands/partner-benefits-bg.png')] bg-cover bg-center bg-no-repeat"
+        aria-hidden="true"
+      />
+      <PartnerBenefitsScatterIcons />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 className={`text-center ${heading2OnDark}`}>Partner Benefits</h2>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {partnerBenefits.map((card) => (
             <div
               key={card.title}
-              className="rounded-lg border border-border bg-background p-5 shadow-sm sm:p-6"
+              className="rounded-lg border border-white/20 bg-background p-5 shadow-sm sm:p-6"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary">
                 {card.icon}
