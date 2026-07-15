@@ -7,6 +7,7 @@ import {
   escapeHtml,
 } from "@/lib/email-templates/layout/components";
 import type { RenderedEmail } from "@/lib/email-templates/types";
+import { MEMBER_HOME_PATH } from "@/lib/member/paths";
 
 export type MemberFreeTrialStartedEmailParams = {
   appUrl: string;
@@ -24,7 +25,7 @@ export function renderMemberFreeTrialStartedEmail(
 ): RenderedEmail {
   const firstName = params.firstName?.trim();
   const greeting = firstName ? `Kia ora ${escapeHtml(firstName)},` : "Kia ora,";
-  const browseUrl = `${params.appUrl.replace(/\/$/, "")}/browse-brands`;
+  const browseUrl = `${params.appUrl.replace(/\/$/, "")}${MEMBER_HOME_PATH}`;
   const pricingUrl = `${params.appUrl.replace(/\/$/, "")}/pricing`;
   const trialLabel = trialLengthLabel(params.trialLengthDays);
 
