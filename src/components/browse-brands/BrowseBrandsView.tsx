@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { BrowseBrandsExplorer } from "@/components/browse-brands/BrowseBrandsExplorer";
 import { PartnerJoinCTA } from "@/components/partners/PartnerJoinCTA";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -28,23 +27,11 @@ export function BrowseBrandsView({
     <div className="min-h-screen bg-[#f3f4f6]">
       <section
         aria-label="Browse Brands"
-        className="flex aspect-[1024/106] w-full items-center justify-center overflow-hidden bg-primary"
+        className="flex aspect-[1024/53] w-full items-center justify-center bg-primary"
       >
-        <div className="flex max-w-full flex-nowrap items-center justify-center gap-[clamp(0.5rem,2.5vw,1.5rem)] px-[clamp(0.75rem,3vw,1.5rem)]">
-          <h1 className="shrink-0 whitespace-nowrap text-[clamp(1.125rem,4.5vw,2.25rem)] font-bold leading-none tracking-tight text-white">
-            Browse Brands
-          </h1>
-          <Image
-            src="/browse-brands/hero-kiwi.png"
-            alt=""
-            width={1024}
-            height={106}
-            priority
-            className="h-[clamp(2.75rem,10vw,6.625rem)] w-auto shrink-0 object-contain mix-blend-screen"
-            sizes="(max-width: 768px) 50vw, 512px"
-            draggable={false}
-          />
-        </div>
+        <h1 className="text-[18px] font-bold leading-none tracking-tight text-white">
+          Browse Brands
+        </h1>
       </section>
 
       <div className="mx-auto max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
