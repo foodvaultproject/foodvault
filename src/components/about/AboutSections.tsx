@@ -169,7 +169,7 @@ export function AboutHero() {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+        <div className="relative mx-auto w-[70%] max-w-[19.75rem] lg:max-w-[22rem]">
           <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-primary/20 via-violet-400/20 to-primary/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl shadow-2xl ring-1 ring-primary/15">
             <Image
@@ -179,7 +179,7 @@ export function AboutHero() {
               height={1024}
               priority
               className="h-auto w-full object-cover"
-              sizes="(max-width: 1024px) 90vw, 540px"
+              sizes="(max-width: 1024px) 63vw, 378px"
             />
           </div>
         </div>
@@ -223,11 +223,15 @@ export function AboutMissionSection() {
   return (
     <section
       id="our-story"
-      className={`scroll-mt-24 border-y border-border bg-surface ${SECTION_PY_HOME_REFINE}`}
+      className={`scroll-mt-24 border-y border-primary bg-primary ${SECTION_PY_HOME_REFINE}`}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Helping great brands reach more customers" />
-        <div className="max-w-3xl space-y-4 text-sm leading-relaxed text-muted-foreground">
+        <div className="mb-5 max-w-2xl">
+          <h2 className="text-2xl font-bold tracking-tight text-white">
+            Helping great brands reach more customers
+          </h2>
+        </div>
+        <div className="max-w-3xl space-y-4 text-sm leading-relaxed text-white/90">
           <p>
             Many independent brands create incredible products but struggle to compete
             for attention. FoodVault gives these brands a platform to connect with
