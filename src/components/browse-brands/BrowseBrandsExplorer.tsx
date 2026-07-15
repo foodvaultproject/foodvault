@@ -74,7 +74,6 @@ export function BrowseBrandsExplorer({
     [favoritedPartnerIds]
   );
 
-  const [search, setSearch] = useState("");
   const [department, setDepartment] = useState(initialDepartment);
   const [subcategory, setSubcategory] = useState(initialSubcategory);
   const [minDiscount, setMinDiscount] = useState(0);
@@ -93,7 +92,7 @@ export function BrowseBrandsExplorer({
     (offset: number, append: boolean) => {
       startTransition(async () => {
         const result = await searchBrandsAction({
-          search,
+          search: "",
           department: department || null,
           subcategory: subcategory || null,
           minDiscount: minDiscount || null,
@@ -108,7 +107,7 @@ export function BrowseBrandsExplorer({
         );
       });
     },
-    [search, department, subcategory, minDiscount, sort]
+    [department, subcategory, minDiscount, sort]
   );
 
   function handleSearchSubmit(event: React.FormEvent) {
@@ -162,37 +161,8 @@ export function BrowseBrandsExplorer({
   return (
     <>
       <form onSubmit={handleSearchSubmit} className={formClassName}>
-        <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Search Brands
-            </span>
-            <div className="relative">
-              <svg
-                className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                />
-              </svg>
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search brands or products..."
-                className="w-full rounded-md border border-border bg-background py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-          </label>
-
-          <label className="block">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-3">
+          <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Department
             </span>
@@ -212,10 +182,8 @@ export function BrowseBrandsExplorer({
               ))}
             </select>
           </label>
-        </div>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="block">
+          <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Subcategory
             </span>
@@ -234,7 +202,7 @@ export function BrowseBrandsExplorer({
             </select>
           </label>
 
-          <label className="block">
+          <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Member Discount
             </span>
@@ -251,7 +219,7 @@ export function BrowseBrandsExplorer({
             </select>
           </label>
 
-          <label className="block">
+          <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Sort By
             </span>
@@ -268,15 +236,13 @@ export function BrowseBrandsExplorer({
             </select>
           </label>
 
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
-            >
-              {isPending ? "Searching..." : "Search"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
+          >
+            {isPending ? "Searching..." : "Search"}
+          </button>
         </div>
       </form>
 
@@ -318,7 +284,7 @@ export function BrowseBrandsExplorer({
               No brands match your filters
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Try adjusting your search, department or discount filters.
+              Try adjusting your department or discount filters.
             </p>
           </div>
         ) : (

@@ -115,6 +115,7 @@ export default async function Home({ searchParams }: HomeProps) {
           showTrendingSearches
           exploreHeading=""
         />
+        <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
@@ -149,6 +150,7 @@ export default async function Home({ searchParams }: HomeProps) {
           showTrendingSearches
           compactSpacing
         />
+        <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
