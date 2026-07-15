@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
@@ -67,21 +68,34 @@ export function HomeHero({
       ? MEMBER_TRUST_INDICATORS
       : visitorTrustIndicators(trialLengthDays);
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
+  const isVisitorHero = !isPartner && !isFreeTrial && !isActiveMember;
   // Trial and active members browse the embedded homepage explorer rather than
   // the standalone Discover page, so keep their category links on the homepage.
   const keepBrowseOnHomepage = isActiveMember || isFreeTrial;
 
   return (
     <section
-      className={`border-b border-border ${
+      className={`relative overflow-hidden border-b border-border ${
         isActiveMember ? "bg-[#EEF2FF]" : "bg-background"
       }`}
     >
+      {isVisitorHero ? (
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <Image
+            src="/home/hero-kiwi-bg.png"
+            alt=""
+            fill
+            priority
+            className="object-cover object-center opacity-50"
+            sizes="100vw"
+          />
+        </div>
+      ) : null}
       <div
         className={
           isActiveMember
-            ? "mx-auto max-w-[1200px] px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8"
-            : `mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
+            ? "relative z-10 mx-auto max-w-[1200px] px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8"
+            : `relative z-10 mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
                 isPartner
                   ? PARTNER_HERO_PY
                   : isFreeTrial
@@ -249,7 +263,7 @@ export function HomeHero({
       </div>
 
       {!isPartner && !isFreeTrial && !isActiveMember ? (
-        <div className="border-t border-border bg-background">
+        <div className="relative z-10 border-t border-border bg-background">
           <div
             className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
               isActiveMember ? "py-1.5" : "py-2"
