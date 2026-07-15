@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
@@ -80,16 +79,10 @@ export function HomeHero({
       }`}
     >
       {isVisitorHero ? (
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <Image
-            src="/home/hero-kiwi-bg.png"
-            alt=""
-            fill
-            priority
-            className="object-cover object-center opacity-50"
-            sizes="100vw"
-          />
-        </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[url('/home/hero-kiwi-bg.png')] bg-cover bg-center bg-no-repeat opacity-50"
+        />
       ) : null}
       <div
         className={
