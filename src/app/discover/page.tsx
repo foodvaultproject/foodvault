@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DiscoverHeader } from "@/components/discover/DiscoverHeader";
 import {
   BuyingGuidesSection,
-  DiscoverNewsletter,
   FeaturedArticleSection,
   MeetPartnersSection,
   NewBrandsDiscoverSection,
@@ -31,7 +30,6 @@ export default async function DiscoverPage() {
       <RecipesSection articles={content.byCategory["Recipes & Inspiration"]} />
       <MeetPartnersSection articles={content.byCategory["Meet Our Partners"]} />
       <NewBrandsDiscoverSection articles={content.byCategory["New Brands This Week"]} />
-      <DiscoverNewsletter />
     </>
   );
 }

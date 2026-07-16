@@ -5,6 +5,7 @@ import {
   DiscoverArticleTile,
   DiscoverRecipeTile,
 } from "@/components/discover/DiscoverArticleTile";
+import { DiscoverSectionGrid } from "@/components/discover/DiscoverSectionGrid";
 import {
   articleHref,
   formatReadTime,
@@ -12,34 +13,14 @@ import {
 } from "@/lib/discover/queries";
 import {
   DISCOVER_ARTICLE_IMAGE_CLASS,
-  DISCOVER_TILE_CARD_CLASS,
-  DISCOVER_TILE_GRID_CLASS,
+  DISCOVER_TILE_CARD_BASE_CLASS,
 } from "@/lib/discover/image-frame";
 import { heading2, heading2OnDark, heading3 } from "@/lib/ui-classes";
 
-function SectionHeader({
-  title,
-  icon,
-  linkLabel,
-}: {
-  title: string;
-  icon: string;
-  linkLabel?: string;
-}) {
+function SectionHeader({ title }: { title: string }) {
   return (
-    <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h2 className={`flex items-center gap-2 ${heading2}`}>
-        <span aria-hidden="true">{icon}</span>
-        {title}
-      </h2>
-      {linkLabel ? (
-        <Link
-          href="/discover"
-          className="text-sm font-semibold text-primary hover:text-primary-hover"
-        >
-          {linkLabel} &rarr;
-        </Link>
-      ) : null}
+    <div className="mb-8">
+      <h2 className={heading2}>{title}</h2>
     </div>
   );
 }
@@ -111,17 +92,18 @@ export function SaveMoreSection({ articles }: { articles: DiscoverArticleCard[] 
   return (
     <section id="save-more" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Save More Every Week" icon="💰" linkLabel="View All" />
-        <div className={DISCOVER_TILE_GRID_CLASS}>
+        <SectionHeader title="Save More Every Week" />
+        <DiscoverSectionGrid>
           {articles.map((article) => (
             <DiscoverArticleTile
               key={article.id}
               article={article}
               variant="detailed"
+              layout="grid"
               readMoreLabel="Read Article"
             />
           ))}
-        </div>
+        </DiscoverSectionGrid>
       </div>
     </section>
   );
@@ -131,21 +113,22 @@ export function BuyingGuidesSection({ articles }: { articles: DiscoverArticleCar
   return (
     <section id="guides" className="bg-background py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Food Buying Guides" icon="🍓" linkLabel="Full Directory" />
-        <div className={DISCOVER_TILE_GRID_CLASS}>
+        <SectionHeader title="Food Buying Guides" />
+        <DiscoverSectionGrid>
           {articles.map((guide) => (
-            <DiscoverArticleTile key={guide.id} article={guide} variant="guide" />
+            <DiscoverArticleTile key={guide.id} article={guide} variant="guide" layout="grid" />
           ))}
           {articles.length === 0 ? (
-            <article className={`${DISCOVER_TILE_CARD_CLASS} items-center justify-center bg-surface-lavender p-8 text-center`}>
-              <span className="text-4xl">📖</span>
-              <h3 className={`mt-4 ${heading3}`}>New Guide Incoming</h3>
+            <article
+              className={`${DISCOVER_TILE_CARD_BASE_CLASS} flex w-full shrink-0 flex-col items-center justify-center bg-surface-lavender p-8 text-center`}
+            >
+              <h3 className={heading3}>New Guide Incoming</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 Our team is currently vetting the latest. Almost there — stay tuned!
               </p>
             </article>
           ) : null}
-        </div>
+        </DiscoverSectionGrid>
       </div>
     </section>
   );
@@ -157,12 +140,12 @@ export function RecipesSection({ articles }: { articles: DiscoverArticleCard[] }
   return (
     <section id="recipes" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Recipes & Inspiration" icon="👨‍🍳" linkLabel="Explore Cookbook" />
-        <div className={`items-start ${DISCOVER_TILE_GRID_CLASS}`}>
+        <SectionHeader title="Recipes & Inspiration" />
+        <DiscoverSectionGrid>
           {articles.map((recipe) => (
-            <DiscoverRecipeTile key={recipe.id} article={recipe} />
+            <DiscoverRecipeTile key={recipe.id} article={recipe} layout="grid" />
           ))}
-        </div>
+        </DiscoverSectionGrid>
       </div>
     </section>
   );
@@ -174,12 +157,17 @@ export function MeetPartnersSection({ articles }: { articles: DiscoverArticleCar
   return (
     <section id="partners" className="bg-background py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Meet Our Partners" icon="⭐" />
-        <div className={DISCOVER_TILE_GRID_CLASS}>
+        <SectionHeader title="Meet Our Partners" />
+        <DiscoverSectionGrid>
           {articles.map((article) => (
-            <DiscoverArticleTile key={article.id} article={article} variant="overlay" />
+            <DiscoverArticleTile
+              key={article.id}
+              article={article}
+              variant="overlay"
+              layout="grid"
+            />
           ))}
-        </div>
+        </DiscoverSectionGrid>
       </div>
     </section>
   );
@@ -191,52 +179,18 @@ export function NewBrandsDiscoverSection({ articles }: { articles: DiscoverArtic
   return (
     <section id="new-brands" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="New Brands This Week" icon="📦" />
-        <div className={DISCOVER_TILE_GRID_CLASS}>
+        <SectionHeader title="New Brands This Week" />
+        <DiscoverSectionGrid>
           {articles.map((article) => (
             <DiscoverArticleTile
               key={article.id}
               article={article}
               variant="detailed"
+              layout="grid"
               readMoreLabel="Read Article"
             />
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function DiscoverNewsletter() {
-  return (
-    <section className="bg-navy py-7 sm:py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-6 md:flex-row md:gap-10">
-          <div className="text-center md:text-left">
-            <h2 className={heading2OnDark}>Stay Up To Date</h2>
-            <p className="mt-2 max-w-lg text-sm text-white/70 sm:text-base">
-              Get curated savings reports, exclusive brand invites, and organic
-              food guides delivered monthly.
-            </p>
-          </div>
-          <form className="flex w-full max-w-md flex-col gap-3 sm:flex-row md:shrink-0">
-            <label htmlFor="discover-newsletter" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="discover-newsletter"
-              type="email"
-              placeholder="Enter your email"
-              className="min-w-0 flex-1 rounded-lg border-0 px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button
-              type="submit"
-              className="fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
+        </DiscoverSectionGrid>
       </div>
     </section>
   );

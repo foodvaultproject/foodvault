@@ -8,6 +8,7 @@ import {
 } from "@/lib/discover/queries";
 import {
   DISCOVER_FIVE_TILE_CARD_CLASS,
+  DISCOVER_TILE_CARD_BASE_CLASS,
   DISCOVER_TILE_CARD_CLASS,
   DISCOVER_TILE_IMAGE_CLASS,
 } from "@/lib/discover/image-frame";
@@ -18,7 +19,7 @@ type DiscoverArticleTileProps = {
   article: DiscoverArticleCard;
   variant?: "default" | "detailed" | "guide" | "overlay";
   readMoreLabel?: string;
-  layout?: "fixed" | "homepage";
+  layout?: "fixed" | "homepage" | "grid";
   imageSizes?: string;
 };
 
@@ -30,7 +31,11 @@ export function DiscoverArticleTile({
   imageSizes = TILE_IMAGE_SIZES,
 }: DiscoverArticleTileProps) {
   const cardClass =
-    layout === "homepage" ? DISCOVER_FIVE_TILE_CARD_CLASS : DISCOVER_TILE_CARD_CLASS;
+    layout === "homepage"
+      ? DISCOVER_FIVE_TILE_CARD_CLASS
+      : layout === "grid"
+        ? `${DISCOVER_TILE_CARD_BASE_CLASS} w-full shrink-0`
+        : DISCOVER_TILE_CARD_CLASS;
 
   if (variant === "overlay") {
     return (
@@ -115,9 +120,20 @@ export function DiscoverArticleTile({
   );
 }
 
-export function DiscoverRecipeTile({ article }: { article: DiscoverArticleCard }) {
+export function DiscoverRecipeTile({
+  article,
+  layout = "fixed",
+}: {
+  article: DiscoverArticleCard;
+  layout?: "fixed" | "grid";
+}) {
+  const cardClass =
+    layout === "grid"
+      ? `${DISCOVER_TILE_CARD_BASE_CLASS} w-full`
+      : DISCOVER_TILE_CARD_CLASS;
+
   return (
-    <Link href={articleHref(article.slug)} className={`${DISCOVER_TILE_CARD_CLASS} group relative`}>
+    <Link href={articleHref(article.slug)} className={`${cardClass} group relative shrink-0`}>
       <div className={DISCOVER_TILE_IMAGE_CLASS}>
         <Image
           src={article.heroImageUrl}
