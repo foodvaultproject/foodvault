@@ -175,7 +175,7 @@ export function HomeHero({
             <>
               <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
                 Discover Kiwi Brands.{" "}
-                <span className="text-white">Enjoy Member Savings.</span>
+                <span className="text-primary">Enjoy Member Savings.</span>
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-black sm:text-lg">
                 FoodVault exists for one reason: to help you spend less on the products you love.
@@ -185,11 +185,11 @@ export function HomeHero({
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <MemberSignupCtaLink
                   variant="start-free-trial"
-                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm border border-white px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
+                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
                 />
                 <Link
                   href="/browse-brands"
-                  className="inline-flex w-full items-center justify-center rounded-sm border border-white bg-transparent px-6 py-3 text-sm font-medium text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center rounded-sm border border-white bg-transparent px-6 py-3 text-sm font-medium text-primary transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
                 >
                   Explore Brands
                 </Link>
