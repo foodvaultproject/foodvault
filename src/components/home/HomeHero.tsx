@@ -89,7 +89,7 @@ export function HomeHero({
             fill
             priority
             sizes="100vw"
-            className="object-cover object-center"
+            className="object-cover object-center opacity-70"
           />
         </div>
       ) : null}
