@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import type { LucideIcon } from "lucide-react";
 import { ArrowUpRight, Compass, Tag, Wallet } from "lucide-react";
@@ -103,6 +102,8 @@ const whyJoinCards = [
   },
 ] as const;
 
+const HOW_IT_WORKS_HERO_BACKGROUND = "/how-it-works/hero-background.png";
+
 type HowItWorksPageProps = {
   isActiveMember?: boolean;
 };
@@ -123,13 +124,18 @@ export function HowItWorksPageContent({
 
 function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }) {
   return (
-    <section className="border-b border-primary bg-primary">
-      <div className="fv-content-width grid lg:grid-cols-2 lg:items-stretch">
+    <section className="relative overflow-hidden border-b border-border bg-background">
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('${HOW_IT_WORKS_HERO_BACKGROUND}')` }}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 fv-content-width grid lg:grid-cols-2 lg:items-stretch">
         <div className="flex flex-col justify-center py-8 sm:py-10 lg:py-12">
-          <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-white sm:text-[2.75rem] lg:text-[3rem]">
+          <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-primary sm:text-[2.75rem] lg:text-[3rem]">
             Built to Save Kiwis Money.
           </h1>
-          <p className="mt-4 max-w-lg text-base leading-relaxed text-white/90 sm:text-lg">
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-black sm:text-lg">
             Our mission is simple: to help you spend less on all the things you need. We connect you
             directly with Kiwi brands offering exclusive member pricing, helping you save more every
             time you shop. Food, drinks, household essentials and more! It&apos;s all here on
@@ -139,21 +145,12 @@ function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }
             <div className="mt-5">
               <MemberSignupCtaLink
                 variant="start-free-trial"
-                className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-2.5 text-[14px] font-semibold text-primary transition-colors hover:bg-white/90 sm:w-auto"
+                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-[14px] font-semibold text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
               />
             </div>
           )}
         </div>
-        <div className="relative min-h-[240px] w-full bg-primary lg:min-h-full">
-          <Image
-            src="/how-it-works/hero-trolley.png"
-            alt="Grocery and household products flowing from a shopping trolley"
-            fill
-            priority
-            className="object-cover object-right mix-blend-screen"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
-        </div>
+        <div className="hidden lg:block" aria-hidden="true" />
       </div>
     </section>
   );
