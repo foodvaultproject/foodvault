@@ -102,51 +102,6 @@ const howItWorksSteps = [
   },
 ];
 
-const affiliateFeatures = [
-  {
-    title: "Fans promote freely",
-    description:
-      "Any of your fans can generate an affiliate link and start promoting your brand—no invitations or approvals required.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Partner dashboard",
-    description:
-      "Manage your affiliate programme from your FoodVault dashboard with the tools and information you need.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Analytics & insights",
-    description:
-      "View performance analytics and management information so you can see how affiliates are driving results.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-        />
-      </svg>
-    ),
-  },
-];
-
 const finalCtaValues = [
   "No Fees. Ever.",
   "Keep 100% of Every Sale.",
@@ -389,44 +344,6 @@ export function HowItWorksSection() {
               <span className="text-2xl font-bold text-primary/20">{step.step}</span>
               <h3 className={`mt-3 ${heading3}`}>{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function AffiliateProgrammeSection() {
-  return (
-    <section className="bg-surface py-8 sm:py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className={heading2}>Affiliate Programme</h2>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Expand your reach with a built-in affiliate programme—without inviting or approving
-            affiliates yourself.
-          </p>
-          <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Any of your fans can generate a link and start promoting your brand. You manage
-            everything from your Partner Dashboard, with analytics and management information to
-            track how affiliates are performing.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-3">
-          {affiliateFeatures.map((feature) => (
-            <div
-              key={feature.title}
-              className="rounded-lg border border-border bg-background p-5 text-center sm:p-6"
-            >
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary">
-                {feature.icon}
-              </div>
-              <h3 className={`mt-4 ${heading3}`}>{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {feature.description}
-              </p>
             </div>
           ))}
         </div>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ForBrandsFAQSection } from "@/components/for-brands/ForBrandsFAQSection";
 import { ForBrandsPartnerLogosSection } from "@/components/for-brands/ForBrandsPartnerLogosSection";
 import {
-  AffiliateProgrammeSection,
   ForBrandsFinalCTA,
   ForBrandsHero,
   HowItWorksSection,
@@ -27,7 +26,6 @@ export default async function ForBrandsPage() {
       <WhyFoodVaultSection />
       <PartnerBenefitsSection />
       <HowItWorksSection />
-      <AffiliateProgrammeSection />
       <ForBrandsFAQSection />
       <ForBrandsFinalCTA />
     </>

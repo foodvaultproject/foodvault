@@ -189,6 +189,10 @@ export function PricingFinalCTA() {
 
 export function PricingPartnerCTA() {
   return (
-    <PartnerJoinCTA className="bg-surface-lavender pb-10 pt-6 sm:pb-14 sm:pt-8 lg:pt-10" />
+    <PartnerJoinCTA
+      className="bg-surface-lavender pb-5 pt-3 sm:pb-7 sm:pt-4 lg:pt-5"
+      compact
+      showTrustPoints={false}
+    />
   );
 }

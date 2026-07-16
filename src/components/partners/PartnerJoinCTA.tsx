@@ -36,17 +36,27 @@ const partnerHighlights = [
 type PartnerJoinCTAProps = {
   learnMoreHref?: string;
   className?: string;
+  compact?: boolean;
+  showTrustPoints?: boolean;
 };
 
 export function PartnerJoinCTA({
   learnMoreHref = "/for-brands",
   className = "bg-surface-lavender py-10 sm:py-14",
+  compact = false,
+  showTrustPoints = true,
 }: PartnerJoinCTAProps) {
   return (
     <section className={className}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
-          <div className="grid gap-10 p-6 sm:p-8 lg:grid-cols-2 lg:gap-16 lg:p-12">
+          <div
+            className={
+              compact
+                ? "grid gap-5 p-4 sm:p-5 lg:grid-cols-2 lg:gap-8 lg:p-6"
+                : "grid gap-10 p-6 sm:p-8 lg:grid-cols-2 lg:gap-16 lg:p-12"
+            }
+          >
             <div>
               <h2 className={heading2}>
                 Own a New Zealand Food, Beverage or Household Brand?
@@ -56,31 +66,35 @@ export function PartnerJoinCTA({
                 List your business, create an exclusive member offer and drive traffic directly to
                 your own website.
               </p>
-              <ul className="mt-6 space-y-2 text-sm text-foreground sm:text-base">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-primary" aria-hidden="true">
-                    ✓
-                  </span>
-                  No listing fees
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-primary" aria-hidden="true">
-                    ✓
-                  </span>
-                  No monthly subscription
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-primary" aria-hidden="true">
-                    ✓
-                  </span>
-                  No commissions on sales
-                </li>
-              </ul>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                You keep full ownership of your customers, while FoodVault helps members discover
-                your brand.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              {showTrustPoints ? (
+                <>
+                  <ul className="mt-6 space-y-2 text-sm text-foreground sm:text-base">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 text-primary" aria-hidden="true">
+                        ✓
+                      </span>
+                      No listing fees
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 text-primary" aria-hidden="true">
+                        ✓
+                      </span>
+                      No monthly subscription
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1 text-primary" aria-hidden="true">
+                        ✓
+                      </span>
+                      No commissions on sales
+                    </li>
+                  </ul>
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    You keep full ownership of your customers, while FoodVault helps members discover
+                    your brand.
+                  </p>
+                </>
+              ) : null}
+              <div className={`flex flex-col gap-3 sm:flex-row ${compact ? "mt-4" : "mt-8"}`}>
                 <Link
                   href={PARTNER_CREATE_ACCOUNT_PATH}
                   className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
@@ -96,16 +110,36 @@ export function PartnerJoinCTA({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-1 sm:gap-4">
+            <div
+              className={
+                compact ? "grid grid-cols-3 gap-1.5 sm:grid-cols-1 sm:gap-2" : "grid grid-cols-3 gap-2 sm:grid-cols-1 sm:gap-4"
+              }
+            >
               {partnerHighlights.map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-lg border border-border bg-surface/60 p-3 text-center sm:p-6 sm:text-left"
+                  className={
+                    compact
+                      ? "rounded-lg border border-border bg-surface/60 p-2 text-center sm:p-3 sm:text-left"
+                      : "rounded-lg border border-border bg-surface/60 p-3 text-center sm:p-6 sm:text-left"
+                  }
                 >
-                  <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary sm:mx-0 sm:h-11 sm:w-11">
+                  <div
+                    className={
+                      compact
+                        ? "mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary sm:mx-0 sm:h-8 sm:w-8"
+                        : "mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary sm:mx-0 sm:h-11 sm:w-11"
+                    }
+                  >
                     {item.icon}
                   </div>
-                  <h3 className="mt-3 text-[11px] font-bold leading-tight text-foreground sm:mt-4 sm:text-sm">
+                  <h3
+                    className={
+                      compact
+                        ? "mt-2 text-[11px] font-bold leading-tight text-foreground sm:mt-3 sm:text-sm"
+                        : "mt-3 text-[11px] font-bold leading-tight text-foreground sm:mt-4 sm:text-sm"
+                    }
+                  >
                     {item.title}
                   </h3>
                   <p className="mt-2 hidden text-sm leading-relaxed text-muted-foreground sm:block">
