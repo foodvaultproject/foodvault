@@ -189,7 +189,7 @@ export function HomeHero({
                 />
                 <Link
                   href="/browse-brands"
-                  className="inline-flex w-full items-center justify-center rounded-sm border border-white bg-transparent px-6 py-3 text-sm font-medium text-primary transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center rounded-sm border border-white bg-transparent px-6 py-3 text-sm font-medium text-black transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
                 >
                   Explore Brands
                 </Link>
