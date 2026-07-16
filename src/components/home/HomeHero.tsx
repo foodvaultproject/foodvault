@@ -82,7 +82,7 @@ export function HomeHero({
     >
       {isVisitorHero ? (
         <div
-          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-70"
+          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('${VISITOR_HERO_BACKGROUND}')` }}
           aria-hidden="true"
         />
