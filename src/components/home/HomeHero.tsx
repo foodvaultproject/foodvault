@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER } from "@/components/home/section-spacing";
@@ -8,7 +7,7 @@ import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import { DEFAULT_TRIAL_LENGTH_DAYS } from "@/lib/system-settings";
 
-const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-garlic-bread.jpg";
+const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-background.png";
 
 function visitorTrustIndicators(trialLengthDays: number) {
   return [
@@ -82,16 +81,11 @@ export function HomeHero({
       }`}
     >
       {isVisitorHero ? (
-        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-          <Image
-            src={VISITOR_HERO_BACKGROUND}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center opacity-70"
-          />
-        </div>
+        <div
+          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-70"
+          style={{ backgroundImage: `url('${VISITOR_HERO_BACKGROUND}')` }}
+          aria-hidden="true"
+        />
       ) : null}
       <div
         className={
