@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER } from "@/components/home/section-spacing";
@@ -6,6 +7,8 @@ import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import { DEFAULT_TRIAL_LENGTH_DAYS } from "@/lib/system-settings";
+
+const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-garlic-bread.jpg";
 
 function visitorTrustIndicators(trialLengthDays: number) {
   return [
@@ -75,18 +78,20 @@ export function HomeHero({
   return (
     <section
       className={`relative overflow-hidden border-b border-border ${
-        isActiveMember
-          ? "bg-[#EEF2FF]"
-          : isVisitorHero
-            ? "bg-primary"
-            : "bg-background"
+        isActiveMember ? "bg-[#EEF2FF]" : "bg-background"
       }`}
     >
       {isVisitorHero ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 bg-[url('/home/hero-visitor-bg.jpg')] bg-cover bg-center bg-no-repeat"
-        />
+        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+          <Image
+            src={VISITOR_HERO_BACKGROUND}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        </div>
       ) : null}
       <div
         className={
