@@ -193,6 +193,50 @@ export const PARTNER_CATEGORY_TAXONOMY: Record<
   Pet: ["Cats", "Dogs", "Birds, Fish & Small Animals", "Pet Health & Accessories"],
 };
 
+export const DIETARY_LIFESTYLE_ATTRIBUTES = [
+  "Gluten Free",
+  "Dairy Free",
+  "Egg Free",
+  "Soy Free",
+  "Nut Free",
+  "Vegan",
+  "Plant Based",
+  "Vegetarian",
+  "Organic",
+  "Low Sugar",
+  "No Added Sugar",
+  "Keto Friendly",
+  "Paleo Friendly",
+  "High Protein",
+  "High Fibre",
+  "Low Carb",
+  "Halal",
+  "Kosher",
+] as const;
+
+export type DietaryLifestyleAttribute = (typeof DIETARY_LIFESTYLE_ATTRIBUTES)[number];
+
+export function isDietaryLifestyleAttribute(
+  value: string
+): value is DietaryLifestyleAttribute {
+  return (DIETARY_LIFESTYLE_ATTRIBUTES as readonly string[]).includes(value);
+}
+
+export function parseDietaryLifestyleAttributes(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(
+    (item): item is DietaryLifestyleAttribute =>
+      typeof item === "string" && isDietaryLifestyleAttribute(item)
+  );
+}
+
+export function normalizeDietaryLifestyleAttributes(attributes: string[]): string[] {
+  return DIETARY_LIFESTYLE_ATTRIBUTES.filter((attribute) =>
+    attributes.includes(attribute)
+  );
+}
+
 export function getSubcategoriesForDepartment(
   department: string
 ): readonly string[] {
@@ -215,6 +259,10 @@ export type PartnerCategoryGroup = {
   department: PrimaryDepartment | "";
   subcategories: string[];
 };
+
+export function hasSelectedSubcategories(groups: PartnerCategoryGroup[]): boolean {
+  return groups.some((group) => group.subcategories.length > 0);
+}
 
 export const MAX_TILE_DEPARTMENT_TAGS = 3;
 

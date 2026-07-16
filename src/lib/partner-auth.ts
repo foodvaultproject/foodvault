@@ -24,6 +24,7 @@ export type PartnerApplicationDraft = {
   primaryDepartment?: string;
   subcategories?: string[];
   categoryGroups?: import("@/data/partner-categories").PartnerCategoryGroup[];
+  dietaryLifestyleAttributes?: string[];
   offerType?: string;
   discountValue?: string;
   offerScope?: import("@/lib/partner-offer").OfferScope;

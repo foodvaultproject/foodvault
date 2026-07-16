@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  DIETARY_LIFESTYLE_ATTRIBUTES,
   emptyCategoryGroup,
   getDepartmentsFromGroups,
   getSubcategoriesForDepartment,
+  hasSelectedSubcategories,
+  normalizeDietaryLifestyleAttributes,
   PRIMARY_DEPARTMENTS,
   type PartnerCategoryGroup,
   type PrimaryDepartment,
@@ -21,6 +24,8 @@ const selectClass = portalSelect;
 type PartnerCategoriesEditorProps = {
   categoryGroups: PartnerCategoryGroup[];
   onChange: (groups: PartnerCategoryGroup[]) => void;
+  dietaryLifestyleAttributes?: string[];
+  onDietaryLifestyleAttributesChange?: (attributes: string[]) => void;
   idPrefix?: string;
   className?: string;
   disabled?: boolean;
@@ -42,6 +47,8 @@ function updateGroupAtIndex(
 export function PartnerCategoriesEditor({
   categoryGroups,
   onChange,
+  dietaryLifestyleAttributes = [],
+  onDietaryLifestyleAttributesChange,
   idPrefix = "partner-category",
   className = "",
   disabled = false,
@@ -52,6 +59,23 @@ export function PartnerCategoriesEditor({
   const groups =
     categoryGroups.length > 0 ? categoryGroups : [emptyCategoryGroup()];
   const usedDepartments = getDepartmentsFromGroups(groups);
+  const showDietaryAttributes =
+    Boolean(onDietaryLifestyleAttributesChange) && hasSelectedSubcategories(groups);
+  const normalizedDietaryAttributes = normalizeDietaryLifestyleAttributes(
+    dietaryLifestyleAttributes
+  );
+
+  function toggleDietaryAttribute(attribute: string) {
+    if (!onDietaryLifestyleAttributesChange || disabled) return;
+
+    const nextAttributes = normalizedDietaryAttributes.includes(attribute)
+      ? normalizedDietaryAttributes.filter((item) => item !== attribute)
+      : [...normalizedDietaryAttributes, attribute];
+
+    onDietaryLifestyleAttributesChange(
+      normalizeDietaryLifestyleAttributes(nextAttributes)
+    );
+  }
 
   function handleDepartmentChange(index: number, value: string) {
     const department = value as PrimaryDepartment | "";
@@ -227,6 +251,73 @@ export function PartnerCategoriesEditor({
           );
         })}
       </div>
+
+      {showDietaryAttributes ? (
+        <div
+          className={`mt-4 rounded-lg border border-border bg-surface/50 ${compact ? "p-4" : "p-4 sm:p-5"}`}
+        >
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className={portalCardTitle}>Attributes - Dietary &amp; Lifestyle</h3>
+              <p className={`${portalHelper} mt-0.5`}>
+                Further refinement is optional and helps your products get discovered by
+                members searching for specific dietary and lifestyle preferences.
+              </p>
+            </div>
+            {normalizedDietaryAttributes.length > 0 ? (
+              <p className="text-sm font-medium text-primary">
+                {normalizedDietaryAttributes.length} selected
+              </p>
+            ) : null}
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {DIETARY_LIFESTYLE_ATTRIBUTES.map((attribute) => {
+              const checked = normalizedDietaryAttributes.includes(attribute);
+              const inputId = `${idPrefix}-dietary-${attribute
+                .replace(/[^a-z0-9]+/gi, "-")
+                .toLowerCase()}`;
+
+              return (
+                <label
+                  key={attribute}
+                  htmlFor={inputId}
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-2.5 py-2 transition-colors ${
+                    checked
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-background hover:border-primary/30"
+                  }${disabled ? " cursor-not-allowed opacity-60" : ""}`}
+                >
+                  <input
+                    id={inputId}
+                    type="checkbox"
+                    name={`${idPrefix}-dietary-attributes`}
+                    value={attribute}
+                    checked={checked}
+                    disabled={disabled}
+                    onChange={() => toggleDietaryAttribute(attribute)}
+                    className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-[0.8125rem] text-foreground">{attribute}</span>
+                </label>
+              );
+            })}
+          </div>
+
+          {normalizedDietaryAttributes.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-3">
+              {normalizedDietaryAttributes.map((attribute) => (
+                <span
+                  key={attribute}
+                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                >
+                  {attribute}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <button
         type="button"

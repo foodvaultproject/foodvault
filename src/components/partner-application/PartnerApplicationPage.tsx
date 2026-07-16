@@ -7,6 +7,8 @@ import { PartnerCategoriesEditor } from "@/components/partner/PartnerCategorySel
 import {
   categoryGroupsFromLegacy,
   emptyCategoryGroup,
+  hasSelectedSubcategories,
+  normalizeDietaryLifestyleAttributes,
   validateCategoryGroups,
   type PartnerCategoryGroup,
 } from "@/data/partner-categories";
@@ -210,6 +212,9 @@ export function PartnerApplicationPage() {
   const [categoryGroups, setCategoryGroups] = useState<PartnerCategoryGroup[]>([
     emptyCategoryGroup(),
   ]);
+  const [dietaryLifestyleAttributes, setDietaryLifestyleAttributes] = useState<string[]>(
+    []
+  );
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [logoUpload, setLogoUpload] = useState<PartnerLogoUploadValue | null>(null);
   const [bannerUpload, setBannerUpload] = useState<PartnerBannerUploadValue | null>(null);
@@ -290,6 +295,9 @@ export function PartnerApplicationPage() {
               )
             );
           }
+          setDietaryLifestyleAttributes(
+            normalizeDietaryLifestyleAttributes(draft.dietaryLifestyleAttributes ?? [])
+          );
           setAffiliateProgram({
             enabled: AFFILIATE_PROGRAM_COMING_SOON ? false : (draft.affiliateEnabled ?? false),
             commissionPercent: draft.affiliateCommissionPercent ?? "",
@@ -333,6 +341,7 @@ export function PartnerApplicationPage() {
       shortDescription,
       brandStory,
       categoryGroups,
+      dietaryLifestyleAttributes,
       discountValue,
       offerScope,
       selectedProducts: selectedProducts.map((product) => ({
@@ -360,6 +369,7 @@ export function PartnerApplicationPage() {
     shortDescription,
     brandStory,
     categoryGroups,
+    dietaryLifestyleAttributes,
     discountValue,
     offerScope,
     selectedProducts,
@@ -469,6 +479,7 @@ export function PartnerApplicationPage() {
           shortDescription,
           brandStory,
           categoryGroups,
+          dietaryLifestyleAttributes,
           offerType: DEFAULT_OFFER_TYPE,
           discountValue,
           offerScope,
@@ -733,9 +744,14 @@ export function PartnerApplicationPage() {
                 className="mt-3"
                 departmentLabel="Primary Department"
                 categoryGroups={categoryGroups}
+                dietaryLifestyleAttributes={dietaryLifestyleAttributes}
+                onDietaryLifestyleAttributesChange={setDietaryLifestyleAttributes}
                 onChange={(groups) => {
                   setCategoryGroups(groups);
                   setCategoryError(validateCategoryGroups(groups));
+                  if (!hasSelectedSubcategories(groups)) {
+                    setDietaryLifestyleAttributes([]);
+                  }
                 }}
                 error={categoryError}
                 disabled={submitting}

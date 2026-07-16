@@ -25,6 +25,8 @@ import { normalizeSocialValueForStorage } from "@/lib/partner-social";
 import {
   categoryGroupsFromLegacy,
   normalizeCategoryGroups,
+  normalizeDietaryLifestyleAttributes,
+  parseDietaryLifestyleAttributes,
   resolveCategoryGroupsFromRecord,
   syncLegacyCategoryFields,
   type PartnerCategoryGroup,
@@ -377,6 +379,9 @@ export async function submitPartnerApplication(
             discount_percent: discountPercent,
             category_groups: categoryFields.category_groups,
             primary_categories: categoryFields.primary_categories,
+            dietary_lifestyle_attributes: normalizeDietaryLifestyleAttributes(
+              draft.dietaryLifestyleAttributes ?? []
+            ),
             youtube: normalizeSocialValueForStorage(draft.youtube),
             ...affiliatePayload,
           })
@@ -394,6 +399,9 @@ export async function submitPartnerApplication(
     .update({
       category_groups: categoryFields.category_groups,
       primary_categories: categoryFields.primary_categories,
+      dietary_lifestyle_attributes: normalizeDietaryLifestyleAttributes(
+        draft.dietaryLifestyleAttributes ?? []
+      ),
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
       ...affiliatePayload,
@@ -449,6 +457,7 @@ export type PartnerListingData = {
   primaryDepartment: string;
   subcategories: string[];
   categoryGroups: PartnerCategoryGroup[];
+  dietaryLifestyleAttributes: string[];
   offerType: string;
   offerValue: string;
   offerTitle: string;
@@ -504,9 +513,17 @@ const LISTING_COLUMNS_AFFILIATE =
 const LISTING_COLUMNS_AFFILIATE_WITH_CONTACT =
   `${LISTING_COLUMNS_AFFILIATE}, contact_name`;
 
-const LISTING_COLUMNS = LISTING_COLUMNS_AFFILIATE;
+const LISTING_COLUMNS_DIETARY =
+  `${LISTING_COLUMNS_AFFILIATE}, dietary_lifestyle_attributes`;
+
+const LISTING_COLUMNS_DIETARY_WITH_CONTACT =
+  `${LISTING_COLUMNS_DIETARY}, contact_name`;
+
+const LISTING_COLUMNS = LISTING_COLUMNS_DIETARY;
 
 const LISTING_COLUMN_TIERS = [
+  LISTING_COLUMNS_DIETARY_WITH_CONTACT,
+  LISTING_COLUMNS_DIETARY,
   LISTING_COLUMNS_AFFILIATE_WITH_CONTACT,
   LISTING_COLUMNS_AFFILIATE,
   LISTING_COLUMNS_WITH_LOGO,
@@ -518,7 +535,7 @@ const LISTING_COLUMN_TIERS = [
 ] as const;
 
 const LISTING_FALLBACK_COLUMNS =
-  "business_name, website_url, short_description, brand_story, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_scope, selected_products, support_email, support_phone, instagram, facebook, linkedin, tiktok, youtube, banner_image_url, logo_url, gallery_image_urls, slug, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, affiliate_created_at, affiliate_updated_at, logo_original_url, logo_crop, banner_original_url, banner_crop, gallery_original_urls, gallery_image_crops";
+  "business_name, website_url, short_description, brand_story, primary_category, primary_categories, category_groups, subcategories, dietary_lifestyle_attributes, offer_type, discount_value, discount_percent, offer_applies_to, offer_scope, selected_products, support_email, support_phone, instagram, facebook, linkedin, tiktok, youtube, banner_image_url, logo_url, gallery_image_urls, slug, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, affiliate_created_at, affiliate_updated_at, logo_original_url, logo_crop, banner_original_url, banner_crop, gallery_original_urls, gallery_image_crops";
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -582,6 +599,9 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
       ? (row.subcategories as string[])
       : [],
     categoryGroups: resolveCategoryGroupsFromRecord(row),
+    dietaryLifestyleAttributes: normalizeDietaryLifestyleAttributes(
+      parseDietaryLifestyleAttributes(row.dietary_lifestyle_attributes)
+    ),
     offerType: str(row.offer_type) || "Percentage Discount",
     offerValue:
       discountPercent != null
@@ -727,6 +747,9 @@ function buildPartnerListingUpdatePayload(
     primary_categories: categoryFields.primary_categories,
     category_groups: categoryFields.category_groups,
     subcategories: categoryFields.subcategories,
+    dietary_lifestyle_attributes: normalizeDietaryLifestyleAttributes(
+      data.dietaryLifestyleAttributes
+    ),
     offer_type: data.offerType || null,
     offer_applies_to: offerAppliesToLabel(data.offerScope),
     offer_scope: data.offerScope,

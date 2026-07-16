@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PartnerCategoriesEditor } from "@/components/partner/PartnerCategorySelector";
 import {
   emptyCategoryGroup,
+  hasSelectedSubcategories,
   validateCategoryGroups,
   type PartnerCategoryGroup,
 } from "@/data/partner-categories";
@@ -104,6 +105,7 @@ type EditorListing = {
   shortDescription: string;
   brandStory: string;
   categoryGroups: PartnerCategoryGroup[];
+  dietaryLifestyleAttributes: string[];
   offerType: string;
   offerValue: string;
   offerTitle: string;
@@ -140,6 +142,7 @@ const emptyListing: EditorListing = {
   shortDescription: "",
   brandStory: "",
   categoryGroups: [emptyCategoryGroup()],
+  dietaryLifestyleAttributes: [],
   offerType: "Percentage Discount",
   offerValue: "",
   offerTitle: "",
@@ -201,6 +204,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     brandStory: data.brandStory,
     categoryGroups:
       data.categoryGroups.length > 0 ? data.categoryGroups : [emptyCategoryGroup()],
+    dietaryLifestyleAttributes: data.dietaryLifestyleAttributes,
     offerType: data.offerType || "Percentage Discount",
     offerValue,
     offerTitle: data.offerTitle,
@@ -551,6 +555,7 @@ export function PartnerListingEditor() {
       primaryDepartment: listing.categoryGroups[0]?.department ?? "",
       subcategories: listing.categoryGroups[0]?.subcategories ?? [],
       categoryGroups: listing.categoryGroups,
+      dietaryLifestyleAttributes: listing.dietaryLifestyleAttributes,
       offerType: "Percentage Discount",
       offerValue: listing.offerValue,
       offerTitle,
@@ -820,9 +825,20 @@ export function PartnerListingEditor() {
                 idPrefix="listing"
                 className={portalCardContent}
                 categoryGroups={listing.categoryGroups}
+                dietaryLifestyleAttributes={listing.dietaryLifestyleAttributes}
+                onDietaryLifestyleAttributesChange={(dietaryLifestyleAttributes) => {
+                  if (!isListingEditable) return;
+                  setListing((prev) => ({ ...prev, dietaryLifestyleAttributes }));
+                }}
                 onChange={(categoryGroups) => {
                   if (!isListingEditable) return;
-                  setListing((prev) => ({ ...prev, categoryGroups }));
+                  setListing((prev) => ({
+                    ...prev,
+                    categoryGroups,
+                    dietaryLifestyleAttributes: hasSelectedSubcategories(categoryGroups)
+                      ? prev.dietaryLifestyleAttributes
+                      : [],
+                  }));
                   setCategoryError(validateCategoryGroups(categoryGroups));
                 }}
                 error={categoryError}
