@@ -4,6 +4,10 @@ import {
   type DiscoverArticleRow,
   type DiscoverCategory,
 } from "@/lib/admin/types";
+import {
+  isRemovedDiscoverCategory,
+  normalizeDiscoverCategory,
+} from "@/lib/discover/categories";
 import { parseMetaTags } from "@/lib/discover/meta-tags";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -38,8 +42,9 @@ export type DiscoverArticlePageData = DiscoverArticleCard & {
   updatedAt: string | null;
 };
 
-function isDiscoverCategory(value: string): value is DiscoverCategory {
-  return (DISCOVER_CMS_CATEGORIES as readonly string[]).includes(value);
+function toDiscoverCategory(value: string): DiscoverCategory | null {
+  if (isRemovedDiscoverCategory(value)) return null;
+  return normalizeDiscoverCategory(value);
 }
 
 function sortByPublishDate(rows: DiscoverArticleRow[]): DiscoverArticleRow[] {
@@ -51,13 +56,14 @@ function sortByPublishDate(rows: DiscoverArticleRow[]): DiscoverArticleRow[] {
 }
 
 export function mapArticleRow(row: DiscoverArticleRow): DiscoverArticleCard | null {
-  if (!isDiscoverCategory(row.category)) return null;
+  const category = toDiscoverCategory(row.category);
+  if (!category) return null;
 
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    category: row.category,
+    category,
     summary: row.summary,
     heroImageUrl: row.hero_image_url ?? DEFAULT_DISCOVER_HERO,
     readTimeMinutes: row.read_time_minutes ?? 5,

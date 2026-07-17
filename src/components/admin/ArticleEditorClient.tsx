@@ -6,6 +6,7 @@ import { ArticleHeroUploadField } from "@/components/admin/ArticleHeroUploadFiel
 import { ArticleMetaTagsField } from "@/components/admin/ArticleMetaTagsField";
 import { saveArticleAction } from "@/lib/admin/actions";
 import { DISCOVER_CMS_CATEGORIES, slugifyTitle, type DiscoverArticleRow } from "@/lib/admin/types";
+import { normalizeDiscoverCategory } from "@/lib/discover/categories";
 import { articleHtmlToPlainText } from "@/lib/discover/article-body";
 import { parseMetaTags } from "@/lib/discover/meta-tags";
 
@@ -74,25 +75,21 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <label className={labelClass} htmlFor="category">Category</label>
-            <select id="category" name="category" defaultValue={article?.category ?? DISCOVER_CMS_CATEGORIES[0]} className={inputClass}>
-              {DISCOVER_CMS_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="publish_date">Publish Date</label>
-            <input
-              id="publish_date"
-              name="publish_date"
-              type="datetime-local"
-              defaultValue={article?.publish_date ? article.publish_date.slice(0, 16) : ""}
-              className={inputClass}
-            />
-          </div>
+        <div className="max-w-md">
+          <label className={labelClass} htmlFor="category">Category</label>
+          <select
+            id="category"
+            name="category"
+            defaultValue={
+              (article?.category ? normalizeDiscoverCategory(article.category) : null) ??
+              DISCOVER_CMS_CATEGORIES[0]
+            }
+            className={inputClass}
+          >
+            {DISCOVER_CMS_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
 
         <div>

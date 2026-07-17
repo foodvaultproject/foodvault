@@ -6,6 +6,7 @@ import { useTransition } from "react";
 import { StatCard, StatusBadge, formatAdminDate } from "@/components/admin/AdminUi";
 import { deleteArticleAction } from "@/lib/admin/actions";
 import type { DiscoverArticleRow } from "@/lib/admin/types";
+import { DISCOVER_PAGE_TITLE } from "@/lib/discover/categories";
 
 const FILTERS = ["ALL", "PUBLISHED", "DRAFT", "ARCHIVED"] as const;
 
@@ -51,8 +52,8 @@ export function DiscoverClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Discover CMS</h1>
-          <p className="mt-1 text-sm text-muted">Manage articles for the public Discover section</p>
+          <h1 className="text-2xl font-bold text-foreground">{DISCOVER_PAGE_TITLE}</h1>
+          <p className="mt-1 text-sm text-muted">Manage articles for the public {DISCOVER_PAGE_TITLE} section</p>
         </div>
         <Link
           href="/admin/discover/edit"

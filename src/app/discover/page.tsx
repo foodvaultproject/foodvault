@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import { DiscoverHeader } from "@/components/discover/DiscoverHeader";
 import {
-  BuyingGuidesSection,
   FeaturedArticleSection,
-  MeetPartnersSection,
-  NewBrandsDiscoverSection,
+  SavingSection,
+  PartnersSection,
   RecipesSection,
-  SaveMoreSection,
+  NewsSection,
 } from "@/components/discover/DiscoverSections";
+import { DISCOVER_PAGE_TITLE } from "@/lib/discover/categories";
 import { getDiscoverPageContent } from "@/lib/discover/queries";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Discover",
+  title: DISCOVER_PAGE_TITLE,
   description:
     "Explore guides, recipes, member stories and the latest New Zealand brands joining FoodVault.",
 };
@@ -25,11 +25,10 @@ export default async function DiscoverPage() {
     <>
       <DiscoverHeader />
       <FeaturedArticleSection article={content.featured} />
-      <SaveMoreSection articles={content.byCategory["Save More Every Week"]} />
-      <BuyingGuidesSection articles={content.byCategory["Food Buying Guides"]} />
-      <RecipesSection articles={content.byCategory["Recipes & Inspiration"]} />
-      <MeetPartnersSection articles={content.byCategory["Meet Our Partners"]} />
-      <NewBrandsDiscoverSection articles={content.byCategory["New Brands This Week"]} />
+      <SavingSection articles={content.byCategory.Saving} />
+      <RecipesSection articles={content.byCategory.Recipes} />
+      <PartnersSection articles={content.byCategory.Brands} />
+      <NewsSection articles={content.byCategory.News} />
     </>
   );
 }

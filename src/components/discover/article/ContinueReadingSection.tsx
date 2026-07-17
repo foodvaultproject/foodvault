@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DiscoverArticleTile } from "@/components/discover/DiscoverArticleTile";
+import { DISCOVER_PAGE_TITLE } from "@/lib/discover/categories";
 import { type DiscoverArticleCard } from "@/lib/discover/queries";
 import { DISCOVER_FIVE_TILE_GRID_CLASS } from "@/lib/discover/image-frame";
 import { heading2 } from "@/lib/ui-classes";
@@ -25,7 +26,7 @@ export function ContinueReadingSection({ articles }: ContinueReadingSectionProps
           href="/discover"
           className="text-sm font-semibold text-primary hover:text-primary-hover"
         >
-          View all Discover
+          View all {DISCOVER_PAGE_TITLE}
         </Link>
       </div>
       <div className={DISCOVER_FIVE_TILE_GRID_CLASS}>

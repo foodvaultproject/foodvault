@@ -13,7 +13,7 @@ const footerSections = [
       { href: "/for-brands", label: "Partner With Us" },
       { href: "/affiliate-program", label: "Affiliate Program" },
       { href: "/partners", label: "Our Partners" },
-      { href: "/discover", label: "Discover" },
+      { href: "/discover", label: "What's Happening?" },
       { href: "/contact", label: "Contact Us" },
     ],
   },

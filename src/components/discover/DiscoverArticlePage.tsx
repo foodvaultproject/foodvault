@@ -5,7 +5,6 @@ import { ArticleHeroImage } from "@/components/discover/article/ArticleHeroImage
 import { ArticleSeoMetadata } from "@/components/discover/article/ArticleSeoMetadata";
 import { ArticleTags } from "@/components/discover/article/ArticleTags";
 import { ContinueReadingSection } from "@/components/discover/article/ContinueReadingSection";
-import { DiscoverArticleCta } from "@/components/discover/article/DiscoverArticleCta";
 import type { DiscoverArticleCard, DiscoverArticlePageData } from "@/lib/discover/queries";
 
 type DiscoverArticlePageProps = {
@@ -52,10 +51,6 @@ export function DiscoverArticlePage({
           <div className="mt-12 border-t border-border pt-10 sm:mt-16 sm:pt-12">
             <ContinueReadingSection articles={continueReading} />
           </div>
-        </div>
-
-        <div className="mt-14 sm:mt-20">
-          <DiscoverArticleCta />
         </div>
       </article>
     </>

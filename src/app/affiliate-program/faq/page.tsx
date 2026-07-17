@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AffiliateProgramFaqPage() {
-  const articles = await getPublishedArticlesByCategory("Affiliate FAQ");
+  const articles = await getPublishedArticlesByCategory("News");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
@@ -30,8 +30,7 @@ export default async function AffiliateProgramFaqPage() {
 
       {articles.length === 0 ? (
         <div className="rounded-lg border border-border bg-background p-8 text-sm text-muted-foreground">
-          FAQ content will appear here once published in Discover CMS under the{" "}
-          <strong>Affiliate FAQ</strong> category.
+          FAQ content will appear here once articles are published in What&apos;s Happening?.
         </div>
       ) : (
         <div className="space-y-6">

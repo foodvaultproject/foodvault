@@ -263,6 +263,23 @@ export async function saveArticleAction(formData: FormData, publish = false) {
   const title = String(formData.get("title") ?? "");
   const slug = String(formData.get("slug") ?? slugifyTitle(title));
   const heroImageUrl = formData.get("hero_image_url");
+  const now = new Date().toISOString();
+
+  let publishDate = now;
+  if (id && isSupabaseConfigured()) {
+    const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("discover_articles")
+      .select("publish_date, created_at")
+      .eq("id", id)
+      .maybeSingle();
+    publishDate =
+      (existing as { publish_date?: string | null; created_at?: string } | null)
+        ?.publish_date ??
+      (existing as { created_at?: string } | null)?.created_at ??
+      now;
+  }
+
   const payload = {
     title,
     slug,
@@ -274,14 +291,10 @@ export async function saveArticleAction(formData: FormData, publish = false) {
     meta_description: String(formData.get("meta_description") ?? ""),
     meta_tags: parseMetaTags(formData.get("meta_tags")),
     featured: formData.get("featured") === "on",
-    publish_date: formData.get("publish_date")
-      ? String(formData.get("publish_date"))
-      : publish
-        ? new Date().toISOString()
-        : null,
+    publish_date: publishDate,
     status: publish ? "PUBLISHED" : "DRAFT",
     author_name: admin.full_name,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
 
   if (!isSupabaseConfigured()) {

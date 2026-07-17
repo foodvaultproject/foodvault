@@ -13,9 +13,8 @@ import {
 } from "@/lib/discover/queries";
 import {
   DISCOVER_ARTICLE_IMAGE_CLASS,
-  DISCOVER_TILE_CARD_BASE_CLASS,
 } from "@/lib/discover/image-frame";
-import { heading2, heading2OnDark, heading3 } from "@/lib/ui-classes";
+import { heading2, heading2OnDark } from "@/lib/ui-classes";
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -86,13 +85,13 @@ export function FeaturedArticleSection({
   );
 }
 
-export function SaveMoreSection({ articles }: { articles: DiscoverArticleCard[] }) {
+export function SavingSection({ articles }: { articles: DiscoverArticleCard[] }) {
   if (articles.length === 0) return null;
 
   return (
-    <section id="save-more" className="bg-surface py-7 sm:py-10 md:py-12">
+    <section id="saving" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Save More Every Week" />
+        <SectionHeader title="Saving" />
         <DiscoverSectionGrid>
           {articles.map((article) => (
             <DiscoverArticleTile
@@ -109,38 +108,13 @@ export function SaveMoreSection({ articles }: { articles: DiscoverArticleCard[] 
   );
 }
 
-export function BuyingGuidesSection({ articles }: { articles: DiscoverArticleCard[] }) {
-  return (
-    <section id="guides" className="bg-background py-7 sm:py-10 md:py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Food Buying Guides" />
-        <DiscoverSectionGrid>
-          {articles.map((guide) => (
-            <DiscoverArticleTile key={guide.id} article={guide} variant="guide" layout="grid" />
-          ))}
-          {articles.length === 0 ? (
-            <article
-              className={`${DISCOVER_TILE_CARD_BASE_CLASS} flex w-full shrink-0 flex-col items-center justify-center bg-surface-lavender p-8 text-center`}
-            >
-              <h3 className={heading3}>New Guide Incoming</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Our team is currently vetting the latest. Almost there — stay tuned!
-              </p>
-            </article>
-          ) : null}
-        </DiscoverSectionGrid>
-      </div>
-    </section>
-  );
-}
-
 export function RecipesSection({ articles }: { articles: DiscoverArticleCard[] }) {
   if (articles.length === 0) return null;
 
   return (
     <section id="recipes" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Recipes & Inspiration" />
+        <SectionHeader title="Recipes" />
         <DiscoverSectionGrid>
           {articles.map((recipe) => (
             <DiscoverRecipeTile key={recipe.id} article={recipe} layout="grid" />
@@ -151,13 +125,13 @@ export function RecipesSection({ articles }: { articles: DiscoverArticleCard[] }
   );
 }
 
-export function MeetPartnersSection({ articles }: { articles: DiscoverArticleCard[] }) {
+export function PartnersSection({ articles }: { articles: DiscoverArticleCard[] }) {
   if (articles.length === 0) return null;
 
   return (
     <section id="partners" className="bg-background py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Meet Our Partners" />
+        <SectionHeader title="Partners" />
         <DiscoverSectionGrid>
           {articles.map((article) => (
             <DiscoverArticleTile
@@ -173,13 +147,13 @@ export function MeetPartnersSection({ articles }: { articles: DiscoverArticleCar
   );
 }
 
-export function NewBrandsDiscoverSection({ articles }: { articles: DiscoverArticleCard[] }) {
+export function NewsSection({ articles }: { articles: DiscoverArticleCard[] }) {
   if (articles.length === 0) return null;
 
   return (
-    <section id="new-brands" className="bg-surface py-7 sm:py-10 md:py-12">
+    <section id="news" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="New Brands This Week" />
+        <SectionHeader title="News" />
         <DiscoverSectionGrid>
           {articles.map((article) => (
             <DiscoverArticleTile

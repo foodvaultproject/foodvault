@@ -2,17 +2,10 @@ export const ADMIN_LOGIN_PATH = "/admin/login";
 export const ADMIN_DASHBOARD_PATH = "/admin/dashboard";
 
 export const DISCOVER_CMS_CATEGORIES = [
-  "Save More Every Week",
-  "Food Buying Guides",
-  "Recipes & Inspiration",
-  "Meet Our Partners",
-  "New Brands This Week",
-  "Affiliate FAQ",
-  "Affiliate Terms",
-  "Partner Terms",
-  "Commission Policy",
-  "Cookie Policy",
-  "Privacy Policy",
+  "Saving",
+  "Brands",
+  "Recipes",
+  "News",
 ] as const;
 
 export type DiscoverCategory = (typeof DISCOVER_CMS_CATEGORIES)[number];
