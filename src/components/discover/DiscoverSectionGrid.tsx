@@ -1,10 +1,10 @@
 "use client";
 
-import { Children, useMemo, useState, type ReactNode } from "react";
+import { Children, isValidElement, useMemo, useState, type ReactNode } from "react";
 
 const DESKTOP_COLUMNS = 4;
-const DESKTOP_INITIAL_ROWS = 4;
-const DESKTOP_LOAD_MORE_ROWS = 4;
+const DESKTOP_INITIAL_ROWS = 1;
+const DESKTOP_LOAD_MORE_ROWS = 1;
 
 const INITIAL_DESKTOP_COUNT = DESKTOP_COLUMNS * DESKTOP_INITIAL_ROWS;
 const LOAD_MORE_COUNT = DESKTOP_COLUMNS * DESKTOP_LOAD_MORE_ROWS;
@@ -24,9 +24,16 @@ export function DiscoverSectionGrid({ children }: DiscoverSectionGridProps) {
 
   return (
     <>
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 lg:hidden">
-        <div className="grid w-max auto-cols-[minmax(9.75rem,42vw)] grid-flow-col grid-rows-2 gap-x-4 gap-y-4">
-          {items}
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="grid w-max auto-cols-[calc((100vw-3rem)/2)] grid-flow-col grid-rows-2 gap-x-4 gap-y-4">
+          {items.map((item) => (
+            <div
+              key={isValidElement(item) ? item.key : undefined}
+              className="min-w-0 snap-start"
+            >
+              {item}
+            </div>
+          ))}
         </div>
       </div>
 
