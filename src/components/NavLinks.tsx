@@ -17,6 +17,10 @@ import {
 } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOut } from "@/lib/auth";
 import { FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM } from "@/components/member/FreeTrialCountdownBar";
+import {
+  NAV_MENU_CTA_BLOCK_CLASS,
+  NAV_MENU_CTA_CLASS,
+} from "@/lib/nav-menu-preview";
 
 const navLinks = [
   { href: "/browse-brands", label: "Discover" },
@@ -42,9 +46,11 @@ const FREE_TRIAL_HIDDEN_HREFS = new Set(["/browse-brands", "/for-brands"]);
 export function NavLinks({
   mobile = false,
   isPartner = false,
+  menuPreview = false,
 }: {
   mobile?: boolean;
   isPartner?: boolean;
+  menuPreview?: boolean;
 }) {
   const pathname = usePathname();
   const isActiveMember = useIsActiveMember();
@@ -75,13 +81,21 @@ export function NavLinks({
               mobile
                 ? `block rounded-lg px-3 py-2.5 text-base transition-colors duration-150 ${
                     isActive
-                      ? "bg-primary/10 font-semibold text-primary"
-                      : "font-medium text-foreground hover:bg-primary/5 hover:text-primary"
+                      ? menuPreview
+                        ? "bg-white/10 font-semibold text-white"
+                        : "bg-primary/10 font-semibold text-primary"
+                      : menuPreview
+                        ? "font-medium text-white/90 hover:bg-white/10 hover:text-white"
+                        : "font-medium text-foreground hover:bg-primary/5 hover:text-primary"
                   }`
                 : `text-sm transition-colors duration-150 ${
                     isActive
-                      ? "border-b-2 border-primary pb-0.5 font-semibold text-primary"
-                      : "font-medium text-muted-foreground hover:text-primary"
+                      ? menuPreview
+                        ? "border-b-2 border-white pb-0.5 font-semibold text-white"
+                        : "border-b-2 border-primary pb-0.5 font-semibold text-primary"
+                      : menuPreview
+                        ? "font-medium text-white/90 hover:text-white"
+                        : "font-medium text-muted-foreground hover:text-primary"
                   }`
             }
             aria-current={isActive ? "page" : undefined}
@@ -97,9 +111,11 @@ export function NavLinks({
 function MobileAuthSection({
   auth,
   onNavigate,
+  menuPreview = false,
 }: {
   auth: NavAuthState;
   onNavigate: () => void;
+  menuPreview?: boolean;
 }) {
   const router = useRouter();
   const isFreeTrial = useIsFreeTrialMember();
@@ -118,14 +134,22 @@ function MobileAuthSection({
         <Link
           href={LOGIN_PATH}
           onClick={onNavigate}
-          className="block rounded-lg px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+          className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
+            menuPreview
+              ? "text-white hover:bg-white/10 hover:text-white"
+              : "text-foreground hover:bg-primary/5 hover:text-primary"
+          }`}
         >
           Login
         </Link>
         <MemberSignupCtaLink
           variant="start-free-trial-nav"
           onClick={onNavigate}
-          className="fv-btn-primary block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+          className={
+            menuPreview
+              ? NAV_MENU_CTA_BLOCK_CLASS
+              : "fv-btn-primary block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+          }
         >
           Start FREE Trial
         </MemberSignupCtaLink>
@@ -155,7 +179,11 @@ function MobileAuthSection({
         <MemberSignupCtaLink
           variant="start-free-trial"
           onClick={onNavigate}
-          className="fv-btn-primary mb-3 block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+          className={
+            menuPreview
+              ? `${NAV_MENU_CTA_BLOCK_CLASS} mb-3`
+              : "fv-btn-primary mb-3 block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+          }
         />
       ) : null}
       {auth.status === "member" ? (
@@ -185,17 +213,23 @@ function MobileAuthSection({
 export function MobileMenu({
   auth,
   menuTop,
+  menuPreview = false,
 }: {
   auth: NavAuthState;
   menuTop?: string;
+  menuPreview?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const overlayTop = menuTop ?? "calc(4.25rem + 1.5rem)";
-  const panelTop = menuTop ?? "calc(4.25rem + 1.5rem)";
+  const overlayTop =
+    menuTop ?? (menuPreview ? "4.25rem" : "calc(4.25rem + 1.5rem)");
+  const panelTop =
+    menuTop ?? (menuPreview ? "4.25rem" : "calc(4.25rem + 1.5rem)");
   const panelMaxHeight = menuTop
     ? `calc(100vh - 4.25rem - 1.5rem - ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
-    : "calc(100vh - 4.25rem - 1.5rem)";
+    : menuPreview
+      ? "calc(100vh - 4.25rem)"
+      : "calc(100vh - 4.25rem - 1.5rem)";
 
   useEffect(() => {
     setOpen(false);
@@ -215,7 +249,11 @@ export function MobileMenu({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-border text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-sm border transition-colors ${
+          menuPreview
+            ? "border-white text-white hover:bg-white/10"
+            : "border-border text-foreground hover:bg-primary/5 hover:text-primary"
+        }`}
         aria-expanded={open}
         aria-controls="mobile-nav"
         aria-label={open ? "Close menu" : "Open menu"}
@@ -246,9 +284,9 @@ export function MobileMenu({
             style={{ top: panelTop, maxHeight: panelMaxHeight }}
           >
             <nav className="space-y-1" aria-label="Mobile navigation">
-              <NavLinks mobile isPartner={auth.status === "partner"} />
+              <NavLinks mobile isPartner={auth.status === "partner"} menuPreview={menuPreview} />
             </nav>
-            <MobileAuthSection auth={auth} onNavigate={closeMenu} />
+            <MobileAuthSection auth={auth} onNavigate={closeMenu} menuPreview={menuPreview} />
           </div>
         </>
       )}

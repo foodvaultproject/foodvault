@@ -5,16 +5,20 @@ import Link from "next/link";
 export function FavoritesNavLink({
   className = "",
   onNavigate,
+  menuPreview = false,
 }: {
   className?: string;
   onNavigate?: () => void;
+  menuPreview?: boolean;
 }) {
   return (
     <Link
       href="/favorites"
       aria-label="Favorites"
       onClick={onNavigate}
-      className={`inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary ${className}`}
+      className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${
+        menuPreview ? "text-white hover:text-white/80" : "text-foreground hover:text-primary"
+      } ${className}`}
     >
       <svg
         className="h-5 w-5 text-red-500"

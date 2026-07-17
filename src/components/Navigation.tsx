@@ -31,6 +31,11 @@ import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
 import {
+  NAV_MENU_CTA_CLASS,
+  NAV_MENU_PREVIEW_ENABLED,
+  NAV_MENU_PREVIEW_GRADIENT,
+} from "@/lib/nav-menu-preview";
+import {
   FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM,
   FreeTrialCountdownBar,
 } from "@/components/member/FreeTrialCountdownBar";
@@ -93,9 +98,15 @@ function useNavAuth(): NavAuthState {
   return auth;
 }
 
-function AccountMenuButton({ open }: { open: boolean }) {
+function AccountMenuButton({ open, menuPreview = false }: { open: boolean; menuPreview?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-foreground transition-colors hover:bg-surface-lavender">
+    <span
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition-colors ${
+        menuPreview
+          ? "border border-white/80 bg-transparent text-white hover:bg-white/10"
+          : "border border-border bg-surface text-foreground hover:bg-surface-lavender"
+      }`}
+    >
       <svg
         className="h-5 w-5 shrink-0"
         fill="none"
@@ -123,8 +134,10 @@ function AccountMenuButton({ open }: { open: boolean }) {
 
 function AccountDropdown({
   auth,
+  menuPreview = false,
 }: {
   auth: Extract<NavAuthState, { status: "member" | "partner" | "affiliate" | "admin" }>;
+  menuPreview?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -173,12 +186,14 @@ function AccountDropdown({
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+        className={`rounded-full focus:outline-none focus-visible:ring-2 ${
+          menuPreview ? "focus-visible:ring-white/40" : "focus-visible:ring-primary/30"
+        }`}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Account menu"
       >
-        <AccountMenuButton open={open} />
+        <AccountMenuButton open={open} menuPreview={menuPreview} />
       </button>
 
       {open ? (
@@ -212,11 +227,23 @@ function AccountDropdown({
   );
 }
 
-function DesktopAuthActions({ auth }: { auth: NavAuthState }) {
+function DesktopAuthActions({
+  auth,
+  menuPreview = false,
+}: {
+  auth: NavAuthState;
+  menuPreview?: boolean;
+}) {
   const isFreeTrial = useIsFreeTrialMember();
 
   if (auth.status === "loading") {
-    return <div className="hidden h-9 w-20 animate-pulse rounded-full bg-surface xl:block" />;
+    return (
+      <div
+        className={`hidden h-9 w-20 animate-pulse rounded-full xl:block ${
+          menuPreview ? "bg-white/20" : "bg-surface"
+        }`}
+      />
+    );
   }
 
   if (auth.status === "guest") {
@@ -224,13 +251,21 @@ function DesktopAuthActions({ auth }: { auth: NavAuthState }) {
       <>
         <Link
           href={LOGIN_PATH}
-          className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-primary lg:inline-block"
+          className={`hidden text-sm font-medium transition-colors lg:inline-block ${
+            menuPreview
+              ? "text-white hover:text-white/80"
+              : "text-muted-foreground hover:text-primary"
+          }`}
         >
           Login
         </Link>
         <MemberSignupCtaLink
           variant="start-free-trial-nav"
-          className="fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
+          className={
+            menuPreview
+              ? NAV_MENU_CTA_CLASS
+              : "fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
+          }
         >
           <span className="hidden sm:inline">Start FREE Trial</span>
           <span className="sm:hidden">Free Trial</span>
@@ -244,17 +279,22 @@ function DesktopAuthActions({ auth }: { auth: NavAuthState }) {
       {auth.status === "member" && isFreeTrial ? (
         <MemberSignupCtaLink
           variant="start-free-trial"
-          className="fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
+          className={
+            menuPreview
+              ? NAV_MENU_CTA_CLASS
+              : "fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
+          }
         />
       ) : null}
-      {auth.status === "member" ? <FavoritesNavLink /> : null}
-      <AccountDropdown auth={auth} />
+      {auth.status === "member" ? <FavoritesNavLink menuPreview={menuPreview} /> : null}
+      <AccountDropdown auth={auth} menuPreview={menuPreview} />
     </div>
   );
 }
 
 export function Navigation() {
   const auth = useNavAuth();
+  const menuPreview = NAV_MENU_PREVIEW_ENABLED;
   const isFreeTrial = useIsFreeTrialMember();
   const trialEndsAt = useTrialEndsAt();
   const showCountdownBar =
@@ -263,14 +303,18 @@ export function Navigation() {
     Boolean(trialEndsAt) &&
     !getTrialCountdownParts(trialEndsAt).expired;
   const mobileMenuTop = showCountdownBar
-    ? `calc(4.25rem + 1.5rem + ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
+    ? menuPreview
+      ? `calc(4.25rem + ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
+      : `calc(4.25rem + 1.5rem + ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
     : undefined;
 
   return (
-    <header className="sticky top-0 z-50 bg-white">
-      <NzAnnouncementBar />
+    <header className={`sticky top-0 z-50 ${menuPreview ? NAV_MENU_PREVIEW_GRADIENT : "bg-white"}`}>
+      {!menuPreview ? <NzAnnouncementBar /> : null}
       <nav
-        className="mx-auto flex h-[4.25rem] max-w-[1200px] items-center justify-between gap-4 border-b border-border px-4 sm:px-6 lg:px-8"
+        className={`mx-auto flex h-[4.25rem] max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 ${
+          menuPreview ? `border-b border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}` : "border-b border-border bg-white"
+        }`}
         aria-label="Main navigation"
       >
         <Link
@@ -278,17 +322,21 @@ export function Navigation() {
           className="shrink-0 transition-opacity hover:opacity-80"
           aria-label="FoodVault home"
         >
-          <FoodVaultLogo size="nav" priority />
+          <FoodVaultLogo
+            size="nav"
+            variant={menuPreview ? "menu" : "default"}
+            priority
+          />
         </Link>
 
-        <div className="hidden min-w-0 flex-[1.35] items-center gap-5 xl:flex xl:gap-6">
-          <NavSearch isPartner={auth.status === "partner"} />
-          <NavLinks isPartner={auth.status === "partner"} />
+        <div className="hidden min-w-0 flex-1 items-center justify-end gap-6 xl:flex">
+          {!menuPreview ? <NavSearch isPartner={auth.status === "partner"} /> : null}
+          <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview} />
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
-          <DesktopAuthActions auth={auth} />
-          <MobileMenu auth={auth} menuTop={mobileMenuTop} />
+          <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
+          <MobileMenu auth={auth} menuTop={mobileMenuTop} menuPreview={menuPreview} />
         </div>
       </nav>
       <FreeTrialCountdownBar />
