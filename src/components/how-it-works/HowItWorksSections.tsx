@@ -3,7 +3,6 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowUpRight, Compass, Tag, Wallet } from "lucide-react";
 import {
   heading2,
-  heading2OnDark,
   heading3,
 } from "@/lib/ui-classes";
 import type { ReactNode } from "react";
@@ -116,8 +115,6 @@ export function HowItWorksPageContent({
       <HowItWorksHero isActiveMember={isActiveMember} />
       <HowFoodVaultWorksSection />
       <WhyJoinFoodVaultSection />
-      <WhyFoodVaultSection />
-      <FinalCTASection isActiveMember={isActiveMember} />
     </>
   );
 }
@@ -201,47 +198,4 @@ function WhyJoinFoodVaultSection() {
   );
 }
 
-function WhyFoodVaultSection() {
-  return (
-    <section className={`${sectionClass} bg-background`}>
-      <div className="fv-content-width mx-auto max-w-3xl text-center">
-        <h2 className={`text-center ${heading2}`}>Why FoodVault?</h2>
-        <div className="mt-4 space-y-3 text-[14px] leading-relaxed text-muted">
-          <p>
-            FoodVault was built to help Kiwis save more on the products they already buy.
-          </p>
-          <p>
-            With the cost of living continuing to rise, we&apos;re making it easier to discover New
-            Zealand brands offering exclusive member pricing—all in one place.
-          </p>
-          <p>No gimmicks.</p>
-          <p>Just genuine savings from brands that want to sell directly to you.</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FinalCTASection({ isActiveMember = false }: { isActiveMember?: boolean }) {
-  return (
-    <section className="bg-navy py-10 sm:py-12">
-      <div className="fv-content-width mx-auto max-w-2xl text-center">
-        <h2 className={heading2OnDark}>Ready to Start Saving?</h2>
-        <p className="mt-3 text-[14px] leading-relaxed text-white/70">
-          Join FoodVault today and start accessing exclusive member pricing from participating New
-          Zealand brands.
-        </p>
-        {isActiveMember ? null : (
-          <div className="mt-6">
-            <MemberSignupCtaLink
-              variant="start-free-trial"
-              className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-2.5 text-[14px] font-semibold text-navy transition-[transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/90 sm:w-auto"
-            />
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-export { HowItWorksHero, FinalCTASection as HowItWorksCTA };
+export { HowItWorksHero };
