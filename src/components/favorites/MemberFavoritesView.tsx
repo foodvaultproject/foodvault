@@ -85,7 +85,7 @@ export function MemberFavoritesView({ initialFavorites }: MemberFavoritesViewPro
         <header>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              ❤️ Favorites
+              Favorites
             </h1>
             <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
               {favorites.length} saved
