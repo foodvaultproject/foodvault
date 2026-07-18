@@ -176,20 +176,20 @@ export async function searchPublicBrands(
 async function searchPublicBrandsFromView(
   params: BrandSearchParams
 ): Promise<BrandSearchResult> {
+  const dietaryLifestyle = normalizeDietaryLifestyleFilter(params.dietaryLifestyle);
+  if (dietaryLifestyle) {
+    const fromPartners = await searchPublicBrandsFromPartners(params);
+    if (fromPartners) return fromPartners;
+    return { brands: [], total: 0 };
+  }
+
   const limit = params.limit ?? BROWSE_PAGE_SIZE;
   const offset = params.offset ?? 0;
   const supabase = await createClient();
 
-  const dietaryLifestyle = normalizeDietaryLifestyleFilter(params.dietaryLifestyle);
-
   let query = supabase
     .from("v_public_brand_listings")
-    .select(
-      dietaryLifestyle
-        ? PUBLIC_BRAND_LISTING_SELECT_WITH_DIETARY
-        : PUBLIC_BRAND_LISTING_SELECT,
-      { count: "exact" }
-    );
+    .select(PUBLIC_BRAND_LISTING_SELECT, { count: "exact" });
 
   if (params.department) {
     query = query.or(
@@ -199,10 +199,6 @@ async function searchPublicBrandsFromView(
 
   if (params.subcategory) {
     query = query.contains("subcategories", [params.subcategory]);
-  }
-
-  if (dietaryLifestyle) {
-    query = query.contains("dietary_lifestyle_attributes", [dietaryLifestyle]);
   }
 
   if (params.minDiscount) {
@@ -241,10 +237,6 @@ async function searchPublicBrandsFromView(
   const { data, error, count } = await query.range(offset, offset + limit - 1);
 
   if (error || !data) {
-    if (dietaryLifestyle) {
-      const fromPartners = await searchPublicBrandsFromPartners(params);
-      if (fromPartners) return fromPartners;
-    }
     return { brands: [], total: 0 };
   }
 
@@ -423,9 +415,6 @@ export async function getHomepageFeaturedBrands(limit = 6): Promise<BrandCard[]>
 
 const PUBLIC_BRAND_LISTING_SELECT =
   "id, slug, business_name, short_description, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, banner_image_url, logo_url, logo_original_url, logo_crop, location, is_featured, featured_rank";
-
-const PUBLIC_BRAND_LISTING_SELECT_WITH_DIETARY =
-  `${PUBLIC_BRAND_LISTING_SELECT.replace("subcategories,", "subcategories, dietary_lifestyle_attributes,")}`;
 
 export async function getRecentBrandCards(limit = 3): Promise<BrandCard[]> {
   if (!isSupabaseConfigured()) {
