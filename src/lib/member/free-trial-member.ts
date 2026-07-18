@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { repairMemberSessionIfNeeded } from "@/lib/auth/session-completion";
 import { getAdminUser } from "@/lib/admin/auth";
 import { resolveMemberFirstName } from "@/lib/member/active-member";
 import {
@@ -43,6 +44,8 @@ export async function getFreeTrialMemberView(): Promise<FreeTrialMemberView> {
   if (admin) {
     return { isFreeTrialMember: false, memberName: null };
   }
+
+  await repairMemberSessionIfNeeded(supabase, user);
 
   const member = await resolveMemberBillingRow(supabase, user.id);
   if (isActiveMemberRow(member) || !isFreeTrialMemberRow(member)) {

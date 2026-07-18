@@ -3,16 +3,23 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { LOGIN_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import {
-  completeOAuthSession,
+  ensureAuthenticatedSession,
+  OAUTH_INTENT_COOKIE,
   parseOAuthCallbackContext,
+  readOAuthIntentCookie,
   validateOAuthAccountType,
 } from "@/lib/auth/complete-oauth-session";
+import { clearOAuthIntentCookie } from "@/lib/auth/oauth-intent";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const oauthError = searchParams.get("error");
-  const context = parseOAuthCallbackContext(searchParams);
+  const cookieStore = await cookies();
+  const cookieIntent = readOAuthIntentCookie(
+    cookieStore.get(OAUTH_INTENT_COOKIE)?.value
+  );
+  const context = parseOAuthCallbackContext(searchParams, cookieIntent);
 
   const loginPathForAccount =
     context.expectedAccountType === "partner"
@@ -20,6 +27,7 @@ export async function GET(request: Request) {
       : LOGIN_PATH;
 
   if (oauthError) {
+    clearOAuthIntentCookie(cookieStore);
     const errorCode =
       oauthError === "access_denied" ? "oauth_cancelled" : "oauth_failed";
     return NextResponse.redirect(
@@ -28,12 +36,12 @@ export async function GET(request: Request) {
   }
 
   if (!code) {
+    clearOAuthIntentCookie(cookieStore);
     return NextResponse.redirect(
       `${origin}${loginPathForAccount}?error=oauth_failed`
     );
   }
 
-  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -56,6 +64,7 @@ export async function GET(request: Request) {
   );
 
   if (exchangeError) {
+    clearOAuthIntentCookie(cookieStore);
     return NextResponse.redirect(
       `${origin}${loginPathForAccount}?error=oauth_failed`
     );
@@ -66,6 +75,7 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
+    clearOAuthIntentCookie(cookieStore);
     return NextResponse.redirect(
       `${origin}${loginPathForAccount}?error=oauth_failed`
     );
@@ -73,16 +83,19 @@ export async function GET(request: Request) {
 
   if (!validateOAuthAccountType(user, context.expectedAccountType)) {
     await supabase.auth.signOut();
+    clearOAuthIntentCookie(cookieStore);
     return NextResponse.redirect(
       `${origin}${loginPathForAccount}?error=wrong_account_type`
     );
   }
 
-  const { redirectPath, error: setupError } = await completeOAuthSession(
+  const { redirectPath, error: setupError } = await ensureAuthenticatedSession(
     supabase,
     user,
     context
   );
+
+  clearOAuthIntentCookie(cookieStore);
 
   if (setupError) {
     console.error("[auth/callback] OAuth session setup failed", {
@@ -90,6 +103,7 @@ export async function GET(request: Request) {
       accountType: context.expectedAccountType,
       error: setupError,
     });
+    await supabase.auth.signOut();
     return NextResponse.redirect(
       `${origin}${loginPathForAccount}?error=oauth_setup_failed`
     );

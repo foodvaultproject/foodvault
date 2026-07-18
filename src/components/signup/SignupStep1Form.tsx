@@ -11,6 +11,7 @@ import {
   signInWithGoogle,
 } from "@/lib/auth";
 import { createMemberAccountAction } from "@/lib/member/signup-actions";
+import { MEMBER_HOME_PATH } from "@/lib/member/paths";
 import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import {
   formatFreeTrialLabel,
@@ -79,8 +80,10 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     setLoading("google");
     const result = await signInWithGoogle({
       accountType: "member",
+      flow: "signup",
       signupMode: "trial",
       marketingOptIn,
+      nextPath: MEMBER_HOME_PATH,
     });
     if (result.error) {
       setError(result.error);

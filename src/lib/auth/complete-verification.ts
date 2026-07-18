@@ -9,6 +9,14 @@ import {
 import { startMemberTrial } from "@/lib/member/start-trial";
 import { upsertMemberSignupProfile } from "@/lib/member/upsert-signup-profile";
 import {
+  fetchMemberBillingRows,
+  pickCanonicalMemberRow,
+} from "@/lib/member/member-record";
+import {
+  isActiveMemberRow,
+  isFreeTrialMemberRow,
+} from "@/lib/member/membership-status";
+import {
   PARTNER_APPLICATION_PATH,
 } from "@/lib/partner-auth";
 
@@ -51,17 +59,26 @@ export async function completeSignupVerification(
   const signupCompletedAt = readMetadataString(metadata, "signup_completed_at");
 
   if (signupCompletedAt) {
-    if (accountType === "partner") {
+    if (accountType === "member") {
+      const rows = await fetchMemberBillingRows(supabase, user.id);
+      const member = pickCanonicalMemberRow(rows);
+      if (
+        member &&
+        (isFreeTrialMemberRow(member) || isActiveMemberRow(member))
+      ) {
+        const signupMode = readMetadataString(metadata, "signup_mode", "trial");
+        return {
+          redirectPath:
+            signupMode === "membership"
+              ? SIGNUP_MEMBERSHIP_PATH
+              : MEMBER_HOME_PATH,
+        };
+      }
+    } else if (accountType === "partner") {
       return { redirectPath: PARTNER_APPLICATION_PATH };
-    }
-    if (accountType === "affiliate") {
+    } else if (accountType === "affiliate") {
       return { redirectPath: AFFILIATE_DASHBOARD_PATH };
     }
-    const signupMode = readMetadataString(metadata, "signup_mode", "trial");
-    return {
-      redirectPath:
-        signupMode === "membership" ? SIGNUP_MEMBERSHIP_PATH : MEMBER_HOME_PATH,
-    };
   }
 
   if (accountType === "member") {

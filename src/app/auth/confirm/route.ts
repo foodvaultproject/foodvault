@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { completeSignupVerification } from "@/lib/auth/complete-verification";
+import { ensureAuthenticatedSession } from "@/lib/auth/session-completion";
 import {
   AUTH_CHECK_EMAIL_PATH,
   type VerificationLinkType,
@@ -87,7 +87,10 @@ export async function GET(request: Request) {
     );
   }
 
-  const completion = await completeSignupVerification(supabase, user);
+  const completion = await ensureAuthenticatedSession(supabase, user, {
+    expectedAccountType: resolvedAccountType,
+    nextPath: next,
+  });
   if (completion.error) {
     const checkEmailUrl = new URL(`${origin}${AUTH_CHECK_EMAIL_PATH}`);
     checkEmailUrl.searchParams.set("account", resolvedAccountType);
@@ -96,8 +99,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(checkEmailUrl.toString());
   }
 
-  const redirectPath =
-    next && next.startsWith("/") ? next : completion.redirectPath;
-
-  return NextResponse.redirect(`${origin}${redirectPath}`);
+  return NextResponse.redirect(`${origin}${completion.redirectPath}`);
 }

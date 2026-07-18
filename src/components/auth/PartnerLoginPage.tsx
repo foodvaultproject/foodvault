@@ -15,6 +15,7 @@ import {
   PARTNER_APPLICATION_PATH,
   resolvePartnerPostLoginPath,
 } from "@/lib/partner-auth";
+import { finalizeVerifiedSessionAction, needsSignupSetupAction } from "@/lib/auth/finalize-verified-session";
 
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
@@ -74,15 +75,31 @@ function PartnerLoginForm() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    const authError = searchParams.get("error");
+
     getAuthSession().then(async (session) => {
       if (session?.accountType === "partner") {
+        if (authError === "oauth_setup_failed") {
+          setCheckingSession(false);
+          return;
+        }
+
+        const needsSetup = await needsSignupSetupAction();
+        if (needsSetup) {
+          const finalize = await finalizeVerifiedSessionAction();
+          if (finalize.ready && !finalize.error) {
+            router.replace(finalize.redirectPath);
+            return;
+          }
+        }
+
         const path = await resolvePartnerPostLoginPath(session.id, nextPath);
         router.replace(path);
         return;
       }
       setCheckingSession(false);
     });
-  }, [router, nextPath]);
+  }, [router, nextPath, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -108,7 +125,8 @@ function PartnerLoginForm() {
     setError(null);
     const result = await signInWithGoogle({
       accountType: "partner",
-      nextPath: nextPath ?? PARTNER_APPLICATION_PATH,
+      flow: "login",
+      nextPath: nextPath ?? undefined,
     });
 
     if (result?.error) {

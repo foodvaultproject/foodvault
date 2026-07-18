@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, LOGIN_PATH } from "@/lib/auth";
+import { repairMemberSessionIfNeeded } from "@/lib/auth/session-completion";
 import { getAdminUser } from "@/lib/admin/auth";
 import { ADMIN_DASHBOARD_PATH } from "@/lib/admin/types";
 import { createClient } from "@/lib/supabase/server";
@@ -36,6 +37,8 @@ export async function requireAuthenticatedMember(): Promise<AuthenticatedMember>
   if (user.user_metadata?.account_type === "partner") {
     redirect("/partner/listing");
   }
+
+  await repairMemberSessionIfNeeded(supabase, user);
 
   const { data: member } = await memberUserFilter(
     supabase.from("members").select("deleted_at"),

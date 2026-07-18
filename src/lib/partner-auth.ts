@@ -164,6 +164,7 @@ export async function signInPartnerWithEmail(
 export async function signInPartnerWithGoogle() {
   return signInWithGoogle({
     accountType: "partner",
+    flow: "signup",
     nextPath: PARTNER_APPLICATION_PATH,
   });
 }

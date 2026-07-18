@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { isSupabaseConfigured } from "@/lib/auth";
+import { repairMemberSessionAction } from "@/lib/auth/finalize-verified-session";
 import { resolveClientMembershipView } from "@/lib/member/client-membership";
 import { createClient } from "@/lib/supabase/client";
 
@@ -41,7 +42,19 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
     setState((current) => ({ ...current, isLoading: true }));
 
     try {
-      const view = await resolveClientMembershipView();
+      let view = await resolveClientMembershipView();
+
+      if (
+        isSupabaseConfigured() &&
+        !view.isFreeTrial &&
+        !view.isActiveMember
+      ) {
+        const repaired = await repairMemberSessionAction();
+        if (repaired) {
+          view = await resolveClientMembershipView();
+        }
+      }
+
       setState({ ...view, isLoading: false });
     } catch {
       setState({

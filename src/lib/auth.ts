@@ -1,4 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
+import { storeOAuthIntentAction } from "@/lib/auth/oauth-intent-actions";
+import { MEMBER_HOME_PATH } from "@/lib/member/paths";
+import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
 export const LOGIN_PATH = "/login";
 export const PARTNER_LOGIN_PATH = "/partner-login";
@@ -142,6 +145,7 @@ export async function signInWithGoogle(options: {
   nextPath?: string;
   signupMode?: "trial" | "membership";
   marketingOptIn?: boolean;
+  flow?: "signup" | "login";
 }) {
   if (!isSupabaseConfigured()) {
     return {
@@ -150,13 +154,26 @@ export async function signInWithGoogle(options: {
     };
   }
 
+  const flow = options.flow ?? "login";
   const defaultNext =
     options.accountType === "partner"
-      ? PARTNER_DASHBOARD_PATH
+      ? flow === "signup"
+        ? PARTNER_APPLICATION_PATH
+        : PARTNER_DASHBOARD_PATH
       : options.accountType === "affiliate"
         ? AFFILIATE_DASHBOARD_PATH
-        : MEMBER_DASHBOARD_PATH;
+        : flow === "signup"
+          ? MEMBER_HOME_PATH
+          : MEMBER_DASHBOARD_PATH;
   const next = options.nextPath ?? defaultNext;
+
+  await storeOAuthIntentAction({
+    accountType: options.accountType,
+    nextPath: next,
+    signupMode: options.signupMode,
+    marketingOptIn: options.marketingOptIn,
+    flow,
+  });
 
   const callbackParams = new URLSearchParams({
     next,

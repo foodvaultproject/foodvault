@@ -14,6 +14,7 @@ import {
   signInWithEmail,
   signInWithGoogle,
 } from "@/lib/auth";
+import { finalizeVerifiedSessionAction, needsSignupSetupAction } from "@/lib/auth/finalize-verified-session";
 
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
@@ -79,14 +80,30 @@ function LoginForm() {
     Boolean(error) && /email not confirmed/i.test(error ?? "");
 
   useEffect(() => {
-    getAuthSession().then((session) => {
+    const authError = searchParams.get("error");
+
+    getAuthSession().then(async (session) => {
       if (session) {
+        if (authError === "oauth_setup_failed") {
+          setCheckingSession(false);
+          return;
+        }
+
+        const needsSetup = await needsSignupSetupAction();
+        if (needsSetup) {
+          const finalize = await finalizeVerifiedSessionAction();
+          if (finalize.ready && !finalize.error) {
+            router.replace(finalize.redirectPath);
+            return;
+          }
+        }
+
         router.replace(resolvePostLoginRedirect(session.accountType, nextPath));
         return;
       }
       setCheckingSession(false);
     });
-  }, [router, nextPath]);
+  }, [router, nextPath, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,6 +146,7 @@ function LoginForm() {
     setConfirmationResent(false);
     const result = await signInWithGoogle({
       accountType: "member",
+      flow: "login",
       nextPath: nextPath ?? undefined,
     });
 
