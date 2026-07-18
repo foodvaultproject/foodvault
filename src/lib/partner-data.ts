@@ -24,6 +24,8 @@ import {
 import { normalizeSocialValueForStorage } from "@/lib/partner-social";
 import {
   categoryGroupsFromLegacy,
+  flattenDietaryLifestyleAttributes,
+  hydrateCategoryGroupAttributes,
   normalizeCategoryGroups,
   normalizeDietaryLifestyleAttributes,
   parseDietaryLifestyleAttributes,
@@ -379,9 +381,8 @@ export async function submitPartnerApplication(
             discount_percent: discountPercent,
             category_groups: categoryFields.category_groups,
             primary_categories: categoryFields.primary_categories,
-            dietary_lifestyle_attributes: normalizeDietaryLifestyleAttributes(
-              draft.dietaryLifestyleAttributes ?? []
-            ),
+            dietary_lifestyle_attributes:
+              categoryFields.dietary_lifestyle_attributes,
             youtube: normalizeSocialValueForStorage(draft.youtube),
             ...affiliatePayload,
           })
@@ -399,9 +400,7 @@ export async function submitPartnerApplication(
     .update({
       category_groups: categoryFields.category_groups,
       primary_categories: categoryFields.primary_categories,
-      dietary_lifestyle_attributes: normalizeDietaryLifestyleAttributes(
-        draft.dietaryLifestyleAttributes ?? []
-      ),
+      dietary_lifestyle_attributes: categoryFields.dietary_lifestyle_attributes,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
       ...affiliatePayload,
@@ -588,6 +587,10 @@ function mergePartnerListingRows(
 function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData {
   const discountPercent = row.discount_percent as number | null;
   const affiliate = affiliateProgramFromRecord(row);
+  const categoryGroups = hydrateCategoryGroupAttributes(
+    resolveCategoryGroupsFromRecord(row),
+    parseDietaryLifestyleAttributes(row.dietary_lifestyle_attributes)
+  );
 
   return {
     companyName: formatBusinessName(str(row.business_name)),
@@ -598,10 +601,8 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
     subcategories: Array.isArray(row.subcategories)
       ? (row.subcategories as string[])
       : [],
-    categoryGroups: resolveCategoryGroupsFromRecord(row),
-    dietaryLifestyleAttributes: normalizeDietaryLifestyleAttributes(
-      parseDietaryLifestyleAttributes(row.dietary_lifestyle_attributes)
-    ),
+    categoryGroups,
+    dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(categoryGroups),
     offerType: str(row.offer_type) || "Percentage Discount",
     offerValue:
       discountPercent != null
@@ -747,9 +748,9 @@ function buildPartnerListingUpdatePayload(
     primary_categories: categoryFields.primary_categories,
     category_groups: categoryFields.category_groups,
     subcategories: categoryFields.subcategories,
-    dietary_lifestyle_attributes: normalizeDietaryLifestyleAttributes(
-      data.dietaryLifestyleAttributes
-    ),
+    dietary_lifestyle_attributes:
+      categoryFields.dietary_lifestyle_attributes ??
+      normalizeDietaryLifestyleAttributes(data.dietaryLifestyleAttributes),
     offer_type: data.offerType || null,
     offer_applies_to: offerAppliesToLabel(data.offerScope),
     offer_scope: data.offerScope,

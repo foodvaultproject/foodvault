@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { PartnerCategoriesEditor } from "@/components/partner/PartnerCategorySelector";
 import {
   emptyCategoryGroup,
-  hasSelectedSubcategories,
+  flattenDietaryLifestyleAttributes,
+  hydrateCategoryGroupAttributes,
   validateCategoryGroups,
   type PartnerCategoryGroup,
 } from "@/data/partner-categories";
@@ -196,15 +197,18 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     data.offerScope === "entire_store"
       ? data.offerValue
       : data.offerValue || deriveSelectedProductsDiscount(data.selectedProducts);
+  const categoryGroups = hydrateCategoryGroupAttributes(
+    data.categoryGroups.length > 0 ? data.categoryGroups : [emptyCategoryGroup()],
+    data.dietaryLifestyleAttributes
+  );
 
   return {
     companyName: data.companyName || partner.business_name || "",
     websiteUrl: data.websiteUrl || partner.website_url || "",
     shortDescription: data.shortDescription,
     brandStory: data.brandStory,
-    categoryGroups:
-      data.categoryGroups.length > 0 ? data.categoryGroups : [emptyCategoryGroup()],
-    dietaryLifestyleAttributes: data.dietaryLifestyleAttributes,
+    categoryGroups,
+    dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(categoryGroups),
     offerType: data.offerType || "Percentage Discount",
     offerValue,
     offerTitle: data.offerTitle,
@@ -555,7 +559,9 @@ export function PartnerListingEditor() {
       primaryDepartment: listing.categoryGroups[0]?.department ?? "",
       subcategories: listing.categoryGroups[0]?.subcategories ?? [],
       categoryGroups: listing.categoryGroups,
-      dietaryLifestyleAttributes: listing.dietaryLifestyleAttributes,
+      dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(
+        listing.categoryGroups
+      ),
       offerType: "Percentage Discount",
       offerValue: listing.offerValue,
       offerTitle,
@@ -825,19 +831,13 @@ export function PartnerListingEditor() {
                 idPrefix="listing"
                 className={portalCardContent}
                 categoryGroups={listing.categoryGroups}
-                dietaryLifestyleAttributes={listing.dietaryLifestyleAttributes}
-                onDietaryLifestyleAttributesChange={(dietaryLifestyleAttributes) => {
-                  if (!isListingEditable) return;
-                  setListing((prev) => ({ ...prev, dietaryLifestyleAttributes }));
-                }}
                 onChange={(categoryGroups) => {
                   if (!isListingEditable) return;
                   setListing((prev) => ({
                     ...prev,
                     categoryGroups,
-                    dietaryLifestyleAttributes: hasSelectedSubcategories(categoryGroups)
-                      ? prev.dietaryLifestyleAttributes
-                      : [],
+                    dietaryLifestyleAttributes:
+                      flattenDietaryLifestyleAttributes(categoryGroups),
                   }));
                   setCategoryError(validateCategoryGroups(categoryGroups));
                 }}
