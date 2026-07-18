@@ -26,6 +26,8 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
     "Google sign-in was cancelled. You can try again or log in with your email and password.",
   oauth_failed:
     "We couldn't complete Google sign-in. Please try again or use your email and password.",
+  oauth_setup_failed:
+    "We signed you in with Google but couldn't finish setting up your partner account. Please try again or contact support.",
 };
 
 function messageForAuthError(code: string | null): string | null {

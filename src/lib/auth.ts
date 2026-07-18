@@ -140,6 +140,8 @@ export async function signInWithEmail(
 export async function signInWithGoogle(options: {
   accountType: AccountType;
   nextPath?: string;
+  signupMode?: "trial" | "membership";
+  marketingOptIn?: boolean;
 }) {
   if (!isSupabaseConfigured()) {
     return {
@@ -156,11 +158,24 @@ export async function signInWithGoogle(options: {
         : MEMBER_DASHBOARD_PATH;
   const next = options.nextPath ?? defaultNext;
 
+  const callbackParams = new URLSearchParams({
+    next,
+    account: options.accountType,
+  });
+
+  if (options.signupMode) {
+    callbackParams.set("signup_mode", options.signupMode);
+  }
+
+  if (options.marketingOptIn !== undefined) {
+    callbackParams.set("marketing_opt_in", options.marketingOptIn ? "1" : "0");
+  }
+
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}&account=${options.accountType}`,
+      redirectTo: `${window.location.origin}/auth/callback?${callbackParams.toString()}`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",

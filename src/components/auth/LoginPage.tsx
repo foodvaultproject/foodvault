@@ -25,6 +25,8 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
     "Google sign-in was cancelled. You can try again or log in with your email and password.",
   oauth_failed:
     "We couldn't complete Google sign-in. Please try again or use your email and password.",
+  oauth_setup_failed:
+    "We signed you in with Google but couldn't finish setting up your account. Please try again or contact support.",
   verification_invalid:
     "That verification link is invalid or has expired. Request a new confirmation email from the login page.",
 };

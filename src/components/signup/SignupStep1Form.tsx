@@ -79,7 +79,8 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     setLoading("google");
     const result = await signInWithGoogle({
       accountType: "member",
-      nextPath: "/signup/welcome",
+      signupMode: "trial",
+      marketingOptIn,
     });
     if (result.error) {
       setError(result.error);
