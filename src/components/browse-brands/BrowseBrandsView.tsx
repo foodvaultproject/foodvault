@@ -25,16 +25,9 @@ export function BrowseBrandsView({
 }: BrowseBrandsViewProps) {
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
-      <section
-        aria-label="Browse Brands"
-        className="flex aspect-[1024/53] w-full items-center justify-center bg-primary"
-      >
-        <h1 className="text-[18px] font-bold leading-none tracking-tight text-white">
-          Browse Brands
-        </h1>
-      </section>
+      <h1 className="sr-only">Browse Brands</h1>
 
-      <div className="mx-auto max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
         <BrowseBrandsExplorer
           featured={featured}
           initialExplore={initialExplore}
