@@ -6,7 +6,6 @@ import {
   ForBrandsHero,
   HowItWorksSection,
   PartnerBenefitsSection,
-  WhyFoodVaultSection,
 } from "@/components/for-brands/ForBrandsSections";
 import { getPartnerLogos } from "@/lib/member/browse-brands";
 
@@ -23,7 +22,6 @@ export default async function ForBrandsPage() {
     <>
       <ForBrandsHero />
       <ForBrandsPartnerLogosSection logos={logos} />
-      <WhyFoodVaultSection />
       <PartnerBenefitsSection />
       <HowItWorksSection />
       <ForBrandsFAQSection />
