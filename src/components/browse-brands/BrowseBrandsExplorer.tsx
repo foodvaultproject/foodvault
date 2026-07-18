@@ -5,6 +5,7 @@ import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import {
+  DIETARY_LIFESTYLE_ATTRIBUTES,
   PARTNER_CATEGORY_TAXONOMY,
   PRIMARY_DEPARTMENTS,
   type PrimaryDepartment,
@@ -33,7 +34,7 @@ const discountOptions = [
 ];
 
 const selectClass =
-  "w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-md border border-border bg-background px-2.5 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 type BrowseBrandsExplorerProps = {
   featured: BrandCard[];
@@ -76,6 +77,7 @@ export function BrowseBrandsExplorer({
 
   const [department, setDepartment] = useState(initialDepartment);
   const [subcategory, setSubcategory] = useState(initialSubcategory);
+  const [dietaryLifestyle, setDietaryLifestyle] = useState("");
   const [minDiscount, setMinDiscount] = useState(0);
   const [sort, setSort] = useState<BrandSortOption>("featured");
 
@@ -95,6 +97,7 @@ export function BrowseBrandsExplorer({
           search: "",
           department: department || null,
           subcategory: subcategory || null,
+          dietaryLifestyle: dietaryLifestyle || null,
           minDiscount: minDiscount || null,
           sort,
           limit: BROWSE_PAGE_SIZE,
@@ -107,7 +110,7 @@ export function BrowseBrandsExplorer({
         );
       });
     },
-    [department, subcategory, minDiscount, sort]
+    [department, subcategory, dietaryLifestyle, minDiscount, sort]
   );
 
   function handleSearchSubmit(event: React.FormEvent) {
@@ -166,7 +169,7 @@ export function BrowseBrandsExplorer({
   return (
     <>
       <form onSubmit={handleSearchSubmit} className={formClassName}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
           <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Department
@@ -209,6 +212,24 @@ export function BrowseBrandsExplorer({
 
           <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              Diet &amp; Lifestyle
+            </span>
+            <select
+              value={dietaryLifestyle}
+              onChange={(event) => setDietaryLifestyle(event.target.value)}
+              className={selectClass}
+            >
+              <option value="">All Attributes</option>
+              {DIETARY_LIFESTYLE_ATTRIBUTES.map((attribute) => (
+                <option key={attribute} value={attribute}>
+                  {attribute}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block min-w-0 flex-1">
+            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
               Member Discount
             </span>
             <select
@@ -244,7 +265,7 @@ export function BrowseBrandsExplorer({
           <button
             type="submit"
             disabled={isPending}
-            className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
+            className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
           >
             {isPending ? "Searching..." : "Search"}
           </button>
@@ -289,7 +310,7 @@ export function BrowseBrandsExplorer({
               No brands match your filters
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Try adjusting your department or discount filters.
+              Try adjusting your department, diet &amp; lifestyle, or discount filters.
             </p>
           </div>
         ) : (

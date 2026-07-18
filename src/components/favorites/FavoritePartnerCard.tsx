@@ -21,6 +21,7 @@ function favoritePartnerToBrandCard(partner: FavoritePartner): BrandCard {
     department: partner.primaryCategory,
     departments: partner.primaryCategory ? [partner.primaryCategory] : [],
     subcategories: [],
+    dietaryLifestyleAttributes: [],
     offerType: null,
     discountLabel: partner.discountLabel,
     discountPercent: getBrandDiscountPercent({

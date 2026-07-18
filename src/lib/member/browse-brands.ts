@@ -14,10 +14,21 @@ import {
 } from "@/lib/member/browse-brands-types";
 import { createClient } from "@/lib/supabase/server";
 import {
+  flattenDietaryLifestyleAttributes,
   getDepartmentsFromGroups,
+  isDietaryLifestyleAttribute,
+  parseDietaryLifestyleAttributes,
   resolveCategoryGroupsFromRecord,
 } from "@/data/partner-categories";
 import { parseLogoCrop } from "@/lib/partner-logo-crop";
+
+function normalizeDietaryLifestyleFilter(
+  value: string | null | undefined
+): string | null {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed || !isDietaryLifestyleAttribute(trimmed)) return null;
+  return trimmed;
+}
 
 export {
   BROWSE_PAGE_SIZE,
@@ -38,6 +49,7 @@ function buildDevBrands(): BrandCard[] {
       department: "Pantry",
       departments: ["Pantry"],
       subcategories: [],
+      dietaryLifestyleAttributes: [],
       offerType: "percentage",
       discountLabel: brand.discount,
       discountPercent,
@@ -81,6 +93,13 @@ function applyDevFilters(
     );
   }
 
+  const dietaryLifestyle = normalizeDietaryLifestyleFilter(params.dietaryLifestyle);
+  if (dietaryLifestyle) {
+    result = result.filter((brand) =>
+      brand.dietaryLifestyleAttributes.includes(dietaryLifestyle)
+    );
+  }
+
   if (params.minDiscount) {
     result = result.filter(
       (brand) => (brand.discountPercent ?? 0) >= (params.minDiscount as number)
@@ -118,8 +137,11 @@ export async function searchPublicBrands(
     };
   }
 
+  const dietaryLifestyle = normalizeDietaryLifestyleFilter(params.dietaryLifestyle);
+  const normalizedParams = { ...params, dietaryLifestyle };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("search_public_brands", {
+
+  const rpcArgs: Record<string, string | number | null> = {
     p_search: params.search?.trim() || null,
     p_department: params.department || null,
     p_subcategory: params.subcategory || null,
@@ -127,20 +149,28 @@ export async function searchPublicBrands(
     p_sort: params.sort ?? "featured",
     p_limit: limit,
     p_offset: offset,
-  });
-
-  if (error || !data) {
-    return searchPublicBrandsFromView(params);
+  };
+  if (dietaryLifestyle) {
+    rpcArgs.p_dietary_lifestyle = dietaryLifestyle;
   }
 
-  const brands = (data as RpcBrandRow[]).map(mapRpcRow);
-  const total = data.length > 0 ? Number((data[0] as RpcBrandRow).total_count) : 0;
+  const { data, error } = await supabase.rpc("search_public_brands", rpcArgs);
 
-  if (brands.length === 0 && total === 0 && offset === 0) {
-    return searchPublicBrandsFromView(params);
+  if (!error && data) {
+    const brands = (data as RpcBrandRow[]).map(mapRpcRow);
+    const total = data.length > 0 ? Number((data[0] as RpcBrandRow).total_count) : 0;
+
+    if (!(brands.length === 0 && total === 0 && offset === 0)) {
+      return { brands, total };
+    }
   }
 
-  return { brands, total };
+  if (dietaryLifestyle) {
+    const fromPartners = await searchPublicBrandsFromPartners(normalizedParams);
+    if (fromPartners) return fromPartners;
+  }
+
+  return searchPublicBrandsFromView(normalizedParams);
 }
 
 async function searchPublicBrandsFromView(
@@ -150,9 +180,16 @@ async function searchPublicBrandsFromView(
   const offset = params.offset ?? 0;
   const supabase = await createClient();
 
+  const dietaryLifestyle = normalizeDietaryLifestyleFilter(params.dietaryLifestyle);
+
   let query = supabase
     .from("v_public_brand_listings")
-    .select(PUBLIC_BRAND_LISTING_SELECT, { count: "exact" });
+    .select(
+      dietaryLifestyle
+        ? PUBLIC_BRAND_LISTING_SELECT_WITH_DIETARY
+        : PUBLIC_BRAND_LISTING_SELECT,
+      { count: "exact" }
+    );
 
   if (params.department) {
     query = query.or(
@@ -162,6 +199,10 @@ async function searchPublicBrandsFromView(
 
   if (params.subcategory) {
     query = query.contains("subcategories", [params.subcategory]);
+  }
+
+  if (dietaryLifestyle) {
+    query = query.contains("dietary_lifestyle_attributes", [dietaryLifestyle]);
   }
 
   if (params.minDiscount) {
@@ -200,11 +241,108 @@ async function searchPublicBrandsFromView(
   const { data, error, count } = await query.range(offset, offset + limit - 1);
 
   if (error || !data) {
+    if (dietaryLifestyle) {
+      const fromPartners = await searchPublicBrandsFromPartners(params);
+      if (fromPartners) return fromPartners;
+    }
     return { brands: [], total: 0 };
   }
 
   return {
     brands: (data as ViewBrandRow[]).map(mapViewRow),
+    total: count ?? data.length,
+  };
+}
+
+/** Fallback when the public listings view/RPC do not yet expose dietary filters. */
+async function searchPublicBrandsFromPartners(
+  params: BrandSearchParams
+): Promise<BrandSearchResult | null> {
+  const dietaryLifestyle = normalizeDietaryLifestyleFilter(params.dietaryLifestyle);
+  if (!dietaryLifestyle) return null;
+
+  const limit = params.limit ?? BROWSE_PAGE_SIZE;
+  const offset = params.offset ?? 0;
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("partners")
+    .select(
+      "id, slug, business_name, short_description, primary_category, primary_categories, category_groups, subcategories, dietary_lifestyle_attributes, offer_type, discount_value, discount_percent, banner_image_url, logo_url, logo_original_url, logo_crop, location, approved_at, updated_at, featured_until, featured_rank",
+      { count: "exact" }
+    )
+    .contains("dietary_lifestyle_attributes", [dietaryLifestyle]);
+
+  if (params.department) {
+    query = query.or(
+      `primary_category.eq.${params.department},primary_categories.cs.{"${params.department}"}`
+    );
+  }
+
+  if (params.subcategory) {
+    query = query.contains("subcategories", [params.subcategory]);
+  }
+
+  if (params.minDiscount) {
+    query = query.gte("discount_percent", params.minDiscount);
+  }
+
+  const searchTerm = params.search?.trim();
+  if (searchTerm) {
+    const term = `%${searchTerm}%`;
+    query = query.or(
+      `business_name.ilike.${term},short_description.ilike.${term},primary_category.ilike.${term}`
+    );
+  }
+
+  switch (params.sort) {
+    case "highest-discount":
+      query = query.order("discount_percent", { ascending: false, nullsFirst: false });
+      break;
+    case "alphabetical":
+      query = query.order("business_name", { ascending: true });
+      break;
+    case "newest":
+      query = query.order("approved_at", { ascending: false });
+      break;
+    case "recently-updated":
+      query = query.order("updated_at", { ascending: false });
+      break;
+    case "featured":
+    default:
+      query = query.order("featured_rank", { ascending: false, nullsFirst: false });
+      break;
+  }
+
+  const { data, error, count } = await query.range(offset, offset + limit - 1);
+  if (error || !data) return null;
+
+  return {
+    brands: data.map((row) =>
+      mapViewRow({
+        id: row.id as string,
+        slug: (row.slug as string | null) ?? null,
+        business_name: row.business_name as string,
+        short_description: (row.short_description as string | null) ?? null,
+        department: (row.primary_category as string | null) ?? null,
+        primary_categories: (row.primary_categories as string[] | null) ?? null,
+        category_groups: row.category_groups,
+        subcategories: (row.subcategories as string[] | null) ?? null,
+        dietary_lifestyle_attributes:
+          (row.dietary_lifestyle_attributes as string[] | null) ?? null,
+        offer_type: (row.offer_type as string | null) ?? null,
+        discount_value: (row.discount_value as string | null) ?? null,
+        discount_percent: (row.discount_percent as number | null) ?? null,
+        banner_image_url: (row.banner_image_url as string | null) ?? null,
+        logo_url: (row.logo_url as string | null) ?? null,
+        logo_original_url: (row.logo_original_url as string | null) ?? null,
+        logo_crop: row.logo_crop,
+        location: (row.location as string | null) ?? null,
+        is_featured: Boolean(
+          row.featured_until && new Date(String(row.featured_until)) > new Date()
+        ),
+      })
+    ),
     total: count ?? data.length,
   };
 }
@@ -286,6 +424,9 @@ export async function getHomepageFeaturedBrands(limit = 6): Promise<BrandCard[]>
 const PUBLIC_BRAND_LISTING_SELECT =
   "id, slug, business_name, short_description, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, banner_image_url, logo_url, logo_original_url, logo_crop, location, is_featured, featured_rank";
 
+const PUBLIC_BRAND_LISTING_SELECT_WITH_DIETARY =
+  `${PUBLIC_BRAND_LISTING_SELECT.replace("subcategories,", "subcategories, dietary_lifestyle_attributes,")}`;
+
 export async function getRecentBrandCards(limit = 3): Promise<BrandCard[]> {
   if (!isSupabaseConfigured()) {
     return buildDevBrands().slice(0, limit);
@@ -334,6 +475,7 @@ type RpcBrandRow = {
   primary_categories: string[] | null;
   category_groups: unknown;
   subcategories: string[] | null;
+  dietary_lifestyle_attributes?: string[] | null;
   offer_type: string | null;
   discount_value: string | null;
   discount_percent: number | null;
@@ -362,6 +504,14 @@ function mapViewRow(row: ViewBrandRow): BrandCard {
         )
       : getDepartmentsFromGroups(categoryGroups);
 
+  const dietaryFromColumn = parseDietaryLifestyleAttributes(
+    row.dietary_lifestyle_attributes
+  );
+  const dietaryLifestyleAttributes =
+    dietaryFromColumn.length > 0
+      ? dietaryFromColumn
+      : flattenDietaryLifestyleAttributes(categoryGroups);
+
   return {
     id: row.id,
     businessName,
@@ -370,6 +520,7 @@ function mapViewRow(row: ViewBrandRow): BrandCard {
     department: row.department ?? departments[0] ?? null,
     departments,
     subcategories: Array.isArray(row.subcategories) ? row.subcategories : [],
+    dietaryLifestyleAttributes,
     offerType: row.offer_type,
     discountLabel: formatPartnerDiscountLabel({
       discount_value: row.discount_value,

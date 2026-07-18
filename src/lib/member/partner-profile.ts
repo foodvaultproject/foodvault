@@ -565,6 +565,7 @@ function mapListingRow(row: Record<string, unknown>): BrandCard {
     subcategories: Array.isArray(row.subcategories)
       ? (row.subcategories as string[])
       : [],
+    dietaryLifestyleAttributes: [],
     offerType: (row.offer_type as string | null) ?? null,
     discountLabel: formatPartnerDiscountLabel({
       discount_value: row.discount_value as string | null,
@@ -595,6 +596,7 @@ export async function getRecommendedBrands(
         department: "Pantry",
         departments: ["Pantry"],
         subcategories: [] as string[],
+        dietaryLifestyleAttributes: [] as string[],
         offerType: "Percentage Discount",
         discountLabel: brand.discount,
         discountPercent: Number(brand.discount.replace(/[^0-9.]/g, "")) || null,

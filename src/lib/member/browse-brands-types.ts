@@ -11,6 +11,7 @@ export type BrandSearchParams = {
   search?: string | null;
   department?: string | null;
   subcategory?: string | null;
+  dietaryLifestyle?: string | null;
   minDiscount?: number | null;
   sort?: BrandSortOption;
   limit?: number;
@@ -25,6 +26,7 @@ export type BrandCard = {
   department: string | null;
   departments: string[];
   subcategories: string[];
+  dietaryLifestyleAttributes: string[];
   offerType: string | null;
   discountLabel: string;
   discountPercent: number | null;
