@@ -11,6 +11,12 @@ import {
 } from "@/lib/auth/complete-oauth-session";
 import { clearOAuthIntentCookie } from "@/lib/auth/oauth-intent";
 
+type PendingCookie = {
+  name: string;
+  value: string;
+  options?: Parameters<NextResponse["cookies"]["set"]>[2];
+};
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -26,20 +32,27 @@ export async function GET(request: Request) {
       ? PARTNER_LOGIN_PATH
       : LOGIN_PATH;
 
+  const pendingCookies: PendingCookie[] = [];
+
+  function redirectTo(path: string) {
+    const response = NextResponse.redirect(`${origin}${path}`);
+    for (const { name, value, options } of pendingCookies) {
+      response.cookies.set(name, value, options);
+    }
+    response.cookies.set(OAUTH_INTENT_COOKIE, "", { maxAge: 0, path: "/" });
+    return response;
+  }
+
   if (oauthError) {
     clearOAuthIntentCookie(cookieStore);
     const errorCode =
       oauthError === "access_denied" ? "oauth_cancelled" : "oauth_failed";
-    return NextResponse.redirect(
-      `${origin}${loginPathForAccount}?error=${errorCode}`
-    );
+    return redirectTo(`${loginPathForAccount}?error=${errorCode}`);
   }
 
   if (!code) {
     clearOAuthIntentCookie(cookieStore);
-    return NextResponse.redirect(
-      `${origin}${loginPathForAccount}?error=oauth_failed`
-    );
+    return redirectTo(`${loginPathForAccount}?error=oauth_failed`);
   }
 
   const supabase = createServerClient(
@@ -51,9 +64,10 @@ export async function GET(request: Request) {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+            pendingCookies.push({ name, value, options });
+          });
         },
       },
     }
@@ -65,9 +79,7 @@ export async function GET(request: Request) {
 
   if (exchangeError) {
     clearOAuthIntentCookie(cookieStore);
-    return NextResponse.redirect(
-      `${origin}${loginPathForAccount}?error=oauth_failed`
-    );
+    return redirectTo(`${loginPathForAccount}?error=oauth_failed`);
   }
 
   const {
@@ -76,17 +88,13 @@ export async function GET(request: Request) {
 
   if (!user) {
     clearOAuthIntentCookie(cookieStore);
-    return NextResponse.redirect(
-      `${origin}${loginPathForAccount}?error=oauth_failed`
-    );
+    return redirectTo(`${loginPathForAccount}?error=oauth_failed`);
   }
 
   if (!validateOAuthAccountType(user, context.expectedAccountType)) {
     await supabase.auth.signOut();
     clearOAuthIntentCookie(cookieStore);
-    return NextResponse.redirect(
-      `${origin}${loginPathForAccount}?error=wrong_account_type`
-    );
+    return redirectTo(`${loginPathForAccount}?error=wrong_account_type`);
   }
 
   const { redirectPath, error: setupError } = await ensureAuthenticatedSession(
@@ -104,10 +112,8 @@ export async function GET(request: Request) {
       error: setupError,
     });
     await supabase.auth.signOut();
-    return NextResponse.redirect(
-      `${origin}${loginPathForAccount}?error=oauth_setup_failed`
-    );
+    return redirectTo(`${loginPathForAccount}?error=oauth_setup_failed`);
   }
 
-  return NextResponse.redirect(`${origin}${redirectPath}`);
+  return redirectTo(redirectPath);
 }
