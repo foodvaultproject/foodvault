@@ -23,6 +23,7 @@ export function PopularBrandsSection() {
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 sizes="(max-width: 768px) 50vw, 25vw"
+                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <span className="absolute bottom-2 left-2 text-xs font-semibold text-white sm:bottom-3 sm:left-3 sm:text-sm">

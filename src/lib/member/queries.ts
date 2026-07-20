@@ -29,6 +29,8 @@ export type MembershipRecord = {
   renewalDate: string | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
+  cancelAtPeriodEnd?: boolean;
+  cancellationDate?: string | null;
 };
 
 const DEV_PROFILE: MemberProfile = {
@@ -211,7 +213,7 @@ export async function getMembershipRecord(
     supabase
       .from("memberships")
       .select(
-        "status, renewal_date, stripe_customer_id, stripe_subscription_id"
+        "status, renewal_date, stripe_customer_id, stripe_subscription_id, cancellation_date"
       )
       .eq("auth_user_id", userId)
       .maybeSingle(),
@@ -231,13 +233,22 @@ export async function getMembershipRecord(
     member?.renewal_date ??
     member?.trial_ends_at ??
     null;
+  const cancellationDate = membershipRow?.cancellation_date ?? null;
+  // Proxy for Stripe cancel_at_period_end until/unless the dedicated column is read.
+  const cancelAtPeriodEnd = Boolean(
+    cancellationDate && stripeSubscriptionId
+  );
 
+  // Linked Stripe subscription means the paid period is still in force —
+  // including when cancel_at_period_end is scheduled.
   if (stripeSubscriptionId) {
     return {
       status: "active",
       renewalDate,
       stripeCustomerId,
       stripeSubscriptionId,
+      cancelAtPeriodEnd,
+      cancellationDate,
     };
   }
 
@@ -250,6 +261,8 @@ export async function getMembershipRecord(
       renewalDate: membershipRow.renewal_date,
       stripeCustomerId: membershipRow.stripe_customer_id,
       stripeSubscriptionId: membershipRow.stripe_subscription_id,
+      cancelAtPeriodEnd,
+      cancellationDate,
     };
   }
 
@@ -265,6 +278,8 @@ export async function getMembershipRecord(
     renewalDate: member.renewal_date ?? member.trial_ends_at,
     stripeCustomerId: member.stripe_customer_id,
     stripeSubscriptionId: member.stripe_subscription_id,
+    cancelAtPeriodEnd: false,
+    cancellationDate: null,
   };
 }
 

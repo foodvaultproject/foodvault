@@ -23,6 +23,7 @@ export function FeaturedBrandsSection() {
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  unoptimized
                 />
                 <span className="absolute right-3 top-3 rounded-full bg-success px-2.5 py-1 text-xs font-semibold text-white">
                   {brand.discount}

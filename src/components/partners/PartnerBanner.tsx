@@ -33,6 +33,7 @@ export function PartnerBanner({
           loading={priority ? undefined : "lazy"}
           className={`object-cover ${imageClassName}`}
           sizes={sizes}
+          unoptimized
         />
       ) : null}
       {children}

@@ -50,6 +50,7 @@ export function DiscoverArticleTile({
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes={imageSizes}
+            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
         </div>
@@ -70,6 +71,7 @@ export function DiscoverArticleTile({
             fill
             className="object-cover"
             sizes={imageSizes}
+            unoptimized
           />
         </div>
       </Link>
@@ -141,6 +143,7 @@ export function DiscoverRecipeTile({
           fill
           className="object-cover"
           sizes={TILE_IMAGE_SIZES}
+          unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/30 to-transparent" />
       </div>

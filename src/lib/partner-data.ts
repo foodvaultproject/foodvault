@@ -1061,6 +1061,12 @@ export async function uploadPartnerAsset(
   file: File,
   kind: PartnerAssetKind
 ): Promise<string> {
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error(
+      "File size exceeds the 10MB limit. Please upload a smaller image."
+    );
+  }
+
   if (!isSupabaseConfigured()) {
     // Dev mode: return a local preview URL (not persisted).
     return URL.createObjectURL(file);

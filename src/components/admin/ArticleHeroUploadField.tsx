@@ -116,6 +116,7 @@ export function ArticleHeroUploadField({
               fill
               className="object-cover"
               sizes="96px"
+              unoptimized
             />
             {uploading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-[10px] font-semibold text-white">

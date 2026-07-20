@@ -17,6 +17,8 @@ export type Area = {
 
 /** Canonical export size for the circular logo avatar stored in logo_url. */
 export const LOGO_AVATAR_EXPORT_SIZE = 512;
+/** JPEG quality for avatar exports — keeps typical files well under ~80KB. */
+export const LOGO_AVATAR_JPEG_QUALITY = 0.9;
 
 export const DEFAULT_LOGO_CROP: LogoCropSettings = {
   zoom: 1,
@@ -111,7 +113,7 @@ function rotateSize(width: number, height: number, rotation: number) {
   };
 }
 
-/** Render a circular PNG from the crop area (display asset). */
+/** Render a circular JPEG from the crop area (display asset). */
 export async function getCroppedLogoBlob(
   imageSrc: string,
   pixelCrop: Area,
@@ -165,9 +167,12 @@ export async function getCroppedLogoBlob(
   outputCanvas.width = exportSize;
   outputCanvas.height = exportSize;
 
+  // JPEG has no alpha — paint a white circle backdrop so corners aren't black.
+  outputCtx.fillStyle = "#ffffff";
   outputCtx.beginPath();
   outputCtx.arc(exportSize / 2, exportSize / 2, exportSize / 2, 0, Math.PI * 2);
   outputCtx.closePath();
+  outputCtx.fill();
   outputCtx.clip();
   outputCtx.drawImage(
     canvas,
@@ -182,18 +187,22 @@ export async function getCroppedLogoBlob(
   );
 
   return new Promise((resolve, reject) => {
-    outputCanvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("Logo crop export failed."));
-        return;
-      }
-      resolve(blob);
-    }, "image/png");
+    outputCanvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Logo crop export failed."));
+          return;
+        }
+        resolve(blob);
+      },
+      "image/jpeg",
+      LOGO_AVATAR_JPEG_QUALITY
+    );
   });
 }
 
 export async function blobToFile(blob: Blob, filename: string): Promise<File> {
-  return new File([blob], filename, { type: blob.type || "image/png" });
+  return new File([blob], filename, { type: blob.type || "image/jpeg" });
 }
 
 export function revokeIfBlobUrl(url: string | undefined) {

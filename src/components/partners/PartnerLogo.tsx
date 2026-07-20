@@ -8,7 +8,7 @@ import {
   type LogoCropSettings,
 } from "@/lib/partner-logo-crop";
 
-/** Pre-rendered circular PNG fallback when crop percentages are unavailable. */
+/** Pre-cropped circular display asset when crop percentages are unavailable. */
 const AVATAR_IMAGE_CLASS = "h-full w-full object-contain object-center";
 /** Legacy uploads without an editor crop. */
 const LEGACY_LOGO_IMAGE_CLASS = "h-full w-full object-contain scale-[1.35]";
@@ -121,23 +121,18 @@ function resolveLogoRender({
       ? isFullFrameLogoCrop(crop.areaPercent)
       : false;
 
-  // Hero: prefer the editor's circular PNG — it fills the frame better than full-frame CSS crop.
-  if (size === "hero" && src && (approvedCrop || fullFrame)) {
+  // Public delivery must use the pre-cropped display asset (logo_url).
+  // Never load logo_original_url here — originals can be multi‑MB camera files.
+  if (!src) {
+    return { mode: "legacy", displaySrc: null };
+  }
+
+  if (size === "hero" && (approvedCrop || fullFrame || isCropped)) {
     return { mode: "avatar", displaySrc: src };
   }
-
-  if (cssCropAvailable && crop?.areaPercent) {
-    return {
-      mode: "cssCrop",
-      displaySrc: originalSrc,
-      cssCropScale: size === "hero" && fullFrame ? 1.28 : undefined,
-    };
-  }
-
   if (isCropped || approvedCrop) {
     return { mode: "avatar", displaySrc: src };
   }
-
   return { mode: "legacy", displaySrc: src };
 }
 
@@ -148,7 +143,6 @@ function LogoImage({
   priority,
   className,
   style,
-  unoptimized = false,
 }: {
   src: string;
   alt: string;
@@ -156,9 +150,8 @@ function LogoImage({
   priority?: boolean;
   className: string;
   style?: CSSProperties;
-  unoptimized?: boolean;
 }) {
-  if (isNativeImageSrc(src) || unoptimized) {
+  if (isNativeImageSrc(src)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img src={src} alt={alt} className={className} style={style} />
@@ -174,6 +167,7 @@ function LogoImage({
       priority={priority}
       className={className}
       style={style}
+      unoptimized
     />
   );
 }
@@ -232,7 +226,6 @@ export function PartnerLogo({
           alt={alt}
           sizes={styles.sizes}
           priority={priority}
-          unoptimized
           className="absolute max-w-none"
           style={scaledStyle}
         />
@@ -254,7 +247,6 @@ export function PartnerLogo({
         alt={alt}
         sizes={styles.sizes}
         priority={priority}
-        unoptimized={mode === "avatar"}
         className={`absolute inset-0 ${imageClass}`}
       />
     </div>

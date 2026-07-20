@@ -41,6 +41,7 @@ export function PartnerGalleryImage({
           loading={priority ? undefined : "lazy"}
           className={`object-cover ${imageClassName}`}
           sizes={sizes}
+          unoptimized
         />
       </div>
     );

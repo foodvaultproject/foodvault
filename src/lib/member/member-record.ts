@@ -132,6 +132,18 @@ export function memberRowHasPaidSubscription(row: MemberRow | null | undefined) 
   return Boolean(row?.stripe_subscription_id?.trim());
 }
 
+/** True when a cancelled/expired status still has paid time remaining. */
+export function memberRowHasPaidPeriodRemaining(
+  row: Pick<MemberRow, "renewal_date"> | null | undefined,
+  now = Date.now()
+) {
+  if (!row?.renewal_date) {
+    return false;
+  }
+  const endsAt = new Date(row.renewal_date).getTime();
+  return Number.isFinite(endsAt) && endsAt > now;
+}
+
 export async function updateMemberRowsForUser(
   userId: string,
   email: string,
@@ -189,32 +201,78 @@ export async function updateMemberRowsForUser(
   return { error: null };
 }
 
+function membershipRowGrantsAccess(row: {
+  status?: string | null;
+  stripe_subscription_id?: string | null;
+  renewal_date?: string | null;
+  cancellation_date?: string | null;
+}) {
+  const status = (row.status ?? "").toLowerCase();
+  if (status === "active" || status === "trialing" || status === "trial") {
+    return true;
+  }
+
+  // Paid Stripe subscription still linked → period has not ended yet
+  // (includes cancel_at_period_end schedules).
+  if (row.stripe_subscription_id?.trim()) {
+    return true;
+  }
+
+  const periodEnd = row.renewal_date ?? row.cancellation_date;
+  if (
+    periodEnd &&
+    (status === "cancelled" ||
+      status === "canceled" ||
+      Boolean(row.cancellation_date))
+  ) {
+    const endsAt = new Date(periodEnd).getTime();
+    if (Number.isFinite(endsAt) && endsAt > Date.now()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Whether a member may use gated benefits (e.g. brand discount codes).
+ * Access continues through a scheduled cancellation until period end.
+ */
 export async function memberHasActiveAccess(userId: string): Promise<boolean> {
   const admin = createAdminClient();
   if (!admin) {
     return false;
   }
 
+  // Prefer the SQL source of truth when the migration is applied.
+  const { data: rpcAccess, error: rpcError } = await admin.rpc(
+    "member_has_active_access",
+    { p_uid: userId }
+  );
+  if (!rpcError && typeof rpcAccess === "boolean") {
+    return rpcAccess;
+  }
+
   const { data: membership } = await admin
     .from("memberships")
-    .select("status")
+    .select("status, stripe_subscription_id, renewal_date, cancellation_date")
     .eq("auth_user_id", userId)
     .maybeSingle();
 
-  if (
-    membership?.status === "active" ||
-    membership?.status === "trialing"
-  ) {
+  if (membership && membershipRowGrantsAccess(membership)) {
     return true;
   }
 
   const { data: members } = await admin
     .from("members")
-    .select("membership_status")
+    .select("membership_status, stripe_subscription_id, renewal_date")
     .or(`auth_user_id.eq.${userId},id.eq.${userId}`);
 
-  return (members ?? []).some(
-    (row) =>
-      row.membership_status === "active" || row.membership_status === "trialing"
+  return (members ?? []).some((row) =>
+    membershipRowGrantsAccess({
+      status: row.membership_status,
+      stripe_subscription_id: row.stripe_subscription_id,
+      renewal_date: row.renewal_date,
+    })
   );
 }

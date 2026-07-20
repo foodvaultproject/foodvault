@@ -40,6 +40,7 @@ export function HeroSection() {
               className="object-cover"
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
+              unoptimized
             />
           </div>
           <div className="absolute bottom-2 left-2 rounded-full bg-success px-3 py-1.5 text-xs font-semibold text-white shadow-lg sm:-bottom-4 sm:-left-4 sm:px-4 sm:py-2 sm:text-sm md:-bottom-6 md:-left-6">

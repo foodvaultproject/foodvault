@@ -77,7 +77,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const homepageFaqs = getHomepageFaqs(settings);
 
   const featuredHeroPartners = featured
-    .filter((brand) => brand.logoUrl || brand.logoOriginalUrl)
+    .filter((brand) => Boolean(brand.logoUrl))
     .map((brand) => ({
       id: brand.id,
       businessName: brand.businessName,
@@ -93,7 +93,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   for (const partner of logos) {
     if (heroPartners.length >= 4) break;
-    if (!partner.logoUrl && !partner.logoOriginalUrl) continue;
+    if (!partner.logoUrl) continue;
     if (seen.has(partner.id)) continue;
     heroPartners.push(partner);
     seen.add(partner.id);

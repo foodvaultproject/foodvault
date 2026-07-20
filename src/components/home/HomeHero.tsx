@@ -303,7 +303,7 @@ function HeroPartnerFrame({
     );
   }
 
-  const hasLogo = Boolean(partner.logoUrl || partner.logoOriginalUrl);
+  const hasLogo = Boolean(partner.logoUrl);
   const initial = partner.businessName.trim().charAt(0).toUpperCase() || "?";
 
   return (

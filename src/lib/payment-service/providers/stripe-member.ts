@@ -68,6 +68,10 @@ async function buildMemberCheckoutLineItem(
 export async function createMemberCheckoutSession(
   input: CreateMemberCheckoutSessionInput
 ) {
+  if (await memberAlreadyHasPaidSubscription(input.authUserId)) {
+    throw new Error("You already have an active FoodVault membership.");
+  }
+
   const { membershipPriceMonthly } = await getMembershipSettings();
   const lineItem = await buildMemberCheckoutLineItem(membershipPriceMonthly);
 
@@ -95,6 +99,101 @@ export async function createMemberCheckoutSession(
       },
     },
   });
+}
+
+export type CancelMemberSubscriptionResult = {
+  status: "scheduled" | "already_scheduled" | "already_canceled";
+  accessUntil: string | null;
+};
+
+/**
+ * Cancel a member's Stripe subscription at period end (source of truth).
+ * FoodVault access stays active until Stripe ends the subscription and the
+ * webhook/sync path revokes it.
+ */
+export async function cancelMemberStripeSubscription(
+  authUserId: string
+): Promise<CancelMemberSubscriptionResult> {
+  if (!getPaymentServiceConfig().isConfigured) {
+    throw new Error("Stripe is not configured");
+  }
+
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error(
+      "Admin Supabase client unavailable — set SUPABASE_SERVICE_ROLE_KEY to cancel memberships"
+    );
+  }
+
+  const member = await resolveMemberBillingRow(admin, authUserId);
+  const subscriptionId = member?.stripe_subscription_id?.trim();
+
+  if (!subscriptionId) {
+    throw new Error(
+      "No active Stripe subscription was found for this account. If you manage billing in the customer portal, cancel there instead."
+    );
+  }
+
+  const stripe = getStripeClient();
+  let subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  if (subscription.status === "canceled") {
+    await syncMemberSubscriptionState(subscription);
+    return { status: "already_canceled", accessUntil: null };
+  }
+
+  if (subscription.cancel_at_period_end) {
+    await syncMemberSubscriptionState(subscription);
+    return {
+      status: "already_scheduled",
+      accessUntil: subscriptionRenewalDate(subscription),
+    };
+  }
+
+  subscription = await stripe.subscriptions.update(subscriptionId, {
+    cancel_at_period_end: true,
+  });
+
+  // Keep FoodVault access aligned with Stripe: still active until period end.
+  await syncMemberSubscriptionState(subscription);
+
+  return {
+    status: "scheduled",
+    accessUntil: subscriptionRenewalDate(subscription),
+  };
+}
+
+/**
+ * Immediately cancel a Stripe subscription (e.g. account deletion).
+ * Database revocation follows via sync / webhooks.
+ */
+export async function cancelMemberStripeSubscriptionImmediately(
+  authUserId: string
+): Promise<void> {
+  if (!getPaymentServiceConfig().isConfigured) {
+    return;
+  }
+
+  const admin = createAdminClient();
+  if (!admin) {
+    return;
+  }
+
+  const member = await resolveMemberBillingRow(admin, authUserId);
+  const subscriptionId = member?.stripe_subscription_id?.trim();
+  if (!subscriptionId) {
+    return;
+  }
+
+  const stripe = getStripeClient();
+  const existing = await stripe.subscriptions.retrieve(subscriptionId);
+  if (existing.status === "canceled") {
+    await syncMemberSubscriptionState(existing);
+    return;
+  }
+
+  const canceled = await stripe.subscriptions.cancel(subscriptionId);
+  await syncMemberSubscriptionState(canceled);
 }
 
 /**
@@ -263,6 +362,8 @@ async function activatePaidMemberSubscription(params: {
   stripeCustomerId: string;
   stripeSubscriptionId: string;
   renewalDate: string;
+  /** When set (cancel_at_period_end), access stays active and schedule is recorded atomically. */
+  cancellationDate?: string | null;
 }) {
   const admin = createAdminClient();
   if (!admin) {
@@ -271,23 +372,26 @@ async function activatePaidMemberSubscription(params: {
     );
   }
 
-  const existingMember = await resolveMemberBillingRow(admin, params.authUserId);
-  const wasAlreadyPaid = memberRowHasPaidSubscription(existingMember);
-
-  const { error } = await admin.rpc("upgrade_to_paid_membership_webhook", {
-    p_auth_user_id: params.authUserId,
-    p_stripe_customer_id: params.stripeCustomerId,
-    p_stripe_subscription_id: params.stripeSubscriptionId,
-    p_renewal_date: params.renewalDate,
-  });
+  // Single Postgres transaction: members + memberships (and optional cancel schedule).
+  const { data: newlyActivated, error } = await admin.rpc(
+    "activate_member_from_stripe",
+    {
+      p_auth_user_id: params.authUserId,
+      p_stripe_customer_id: params.stripeCustomerId,
+      p_stripe_subscription_id: params.stripeSubscriptionId,
+      p_renewal_date: params.renewalDate,
+      p_cancellation_date: params.cancellationDate ?? null,
+    }
+  );
 
   if (error) {
-    console.error("[stripe-member] upgrade_to_paid_membership_webhook RPC failed", {
-      rpc: "upgrade_to_paid_membership_webhook",
+    console.error("[stripe-member] activate_member_from_stripe RPC failed", {
+      rpc: "activate_member_from_stripe",
       auth_user_id: params.authUserId,
       stripeCustomerPresent: params.stripeCustomerId ? "Yes" : "No",
       stripeSubscriptionPresent: params.stripeSubscriptionId ? "Yes" : "No",
       renewalDate: params.renewalDate,
+      cancellationDate: params.cancellationDate ?? null,
       postgresError: error,
       message: error.message,
       details: error.details,
@@ -297,23 +401,12 @@ async function activatePaidMemberSubscription(params: {
     throw new Error(error.message);
   }
 
-  await admin
-    .from("members")
-    .update({
-      membership_status: "active",
-      status: "ACTIVE",
-      subscription_status: "ACTIVE",
-      trial_ends_at: null,
-      trial_started_at: null,
-    })
-    .or(`auth_user_id.eq.${params.authUserId},id.eq.${params.authUserId}`);
-
-  await admin
-    .from("memberships")
-    .update({ status: "active" })
-    .eq("auth_user_id", params.authUserId);
-
+  // Non-membership side effects — outside the DB transaction on purpose.
   await syncMemberProfileFromAuth(params.authUserId);
+
+  if (!newlyActivated) {
+    return;
+  }
 
   const { data: member } = await admin
     .from("members")
@@ -321,7 +414,7 @@ async function activatePaidMemberSubscription(params: {
     .or(`auth_user_id.eq.${params.authUserId},id.eq.${params.authUserId}`)
     .maybeSingle();
 
-  if (member?.email && !wasAlreadyPaid) {
+  if (member?.email) {
     void sendMemberMembershipActivatedEmail({
       to: member.email,
       firstName: member.first_name,
@@ -384,30 +477,24 @@ async function revokeMemberSubscription(authUserId: string): Promise<void> {
     );
   }
 
-  const now = new Date().toISOString();
+  // Single Postgres transaction: revoke members + memberships together.
+  const { error } = await admin.rpc("revoke_member_from_stripe", {
+    p_auth_user_id: authUserId,
+    p_cancellation_date: new Date().toISOString(),
+  });
 
-  // Clearing stripe_subscription_id is required: the read layer treats any row
-  // with a subscription id as "active", so access is only revoked once it's null.
-  await admin
-    .from("members")
-    .update({
-      membership_status: "cancelled",
-      status: "CANCELLED",
-      subscription_status: "CANCELLED",
-      stripe_subscription_id: null,
-      renewal_date: null,
-    })
-    .or(`auth_user_id.eq.${authUserId},id.eq.${authUserId}`);
-
-  await admin
-    .from("memberships")
-    .update({
-      status: "cancelled",
-      stripe_subscription_id: null,
-      cancellation_date: now,
-      updated_at: now,
-    })
-    .eq("auth_user_id", authUserId);
+  if (error) {
+    console.error("[stripe-member] revoke_member_from_stripe RPC failed", {
+      rpc: "revoke_member_from_stripe",
+      auth_user_id: authUserId,
+      postgresError: error,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
+    throw new Error(error.message);
+  }
 }
 
 async function resolveSubscriptionAuthUserId(
@@ -447,8 +534,9 @@ async function resolveSubscriptionAuthUserId(
  * retries) and from multiple event types — it only ever sets deterministic values.
  *
  * Business rules:
- * - active / trialing / past_due  → keep member active (stay active during retries)
- * - canceled / unpaid / incomplete_expired → revoke paid access
+ * - active / trialing / past_due  → keep member active (including cancel_at_period_end)
+ * - cancel_at_period_end=true with status active → still ACTIVE until period ends
+ * - canceled / unpaid / incomplete_expired → revoke paid access (subscription.deleted)
  * - incomplete / paused → no-op (never grants access prematurely)
  */
 export async function syncMemberSubscriptionState(
@@ -493,12 +581,17 @@ export async function syncMemberSubscriptionState(
       subscriptionRenewalDate(subscription) ??
       new Date(Date.now() + 30 * 86400000).toISOString();
 
+    // One atomic RPC: active access, and if cancel_at_period_end, the schedule too.
     await activatePaidMemberSubscription({
       authUserId,
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscription.id,
       renewalDate,
+      cancellationDate: subscription.cancel_at_period_end
+        ? renewalDate
+        : null,
     });
+
     return;
   }
 

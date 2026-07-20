@@ -44,6 +44,7 @@ export function FeaturedArticleSection({
                 className="object-cover"
                 priority
                 sizes="(max-width: 768px) 100vw, 360px"
+                unoptimized
               />
             </div>
             <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">

@@ -38,6 +38,7 @@ export function SelectedProductGrid({
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
             className="object-cover p-1"
+            unoptimized
           />
           <span className="absolute right-1.5 top-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
             {product.discountPercent}% OFF

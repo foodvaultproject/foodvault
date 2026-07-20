@@ -124,8 +124,8 @@ export function PartnerLogoUploadField({
     previewUrl: string;
     crop: LogoCropSettings;
   }) {
-    const croppedFile = new File([result.croppedBlob], "logo-display.png", {
-      type: "image/png",
+    const croppedFile = new File([result.croppedBlob], "logo-display.jpg", {
+      type: "image/jpeg",
     });
 
     revokeIfBlobUrl(previewUrl);

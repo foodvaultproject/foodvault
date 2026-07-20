@@ -82,9 +82,19 @@ export function MemberMembershipView({
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
+  const periodEndMs = membership?.renewalDate
+    ? new Date(membership.renewalDate).getTime()
+    : NaN;
+  const periodStillOpen = Number.isFinite(periodEndMs) && periodEndMs > Date.now();
   const isPaidMember =
     Boolean(membership?.stripeSubscriptionId?.trim()) ||
-    membership?.status === "active";
+    membership?.status === "active" ||
+    (Boolean(membership?.cancelAtPeriodEnd) && periodStillOpen) ||
+    (membership?.status === "cancelled" && periodStillOpen);
+  const cancelScheduled = Boolean(
+    isPaidMember &&
+      (membership?.cancelAtPeriodEnd || membership?.cancellationDate)
+  );
   const isTrialing = !isPaidMember && Boolean(trialBanner?.showTrialBanner);
 
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
@@ -134,7 +144,13 @@ export function MemberMembershipView({
       return;
     }
 
-    setFeedback({ type: "success", text: "Your membership has been cancelled." });
+    setFeedback({
+      type: "success",
+      text:
+        "message" in result && result.message
+          ? result.message
+          : "Your membership cancellation has been scheduled.",
+    });
     router.refresh();
   }
 
@@ -169,13 +185,15 @@ export function MemberMembershipView({
             {isPaidMember ? (
               <section className={memberStatusSectionClass}>
                 <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
-                  Active Member
+                  {cancelScheduled ? "Cancelling" : "Active Member"}
                 </span>
                 <p className="mt-3 text-xl font-bold text-foreground">
                   FoodVault Member
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Your paid membership is active. Manage your billing details below.
+                  {cancelScheduled
+                    ? `Your membership stays active until ${formatMemberDateShort(membership?.renewalDate ?? membership?.cancellationDate)}. You won't be charged again.`
+                    : "Your paid membership is active. Manage your billing details below."}
                 </p>
               </section>
             ) : isTrialing && trialBanner ? (
@@ -234,9 +252,13 @@ export function MemberMembershipView({
                   <dd className="mt-1 font-semibold text-foreground">{priceLabel}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Next Billing Date</dt>
+                  <dt className="text-sm text-muted-foreground">
+                    {cancelScheduled ? "Access Until" : "Next Billing Date"}
+                  </dt>
                   <dd className="mt-1 font-semibold text-foreground">
-                    {formatMemberDateShort(membership?.renewalDate)}
+                    {formatMemberDateShort(
+                      membership?.renewalDate ?? membership?.cancellationDate
+                    )}
                   </dd>
                 </div>
                 <div>

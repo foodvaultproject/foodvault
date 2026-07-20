@@ -22,6 +22,7 @@ export function ArticleHeroImage({ src, alt }: ArticleHeroImageProps) {
           className="object-cover"
           priority
           sizes="256px"
+          unoptimized
         />
       </div>
     </div>

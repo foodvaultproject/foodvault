@@ -44,6 +44,7 @@ export function PartnerMobilePreview({
               fill
               className="object-cover"
               sizes="280px"
+              unoptimized
             />
           </div>
 

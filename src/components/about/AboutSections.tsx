@@ -180,6 +180,7 @@ export function AboutHero() {
               priority
               className="h-auto w-full object-cover"
               sizes="(max-width: 1024px) 63vw, 378px"
+              unoptimized
             />
           </div>
         </div>
