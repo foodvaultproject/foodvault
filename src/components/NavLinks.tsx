@@ -128,20 +128,34 @@ function MobileAuthSection({
     );
   }
 
-  if (auth.status === "guest") {
+  if (auth.status === "guest" || auth.status === "admin") {
     return (
       <div className="mt-4 space-y-3 border-t border-border pt-4">
-        <Link
-          href={LOGIN_PATH}
-          onClick={onNavigate}
-          className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
-            menuPreview
-              ? "text-white hover:bg-white/10 hover:text-white"
-              : "text-foreground hover:bg-primary/5 hover:text-primary"
-          }`}
-        >
-          Login
-        </Link>
+        {auth.status === "admin" ? (
+          <Link
+            href="/admin/dashboard"
+            onClick={onNavigate}
+            className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
+              menuPreview
+                ? "text-white hover:bg-white/10 hover:text-white"
+                : "text-foreground hover:bg-primary/5 hover:text-primary"
+            }`}
+          >
+            Admin Dashboard
+          </Link>
+        ) : (
+          <Link
+            href={LOGIN_PATH}
+            onClick={onNavigate}
+            className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
+              menuPreview
+                ? "text-white hover:bg-white/10 hover:text-white"
+                : "text-foreground hover:bg-primary/5 hover:text-primary"
+            }`}
+          >
+            Login
+          </Link>
+        )}
         <MemberSignupCtaLink
           variant="start-free-trial-nav"
           onClick={onNavigate}
@@ -153,6 +167,25 @@ function MobileAuthSection({
         >
           Start FREE Trial
         </MemberSignupCtaLink>
+        {auth.status === "admin" ? (
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate();
+              void signOut().then(() => {
+                router.push("/");
+                router.refresh();
+              });
+            }}
+            className={`block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium transition-colors ${
+              menuPreview
+                ? "text-white hover:bg-white/10 hover:text-white"
+                : "text-foreground hover:bg-primary/5 hover:text-primary"
+            }`}
+          >
+            Logout
+          </button>
+        ) : null}
       </div>
     );
   }
@@ -162,8 +195,6 @@ function MobileAuthSection({
       ? partnerNavMenuItems
       : auth.status === "affiliate"
         ? affiliateNavMenuItems
-      : auth.status === "admin"
-        ? [{ href: "/admin/dashboard", label: "Admin Dashboard" }]
         : memberNavMenuItems;
 
   async function handleLogout() {

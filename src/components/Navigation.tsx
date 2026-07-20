@@ -23,9 +23,9 @@ import {
   type NavAuthState,
 } from "@/lib/nav-auth";
 import { FavoritesNavLink } from "@/components/favorites/FavoritesNavLink";
+import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { isPartnerAccount } from "@/lib/partner-data";
 import { isAffiliateAccount } from "@/lib/affiliate/auth";
-import { isAdminAccount } from "@/lib/member/client-auth";
 import { createClient } from "@/lib/supabase/client";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { NavSearch } from "@/components/NavSearch";
@@ -57,7 +57,7 @@ function useNavAuth(): NavAuthState {
     const [partner, affiliate, admin] = await Promise.all([
       isPartnerAccount(session.id),
       isAffiliateAccount(session.id),
-      isAdminAccount(session.id),
+      isCurrentUserAdminAction(),
     ]);
 
     if (admin) {
@@ -246,19 +246,33 @@ function DesktopAuthActions({
     );
   }
 
-  if (auth.status === "guest") {
+  // Admins browsing the public site use the same marketing chrome as visitors.
+  if (auth.status === "guest" || auth.status === "admin") {
     return (
       <>
-        <Link
-          href={LOGIN_PATH}
-          className={`hidden text-sm font-medium transition-colors lg:inline-block ${
-            menuPreview
-              ? "text-white hover:text-white/80"
-              : "text-muted-foreground hover:text-primary"
-          }`}
-        >
-          Login
-        </Link>
+        {auth.status === "admin" ? (
+          <Link
+            href="/admin/dashboard"
+            className={`hidden text-sm font-medium transition-colors lg:inline-block ${
+              menuPreview
+                ? "text-white hover:text-white/80"
+                : "text-muted-foreground hover:text-primary"
+            }`}
+          >
+            Admin Dashboard
+          </Link>
+        ) : (
+          <Link
+            href={LOGIN_PATH}
+            className={`hidden text-sm font-medium transition-colors lg:inline-block ${
+              menuPreview
+                ? "text-white hover:text-white/80"
+                : "text-muted-foreground hover:text-primary"
+            }`}
+          >
+            Login
+          </Link>
+        )}
         <MemberSignupCtaLink
           variant="start-free-trial-nav"
           className={
@@ -339,7 +353,7 @@ export function Navigation() {
           <MobileMenu auth={auth} menuTop={mobileMenuTop} menuPreview={menuPreview} />
         </div>
       </nav>
-      <FreeTrialCountdownBar />
+      {showCountdownBar ? <FreeTrialCountdownBar /> : null}
     </header>
   );
 }

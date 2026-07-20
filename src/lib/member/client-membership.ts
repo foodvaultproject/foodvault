@@ -1,3 +1,4 @@
+import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { getAuthSession, isSupabaseConfigured } from "@/lib/auth";
 import {
   isActiveMemberRow,
@@ -21,11 +22,23 @@ export type ClientMembershipView = {
   trialEndsAt: string | null;
 };
 
+const VISITOR_MEMBERSHIP_VIEW: ClientMembershipView = {
+  isFreeTrial: false,
+  isActiveMember: false,
+  trialEndsAt: null,
+};
+
 export async function resolveClientMembershipView(): Promise<ClientMembershipView> {
   const session = await getAuthSession();
 
   if (!session || session.accountType !== "member") {
-    return { isFreeTrial: false, isActiveMember: false, trialEndsAt: null };
+    return VISITOR_MEMBERSHIP_VIEW;
+  }
+
+  // Admins browsing the public site should match the visitor experience —
+  // no free-trial countdown, no paid-member chrome.
+  if (await isCurrentUserAdminAction()) {
+    return VISITOR_MEMBERSHIP_VIEW;
   }
 
   if (!isSupabaseConfigured()) {

@@ -13,6 +13,7 @@ import {
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
 import { getHomepageFaqs } from "@/data/homepage";
+import { getAdminUser } from "@/lib/admin/auth";
 import { getActiveMemberView } from "@/lib/member/active-member";
 import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
 import { getPartnerHomeView } from "@/lib/partner-home-view";
@@ -48,9 +49,10 @@ export default async function Home({ searchParams }: HomeProps) {
     topOffers,
     trendingBrands,
     favoriteContext,
-    { isActiveMember, memberName: activeMemberName },
-    { isFreeTrialMember, memberName: freeTrialMemberName },
+    { isActiveMember: activeMember, memberName: activeMemberName },
+    { isFreeTrialMember: freeTrialMember, memberName: freeTrialMemberName },
     { isPartner },
+    adminUser,
     browseFeatured,
     partnerBrowseInitial,
   ] = await Promise.all([
@@ -65,6 +67,7 @@ export default async function Home({ searchParams }: HomeProps) {
     getActiveMemberView(),
     getFreeTrialMemberView(),
     getPartnerHomeView(),
+    getAdminUser(),
     getFeaturedBrands(6),
     searchPublicBrands({
       sort: "featured",
@@ -74,6 +77,9 @@ export default async function Home({ searchParams }: HomeProps) {
       offset: 0,
     }),
   ]);
+  // Admins browsing the public homepage must match the visitor experience.
+  const isActiveMember = Boolean(activeMember) && !adminUser;
+  const isFreeTrialMember = Boolean(freeTrialMember) && !adminUser;
   const homepageFaqs = getHomepageFaqs(settings);
 
   const featuredHeroPartners = featured

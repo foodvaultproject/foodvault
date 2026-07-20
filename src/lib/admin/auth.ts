@@ -38,6 +38,11 @@ export async function getAdminUser(): Promise<AdminUser | null> {
   return data as AdminUser;
 }
 
+/** Reliable admin check for client components (uses server session + RLS). */
+export async function isCurrentUserAdminAction(): Promise<boolean> {
+  return Boolean(await getAdminUser());
+}
+
 export async function requireAdminUser(): Promise<AdminUser> {
   const admin = await getAdminUser();
   if (!admin) {

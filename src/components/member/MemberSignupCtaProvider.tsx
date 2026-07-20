@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { repairMemberSessionAction } from "@/lib/auth/finalize-verified-session";
 import { resolveClientMembershipView } from "@/lib/member/client-membership";
@@ -42,6 +43,17 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
     setState((current) => ({ ...current, isLoading: true }));
 
     try {
+      // Admins browsing the public site must match visitor membership chrome.
+      if (await isCurrentUserAdminAction()) {
+        setState({
+          isFreeTrial: false,
+          isActiveMember: false,
+          trialEndsAt: null,
+          isLoading: false,
+        });
+        return;
+      }
+
       let view = await resolveClientMembershipView();
 
       if (
