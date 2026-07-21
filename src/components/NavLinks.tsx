@@ -20,6 +20,7 @@ import { FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM } from "@/components/member/FreeTri
 import {
   NAV_MENU_CTA_BLOCK_CLASS,
   NAV_MENU_CTA_CLASS,
+  NAV_MENU_PREVIEW_GRADIENT,
 } from "@/lib/nav-menu-preview";
 
 const navLinks = [
@@ -122,15 +123,25 @@ function MobileAuthSection({
 
   if (auth.status === "loading") {
     return (
-      <div className="mt-4 border-t border-border pt-4">
-        <div className="h-10 animate-pulse rounded-lg bg-surface" />
+      <div
+        className={`mt-4 border-t pt-4 ${menuPreview ? "border-white/15" : "border-border"}`}
+      >
+        <div
+          className={`h-10 animate-pulse rounded-lg ${
+            menuPreview ? "bg-white/20" : "bg-surface"
+          }`}
+        />
       </div>
     );
   }
 
   if (auth.status === "guest" || auth.status === "admin") {
     return (
-      <div className="mt-4 space-y-3 border-t border-border pt-4">
+      <div
+        className={`mt-4 space-y-3 border-t pt-4 ${
+          menuPreview ? "border-white/15" : "border-border"
+        }`}
+      >
         {auth.status === "admin" ? (
           <Link
             href="/admin/dashboard"
@@ -205,7 +216,11 @@ function MobileAuthSection({
   }
 
   return (
-    <div className="mt-4 space-y-1 border-t border-border pt-4">
+    <div
+      className={`mt-4 space-y-1 border-t pt-4 ${
+        menuPreview ? "border-white/15" : "border-border"
+      }`}
+    >
       {auth.status === "member" && isFreeTrial ? (
         <MemberSignupCtaLink
           variant="start-free-trial"
@@ -218,14 +233,22 @@ function MobileAuthSection({
         />
       ) : null}
       {auth.status === "member" ? (
-        <FavoritesNavLink className="block rounded-lg px-3 py-2.5" onNavigate={onNavigate} />
+        <FavoritesNavLink
+          className="block rounded-lg px-3 py-2.5"
+          onNavigate={onNavigate}
+          menuPreview={menuPreview}
+        />
       ) : null}
       {items.map((item) => (
         <Link
           key={item.label}
           href={item.href}
           onClick={onNavigate}
-          className="block rounded-lg px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+          className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
+            menuPreview
+              ? "text-white/90 hover:bg-white/10 hover:text-white"
+              : "text-foreground hover:bg-primary/5 hover:text-primary"
+          }`}
         >
           {item.label}
         </Link>
@@ -233,7 +256,11 @@ function MobileAuthSection({
       <button
         type="button"
         onClick={() => void handleLogout()}
-        className="block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+        className={`block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium transition-colors ${
+          menuPreview
+            ? "text-white/90 hover:bg-white/10 hover:text-white"
+            : "text-foreground hover:bg-primary/5 hover:text-primary"
+        }`}
       >
         Logout
       </button>
@@ -311,7 +338,11 @@ export function MobileMenu({
           />
           <div
             id="mobile-nav"
-            className="fixed inset-x-0 z-50 overflow-y-auto border-b border-border bg-white px-4 py-5 shadow-card sm:px-6 md:max-h-[calc(100vh-4.25rem-1.75rem)]"
+            className={`fixed inset-x-0 z-50 overflow-y-auto border-b px-4 py-5 shadow-card sm:px-6 md:max-h-[calc(100vh-4.25rem-1.75rem)] ${
+              menuPreview
+                ? `border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}`
+                : "border-border bg-white"
+            }`}
             style={{ top: panelTop, maxHeight: panelMaxHeight }}
           >
             <nav className="space-y-1" aria-label="Mobile navigation">
