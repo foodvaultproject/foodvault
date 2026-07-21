@@ -1,28 +1,22 @@
 import type { Metadata } from "next";
 import {
-  AboutBrandsSection,
+  AboutFounderSection,
   AboutHero,
-  AboutMembersSection,
-  AboutMissionSection,
-  AboutValuesSection,
-  AboutWhatIsSection,
+  AboutValueSplitSection,
 } from "@/components/about/AboutSections";
 
 export const metadata: Metadata = {
   title: "About FoodVault",
   description:
-    "FoodVault is a membership platform connecting consumers with New Zealand brands. Members pay a monthly subscription for exclusive discounts and purchase directly from partner businesses.",
+    "FoodVault helps Kiwis discover great local brands, unlock exclusive member savings, and shop directly from the businesses behind the products they love.",
 };
 
 export default function AboutPage() {
   return (
     <>
       <AboutHero />
-      <AboutWhatIsSection />
-      <AboutMissionSection />
-      <AboutMembersSection />
-      <AboutBrandsSection />
-      <AboutValuesSection />
+      <AboutValueSplitSection />
+      <AboutFounderSection />
     </>
   );
 }
