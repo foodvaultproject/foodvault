@@ -3,18 +3,21 @@ import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 
 export function AboutHero() {
   return (
-    <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-[#EEF2FF] via-background to-primary/5">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 top-8 h-80 w-80 rounded-full bg-primary/15 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-violet-300/20 blur-3xl"
-      />
+    <section className="relative overflow-hidden border-b border-border">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <Image
+          src="/about-hero-bg.jpg"
+          alt=""
+          fill
+          priority
+          unoptimized
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+      </div>
 
-      <div className="relative mx-auto max-w-[1200px] px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
+      <div className="relative z-10 mx-auto max-w-[1200px] px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-[1.1] tracking-tight text-primary sm:text-4xl lg:text-[2.75rem]">
           Supporting Kiwi Brands. Helping Kiwis Save.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
