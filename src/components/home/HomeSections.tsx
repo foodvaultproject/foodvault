@@ -46,27 +46,24 @@ export function HomeBrandBanner() {
 
 const whyJoinFeatures = [
   {
-    title: "Exclusive Member Prices",
-    description:
-      "Access discounts and offers available only to FoodVault members.",
+    title: "Exclusive Member Savings",
+    description: "Unlock exclusive discounts from Kiwi brands.",
     icon: <IconDollarSign className="h-11 w-11" />,
   },
   {
-    title: "Discover Great Brands",
+    title: "Discover Awesome Kiwi Brands",
     description:
-      "Explore leading and emerging New Zealand brands across food, drinks, health, lifestyle and more.",
+      "Find your next favourite, from well-known brands to hidden gems.",
     icon: <IconCompass className="h-11 w-11" />,
   },
   {
     title: "Shop Direct",
-    description:
-      "Purchase directly from each brand's website with confidence. You deal directly with the businesses you trust.",
+    description: "Shop directly on each brand's website with confidence.",
     icon: <IconShoppingBag className="h-11 w-11" />,
   },
   {
-    title: "New Offers Every Month",
-    description:
-      "As more brands join FoodVault, your membership becomes more valuable with even more places to save.",
+    title: "More Brands. More Savings.",
+    description: "New brands join regularly, giving you more ways to save.",
     icon: <IconTrendingUp className="h-11 w-11" />,
   },
 ];
