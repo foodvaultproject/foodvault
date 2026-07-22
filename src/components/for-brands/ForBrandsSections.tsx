@@ -128,9 +128,12 @@ export function ForBrandsHero() {
 
 export function PartnerBenefitsSection() {
   return (
-    <section id="partner-benefits" className="scroll-mt-24 bg-white py-8 sm:py-10">
+    <section
+      id="partner-benefits"
+      className="scroll-mt-24 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] py-8 sm:py-10"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-center text-2xl font-bold tracking-tight text-purple-950 sm:text-3xl">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-white sm:text-3xl">
           Partner Benefits
         </h2>
 
