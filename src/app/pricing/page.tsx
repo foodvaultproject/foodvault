@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { HomeWhyJoinFeatures } from "@/components/home/HomeSections";
 import { PricingFAQSection } from "@/components/pricing/PricingFAQSection";
 import {
-  PricingFinalCTA,
+  PricingDualCTASection,
   PricingHero,
-  PricingPartnerCTA,
 } from "@/components/pricing/PricingSections";
 import { formatMembershipPriceMonthly } from "@/lib/member/pricing";
 import { getMembershipSettings } from "@/lib/member/settings";
@@ -29,8 +28,7 @@ export default async function PricingPage() {
       <PricingHero settings={settings} />
       <HomeWhyJoinFeatures />
       <PricingFAQSection trialLengthDays={settings.trialLengthDays} />
-      <PricingFinalCTA />
-      <PricingPartnerCTA />
+      <PricingDualCTASection />
     </>
   );
 }

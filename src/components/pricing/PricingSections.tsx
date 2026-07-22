@@ -4,8 +4,8 @@ import {
   formatMembershipPrice,
   type MembershipSettings,
 } from "@/lib/member/pricing";
-import { PartnerJoinCTA } from "@/components/partners/PartnerJoinCTA";
-import { heading1, heading2OnDark } from "@/lib/ui-classes";
+import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
+import { heading1, heading2, heading2OnDark } from "@/lib/ui-classes";
 
 const membershipFeatures = [
   "Unlimited access",
@@ -27,14 +27,7 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
   return (
     <section className="bg-gradient-to-b from-surface-lavender via-background to-background py-7 sm:py-10 md:py-12 lg:py-14">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-        <span className="inline-flex items-center gap-2 rounded-full bg-success-light px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-success">
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-          </svg>
-          Unbeatable Value
-        </span>
-
-        <h1 className={`mt-6 ${heading1}`}>
+        <h1 className={heading1}>
           Simple, Transparent Membership
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
@@ -101,40 +94,58 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
   );
 }
 
-export function PricingFinalCTA() {
+export function PricingDualCTASection() {
   return (
     <section className="bg-background py-10 sm:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-6 rounded-sm bg-primary px-6 py-10 sm:flex-row sm:gap-8 sm:px-8 sm:py-12 md:px-10 md:py-12 lg:px-12 lg:py-14">
-          <div className="text-center sm:text-left">
-            <h2 className={heading2OnDark}>
-              Spend less. Save more.
-            </h2>
-            <p className="mt-3 max-w-lg text-sm text-white/80 sm:mt-4 sm:text-base">
-              Join FoodVault and unlock exclusive member pricing from
-              participating New Zealand brands—all in one place.
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch lg:gap-6">
+          <article className="relative flex h-full flex-col overflow-hidden rounded-2xl p-6 shadow-lg sm:p-8">
+            <div
+              className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: "url('/pricing/spend_less_bg.png')" }}
+              aria-hidden="true"
+            />
+            <div className="relative z-10 flex h-full flex-col">
+              <h2 className={heading2OnDark}>Spend less. Save more.</h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/85 sm:mt-4 sm:text-base">
+                Join FoodVault and unlock exclusive member pricing from participating New Zealand
+                brands—all in one place.
+              </p>
+              <div className="mt-auto pt-6 sm:pt-8">
+                <Link
+                  href="/signup"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-white/90 sm:w-auto"
+                >
+                  Start Membership Now
+                </Link>
+              </div>
+            </div>
+          </article>
+
+          <article className="flex h-full flex-col rounded-2xl border border-primary/25 bg-[#EEF2FF] p-6 shadow-sm sm:p-8">
+            <h2 className={`${heading2} text-purple-950`}>Own a Kiwi Brand?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:mt-4 sm:text-base">
+              Join FoodVault free of charge and connect directly with members looking to save. List
+              your business, create an exclusive member offer and drive traffic directly to your own
+              website.
             </p>
-          </div>
-          <Link
-            href="/signup"
-            className="inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-white px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-white/90 sm:w-auto"
-          >
-            Start Membership Now
-          </Link>
+            <div className="mt-auto flex flex-col gap-3 pt-6 sm:flex-row sm:pt-8">
+              <Link
+                href={PARTNER_CREATE_ACCOUNT_PATH}
+                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
+              >
+                Become a Partner
+              </Link>
+              <Link
+                href="/for-brands"
+                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-white px-6 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
+              >
+                Learn More
+              </Link>
+            </div>
+          </article>
         </div>
       </div>
     </section>
-  );
-}
-
-export function PricingPartnerCTA() {
-  return (
-    <PartnerJoinCTA
-      className="bg-surface-lavender pb-5 pt-3 sm:pb-7 sm:pt-4 lg:pt-5"
-      compact
-      showTrustPoints={false}
-      showHighlights={false}
-      title="Own a Kiwi Brand?"
-    />
   );
 }
