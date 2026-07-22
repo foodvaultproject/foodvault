@@ -46,7 +46,7 @@ const memberSteps = [
   },
 ] as const;
 
-const HOW_IT_WORKS_HERO_BACKGROUND = "/how-it-works/hero-background.png";
+const HOW_IT_WORKS_HERO_BACKGROUND = "/how-it-works/how-it-works-hero-bg.png";
 
 type HowItWorksPageProps = {
   isActiveMember?: boolean;
