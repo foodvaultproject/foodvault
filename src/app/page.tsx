@@ -7,7 +7,6 @@ import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
 import {
   HomeCategories,
-  HomeFinalCTA,
   HomePartnerBanner,
   HomePartnerQuickLinks,
   HomeWhyJoinFeatures,
@@ -226,7 +225,6 @@ export default async function Home({ searchParams }: HomeProps) {
       <DiscoverSection articles={discover.homepageCards} />
       <HomeFAQ faqs={homepageFaqs} />
       <HomePartnerBanner />
-      <HomeFinalCTA settings={settings} />
     </>
   );
 }

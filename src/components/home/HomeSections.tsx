@@ -1,10 +1,4 @@
 import Link from "next/link";
-import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import {
-  formatFreeTrialLabel,
-  formatMembershipPriceMonthly,
-  type MembershipSettings,
-} from "@/lib/member/pricing";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 import { testimonials } from "@/data/homepage";
 import {
@@ -422,38 +416,6 @@ export function HomePartnerBanner() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function HomeFinalCTA({ settings }: { settings: MembershipSettings }) {
-  const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
-  const trialLabel = formatFreeTrialLabel(settings.trialLengthDays);
-
-  return (
-    <section className={`border-t border-border bg-surface-lavender/40 ${SECTION_PY_HOME}`}>
-      <div className="mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
-          Start paying less today.
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground">
-          Become a FoodVault member and enjoy exclusive discounts while shopping
-          directly with participating New Zealand brands. {priceLabel} after your{" "}
-          {trialLabel}.
-        </p>
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <MemberSignupCtaLink
-            variant="start-free-trial"
-            className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
-          />
-          <Link
-            href="/browse-brands"
-            className="inline-flex w-full items-center justify-center rounded-sm border border-primary px-6 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/5 sm:w-auto"
-          >
-            Explore Brands
-          </Link>
         </div>
       </div>
     </section>
