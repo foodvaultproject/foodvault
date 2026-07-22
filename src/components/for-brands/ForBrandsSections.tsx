@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
-import { heading1, heading2, heading2OnDark, heading3 } from "@/lib/ui-classes";
+import { heading1, heading2, heading3 } from "@/lib/ui-classes";
 
 const heroBenefits = [
   "No Fees. Ever.",
@@ -175,24 +175,6 @@ export function HowItWorksSection() {
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function ForBrandsFinalCTA() {
-  return (
-    <section className="bg-navy py-10 sm:py-12">
-      <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className={heading2OnDark}>Reach New Customers</h2>
-        <div className="mt-8">
-          <Link
-            href={PARTNER_CREATE_ACCOUNT_PATH}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-white px-8 py-3.5 text-base font-semibold text-navy transition-colors hover:bg-white/90 sm:w-auto"
-          >
-            Become a Partner
-          </Link>
         </div>
       </div>
     </section>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ForBrandsFAQSection } from "@/components/for-brands/ForBrandsFAQSection";
 import { ForBrandsPartnerLogosSection } from "@/components/for-brands/ForBrandsPartnerLogosSection";
 import {
-  ForBrandsFinalCTA,
   ForBrandsHero,
   HowItWorksSection,
   PartnerBenefitsSection,
@@ -25,7 +24,6 @@ export default async function ForBrandsPage() {
       <PartnerBenefitsSection />
       <HowItWorksSection />
       <ForBrandsFAQSection />
-      <ForBrandsFinalCTA />
     </>
   );
 }
