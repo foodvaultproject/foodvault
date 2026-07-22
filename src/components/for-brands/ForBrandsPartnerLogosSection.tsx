@@ -1,5 +1,4 @@
 import { BrandLogoCarousel } from "@/components/home/BrandLogoCarousel";
-import { heading2 } from "@/lib/ui-classes";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 
 type ForBrandsPartnerLogosSectionProps = {
@@ -22,15 +21,11 @@ function EmptyLogoPlaceholder() {
 export function ForBrandsPartnerLogosSection({ logos }: ForBrandsPartnerLogosSectionProps) {
   return (
     <section className="bg-background py-6 sm:py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className={`text-center ${heading2}`}>
-          Join Kiwi Brands Already Growing with FoodVault!
-        </h2>
-      </div>
-
-      <div className="mt-5">
-        {logos.length > 0 ? <BrandLogoCarousel logos={logos} /> : <EmptyLogoPlaceholder />}
-      </div>
+      {logos.length > 0 ? <BrandLogoCarousel logos={logos} /> : (
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <EmptyLogoPlaceholder />
+        </div>
+      )}
     </section>
   );
 }

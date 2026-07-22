@@ -68,12 +68,6 @@ const howItWorksSteps = [
   },
 ];
 
-const finalCtaValues = [
-  "No Fees. Ever.",
-  "Keep 100% of Every Sale.",
-  "Customers Buy Directly From Your Website.",
-];
-
 export function ForBrandsHero() {
   return (
     <section className="relative overflow-hidden bg-surface-lavender">
@@ -83,7 +77,7 @@ export function ForBrandsHero() {
           <div>
             <h1 className={heading1}>
               Reach More Kiwi Consumers.{" "}
-              <span className="text-primary">It&apos;s Literally Free!</span>
+              <span className="text-primary">It&apos;s Free.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               We help more Kiwi consumers discover your brand and shop directly from your website.
@@ -130,7 +124,7 @@ export function PartnerBenefitsSection() {
   return (
     <section id="partner-benefits" className="scroll-mt-24 bg-[#EEF2FF] py-8 sm:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-center text-2xl font-bold tracking-tight text-purple-950 sm:text-3xl">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-black sm:text-3xl">
           Partner Benefits
         </h2>
 
@@ -191,27 +185,7 @@ export function ForBrandsFinalCTA() {
   return (
     <section className="bg-navy py-10 sm:py-12">
       <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className={heading2OnDark}>Ready to Grow Your Brand?</h2>
-        <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
-          Join FoodVault and connect with members actively looking to discover and buy direct from
-          New Zealand brands.
-        </p>
-        <ul className="mx-auto mt-6 flex max-w-xl flex-col items-center gap-2 sm:gap-3">
-          {finalCtaValues.map((item) => (
-            <li key={item} className="flex items-center gap-2 text-sm text-white/90 sm:text-base">
-              <svg
-                className="h-4 w-4 shrink-0 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={3}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              {item}
-            </li>
-          ))}
-        </ul>
+        <h2 className={heading2OnDark}>Reach New Customers</h2>
         <div className="mt-8">
           <Link
             href={PARTNER_CREATE_ACCOUNT_PATH}
