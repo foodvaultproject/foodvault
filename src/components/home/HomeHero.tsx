@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
@@ -77,15 +78,22 @@ export function HomeHero({
   return (
     <section
       className={`relative overflow-hidden border-b border-border ${
-        isActiveMember ? "bg-[#EEF2FF]" : "bg-background"
+        isActiveMember ? "bg-[#EEF2FF]" : isVisitorHero ? "" : "bg-background"
       }`}
     >
       {isVisitorHero ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('${VISITOR_HERO_BACKGROUND}')` }}
-          aria-hidden="true"
-        />
+        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+          <Image
+            src={VISITOR_HERO_BACKGROUND}
+            alt=""
+            fill
+            priority
+            quality={100}
+            unoptimized
+            className="object-cover object-center [image-rendering:-webkit-optimize-contrast]"
+            sizes="100vw"
+          />
+        </div>
       ) : null}
       <div
         className={

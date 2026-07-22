@@ -4,14 +4,15 @@ import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 export function AboutHero() {
   return (
     <section className="relative overflow-hidden border-b border-border">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
         <Image
           src="/about-hero-bg.jpg"
           alt=""
           fill
           priority
+          quality={100}
           unoptimized
-          className="object-cover object-center"
+          className="object-cover object-center [image-rendering:-webkit-optimize-contrast]"
           sizes="100vw"
         />
       </div>
