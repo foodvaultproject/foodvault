@@ -5,7 +5,7 @@ import {
   type MembershipSettings,
 } from "@/lib/member/pricing";
 import { PartnerJoinCTA } from "@/components/partners/PartnerJoinCTA";
-import { heading1, heading2, heading2OnDark, heading3 } from "@/lib/ui-classes";
+import { heading1, heading2OnDark } from "@/lib/ui-classes";
 
 const membershipFeatures = [
   "Unlimited access",
@@ -94,66 +94,6 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
               <span aria-hidden="true">{item.icon}</span>
               {item.label}
             </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const whyJoinItems = [
-  {
-    title: "Exclusive Member Pricing",
-    description:
-      "Access offers not available to the general public.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Brand Discovery",
-    description:
-      "Find new independent food and beverage brands every week across every category you shop.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-      </svg>
-    ),
-  },
-  {
-    title: "One Simple Membership",
-    description:
-      "One plan, one price, unlimited access. No tiers, no hidden fees, no complexity.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-      </svg>
-    ),
-  },
-];
-
-export function PricingWhyJoinSection() {
-  return (
-    <section className="bg-background py-10 sm:py-14">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className={`text-center ${heading2}`}>
-          Why Join FoodVault?
-        </h2>
-
-        <div className="mt-10 grid gap-8 md:mt-14 md:grid-cols-3 md:gap-10">
-          {whyJoinItems.map((item) => (
-            <div key={item.title} className="text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                {item.icon}
-              </div>
-              <h3 className={`mt-5 ${heading3}`}>{item.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {item.description}
-              </p>
-            </div>
           ))}
         </div>
       </div>
