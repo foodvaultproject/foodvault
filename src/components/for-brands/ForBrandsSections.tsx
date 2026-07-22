@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
 import { heading1, heading2, heading2OnDark, heading3 } from "@/lib/ui-classes";
-import { PartnerBenefitsScatterIcons } from "@/components/for-brands/PartnerBenefitsScatterIcons";
 
 const heroBenefits = [
   "No Fees. Ever.",
@@ -15,58 +14,25 @@ const partnerBenefits = [
     title: "Reach New Customers",
     description:
       "Put your brand in front of members actively looking for quality New Zealand food, beverage, household and health products.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
-        />
-      </svg>
-    ),
+    iconSrc: "/for-brands/reach-new-customers.png",
   },
   {
     title: "Sell Direct",
     description:
       "Every purchase happens on your own website, allowing you to manage the entire customer experience.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
-        />
-      </svg>
-    ),
+    iconSrc: "/for-brands/sell-direct.png",
   },
   {
     title: "Build Brand Awareness",
     description:
       "Create a professional brand profile showcasing your story, products and imagery.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
-        />
-      </svg>
-    ),
+    iconSrc: "/for-brands/build-brand-awareness.png",
   },
   {
     title: "Promote Exclusive Member Offers",
     description:
       "Encourage new customers to buy directly by offering exclusive member discounts.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
-        />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
-      </svg>
-    ),
+    iconSrc: "/for-brands/promote-exclusive-offers.png",
   },
 ];
 
@@ -162,28 +128,35 @@ export function ForBrandsHero() {
 
 export function PartnerBenefitsSection() {
   return (
-    <section id="partner-benefits" className="relative scroll-mt-24 overflow-hidden py-8 sm:py-10">
-      <div
-        className="pointer-events-none absolute inset-0 bg-[url('/for-brands/partner-benefits-bg.png')] bg-cover bg-center bg-no-repeat"
-        aria-hidden="true"
-      />
-      <PartnerBenefitsScatterIcons />
+    <section id="partner-benefits" className="scroll-mt-24 bg-white py-8 sm:py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-purple-950 sm:text-3xl">
+          Partner Benefits
+        </h2>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className={`text-center ${heading2OnDark}`}>Partner Benefits</h2>
-
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {partnerBenefits.map((card) => (
-            <div
+            <article
               key={card.title}
-              className="rounded-lg border border-white/20 bg-background p-5 shadow-sm sm:p-6"
+              className="rounded-2xl border border-purple-100/60 bg-primary/5 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary">
-                {card.icon}
+              <div className="flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
+                <img
+                  src={card.iconSrc}
+                  alt=""
+                  aria-hidden="true"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-contain sm:h-16 sm:w-16"
+                />
               </div>
-              <h3 className={`mt-4 ${heading3}`}>{card.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{card.description}</p>
-            </div>
+              <h3 className="mt-4 text-sm font-semibold text-primary sm:text-base">
+                {card.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {card.description}
+              </p>
+            </article>
           ))}
         </div>
       </div>
