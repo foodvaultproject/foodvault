@@ -141,7 +141,7 @@ export function PartnerBenefitsSection() {
           {partnerBenefits.map((card) => (
             <article
               key={card.title}
-              className="rounded-2xl border border-purple-100/60 bg-primary/5 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
+              className="rounded-2xl border border-purple-100/60 bg-[color-mix(in_srgb,var(--color-primary)_5%,white)] p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
             >
               <div className="flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
                 <img
