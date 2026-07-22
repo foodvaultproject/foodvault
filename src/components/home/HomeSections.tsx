@@ -86,9 +86,9 @@ export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing
           {whyJoinFeatures.map((feature) => (
             <article
               key={feature.title}
-              className="rounded-2xl border border-purple-100/60 bg-transparent p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
+              className="rounded-2xl border border-purple-100/60 bg-primary/5 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/5 sm:h-16 sm:w-16 sm:rounded-2xl">
+              <div className="flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
                 <img
                   src={feature.iconSrc}
                   alt=""
