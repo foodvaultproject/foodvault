@@ -1,23 +1,11 @@
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import type { LucideIcon } from "lucide-react";
-import { ArrowUpRight, Compass, Tag, Wallet } from "lucide-react";
+import { HomeWhyJoinFeatures } from "@/components/home/HomeSections";
 import {
   heading2,
   heading3,
 } from "@/lib/ui-classes";
-import type { ReactNode } from "react";
 
 const sectionClass = "bg-page py-8 sm:py-10";
-const cardClass =
-  "fv-card fv-card-hover rounded-lg border border-border bg-background p-5 shadow-card transition-[transform,box-shadow] duration-200 sm:p-6";
-
-function IconCircle({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-      {children}
-    </div>
-  );
-}
 
 function SectionHeading({
   title,
@@ -31,26 +19,6 @@ function SectionHeading({
   return (
     <div className={alignClass}>
       <h2 className={`${heading2} ${align === "center" ? "text-center" : ""}`.trim()}>{title}</h2>
-    </div>
-  );
-}
-
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className={cardClass}>
-      <IconCircle>
-        <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
-      </IconCircle>
-      <h3 className={`mt-4 ${heading3}`}>{title}</h3>
-      <p className="mt-2 text-[13px] leading-relaxed text-muted">{description}</p>
     </div>
   );
 }
@@ -78,29 +46,6 @@ const memberSteps = [
   },
 ] as const;
 
-const whyJoinCards = [
-  {
-    icon: Tag,
-    title: "Save Money",
-    description: "Access exclusive member prices on everyday products.",
-  },
-  {
-    icon: ArrowUpRight,
-    title: "Shop Direct",
-    description: "Purchase directly from participating New Zealand brands.",
-  },
-  {
-    icon: Compass,
-    title: "Discover Great Brands",
-    description: "Find quality Kiwi brands all in one place.",
-  },
-  {
-    icon: Wallet,
-    title: "One Membership",
-    description: "One membership gives you access across the platform.",
-  },
-] as const;
-
 const HOW_IT_WORKS_HERO_BACKGROUND = "/how-it-works/hero-background.png";
 
 type HowItWorksPageProps = {
@@ -114,7 +59,7 @@ export function HowItWorksPageContent({
     <>
       <HowItWorksHero isActiveMember={isActiveMember} />
       <HowFoodVaultWorksSection />
-      <WhyJoinFoodVaultSection />
+      <HomeWhyJoinFeatures />
     </>
   );
 }
@@ -177,21 +122,6 @@ function HowFoodVaultWorksSection() {
               </li>
             ))}
           </ol>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WhyJoinFoodVaultSection() {
-  return (
-    <section className={sectionClass}>
-      <div className="fv-content-width">
-        <SectionHeading title="Why Join FoodVault" />
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {whyJoinCards.map(({ icon, title, description }) => (
-            <FeatureCard key={title} icon={icon} title={title} description={description} />
-          ))}
         </div>
       </div>
     </section>
