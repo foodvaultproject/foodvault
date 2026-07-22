@@ -98,7 +98,7 @@ export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing
                   className="h-14 w-14 object-contain sm:h-16 sm:w-16"
                 />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-foreground sm:text-base">
+              <h3 className="mt-4 text-sm font-bold text-primary sm:text-base">
                 {feature.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
