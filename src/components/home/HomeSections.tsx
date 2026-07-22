@@ -48,23 +48,23 @@ const whyJoinFeatures = [
   {
     title: "Exclusive Member Savings",
     description: "Unlock exclusive discounts from Kiwi brands.",
-    icon: <IconDollarSign className="h-11 w-11" />,
+    iconSrc: "/home/why-join-savings.png",
   },
   {
     title: "Discover Awesome Kiwi Brands",
     description:
       "Find your next favourite, from well-known brands to hidden gems.",
-    icon: <IconCompass className="h-11 w-11" />,
+    iconSrc: "/home/why-join-kiwi.png",
   },
   {
     title: "Shop Direct",
     description: "Shop directly on each brand's website with confidence.",
-    icon: <IconShoppingBag className="h-11 w-11" />,
+    iconSrc: "/home/why-join-direct.png",
   },
   {
     title: "More Brands. More Savings.",
     description: "New brands join regularly, giving you more ways to save.",
-    icon: <IconTrendingUp className="h-11 w-11" />,
+    iconSrc: "/home/why-join-scale.png",
   },
 ];
 
@@ -84,18 +84,27 @@ export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing
         </div>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {whyJoinFeatures.map((feature) => (
-            <div
+            <article
               key={feature.title}
-              className="rounded-lg border border-border bg-background p-5 shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card"
+              className="rounded-2xl border border-purple-100/60 bg-transparent p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary">
-                {feature.icon}
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/5 sm:h-16 sm:w-16 sm:rounded-2xl">
+                <img
+                  src={feature.iconSrc}
+                  alt=""
+                  aria-hidden="true"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-contain sm:h-16 sm:w-16"
+                />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-foreground">{feature.title}</h3>
+              <h3 className="mt-4 text-sm font-bold text-foreground sm:text-base">
+                {feature.title}
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {feature.description}
               </p>
-            </div>
+            </article>
           ))}
         </div>
       </div>
