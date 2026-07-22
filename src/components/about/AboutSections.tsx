@@ -6,7 +6,7 @@ export function AboutHero() {
     <section className="relative overflow-hidden border-b border-border">
       <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
         <Image
-          src="/about-hero-bg.jpg"
+          src="/about/about-hero-bg.png"
           alt=""
           fill
           priority
