@@ -133,6 +133,8 @@ export function PricingPartnerCTA() {
       className="bg-surface-lavender pb-5 pt-3 sm:pb-7 sm:pt-4 lg:pt-5"
       compact
       showTrustPoints={false}
+      showHighlights={false}
+      title="Own a Kiwi Brand?"
     />
   );
 }

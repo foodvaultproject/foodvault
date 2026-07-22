@@ -38,6 +38,8 @@ type PartnerJoinCTAProps = {
   className?: string;
   compact?: boolean;
   showTrustPoints?: boolean;
+  showHighlights?: boolean;
+  title?: string;
 };
 
 export function PartnerJoinCTA({
@@ -45,6 +47,8 @@ export function PartnerJoinCTA({
   className = "bg-surface-lavender py-10 sm:py-14",
   compact = false,
   showTrustPoints = true,
+  showHighlights = true,
+  title = "Own a New Zealand Food, Beverage or Household Brand?",
 }: PartnerJoinCTAProps) {
   return (
     <section className={className}>
@@ -52,15 +56,17 @@ export function PartnerJoinCTA({
         <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
           <div
             className={
-              compact
-                ? "grid gap-5 p-4 sm:p-5 lg:grid-cols-2 lg:gap-8 lg:p-6"
-                : "grid gap-10 p-6 sm:p-8 lg:grid-cols-2 lg:gap-16 lg:p-12"
+              showHighlights
+                ? compact
+                  ? "grid gap-5 p-4 sm:p-5 lg:grid-cols-2 lg:gap-8 lg:p-6"
+                  : "grid gap-10 p-6 sm:p-8 lg:grid-cols-2 lg:gap-16 lg:p-12"
+                : compact
+                  ? "p-4 sm:p-5 lg:p-6"
+                  : "p-6 sm:p-8 lg:p-12"
             }
           >
             <div>
-              <h2 className={heading2}>
-                Own a New Zealand Food, Beverage or Household Brand?
-              </h2>
+              <h2 className={heading2}>{title}</h2>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
                 Join FoodVault free of charge and connect directly with members looking to save.
                 List your business, create an exclusive member offer and drive traffic directly to
@@ -110,6 +116,7 @@ export function PartnerJoinCTA({
               </div>
             </div>
 
+            {showHighlights ? (
             <div
               className={
                 compact ? "grid grid-cols-3 gap-1.5 sm:grid-cols-1 sm:gap-2" : "grid grid-cols-3 gap-2 sm:grid-cols-1 sm:gap-4"
@@ -148,6 +155,7 @@ export function PartnerJoinCTA({
                 </div>
               ))}
             </div>
+            ) : null}
           </div>
         </div>
       </div>
