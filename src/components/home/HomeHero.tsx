@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
@@ -7,8 +6,6 @@ import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import { DEFAULT_TRIAL_LENGTH_DAYS } from "@/lib/system-settings";
-
-const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-background.png";
 
 function visitorTrustIndicators(trialLengthDays: number) {
   return [
@@ -82,16 +79,16 @@ export function HomeHero({
       }`}
     >
       {isVisitorHero ? (
-        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-          <Image
-            src={VISITOR_HERO_BACKGROUND}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+          style={{ isolation: "isolate" }}
+        >
+          <img
+            src="/home/hero-visitor-background.png"
             alt=""
-            fill
-            priority
-            quality={100}
-            unoptimized
-            className="object-cover object-center [image-rendering:-webkit-optimize-contrast]"
-            sizes="100vw"
+            aria-hidden="true"
+            className="h-full w-full object-cover object-center"
+            style={{ imageRendering: "-webkit-optimize-contrast" }}
           />
         </div>
       ) : null}
