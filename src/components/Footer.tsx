@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
-import {
-  NAV_MENU_PREVIEW_ENABLED,
-  NAV_MENU_PREVIEW_GRADIENT,
-} from "@/lib/nav-menu-preview";
+import { NAV_MENU_PREVIEW_ENABLED } from "@/lib/nav-menu-preview";
+
+const FOOTER_BANNER = "/footer/footer_banner.png";
 
 const footerSections = [
   {
@@ -63,7 +62,7 @@ function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
         <div key={section.title}>
           <h3
             className={`text-sm font-semibold ${
-              menuPreview ? "text-black" : "text-foreground"
+              menuPreview ? "text-white" : "text-foreground"
             }`}
           >
             {section.title}
@@ -146,12 +145,19 @@ export function Footer() {
     <footer
       className={
         menuPreview
-          ? `border-t border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}`
+          ? "relative overflow-hidden border-t border-white/15 bg-primary"
           : "border-t border-border bg-background"
       }
     >
+      {menuPreview ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat"
+          style={{ backgroundImage: `url('${FOOTER_BANNER}')` }}
+          aria-hidden="true"
+        />
+      ) : null}
       <div
-        className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
+        className={`relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
           menuPreview ? "py-5" : "py-7"
         }`}
       >
