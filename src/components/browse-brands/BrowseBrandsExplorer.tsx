@@ -170,80 +170,84 @@ export function BrowseBrandsExplorer({
     <>
       <form onSubmit={handleSearchSubmit} className={formClassName}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Department
-            </span>
-            <select
-              value={department}
-              onChange={(event) => {
-                setDepartment(event.target.value);
-                setSubcategory("");
-              }}
-              className={selectClass}
-            >
-              <option value="">All Departments</option>
-              {PRIMARY_DEPARTMENTS.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="grid grid-cols-2 gap-3 lg:contents">
+            <label className="block min-w-0 flex-1">
+              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Department
+              </span>
+              <select
+                value={department}
+                onChange={(event) => {
+                  setDepartment(event.target.value);
+                  setSubcategory("");
+                }}
+                className={selectClass}
+              >
+                <option value="">All Departments</option>
+                {PRIMARY_DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Subcategory
-            </span>
-            <select
-              value={subcategory}
-              onChange={(event) => setSubcategory(event.target.value)}
-              disabled={!department}
-              className={`${selectClass} disabled:cursor-not-allowed disabled:opacity-60`}
-            >
-              <option value="">All Subcategories</option>
-              {subcategoryOptions.map((sub) => (
-                <option key={sub} value={sub}>
-                  {sub}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="block min-w-0 flex-1">
+              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Subcategory
+              </span>
+              <select
+                value={subcategory}
+                onChange={(event) => setSubcategory(event.target.value)}
+                disabled={!department}
+                className={`${selectClass} disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                <option value="">All Subcategories</option>
+                {subcategoryOptions.map((sub) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Diet &amp; Lifestyle
-            </span>
-            <select
-              value={dietaryLifestyle}
-              onChange={(event) => setDietaryLifestyle(event.target.value)}
-              className={selectClass}
-            >
-              <option value="">All Attributes</option>
-              {DIETARY_LIFESTYLE_ATTRIBUTES.map((attribute) => (
-                <option key={attribute} value={attribute}>
-                  {attribute}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="grid grid-cols-2 gap-3 lg:contents">
+            <label className="block min-w-0 flex-1">
+              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Diet &amp; Lifestyle
+              </span>
+              <select
+                value={dietaryLifestyle}
+                onChange={(event) => setDietaryLifestyle(event.target.value)}
+                className={selectClass}
+              >
+                <option value="">All Attributes</option>
+                {DIETARY_LIFESTYLE_ATTRIBUTES.map((attribute) => (
+                  <option key={attribute} value={attribute}>
+                    {attribute}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Member Discount
-            </span>
-            <select
-              value={minDiscount}
-              onChange={(event) => setMinDiscount(Number(event.target.value))}
-              className={selectClass}
-            >
-              {discountOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="block min-w-0 flex-1">
+              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                Member Discount
+              </span>
+              <select
+                value={minDiscount}
+                onChange={(event) => setMinDiscount(Number(event.target.value))}
+                className={selectClass}
+              >
+                {discountOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
           <label className="block min-w-0 flex-1">
             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
