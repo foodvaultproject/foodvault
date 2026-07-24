@@ -34,16 +34,17 @@ export function AboutHero() {
             </div>
           </div>
 
-          <div className="relative aspect-[16/5] w-full overflow-hidden rounded-2xl bg-surface-lavender lg:aspect-[32/10]">
+          <div className="relative mx-auto aspect-square w-full max-w-[800px] overflow-hidden rounded-2xl bg-surface-lavender lg:mx-0">
             <Image
               src={ABOUT_HERO_IMAGE}
-              alt=""
-              fill
+              alt="Kiwi and Piggy crash their shopping trolleys and become friends"
+              width={800}
+              height={800}
               priority
               quality={100}
               unoptimized
-              className="object-cover object-center [image-rendering:-webkit-optimize-contrast]"
-              sizes="(max-width: 1024px) 100vw, 560px"
+              className="h-full w-full object-contain [image-rendering:-webkit-optimize-contrast]"
+              sizes="(max-width: 1024px) 100vw, 800px"
             />
           </div>
         </div>
