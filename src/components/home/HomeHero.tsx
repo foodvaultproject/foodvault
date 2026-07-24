@@ -74,8 +74,12 @@ export function HomeHero({
 
   return (
     <section
-      className={`relative overflow-hidden border-b border-border ${
-        isActiveMember ? "bg-[#EEF2FF]" : isVisitorHero ? "" : "bg-background"
+      className={`relative overflow-hidden border-b ${
+        isVisitorHero
+          ? "border-white/15 bg-primary"
+          : isActiveMember
+            ? "border-border bg-[#EEF2FF]"
+            : "border-border bg-background"
       }`}
     >
       {isVisitorHero ? (
@@ -96,20 +100,14 @@ export function HomeHero({
         className={
           isActiveMember
             ? "relative z-10 mx-auto max-w-[1200px] px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8"
-            : `relative z-10 mx-auto grid max-w-[1200px] items-center px-4 sm:px-6 lg:grid-cols-2 lg:px-8 ${
+            : `relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
                 isPartner
-                  ? PARTNER_HERO_PY
+                  ? `grid items-center lg:grid-cols-2 ${PARTNER_HERO_PY} gap-2.5 lg:gap-3.5`
                   : isFreeTrial
-                    ? PARTNER_HERO_PY
-                    : isCompactHero
-                      ? COMPACT_HERO_PY
-                      : HOME_HERO_PY_COMPACT
-              } ${
-                isPartner || isFreeTrial
-                  ? "gap-2.5 lg:gap-3.5"
-                  : isCompactHero
-                    ? COMPACT_HERO_GRID_GAP
-                    : "gap-8 lg:gap-12"
+                    ? `grid items-center lg:grid-cols-2 ${PARTNER_HERO_PY} gap-2.5 lg:gap-3.5`
+                    : isVisitorHero
+                      ? HOME_HERO_PY_COMPACT
+                      : `grid items-center lg:grid-cols-2 ${COMPACT_HERO_PY} ${COMPACT_HERO_GRID_GAP}`
               }`
         }
       >
@@ -172,11 +170,11 @@ export function HomeHero({
             </>
           ) : (
             <>
-              <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
+              <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-white sm:text-[2.75rem] lg:text-[3rem]">
                 Discover Kiwi Brands.{" "}
-                <span className="text-primary">Enjoy Member Savings.</span>
+                <span className="text-white/95">Enjoy Member Savings.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-black sm:text-lg">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
                 FoodVault exists for one reason: to help you spend less on the products you love.
                 We connect you directly with Kiwi brands offering exclusive member pricing, helping
                 you save more on the things you love!
@@ -184,11 +182,11 @@ export function HomeHero({
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <MemberSignupCtaLink
                   variant="start-free-trial"
-                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto"
                 />
                 <Link
                   href="/browse-brands"
-                  className="inline-flex w-full items-center justify-center rounded-sm border border-white bg-transparent px-6 py-3 text-sm font-medium text-black transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
                 >
                   Explore Brands
                 </Link>
@@ -219,43 +217,37 @@ export function HomeHero({
           ) : null}
         </div>
 
-        {!isActiveMember ? (
-          <div
-            className={
-              isCompactHero
-                ? COMPACT_LOGO_GRID_CLASS
-                : "mx-auto hidden w-[64%] max-w-[19.2rem] lg:block"
-            }
-          >
-            <div className={`grid grid-cols-2 ${isCompactHero ? "gap-1.5" : "gap-2.5"}`}>
-              <div className={isCompactHero ? "space-y-1.5" : "space-y-2.5"}>
+        {isCompactHero ? (
+          <div className={COMPACT_LOGO_GRID_CLASS}>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="space-y-1.5">
                 <HeroPartnerFrame
                   partner={partner1}
                   priority
                   enterFrom="top"
                   delayMs={0}
-                  compact={isCompactHero}
+                  compact
                 />
                 <HeroPartnerFrame
                   partner={partner3}
                   enterFrom="left"
                   delayMs={160}
-                  compact={isCompactHero}
+                  compact
                 />
               </div>
-              <div className={isCompactHero ? "space-y-1.5 pt-2.5" : "space-y-2.5 pt-5"}>
+              <div className="space-y-1.5 pt-2.5">
                 <HeroPartnerFrame
                   partner={partner2}
                   enterFrom="right"
                   delayMs={80}
-                  compact={isCompactHero}
+                  compact
                 />
                 <HeroPartnerFrame
                   partner={partner4}
                   priority
                   enterFrom="bottom"
                   delayMs={240}
-                  compact={isCompactHero}
+                  compact
                 />
               </div>
             </div>
