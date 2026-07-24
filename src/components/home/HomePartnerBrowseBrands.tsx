@@ -1,5 +1,5 @@
 import { BrowseBrandsExplorer } from "@/components/browse-brands/BrowseBrandsExplorer";
-import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_MEMBER_BROWSE, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 /** Anchor id for the embedded Discover explorer rendered on the homepage. */
@@ -28,6 +28,8 @@ type HomePartnerBrowseBrandsProps = {
   exploreHeadingClassName?: string;
   showTrendingSearches?: boolean;
   compactSpacing?: boolean;
+  /** Active/free trial member homepage — wider gap between hero and filters. */
+  memberHomepage?: boolean;
 };
 
 export function HomePartnerBrowseBrands({
@@ -42,15 +44,18 @@ export function HomePartnerBrowseBrands({
   exploreHeadingClassName,
   showTrendingSearches = false,
   compactSpacing = false,
+  memberHomepage = false,
 }: HomePartnerBrowseBrandsProps) {
+  const sectionPadding = memberHomepage
+    ? SECTION_PY_HOME_MEMBER_BROWSE
+    : showTrendingSearches || compactSpacing
+      ? SECTION_PY_HOME_PARTNER
+      : SECTION_PY_HOME_REFINE;
+
   return (
     <section
       id={HOME_BROWSE_ANCHOR}
-      className={`scroll-mt-24 bg-[#f3f4f6] ${
-        showTrendingSearches || compactSpacing
-          ? SECTION_PY_HOME_PARTNER
-          : SECTION_PY_HOME_REFINE
-      }`}
+      className={`scroll-mt-24 bg-[#f3f4f6] ${sectionPadding}`}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <BrowseBrandsExplorer

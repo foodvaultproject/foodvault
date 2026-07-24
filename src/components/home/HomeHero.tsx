@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
-import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER } from "@/components/home/section-spacing";
+import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER, HOME_HERO_PY_ACTIVE_MEMBER, HOME_HERO_PY_FREE_TRIAL } from "@/components/home/section-spacing";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
@@ -99,12 +99,12 @@ export function HomeHero({
       <div
         className={
           isActiveMember
-            ? "relative z-10 mx-auto max-w-[1200px] px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8"
+            ? `relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${HOME_HERO_PY_ACTIVE_MEMBER}`
             : `relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
                 isPartner
                   ? `grid items-center lg:grid-cols-2 ${PARTNER_HERO_PY} gap-2.5 lg:gap-3.5`
                   : isFreeTrial
-                    ? `grid items-center lg:grid-cols-2 ${PARTNER_HERO_PY} gap-2.5 lg:gap-3.5`
+                    ? `grid items-center lg:grid-cols-2 ${HOME_HERO_PY_FREE_TRIAL} gap-2.5 lg:gap-3.5`
                     : isVisitorHero
                       ? HOME_HERO_PY_COMPACT
                       : `grid items-center lg:grid-cols-2 ${COMPACT_HERO_PY} ${COMPACT_HERO_GRID_GAP}`

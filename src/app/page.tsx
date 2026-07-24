@@ -154,6 +154,7 @@ export default async function Home({ searchParams }: HomeProps) {
           exploreHeading=""
           showTrendingSearches
           compactSpacing
+          memberHomepage
         />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
@@ -188,6 +189,7 @@ export default async function Home({ searchParams }: HomeProps) {
           initialSubcategory={initialSubcategory}
           exploreHeading=""
           showTrendingSearches
+          memberHomepage
         />
         <HomeWhyJoinFeatures compactSpacing />
         <HomeCategories onHomepage compactSpacing />
