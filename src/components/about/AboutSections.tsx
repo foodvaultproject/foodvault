@@ -1,30 +1,52 @@
 import Image from "next/image";
+import Link from "next/link";
+import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+
+const ABOUT_HERO_IMAGE = "/about/about-hero-bg.png";
 
 export function AboutHero() {
   return (
-    <section className="relative overflow-hidden border-b border-border">
-      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-        <Image
-          src="/about/about-hero-bg.png"
-          alt=""
-          fill
-          priority
-          quality={100}
-          unoptimized
-          className="object-cover object-center [image-rendering:-webkit-optimize-contrast]"
-          sizes="100vw"
-        />
-      </div>
+    <section className="overflow-hidden border-b border-border bg-page">
+      <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+        <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
+          <div className="text-center lg:text-left">
+            <h1 className="text-3xl font-bold leading-[1.1] tracking-tight text-primary sm:text-4xl lg:text-[2.75rem]">
+              Once upon a time...
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mx-0">
+              Kiwi was on a mission to discover awesome Kiwi brands, while Piggy was busy chasing
+              savings. They crashed trolleys, became good mates, and FoodVault was born. Now
+              they&apos;re on a mission to help Kiwi brands get discovered and help Kiwis shop
+              direct and save.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+              <MemberSignupCtaLink
+                variant="start-free-trial"
+                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
+              />
+              <Link
+                href="/browse-brands"
+                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-transparent px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
+              >
+                Browse Brands
+              </Link>
+            </div>
+          </div>
 
-      <div className="relative z-10 mx-auto max-w-[1200px] px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <h1 className="mx-auto max-w-3xl text-3xl font-bold leading-[1.1] tracking-tight text-primary sm:text-4xl lg:text-[2.75rem]">
-          Supporting Kiwi Brands. Helping Kiwis Save.
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          FoodVault helps Kiwis discover great local brands, unlock exclusive member savings,
-          and shop directly from the businesses behind the products they love.
-        </p>
+          <div className="relative aspect-[16/5] w-full overflow-hidden rounded-2xl bg-surface-lavender lg:aspect-[32/10]">
+            <Image
+              src={ABOUT_HERO_IMAGE}
+              alt=""
+              fill
+              priority
+              quality={100}
+              unoptimized
+              className="object-cover object-center [image-rendering:-webkit-optimize-contrast]"
+              sizes="(max-width: 1024px) 100vw, 560px"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

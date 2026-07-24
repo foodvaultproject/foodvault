@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "About FoodVault",
   description:
-    "FoodVault helps Kiwis discover great local brands, unlock exclusive member savings, and shop directly from the businesses behind the products they love.",
+    "Kiwi and Piggy crashed trolleys, became good mates, and FoodVault was born. Discover how we help Kiwi brands get discovered and Kiwis shop direct and save.",
 };
 
 export default function AboutPage() {

@@ -76,28 +76,30 @@ export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing
             Save more. Discover more. Shop smarter.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {whyJoinFeatures.map((feature) => (
             <article
               key={feature.title}
-              className="rounded-2xl border border-purple-100/60 bg-primary/5 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-purple-200 hover:shadow-xl sm:p-6"
+              className="flex min-h-[9.5rem] overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-200 hover:shadow-card sm:min-h-[10.5rem]"
             >
-              <div className="flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
+              <div className="flex w-1/2 shrink-0 items-center justify-center bg-[#F5F2FF] p-2 sm:p-3">
                 <img
                   src={feature.iconSrc}
                   alt=""
                   aria-hidden="true"
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 object-contain sm:h-16 sm:w-16"
+                  width={120}
+                  height={120}
+                  className="h-full max-h-24 w-full object-contain sm:max-h-28"
                 />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-primary sm:text-base">
-                {feature.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {feature.description}
-              </p>
+              <div className="flex w-1/2 flex-col justify-center bg-white px-2.5 py-3 sm:px-3 sm:py-4">
+                <h3 className="text-xs font-bold leading-snug text-primary sm:text-sm">
+                  {feature.title}
+                </h3>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground sm:mt-2 sm:text-xs">
+                  {feature.description}
+                </p>
+              </div>
             </article>
           ))}
         </div>
