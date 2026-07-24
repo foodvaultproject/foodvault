@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { NAV_MENU_PREVIEW_ENABLED } from "@/lib/nav-menu-preview";
 
-const FOOTER_BANNER = "/footer/footer_banner.png";
+const FOOTER_BANNER = "/footer/footer-banner.png";
 
 const footerSections = [
   {
