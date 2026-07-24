@@ -2,20 +2,20 @@ import { DEFAULT_SUPPORT_EMAIL } from "@/lib/system-settings";
 
 /** FoodVault brand tokens aligned with src/app/globals.css */
 export const EMAIL_BRAND = {
-  primary: "#4f46e5",
-  primaryHover: "#4338ca",
-  primaryPressed: "#3730a3",
-  primaryAccent: "#7c3aed",
+  primary: "#8b7cf6",
+  primaryHover: "#7a69f2",
+  primaryPressed: "#6f5ce8",
+  primaryAccent: "#6f5ce8",
   primaryForeground: "#ffffff",
-  primaryGradient: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+  primaryGradient: "linear-gradient(135deg, #8b7cf6 0%, #6f5ce8 100%)",
   background: "#ffffff",
-  pageBackground: "#f8fafc",
+  pageBackground: "#f5f2ff",
   foreground: "#111827",
   body: "#374151",
   muted: "#6b7280",
   mutedLight: "#9ca3af",
-  border: "#e5e7eb",
-  surface: "#f8fafc",
+  border: "#e7e2ff",
+  surface: "#f5f2ff",
   radiusButton: "8px",
   radiusCard: "12px",
   fontFamily:

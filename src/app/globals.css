@@ -4,26 +4,26 @@
 @theme {
   /* Backgrounds */
   --color-background: #ffffff;
-  --color-page: #f8fafc;
+  --color-page: #f5f2ff;
   --color-card: #ffffff;
   --color-foreground: #111827;
   --color-body: #374151;
   --color-muted: #6b7280;
   --color-muted-foreground: #374151;
   --color-muted-light: #9ca3af;
-  --color-border: #e5e7eb;
-  --color-border-hover: #d1d5db;
+  --color-border: #e7e2ff;
+  --color-border-hover: #d4cbf5;
 
-  /* Brand indigo */
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-pressed: #3730a3;
-  --color-primary-accent: #7c3aed;
+  /* Brand purple */
+  --color-primary: #8b7cf6;
+  --color-primary-hover: #7a69f2;
+  --color-primary-pressed: #6f5ce8;
+  --color-primary-accent: #6f5ce8;
   --color-primary-foreground: #ffffff;
 
   /* Surfaces */
-  --color-surface: #f8fafc;
-  --color-surface-lavender: #f1f5f9;
+  --color-surface: #f5f2ff;
+  --color-surface-lavender: #eee9ff;
 
   /* Dark promotional sections */
   --color-navy: #111827;
@@ -34,7 +34,7 @@
   --color-success-light: #dcfce7;
   --color-warning: #f59e0b;
   --color-danger: #dc2626;
-  --color-info: #4f46e5;
+  --color-info: #8b7cf6;
 
   --font-sans: var(--font-hanken-grotesk);
 
@@ -47,38 +47,38 @@
   --radius-2xl: 12px;
   --radius-full: 9999px;
 
-  --shadow-card: 0 8px 30px rgba(15, 23, 42, 0.06);
-  --shadow-card-hover: 0 12px 40px rgba(15, 23, 42, 0.1);
-  --shadow-button: 0 8px 20px rgba(79, 70, 229, 0.25);
+  --shadow-card: 0 8px 30px rgba(111, 92, 232, 0.06);
+  --shadow-card-hover: 0 12px 40px rgba(111, 92, 232, 0.1);
+  --shadow-button: 0 8px 20px rgba(139, 124, 246, 0.25);
 }
 
 :root {
   --background: #ffffff;
-  --page: #f8fafc;
+  --page: #f5f2ff;
   --card: #ffffff;
   --foreground: #111827;
   --body: #374151;
   --muted: #6b7280;
   --muted-foreground: #374151;
   --muted-light: #9ca3af;
-  --border: #e5e7eb;
-  --border-hover: #d1d5db;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-pressed: #3730a3;
-  --primary-accent: #7c3aed;
+  --border: #e7e2ff;
+  --border-hover: #d4cbf5;
+  --primary: #8b7cf6;
+  --primary-hover: #7a69f2;
+  --primary-pressed: #6f5ce8;
+  --primary-accent: #6f5ce8;
   --primary-foreground: #ffffff;
-  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  --primary-gradient-hover: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
-  --surface: #f8fafc;
-  --surface-lavender: #f1f5f9;
+  --primary-gradient: linear-gradient(135deg, #8b7cf6 0%, #6f5ce8 100%);
+  --primary-gradient-hover: linear-gradient(135deg, #7a69f2 0%, #5e4dd4 100%);
+  --surface: #f5f2ff;
+  --surface-lavender: #eee9ff;
   --navy: #111827;
   --hero-dark: #0f172a;
   --success: #16a34a;
   --success-light: #dcfce7;
   --warning: #f59e0b;
   --danger: #dc2626;
-  --info: #4f46e5;
+  --info: #8b7cf6;
   --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 10px;
@@ -87,11 +87,11 @@
   --radius-card: var(--radius-lg);
   --radius-button: var(--radius-sm);
   --radius-input: var(--radius-md);
-  --shadow-card: 0 8px 30px rgba(15, 23, 42, 0.06);
-  --shadow-card-hover: 0 12px 40px rgba(15, 23, 42, 0.1);
-  --shadow-button: 0 8px 20px rgba(79, 70, 229, 0.25);
-  --shadow-button-hover: 0 12px 28px rgba(79, 70, 229, 0.32);
-  --ring: rgba(79, 70, 229, 0.15);
+  --shadow-card: 0 8px 30px rgba(111, 92, 232, 0.06);
+  --shadow-card-hover: 0 12px 40px rgba(111, 92, 232, 0.1);
+  --shadow-button: 0 8px 20px rgba(139, 124, 246, 0.25);
+  --shadow-button-hover: 0 12px 28px rgba(139, 124, 246, 0.32);
+  --ring: rgba(139, 124, 246, 0.15);
 }
 
 body {
@@ -251,7 +251,7 @@ body {
   }
 
   .fv-btn-ghost:hover {
-    background: rgba(79, 70, 229, 0.08);
+    background: rgba(139, 124, 246, 0.08);
   }
 
   .fv-card {

@@ -71,7 +71,7 @@ const howItWorksSteps = [
 export function ForBrandsHero() {
   return (
     <section className="relative overflow-hidden bg-surface-lavender">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.08),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,124,246,0.08),transparent_50%)]" />
       <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <div>

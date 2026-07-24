@@ -64,7 +64,7 @@ const faqs = [
 type Feedback = { type: "error" | "success" | "info"; text: string };
 
 const memberStatusSectionClass =
-  "rounded-lg border border-primary/30 bg-violet-50 p-4 shadow-sm";
+  "rounded-lg border border-primary/30 bg-primary/5 p-4 shadow-sm";
 
 type MemberMembershipViewProps = {
   trialBanner: MemberTrialBanner | null;
@@ -199,7 +199,7 @@ export function MemberMembershipView({
             ) : isTrialing && trialBanner ? (
               <MemberTrialBannerCard
                 trialBanner={trialBanner}
-                className={`${memberStatusSectionClass} !bg-violet-50 !p-4 sm:!p-4`}
+                className={`${memberStatusSectionClass} !bg-primary/5 !p-4 sm:!p-4`}
               />
             ) : (
               <section className={memberStatusSectionClass}>

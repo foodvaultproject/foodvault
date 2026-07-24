@@ -111,7 +111,7 @@ export function WelcomeScreen({
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
       {/* Hero */}
-      <div className="overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-8 text-center shadow-sm sm:p-12">
+      <div className="overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-surface-lavender via-white to-page p-8 text-center shadow-sm sm:p-12">
         <span className="inline-flex items-center gap-2 rounded-full bg-success-light px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-success">
           {plan === "paid" ? "Membership Active" : "Free Trial Active"}
         </span>

@@ -42,7 +42,7 @@ export function renderMemberFreeTrialStartedEmail(
     ]),
     emailButton(browseUrl, "Browse Brands"),
     emailParagraph(
-      `When you're ready, you can upgrade from your account or visit our <a href="${escapeHtml(pricingUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">membership page</a>.`
+      `When you're ready, you can upgrade from your account or visit our <a href="${escapeHtml(pricingUrl)}" style="color:#8b7cf6;font-weight:600;text-decoration:none;">membership page</a>.`
     ),
   ].join("");
 

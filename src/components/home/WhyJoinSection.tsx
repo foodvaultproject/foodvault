@@ -33,7 +33,7 @@ export function WhyJoinSection() {
             <div className="mx-auto flex max-w-xs flex-col items-center text-center">
               <div className="relative flex h-40 w-40 items-center justify-center">
                 <svg className="absolute inset-0 h-full w-full -rotate-90 text-primary" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#e7e2ff" strokeWidth="8" />
                   <circle
                     cx="50"
                     cy="50"

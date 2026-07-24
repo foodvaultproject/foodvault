@@ -672,7 +672,7 @@ export function PartnerListingEditor() {
           </Link>
         </div>
 
-        <section className="mt-6 rounded-lg border-2 border-violet-200 bg-violet-50 px-5 py-4 shadow-sm">
+        <section className="mt-6 rounded-lg border-2 border-primary/25 bg-primary/5 px-5 py-4 shadow-sm">
           <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">
             Member Discount Code
           </p>

@@ -37,7 +37,7 @@ export function renderMemberFreeTrialEndedEmail(
     ),
     emailButton(pricingUrl, "Subscribe to Unlock Savings"),
     emailParagraph(
-      `Or <a href="${escapeHtml(browseUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">keep browsing brands</a> at your own pace.`
+      `Or <a href="${escapeHtml(browseUrl)}" style="color:#8b7cf6;font-weight:600;text-decoration:none;">keep browsing brands</a> at your own pace.`
     ),
   ].join("");
 

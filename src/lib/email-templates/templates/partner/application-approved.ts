@@ -49,7 +49,7 @@ export function renderPartnerApplicationApprovedEmail(
       `After you confirm in My Listing, we'll send a final email when <strong>${businessName}</strong> is live for members.`
     ),
     emailParagraph(
-      `Need help? Open <a href="${escapeHtml(listingUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">My Listing</a> once you're logged in.`
+      `Need help? Open <a href="${escapeHtml(listingUrl)}" style="color:#8b7cf6;font-weight:600;text-decoration:none;">My Listing</a> once you're logged in.`
     ),
   ]
     .filter(Boolean)

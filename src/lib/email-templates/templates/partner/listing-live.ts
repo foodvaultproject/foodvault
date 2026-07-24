@@ -39,11 +39,11 @@ export function renderPartnerListingLiveEmail(
     emailButton(partnerPortalUrl, "View Your Live Listing"),
     memberPreviewUrl
       ? emailParagraph(
-          `Want to see how members view your brand? <a href="${escapeHtml(memberPreviewUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">Preview your public listing</a>.`
+          `Want to see how members view your brand? <a href="${escapeHtml(memberPreviewUrl)}" style="color:#8b7cf6;font-weight:600;text-decoration:none;">Preview your public listing</a>.`
         )
       : "",
     emailParagraph(
-      `Log in with your partner account to manage your listing in <a href="${escapeHtml(partnerPortalUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">My Listing</a>.`
+      `Log in with your partner account to manage your listing in <a href="${escapeHtml(partnerPortalUrl)}" style="color:#8b7cf6;font-weight:600;text-decoration:none;">My Listing</a>.`
     ),
   ]
     .filter(Boolean)

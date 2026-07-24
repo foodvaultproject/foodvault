@@ -47,7 +47,7 @@ const partnerBenefits = [
 export function SignupPartnerSection() {
   return (
     <section className="mt-7 border-t border-border pt-7 sm:mt-8 sm:pt-8">
-      <div className="overflow-hidden rounded-lg border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50 shadow-card">
+      <div className="overflow-hidden rounded-lg border border-border bg-gradient-to-br from-surface-lavender via-white to-page shadow-card">
         <div className="grid gap-4 p-3 sm:p-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-5 lg:p-5">
           <div>
             <p className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-primary">
@@ -82,7 +82,7 @@ export function SignupPartnerSection() {
             {partnerBenefits.map((benefit) => (
               <div
                 key={benefit.title}
-                className="rounded-lg border border-indigo-100 bg-white/70 p-2 sm:p-2.5"
+                className="rounded-lg border border-border bg-white/70 p-2 sm:p-2.5"
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded-sm bg-primary/10 text-primary">
                   {benefit.icon}

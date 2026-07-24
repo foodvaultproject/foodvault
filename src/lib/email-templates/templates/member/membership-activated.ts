@@ -35,7 +35,7 @@ export function renderMemberMembershipActivatedEmail(
     ]),
     emailButton(browseUrl, "Start Saving"),
     emailParagraph(
-      `Visit your <a href="${escapeHtml(dashboardUrl)}" style="color:#4f46e5;font-weight:600;text-decoration:none;">member dashboard</a> anytime to manage your account.`
+      `Visit your <a href="${escapeHtml(dashboardUrl)}" style="color:#8b7cf6;font-weight:600;text-decoration:none;">member dashboard</a> anytime to manage your account.`
     ),
   ].join("");
 

@@ -123,7 +123,7 @@ export function PricingDualCTASection() {
           </article>
 
           <article className="flex h-full flex-col rounded-2xl border border-primary/25 bg-[#EEF2FF] p-6 shadow-sm sm:p-8">
-            <h2 className={`${heading2} text-purple-950`}>Own a Kiwi Brand?</h2>
+            <h2 className={`${heading2} text-foreground`}>Own a Kiwi Brand?</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:mt-4 sm:text-base">
               Join FoodVault free of charge and connect directly with members looking to save. List
               your business, create an exclusive member offer and drive traffic directly to your own
