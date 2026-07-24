@@ -33,6 +33,8 @@ const discountOptions = [
   { value: 25, label: "25% or more" },
 ];
 
+const FILTER_PEEPING_IMAGE = "/filter/peeping.png";
+
 const selectClass =
   "w-full rounded-md border border-border bg-background px-2.5 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
@@ -145,9 +147,13 @@ export function BrowseBrandsExplorer({
       ? "mt-5 sm:mt-7 lg:mt-8"
       : "mt-10 sm:mt-14 lg:mt-16";
   const formPadding = compactSpacing ? "p-3" : "p-5";
-  const formClassName = embedded
-    ? `rounded-lg border border-border bg-background ${formPadding} shadow-sm`
-    : `${formTopMargin} rounded-lg border border-border bg-background ${formPadding} shadow-sm`;
+  const filterShellClassName = embedded
+    ? "relative overflow-visible"
+    : `${formTopMargin} relative overflow-visible`;
+  const filterFormClassName = `overflow-visible rounded-lg border border-border bg-background ${formPadding} shadow-sm`;
+  const filterPeepingClassName = compactSpacing
+    ? "pointer-events-none absolute -top-10 left-6 z-10 block h-10 w-auto max-w-[10.5rem] object-contain object-bottom sm:-top-12 sm:left-7 sm:h-12 md:-top-14 md:h-14 lg:-top-16 lg:left-8 lg:h-16 lg:max-w-[14rem]"
+    : "pointer-events-none absolute -top-12 left-8 z-10 block h-12 w-auto max-w-[11rem] object-contain object-bottom sm:-top-14 sm:h-14 md:-top-16 md:h-16 lg:-top-[4.5rem] lg:left-8 lg:h-[4.5rem] lg:max-w-[14rem]";
 
   const blockGap = compactSpacing
     ? showTrendingSearches
@@ -168,8 +174,15 @@ export function BrowseBrandsExplorer({
 
   return (
     <>
-      <form onSubmit={handleSearchSubmit} className={formClassName}>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
+      <div className={filterShellClassName}>
+        <img
+          src={FILTER_PEEPING_IMAGE}
+          alt=""
+          aria-hidden="true"
+          className={filterPeepingClassName}
+        />
+        <form onSubmit={handleSearchSubmit} className={filterFormClassName}>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
           <div className="grid grid-cols-2 gap-3 lg:contents">
             <label className="block min-w-0 flex-1">
               <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
@@ -274,7 +287,8 @@ export function BrowseBrandsExplorer({
             {isPending ? "Searching..." : "Search"}
           </button>
         </div>
-      </form>
+        </form>
+      </div>
 
       {showTrendingSearches ? (
         <HomeTrendingSearches
