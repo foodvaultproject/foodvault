@@ -191,7 +191,7 @@ export default async function Home({ searchParams }: HomeProps) {
           showTrendingSearches
           memberHomepage
         />
-        <HomeWhyJoinFeatures compactSpacing />
+        <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
@@ -217,7 +217,7 @@ export default async function Home({ searchParams }: HomeProps) {
         canFavorite={favoriteContext.canFavorite}
         favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
       />
-      <HomeWhyJoinFeatures />
+      <HomeWhyJoinFeatures mobileTwoColumn />
       <HomeCategories />
       <HomeTrendingSection
         trending={trendingBrands.brands}

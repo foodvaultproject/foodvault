@@ -62,7 +62,14 @@ const whyJoinFeatures = [
   },
 ];
 
-export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing?: boolean }) {
+export function HomeWhyJoinFeatures({
+  compactSpacing = false,
+  mobileTwoColumn = false,
+}: {
+  compactSpacing?: boolean;
+  /** Visitor homepage: two feature cards per row on mobile with larger imagery. */
+  mobileTwoColumn?: boolean;
+}) {
   return (
     <section
       className={`bg-background ${
@@ -76,27 +83,65 @@ export function HomeWhyJoinFeatures({ compactSpacing = false }: { compactSpacing
             Save more. Discover more. Shop smarter.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          className={
+            mobileTwoColumn
+              ? "grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4"
+              : "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          }
+        >
           {whyJoinFeatures.map((feature) => (
             <article
               key={feature.title}
-              className="flex min-h-[9.5rem] overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-200 hover:shadow-card sm:min-h-[10.5rem]"
+              className={
+                mobileTwoColumn
+                  ? "flex min-h-[8.25rem] items-stretch overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-200 hover:shadow-card sm:min-h-[10.5rem]"
+                  : "flex min-h-[9.5rem] overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-200 hover:shadow-card sm:min-h-[10.5rem]"
+              }
             >
-              <div className="flex w-1/2 shrink-0 items-center justify-center bg-[#F5F2FF] p-2 sm:p-3">
+              <div
+                className={
+                  mobileTwoColumn
+                    ? "flex w-[46%] shrink-0 items-stretch justify-center self-stretch bg-[#F5F2FF] p-0.5 sm:w-1/2 sm:p-3"
+                    : "flex w-1/2 shrink-0 items-center justify-center bg-[#F5F2FF] p-2 sm:p-3"
+                }
+              >
                 <img
                   src={feature.iconSrc}
                   alt=""
                   aria-hidden="true"
                   width={120}
                   height={120}
-                  className="h-full max-h-24 w-full object-contain sm:max-h-28"
+                  className={
+                    mobileTwoColumn
+                      ? "h-full max-h-full w-full min-h-0 object-contain object-center sm:max-h-28"
+                      : "h-full max-h-24 w-full object-contain sm:max-h-28"
+                  }
                 />
               </div>
-              <div className="flex w-1/2 flex-col justify-center bg-white px-2.5 py-3 sm:px-3 sm:py-4">
-                <h3 className="text-xs font-bold leading-snug text-primary sm:text-sm">
+              <div
+                className={
+                  mobileTwoColumn
+                    ? "flex w-[54%] flex-col justify-center bg-white px-1.5 py-2 sm:w-1/2 sm:px-3 sm:py-4"
+                    : "flex w-1/2 flex-col justify-center bg-white px-2.5 py-3 sm:px-3 sm:py-4"
+                }
+              >
+                <h3
+                  className={
+                    mobileTwoColumn
+                      ? "text-[10px] font-bold leading-snug text-primary sm:text-sm"
+                      : "text-xs font-bold leading-snug text-primary sm:text-sm"
+                  }
+                >
                   {feature.title}
                 </h3>
-                <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground sm:mt-2 sm:text-xs">
+                <p
+                  className={
+                    mobileTwoColumn
+                      ? "mt-1 text-[10px] leading-snug text-muted-foreground sm:mt-2 sm:text-xs sm:leading-relaxed"
+                      : "mt-1.5 text-[11px] leading-relaxed text-muted-foreground sm:mt-2 sm:text-xs"
+                  }
+                >
                   {feature.description}
                 </p>
               </div>

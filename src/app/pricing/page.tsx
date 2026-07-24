@@ -26,7 +26,7 @@ export default async function PricingPage() {
   return (
     <>
       <PricingHero settings={settings} />
-      <HomeWhyJoinFeatures />
+      <HomeWhyJoinFeatures mobileTwoColumn />
       <PricingFAQSection trialLengthDays={settings.trialLengthDays} />
       <PricingDualCTASection />
     </>

@@ -59,7 +59,7 @@ export function HowItWorksPageContent({
     <>
       <HowItWorksHero isActiveMember={isActiveMember} />
       <HowFoodVaultWorksSection />
-      <HomeWhyJoinFeatures />
+      <HomeWhyJoinFeatures mobileTwoColumn />
     </>
   );
 }
