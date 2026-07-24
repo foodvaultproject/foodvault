@@ -68,13 +68,13 @@ export const SECTION_PY_HOME_PARTNER_WIDE = "py-4 sm:py-[1.375rem] md:py-7";
 /** Partner homepage hero padding (~50% tighter than compact member hero). */
 export const HOME_HERO_PY_PARTNER = "py-2 sm:py-2.5 lg:py-3";
 
-/** Free trial member homepage hero — 60% extra bottom padding before browse filters. */
+/** Free trial member homepage hero — extra bottom padding before browse filters. */
 export const HOME_HERO_PY_FREE_TRIAL =
-  "pt-2 pb-[0.8rem] sm:pt-2.5 sm:pb-4 lg:pt-3 lg:pb-[1.2rem]";
+  "pt-2 pb-[0.96rem] sm:pt-2.5 sm:pb-[1.2rem] lg:pt-3 lg:pb-[1.44rem]";
 
-/** Active member homepage hero — 60% extra bottom padding before browse filters. */
-export const HOME_HERO_PY_ACTIVE_MEMBER = "pt-1.5 pb-[0.6rem] sm:pt-2 sm:pb-[0.8rem]";
+/** Active member homepage hero — extra bottom padding before browse filters. */
+export const HOME_HERO_PY_ACTIVE_MEMBER = "pt-1.5 pb-[0.72rem] sm:pt-2 sm:pb-[0.96rem]";
 
-/** Member homepage browse section — 60% extra top padding after hero banner. */
+/** Member homepage browse section — extra top padding after hero banner. */
 export const SECTION_PY_HOME_MEMBER_BROWSE =
-  "pt-[1.4rem] pb-3.5 sm:pt-[1.6rem] sm:pb-4 md:pt-[2.2rem] md:pb-[1.375rem]";
+  "pt-[1.68rem] pb-3.5 sm:pt-[1.92rem] sm:pb-4 md:pt-[2.64rem] md:pb-[1.375rem]";
