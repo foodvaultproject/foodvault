@@ -9,7 +9,7 @@ type OwnAKiwiBrandCardProps = {
 export function OwnAKiwiBrandCard({ className = "" }: OwnAKiwiBrandCardProps) {
   return (
     <article
-      className={`flex h-full flex-col rounded-2xl border border-primary/25 bg-[#EEF2FF] p-6 shadow-sm sm:p-8 ${className}`.trim()}
+      className={`flex h-full flex-col rounded-2xl border border-primary/25 bg-[#F5F2FF] p-6 shadow-sm sm:p-8 ${className}`.trim()}
     >
       <h2 className={`${heading2} text-foreground`}>Own a Kiwi Brand?</h2>
       <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:mt-4 sm:text-base">
