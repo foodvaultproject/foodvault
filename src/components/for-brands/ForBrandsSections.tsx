@@ -122,34 +122,36 @@ export function ForBrandsHero() {
 
 export function PartnerBenefitsSection() {
   return (
-    <section id="partner-benefits" className="scroll-mt-24 bg-[#EEF2FF] py-8 sm:py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-center text-2xl font-bold tracking-tight text-black sm:text-3xl">
+    <section id="partner-benefits" className="scroll-mt-24 bg-background py-8 sm:py-10">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Partner Benefits
         </h2>
 
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {partnerBenefits.map((card) => (
             <article
               key={card.title}
-              className="rounded-2xl border border-primary/30 bg-[color-mix(in_srgb,var(--color-primary)_5%,white)] p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/50 hover:shadow-xl sm:p-6"
+              className="flex min-h-[9.5rem] overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-200 hover:shadow-card sm:min-h-[10.5rem]"
             >
-              <div className="flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
+              <div className="flex w-1/2 shrink-0 items-center justify-center bg-[#F5F2FF] p-2 sm:p-3">
                 <img
                   src={card.iconSrc}
                   alt=""
                   aria-hidden="true"
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 object-contain sm:h-16 sm:w-16"
+                  width={120}
+                  height={120}
+                  className="h-full max-h-24 w-full object-contain sm:max-h-28"
                 />
               </div>
-              <h3 className="mt-4 text-sm font-semibold text-primary sm:text-base">
-                {card.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {card.description}
-              </p>
+              <div className="flex w-1/2 flex-col justify-center bg-white px-2.5 py-3 sm:px-3 sm:py-4">
+                <h3 className="text-xs font-bold leading-snug text-primary sm:text-sm">
+                  {card.title}
+                </h3>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground sm:mt-2 sm:text-xs">
+                  {card.description}
+                </p>
+              </div>
             </article>
           ))}
         </div>
