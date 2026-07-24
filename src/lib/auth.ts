@@ -7,6 +7,7 @@ export const LOGIN_PATH = "/login";
 export const PARTNER_LOGIN_PATH = "/partner-login";
 export const SIGNUP_PATH = "/signup";
 export const FORGOT_PASSWORD_PATH = "/forgot-password";
+export const RESET_PASSWORD_PATH = "/reset-password";
 export const MEMBER_DASHBOARD_PATH = "/dashboard";
 export const PARTNER_DASHBOARD_PATH = "/partner";
 export const AFFILIATE_DASHBOARD_PATH = "/affiliate/dashboard";
@@ -223,27 +224,4 @@ export async function signOut() {
 
   const supabase = createClient();
   await supabase.auth.signOut();
-}
-
-export async function resetPassword(
-  email: string,
-  returnPath: string = LOGIN_PATH
-): Promise<{ error?: string }> {
-  if (!isSupabaseConfigured()) {
-    return {
-      error:
-        "Password reset is not configured yet. Contact support@foodvault.co.nz for help.",
-    };
-  }
-
-  const supabase = createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}${returnPath}`,
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  return {};
 }

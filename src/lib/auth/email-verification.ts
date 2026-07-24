@@ -1,5 +1,6 @@
 import type { AccountType } from "@/lib/auth";
-import { renderMemberVerifyEmail } from "@/lib/email-templates/render";
+import { RESET_PASSWORD_PATH } from "@/lib/auth";
+import { renderMemberPasswordResetEmail, renderMemberVerifyEmail } from "@/lib/email-templates/render";
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -7,6 +8,8 @@ export const AUTH_CONFIRM_PATH = "/auth/confirm";
 export const AUTH_CHECK_EMAIL_PATH = "/auth/check-email";
 
 export type VerificationLinkType = "signup" | "invite";
+
+export type AuthConfirmLinkType = VerificationLinkType | "recovery";
 
 export type AuthStepError = {
   error: string;
@@ -24,7 +27,7 @@ export function getSiteUrl() {
 
 export function buildConfirmUrl(params: {
   tokenHash: string;
-  type: VerificationLinkType;
+  type: AuthConfirmLinkType;
   next: string;
   account: AccountType;
 }) {
@@ -197,4 +200,110 @@ export async function issueAndSendSignupVerification(params: {
     firstName: params.firstName,
     verificationUrl,
   });
+}
+
+function isUserNotFoundError(message: string) {
+  return /user not found|not found/i.test(message);
+}
+
+export async function generatePasswordRecoveryLink(email: string) {
+  const admin = createAdminClient();
+  if (!admin) {
+    return {
+      error: "Password reset is not configured in this environment.",
+      step: "admin_client",
+    } satisfies AuthStepError;
+  }
+
+  const trimmedEmail = email.trim();
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "recovery",
+    email: trimmedEmail,
+    options: {
+      redirectTo: `${getSiteUrl()}${AUTH_CONFIRM_PATH}`,
+    },
+  });
+
+  if (error) {
+    if (isUserNotFoundError(error.message)) {
+      return { notFound: true as const };
+    }
+
+    return formatAuthStepError("admin.generateLink.recovery", error);
+  }
+
+  const tokenHash = data.properties?.hashed_token;
+  if (!tokenHash) {
+    return {
+      error: "Unable to generate password reset link.",
+      step: "admin.generateLink.recovery",
+    } satisfies AuthStepError;
+  }
+
+  const metadata = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+  const firstName =
+    typeof metadata.first_name === "string" ? metadata.first_name.trim() : null;
+
+  return { tokenHash, firstName: firstName || null };
+}
+
+export async function sendPasswordResetEmail(params: {
+  to: string;
+  firstName?: string | null;
+  resetUrl: string;
+}) {
+  const appUrl = getEmailAppUrl();
+  const result = await sendPlatformEmailSafe({
+    to: params.to,
+    rendered: renderMemberPasswordResetEmail({
+      appUrl,
+      firstName: params.firstName,
+      resetUrl: params.resetUrl,
+    }),
+  });
+
+  if (!result.sent) {
+    return {
+      error:
+        "We could not send the password reset email right now. Please try again in a few minutes.",
+      step: "resend.sendPlatformEmail",
+    } satisfies AuthStepError;
+  }
+
+  return {};
+}
+
+export async function issueAndSendPasswordReset(params: {
+  email: string;
+  account: AccountType;
+  firstName?: string | null;
+}) {
+  const linkResult = await generatePasswordRecoveryLink(params.email);
+
+  if ("notFound" in linkResult && linkResult.notFound) {
+    return { success: true as const };
+  }
+
+  if ("error" in linkResult) {
+    return linkResult;
+  }
+
+  const resetUrl = buildConfirmUrl({
+    tokenHash: linkResult.tokenHash,
+    type: "recovery",
+    next: RESET_PASSWORD_PATH,
+    account: params.account,
+  });
+
+  const sendResult = await sendPasswordResetEmail({
+    to: params.email.trim(),
+    firstName: params.firstName ?? linkResult.firstName,
+    resetUrl,
+  });
+
+  if ("error" in sendResult) {
+    return sendResult;
+  }
+
+  return { success: true as const };
 }

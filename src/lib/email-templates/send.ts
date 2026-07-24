@@ -4,7 +4,7 @@ import type { RenderedEmail } from "@/lib/email-templates/types";
 
 /**
  * Sends application transactional email through the existing Resend integration
- * in notification-service. Supabase Auth is only used for password reset delivery.
+ * in notification-service. Supabase Auth mailer is not used for outbound email.
  */
 export type SendPlatformEmailInput = {
   to: string;

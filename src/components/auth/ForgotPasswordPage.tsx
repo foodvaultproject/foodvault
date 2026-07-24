@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { LOGIN_PATH, PARTNER_LOGIN_PATH, resetPassword } from "@/lib/auth";
+import { LOGIN_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
+import { resetPassword } from "@/lib/auth/password-reset-actions";
 
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
@@ -23,7 +24,9 @@ function ForgotPasswordForm() {
     setMessage(null);
     setSubmitting(true);
 
-    const result = await resetPassword(email.trim(), backLink);
+    const result = await resetPassword(email.trim(), {
+      account: isPartner ? "partner" : "member",
+    });
 
     if (result.error) {
       setError(result.error);

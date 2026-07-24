@@ -4,13 +4,14 @@ import { NextResponse } from "next/server";
 import { ensureAuthenticatedSession } from "@/lib/auth/session-completion";
 import {
   AUTH_CHECK_EMAIL_PATH,
-  type VerificationLinkType,
+  type AuthConfirmLinkType,
 } from "@/lib/auth/email-verification";
 import {
   AFFILIATE_LOGIN_PATH,
   getAccountTypeFromMetadata,
   LOGIN_PATH,
   PARTNER_LOGIN_PATH,
+  RESET_PASSWORD_PATH,
 } from "@/lib/auth";
 
 function loginPathForAccount(account: string | null) {
@@ -19,8 +20,8 @@ function loginPathForAccount(account: string | null) {
   return LOGIN_PATH;
 }
 
-function isVerificationLinkType(value: string | null): value is VerificationLinkType {
-  return value === "signup" || value === "invite";
+function isAuthConfirmLinkType(value: string | null): value is AuthConfirmLinkType {
+  return value === "signup" || value === "invite" || value === "recovery";
 }
 
 export async function GET(request: Request) {
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
   const account = searchParams.get("account");
   const loginPath = loginPathForAccount(account);
 
-  if (!tokenHash || !isVerificationLinkType(type)) {
+  if (!tokenHash || !isAuthConfirmLinkType(type)) {
     return NextResponse.redirect(
       `${origin}${loginPath}?error=verification_invalid`
     );
@@ -61,6 +62,12 @@ export async function GET(request: Request) {
   });
 
   if (verifyError) {
+    if (type === "recovery") {
+      return NextResponse.redirect(
+        `${origin}/forgot-password?error=reset_link_invalid`
+      );
+    }
+
     const checkEmailUrl = new URL(`${origin}${AUTH_CHECK_EMAIL_PATH}`);
     if (account) {
       checkEmailUrl.searchParams.set("account", account);
@@ -77,6 +84,15 @@ export async function GET(request: Request) {
     return NextResponse.redirect(
       `${origin}${loginPath}?error=verification_failed`
     );
+  }
+
+  if (type === "recovery") {
+    const resetPath =
+      next && next.startsWith("/") && !next.startsWith("//")
+        ? next
+        : RESET_PASSWORD_PATH;
+
+    return NextResponse.redirect(`${origin}${resetPath}`);
   }
 
   const resolvedAccountType = getAccountTypeFromMetadata(user.user_metadata);

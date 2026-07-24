@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/account/ConfirmModal";
-import { resetPassword } from "@/lib/auth";
+import { resetPassword } from "@/lib/auth/password-reset-actions";
 import {
   deleteMemberAccountAction,
   updateMemberProfileAction,
@@ -101,7 +101,7 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
     setError(null);
     setMessage(null);
 
-    const result = await resetPassword(profile.email);
+    const result = await resetPassword(profile.email, { account: "member" });
     setResettingPassword(false);
 
     if (result.error) {

@@ -2,12 +2,11 @@
  * FoodVault uses two separate email channels:
  *
  * 1. Supabase Auth
- *    - Password reset links only (resetPasswordForEmail)
- *    Signup verification is sent by the app via Resend (admin generateLink only).
+ *    - Session/token verification only (verifyOtp on /auth/confirm)
  *
  * 2. Resend via notification-service (RESEND_API_KEY)
- *    - Signup verification, trial lifecycle, partner lifecycle (application approved,
- *      listing live), admin alerts
+ *    - Signup verification, password reset, trial lifecycle, partner lifecycle
+ *      (application approved, listing live), admin alerts
  *    Triggered from server actions / cron when RESEND_API_KEY is set.
  */
 export function getNotificationServiceConfig() {
