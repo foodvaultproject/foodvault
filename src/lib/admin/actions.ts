@@ -8,6 +8,7 @@ import {
 } from "@/lib/email-templates/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
+import { DISCOVER_ARTICLE_AUTHOR } from "@/lib/discover/constants";
 import { getBrandReportEvents } from "@/lib/admin/queries";
 import { slugifyTitle } from "@/lib/admin/types";
 import {
@@ -293,7 +294,7 @@ export async function saveArticleAction(formData: FormData, publish = false) {
     featured: formData.get("featured") === "on",
     publish_date: publishDate,
     status: publish ? "PUBLISHED" : "DRAFT",
-    author_name: admin.full_name,
+    author_name: DISCOVER_ARTICLE_AUTHOR,
     updated_at: now,
   };
 

@@ -4,6 +4,7 @@ import {
   type DiscoverArticleRow,
   type DiscoverCategory,
 } from "@/lib/admin/types";
+import { resolveDiscoverAuthorName } from "@/lib/discover/constants";
 import {
   isRemovedDiscoverCategory,
   normalizeDiscoverCategory,
@@ -68,7 +69,7 @@ export function mapArticleRow(row: DiscoverArticleRow): DiscoverArticleCard | nu
     heroImageUrl: row.hero_image_url ?? DEFAULT_DISCOVER_HERO,
     readTimeMinutes: row.read_time_minutes ?? 5,
     publishDate: row.publish_date,
-    authorName: row.author_name,
+    authorName: resolveDiscoverAuthorName(row.author_name),
     featured: row.featured,
   };
 }
