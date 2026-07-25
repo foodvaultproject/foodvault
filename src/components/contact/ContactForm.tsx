@@ -51,17 +51,6 @@ const contactTypes = [
   },
 ];
 
-const categoryOptions = [
-  "Membership & billing",
-  "Account & login",
-  "Partner application",
-  "Affiliate Support",
-  "Technical support",
-  "Billing & payments",
-  "General question",
-  "Other",
-];
-
 export function ContactForm() {
   const [contactType, setContactType] = useState("member");
   const [submitted, setSubmitted] = useState(false);
@@ -120,33 +109,8 @@ export function ContactForm() {
       </fieldset>
 
       <div>
-        <label
-          htmlFor="category"
-          className="text-sm font-bold uppercase tracking-wide text-foreground"
-        >
-          2. Select Category
-        </label>
-        <select
-          id="category"
-          name="category"
-          required
-          defaultValue=""
-          className="mt-3 w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-base"
-        >
-          <option value="" disabled>
-            Please select a reason for contact
-          </option>
-          {categoryOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
         <p className="text-sm font-bold uppercase tracking-wide text-foreground">
-          3. Your Information
+          2. Your Information
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <div>
@@ -183,7 +147,7 @@ export function ContactForm() {
           htmlFor="subject"
           className="text-sm font-bold uppercase tracking-wide text-foreground"
         >
-          4. Subject Line
+          3. Subject Line
         </label>
         <input
           id="subject"
@@ -200,7 +164,7 @@ export function ContactForm() {
           htmlFor="message"
           className="text-sm font-bold uppercase tracking-wide text-foreground"
         >
-          5. Message
+          4. Message
         </label>
         <textarea
           id="message"
@@ -214,7 +178,7 @@ export function ContactForm() {
 
       <div>
         <p className="text-sm font-bold uppercase tracking-wide text-foreground">
-          6. Attachments (Optional)
+          5. Attachments (Optional)
         </p>
         <label
           htmlFor="attachments"
