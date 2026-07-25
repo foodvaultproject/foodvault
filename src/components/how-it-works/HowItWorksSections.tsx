@@ -46,7 +46,8 @@ const memberSteps = [
   },
 ] as const;
 
-const HOW_IT_WORKS_HERO_BACKGROUND = "/how-it-works/how-it-works-hero-bg.png";
+const HOW_IT_WORKS_HERO_BACKGROUND = "/how-it-works/how-it-works-hero-bg.webp";
+const HOW_IT_WORKS_HERO_IMAGE = "/how-it-works/how-it-works-hero-image.webp";
 
 type HowItWorksPageProps = {
   isActiveMember?: boolean;
@@ -72,7 +73,7 @@ function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }
         style={{ backgroundImage: `url('${HOW_IT_WORKS_HERO_BACKGROUND}')` }}
         aria-hidden="true"
       />
-      <div className="relative z-10 fv-content-width grid lg:grid-cols-2 lg:items-stretch">
+      <div className="relative z-10 fv-content-width grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,46%)] lg:items-stretch">
         <div className="flex flex-col justify-center py-8 sm:py-10 lg:py-12">
           <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-primary sm:text-[2.75rem] lg:text-[3rem]">
             Built to Save Kiwis Money.
@@ -92,7 +93,15 @@ function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }
             </div>
           )}
         </div>
-        <div className="hidden lg:block" aria-hidden="true" />
+
+        <div className="relative m-0 flex min-h-0 items-end justify-center self-stretch p-0 leading-[0] lg:justify-end">
+          <img
+            src={HOW_IT_WORKS_HERO_IMAGE}
+            alt=""
+            aria-hidden="true"
+            className="block h-auto w-full max-w-full object-contain object-bottom px-4 pb-0 pt-2 sm:px-6 lg:h-full lg:max-h-full lg:w-auto lg:px-0 lg:pt-0 lg:object-contain lg:object-right-bottom"
+          />
+        </div>
       </div>
     </section>
   );

@@ -10,7 +10,8 @@
     "diagnose:settings": "npx tsx scripts/diagnose-membership-settings.ts",
     "diagnose:stripe": "npx tsx scripts/diagnose-stripe-config.ts",
     "diagnose:signup-auth": "npx tsx scripts/diagnose-signup-auth.ts",
-    "optimize:visitor-hero": "node scripts/optimize-visitor-hero-images.mjs"
+    "optimize:visitor-hero": "node scripts/optimize-visitor-hero-images.mjs",
+    "optimize:how-it-works-hero": "node scripts/optimize-how-it-works-hero-images.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",
