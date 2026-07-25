@@ -15,6 +15,10 @@ import {
   isActiveMemberRow,
   isFreeTrialMemberRow,
 } from "@/lib/member/membership-status";
+import {
+  parseOAuthDisplayName,
+  shouldReplacePlaceholderMemberName,
+} from "@/lib/auth/oauth-display-name";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
 export function readMetadataString(
@@ -132,17 +136,6 @@ export async function resolveAuthenticatedRedirect(
   );
 }
 
-export function parseOAuthDisplayName(metadata: Record<string, unknown>) {
-  const fullName =
-    readMetadataString(metadata, "full_name") ||
-    readMetadataString(metadata, "name");
-  const nameParts = fullName.split(/\s+/).filter(Boolean);
-  return {
-    firstName: nameParts[0] ?? "Member",
-    lastName: nameParts.slice(1).join(" ") || "Account",
-  };
-}
-
 export async function prepareAuthUserMetadata(
   supabase: SupabaseClient,
   user: User,
@@ -164,10 +157,12 @@ export async function prepareAuthUserMetadata(
     account_type: context.expectedAccountType,
   };
 
-  if (!readMetadataString(metadata, "first_name")) {
+  if (shouldReplacePlaceholderMemberName(metadata)) {
     const { firstName, lastName } = parseOAuthDisplayName(metadata);
     updates.first_name = firstName;
-    updates.last_name = lastName;
+    if (lastName || !readMetadataString(metadata, "last_name")) {
+      updates.last_name = lastName;
+    }
   }
 
   if (context.expectedAccountType === "member") {

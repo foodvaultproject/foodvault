@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { parseOAuthDisplayName } from "@/lib/auth/oauth-display-name";
 import {
   memberRowHasPaidSubscription,
   resolveMemberBillingRow,
@@ -138,21 +139,31 @@ export async function getMemberProfile(userId: string): Promise<MemberProfile | 
     typeof user?.user_metadata?.last_name === "string"
       ? user.user_metadata.last_name.trim()
       : "";
+  const oauthName = parseOAuthDisplayName(
+    (user?.user_metadata ?? {}) as Record<string, unknown>
+  );
 
   const fullName = data.full_name?.trim() ?? "";
   const nameParts = fullName.split(/\s+/).filter(Boolean);
 
+  const resolvedFirstName =
+    data.first_name?.trim() ||
+    (metadataFirstName && metadataFirstName !== "Member"
+      ? metadataFirstName
+      : "") ||
+    oauthName.firstName ||
+    nameParts[0] ||
+    "Member";
+  const resolvedLastName =
+    data.last_name?.trim() ||
+    metadataLastName ||
+    oauthName.lastName ||
+    nameParts.slice(1).join(" ") ||
+    "";
+
   return {
-    firstName:
-      data.first_name?.trim() ||
-      metadataFirstName ||
-      nameParts[0] ||
-      "Member",
-    lastName:
-      data.last_name?.trim() ||
-      metadataLastName ||
-      nameParts.slice(1).join(" ") ||
-      "",
+    firstName: resolvedFirstName,
+    lastName: resolvedLastName,
     email: data.email ?? user?.email ?? "",
     country: data.country ?? data.location ?? "New Zealand",
   };

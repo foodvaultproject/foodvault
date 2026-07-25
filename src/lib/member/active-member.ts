@@ -29,6 +29,7 @@ export function resolveMemberFirstName(
     firstWord(profile?.first_name) ??
     firstWord(profile?.full_name) ??
     firstWord(metadata.first_name as string | undefined) ??
+    firstWord(metadata.given_name as string | undefined) ??
     firstWord(
       (metadata.full_name as string | undefined) ??
         (metadata.name as string | undefined)

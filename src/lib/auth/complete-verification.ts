@@ -16,6 +16,7 @@ import {
   isActiveMemberRow,
   isFreeTrialMemberRow,
 } from "@/lib/member/membership-status";
+import { resolveMemberNameFromMetadata } from "@/lib/auth/oauth-display-name";
 import {
   PARTNER_APPLICATION_PATH,
 } from "@/lib/partner-auth";
@@ -83,8 +84,7 @@ export async function completeSignupVerification(
 
   if (accountType === "member") {
     const signupMode = readMetadataString(metadata, "signup_mode", "trial");
-    const firstName = readMetadataString(metadata, "first_name", "Member");
-    const lastName = readMetadataString(metadata, "last_name", "");
+    const { firstName, lastName } = resolveMemberNameFromMetadata(metadata);
     const country = readMetadataString(metadata, "country", "New Zealand");
     const marketingOptIn = metadata.marketing_opt_in === true;
 

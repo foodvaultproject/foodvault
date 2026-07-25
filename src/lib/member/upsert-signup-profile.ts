@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveMemberNameFromMetadata } from "@/lib/auth/oauth-display-name";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { memberUserFilter } from "@/lib/member/auth";
 
@@ -85,14 +86,8 @@ export async function syncMemberProfileFromAuth(authUserId: string) {
     return;
   }
 
-  const firstName =
-    typeof data.user.user_metadata?.first_name === "string"
-      ? data.user.user_metadata.first_name.trim()
-      : "";
-  const lastName =
-    typeof data.user.user_metadata?.last_name === "string"
-      ? data.user.user_metadata.last_name.trim()
-      : "";
+  const metadata = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+  const { firstName, lastName } = resolveMemberNameFromMetadata(metadata);
 
   if (!firstName && !lastName) {
     return;
