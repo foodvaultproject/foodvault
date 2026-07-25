@@ -9,9 +9,15 @@ export type BrandSortOption =
 
 export type BrandSearchParams = {
   search?: string | null;
+  /** @deprecated Prefer `departments` */
   department?: string | null;
+  /** @deprecated Prefer `subcategories` */
   subcategory?: string | null;
+  /** @deprecated Prefer `dietaryLifestyles` */
   dietaryLifestyle?: string | null;
+  departments?: string[];
+  subcategories?: string[];
+  dietaryLifestyles?: string[];
   minDiscount?: number | null;
   sort?: BrandSortOption;
   limit?: number;

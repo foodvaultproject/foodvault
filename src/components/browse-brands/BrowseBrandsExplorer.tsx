@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
+import {
+  BrowseFilterTags,
+  type BrowseFilterTag,
+} from "@/components/browse-brands/BrowseFilterTags";
+import {
+  BrowseMultiSelectFilter,
+  browseFilterSelectClass,
+} from "@/components/browse-brands/BrowseMultiSelectFilter";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import {
@@ -34,9 +42,6 @@ const discountOptions = [
 ];
 
 const FILTER_PEEPING_IMAGE = "/filter/peeping.png";
-
-const selectClass =
-  "w-full rounded-md border border-border bg-background px-2.5 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 type BrowseBrandsExplorerProps = {
   featured: BrandCard[];
@@ -77,9 +82,13 @@ export function BrowseBrandsExplorer({
     [favoritedPartnerIds]
   );
 
-  const [department, setDepartment] = useState(initialDepartment);
-  const [subcategory, setSubcategory] = useState(initialSubcategory);
-  const [dietaryLifestyle, setDietaryLifestyle] = useState("");
+  const [departments, setDepartments] = useState<string[]>(
+    initialDepartment ? [initialDepartment] : []
+  );
+  const [subcategories, setSubcategories] = useState<string[]>(
+    initialSubcategory ? [initialSubcategory] : []
+  );
+  const [dietaryLifestyles, setDietaryLifestyles] = useState<string[]>([]);
   const [minDiscount, setMinDiscount] = useState(0);
   const [sort, setSort] = useState<BrandSortOption>("featured");
 
@@ -88,18 +97,86 @@ export function BrowseBrandsExplorer({
   const [isPending, startTransition] = useTransition();
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const subcategoryOptions = department
-    ? PARTNER_CATEGORY_TAXONOMY[department as PrimaryDepartment] ?? []
-    : [];
+  const subcategoryOptions = useMemo(() => {
+    const sourceDepartments =
+      departments.length > 0
+        ? departments
+        : (PRIMARY_DEPARTMENTS as readonly string[]);
+
+    return [
+      ...new Set(
+        sourceDepartments.flatMap(
+          (department) =>
+            PARTNER_CATEGORY_TAXONOMY[department as PrimaryDepartment] ?? []
+        )
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+  }, [departments]);
+
+  useEffect(() => {
+    if (departments.length === 0) return;
+
+    const validSubcategories = new Set(subcategoryOptions);
+    setSubcategories((current) =>
+      current.filter((subcategory) => validSubcategories.has(subcategory))
+    );
+  }, [departments, subcategoryOptions]);
+
+  const activeFilterTags = useMemo(() => {
+    const tags: BrowseFilterTag[] = [];
+
+    for (const department of departments) {
+      tags.push({
+        id: `department-${department}`,
+        label: department,
+        group: "department",
+        value: department,
+      });
+    }
+
+    for (const subcategory of subcategories) {
+      tags.push({
+        id: `subcategory-${subcategory}`,
+        label: subcategory,
+        group: "subcategory",
+        value: subcategory,
+      });
+    }
+
+    for (const attribute of dietaryLifestyles) {
+      tags.push({
+        id: `dietary-${attribute}`,
+        label: attribute,
+        group: "dietary",
+        value: attribute,
+      });
+    }
+
+    return tags;
+  }, [departments, subcategories, dietaryLifestyles]);
+
+  function removeFilterTag(tag: BrowseFilterTag) {
+    if (tag.group === "department") {
+      setDepartments((current) => current.filter((value) => value !== tag.value));
+      return;
+    }
+
+    if (tag.group === "subcategory") {
+      setSubcategories((current) => current.filter((value) => value !== tag.value));
+      return;
+    }
+
+    setDietaryLifestyles((current) => current.filter((value) => value !== tag.value));
+  }
 
   const runSearch = useCallback(
     (offset: number, append: boolean) => {
       startTransition(async () => {
         const result = await searchBrandsAction({
           search: "",
-          department: department || null,
-          subcategory: subcategory || null,
-          dietaryLifestyle: dietaryLifestyle || null,
+          departments,
+          subcategories,
+          dietaryLifestyles,
           minDiscount: minDiscount || null,
           sort,
           limit: BROWSE_PAGE_SIZE,
@@ -112,7 +189,7 @@ export function BrowseBrandsExplorer({
         );
       });
     },
-    [department, subcategory, dietaryLifestyle, minDiscount, sort]
+    [departments, subcategories, dietaryLifestyles, minDiscount, sort]
   );
 
   function handleSearchSubmit(event: React.FormEvent) {
@@ -183,110 +260,78 @@ export function BrowseBrandsExplorer({
         />
         <form onSubmit={handleSearchSubmit} className={filterFormClassName}>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
-          <div className="grid grid-cols-2 gap-3 lg:contents">
-            <label className="block min-w-0 flex-1">
-              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Department
-              </span>
-              <select
-                value={department}
-                onChange={(event) => {
-                  setDepartment(event.target.value);
-                  setSubcategory("");
-                }}
-                className={selectClass}
-              >
-                <option value="">All Departments</option>
-                {PRIMARY_DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="grid grid-cols-2 gap-3 lg:contents">
+              <BrowseMultiSelectFilter
+                label="Department"
+                placeholder="All Departments"
+                options={PRIMARY_DEPARTMENTS}
+                selected={departments}
+                onChange={setDepartments}
+              />
+
+              <BrowseMultiSelectFilter
+                label="Subcategory"
+                placeholder="All Subcategories"
+                options={subcategoryOptions}
+                selected={subcategories}
+                onChange={setSubcategories}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 lg:contents">
+              <BrowseMultiSelectFilter
+                label="Diet & Lifestyle"
+                placeholder="All Attributes"
+                options={DIETARY_LIFESTYLE_ATTRIBUTES}
+                selected={dietaryLifestyles}
+                onChange={setDietaryLifestyles}
+              />
+
+              <label className="block min-w-0 flex-1">
+                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  Member Discount
+                </span>
+                <select
+                  value={minDiscount}
+                  onChange={(event) => setMinDiscount(Number(event.target.value))}
+                  className={browseFilterSelectClass}
+                >
+                  {discountOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             <label className="block min-w-0 flex-1">
               <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Subcategory
+                Sort By
               </span>
               <select
-                value={subcategory}
-                onChange={(event) => setSubcategory(event.target.value)}
-                disabled={!department}
-                className={`${selectClass} disabled:cursor-not-allowed disabled:opacity-60`}
+                value={sort}
+                onChange={(event) => setSort(event.target.value as BrandSortOption)}
+                className={browseFilterSelectClass}
               >
-                <option value="">All Subcategories</option>
-                {subcategoryOptions.map((sub) => (
-                  <option key={sub} value={sub}>
-                    {sub}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 lg:contents">
-            <label className="block min-w-0 flex-1">
-              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Diet &amp; Lifestyle
-              </span>
-              <select
-                value={dietaryLifestyle}
-                onChange={(event) => setDietaryLifestyle(event.target.value)}
-                className={selectClass}
-              >
-                <option value="">All Attributes</option>
-                {DIETARY_LIFESTYLE_ATTRIBUTES.map((attribute) => (
-                  <option key={attribute} value={attribute}>
-                    {attribute}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block min-w-0 flex-1">
-              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Member Discount
-              </span>
-              <select
-                value={minDiscount}
-                onChange={(event) => setMinDiscount(Number(event.target.value))}
-                className={selectClass}
-              >
-                {discountOptions.map((option) => (
+                {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
               </select>
             </label>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
+            >
+              {isPending ? "Searching..." : "Search"}
+            </button>
           </div>
 
-          <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-              Sort By
-            </span>
-            <select
-              value={sort}
-              onChange={(event) => setSort(event.target.value as BrandSortOption)}
-              className={selectClass}
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            type="submit"
-            disabled={isPending}
-            className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
-          >
-            {isPending ? "Searching..." : "Search"}
-          </button>
-        </div>
+          <BrowseFilterTags tags={activeFilterTags} onRemove={removeFilterTag} />
         </form>
       </div>
 
