@@ -35,7 +35,8 @@ export async function GET(request: Request) {
   const pendingCookies: PendingCookie[] = [];
 
   function redirectTo(path: string) {
-    const response = NextResponse.redirect(`${origin}${path}`);
+    const completeUrl = `/auth/complete?next=${encodeURIComponent(path)}`;
+    const response = NextResponse.redirect(`${origin}${completeUrl}`);
     for (const { name, value, options } of pendingCookies) {
       response.cookies.set(name, value, options);
     }

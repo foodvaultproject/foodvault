@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { consumeAuthJustCompleted } from "@/components/auth/AuthCompleteRedirect";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
@@ -19,22 +20,33 @@ export function AuthSessionRefresh() {
       return;
     }
 
-    const supabase = createClient();
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") {
-        return;
-      }
-
+    const refreshIfNeeded = () => {
       const now = Date.now();
-      // Avoid back-to-back refreshes from duplicate auth emissions.
       if (now - lastRefreshAtRef.current < 750) {
         return;
       }
       lastRefreshAtRef.current = now;
-
       router.refresh();
+    };
+
+    if (consumeAuthJustCompleted()) {
+      refreshIfNeeded();
+    }
+
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        refreshIfNeeded();
+        return;
+      }
+
+      // Server-side OAuth (exchangeCodeForSession) lands with INITIAL_SESSION,
+      // not SIGNED_IN — refresh once when we know auth just completed.
+      if (event === "INITIAL_SESSION" && session && consumeAuthJustCompleted()) {
+        refreshIfNeeded();
+      }
     });
 
     return () => {

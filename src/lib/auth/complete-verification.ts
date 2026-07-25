@@ -1,9 +1,11 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { sendMemberFreeTrialStartedEmail } from "@/lib/email-templates/dispatch";
 import {
   MEMBER_HOME_PATH,
+  MEMBER_DASHBOARD_PATH,
   SIGNUP_MEMBERSHIP_PATH,
 } from "@/lib/member/paths";
 import { startMemberTrial } from "@/lib/member/start-trial";
@@ -141,6 +143,9 @@ export async function completeSignupVerification(
         signup_completed_at: new Date().toISOString(),
       },
     });
+
+    revalidatePath(MEMBER_HOME_PATH);
+    revalidatePath(MEMBER_DASHBOARD_PATH);
 
     return { redirectPath: MEMBER_HOME_PATH };
   }
