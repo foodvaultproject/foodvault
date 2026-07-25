@@ -44,14 +44,14 @@ export function renderEmailLayout({ appUrl, content, preheader }: EmailLayoutOpt
         <td align="center">
           <table role="presentation" class="fv-email-shell" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:${EMAIL_BRAND.background};border:1px solid ${EMAIL_BRAND.border};border-radius:${EMAIL_BRAND.radiusCard};overflow:hidden;">
             <tr>
-              <td align="center" style="padding:28px 32px 12px;background-color:${EMAIL_BRAND.background};">
+              <td align="center" style="padding:28px 32px;background-color:${EMAIL_BRAND.primary};">
                 <a href="${escapeHtml(websiteUrl)}" style="text-decoration:none;">
                   <img src="${escapeHtml(logoUrl)}" width="180" height="45" alt="FoodVault" style="display:block;width:180px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;" />
                 </a>
               </td>
             </tr>
             <tr>
-              <td class="fv-email-body" style="padding:8px 32px 28px;font-family:${EMAIL_BRAND.fontFamily};">
+              <td class="fv-email-body" style="padding:32px 32px 28px;font-family:${EMAIL_BRAND.fontFamily};">
                 ${content}
               </td>
             </tr>
@@ -59,8 +59,14 @@ export function renderEmailLayout({ appUrl, content, preheader }: EmailLayoutOpt
               <td class="fv-email-footer" style="padding:24px 32px;background-color:${EMAIL_BRAND.surface};border-top:1px solid ${EMAIL_BRAND.border};">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td align="center" style="padding-bottom:12px;">
-                      <img src="${escapeHtml(logoUrl)}" width="110" height="28" alt="FoodVault" style="display:block;width:110px;height:auto;margin:0 auto;border:0;" />
+                    <td align="center" style="padding-bottom:16px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                        <tr>
+                          <td align="center" style="padding:10px 18px;background-color:${EMAIL_BRAND.primary};border-radius:${EMAIL_BRAND.radiusButton};">
+                            <img src="${escapeHtml(logoUrl)}" width="110" height="28" alt="FoodVault" style="display:block;width:110px;height:auto;border:0;" />
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                   </tr>
                   <tr>

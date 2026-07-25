@@ -25,7 +25,7 @@ export const EMAIL_BRAND = {
 } as const;
 
 export function emailLogoUrl(appUrl: string) {
-  return `${appUrl.replace(/\/$/, "")}/foodvault-logo.png`;
+  return `${appUrl.replace(/\/$/, "")}/foodvault-logo-menu.png`;
 }
 
 export function emailWebsiteUrl(appUrl: string) {
