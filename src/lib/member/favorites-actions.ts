@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { isSupabaseConfigured } from "@/lib/auth";
-import { MEMBER_FAVORITES_PATH } from "@/lib/member/paths";
+import { MEMBER_DASHBOARD_PATH, MEMBER_FAVORITES_PATH } from "@/lib/member/paths";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuthenticatedMember } from "@/lib/member/auth";
 
@@ -31,6 +31,7 @@ export async function addFavoritePartnerAction(partnerId: string) {
   }
 
   revalidatePath(MEMBER_FAVORITES_PATH);
+  revalidatePath(MEMBER_DASHBOARD_PATH);
   return { success: true as const };
 }
 
@@ -57,6 +58,7 @@ export async function removeFavoritePartnerAction(partnerId: string) {
   }
 
   revalidatePath(MEMBER_FAVORITES_PATH);
+  revalidatePath(MEMBER_DASHBOARD_PATH);
   return { success: true as const };
 }
 

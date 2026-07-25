@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
+import { MemberDashboardFavorites } from "@/components/account/MemberDashboardFavorites";
 import { MemberTrialBannerCard } from "@/components/account/MemberTrialBannerCard";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
+import type { FavoritePartner } from "@/lib/member/favorites-queries";
 import type { MemberTrialBanner } from "@/lib/member/queries";
 import {
   MEMBER_ACCOUNT_PATH,
@@ -52,6 +54,7 @@ const quickActions = [
 type MemberDashboardProps = {
   trialBanner: MemberTrialBanner | null;
   brands: BrandCard[];
+  favorites: FavoritePartner[];
   canFavorite: boolean;
   favoritedPartnerIds: string[];
   error?: string | null;
@@ -60,6 +63,7 @@ type MemberDashboardProps = {
 export function MemberDashboard({
   trialBanner,
   brands,
+  favorites,
   canFavorite,
   favoritedPartnerIds,
   error,
@@ -100,6 +104,8 @@ export function MemberDashboard({
             ))}
           </div>
         </section>
+
+        <MemberDashboardFavorites initialFavorites={favorites} />
 
         {brands.length > 0 ? (
           <section className="mt-7">

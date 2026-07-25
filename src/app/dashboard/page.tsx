@@ -4,6 +4,7 @@ import { DashboardSkeleton } from "@/components/account/AccountSkeletons";
 import { MemberDashboard } from "@/components/account/MemberDashboard";
 import { getRecentBrandCards } from "@/lib/member/browse-brands";
 import { requireAuthenticatedMember } from "@/lib/member/auth";
+import { getMemberFavoritePartners } from "@/lib/member/favorites-queries";
 import { getMemberTrialBanner } from "@/lib/member/queries";
 import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
@@ -20,6 +21,7 @@ async function DashboardContent() {
   let error: string | null = null;
   let trialBanner = null;
   let brands: Awaited<ReturnType<typeof getRecentBrandCards>> = [];
+  let favorites: Awaited<ReturnType<typeof getMemberFavoritePartners>> = [];
   let canFavorite = false;
   let favoritedPartnerIds: string[] = [];
 
@@ -28,13 +30,16 @@ async function DashboardContent() {
       await reconcileMemberSubscription(member.id, member.email);
     }
 
-    const [banner, recentBrands, favoriteContext] = await Promise.all([
-      getMemberTrialBanner(member.id),
-      getRecentBrandCards(),
-      getViewerFavoriteContext(),
-    ]);
+    const [banner, recentBrands, memberFavorites, favoriteContext] =
+      await Promise.all([
+        getMemberTrialBanner(member.id),
+        getRecentBrandCards(),
+        getMemberFavoritePartners(member.id),
+        getViewerFavoriteContext(),
+      ]);
     trialBanner = banner;
     brands = recentBrands;
+    favorites = memberFavorites;
     canFavorite = favoriteContext.canFavorite;
     favoritedPartnerIds = favoriteContext.favoritedPartnerIds;
   } catch (loadError) {
@@ -48,6 +53,7 @@ async function DashboardContent() {
     <MemberDashboard
       trialBanner={trialBanner}
       brands={brands}
+      favorites={favorites}
       canFavorite={canFavorite}
       favoritedPartnerIds={favoritedPartnerIds}
       error={error}
