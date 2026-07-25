@@ -79,10 +79,9 @@ function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }
             Built to Save Kiwis Money.
           </h1>
           <p className="mt-4 max-w-lg text-base leading-relaxed text-black sm:text-lg">
-            Our mission is simple: to help you spend less on all the things you need. We connect you
-            directly with Kiwi brands offering exclusive member pricing, helping you save more every
-            time you shop. Food, drinks, household essentials and more! It&apos;s all here on
-            FoodVault. Enjoy the things you love, for less.
+            Unlock exclusive member discounts from Kiwi brands all over New Zealand. Save on the
+            things you love, discover new favourites, and shop direct while supporting local
+            businesses.
           </p>
           {isActiveMember ? null : (
             <div className="mt-5">
