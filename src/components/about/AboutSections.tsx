@@ -15,10 +15,11 @@ export function AboutHero() {
               Once upon a time...
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mx-0">
-              Kiwi was on a mission to discover awesome Kiwi brands, while Piggy was busy chasing
-              savings. They crashed trolleys, became good mates, and FoodVault was born. Now
-              they&apos;re on a mission to help Kiwi brands get discovered and help Kiwis shop
-              direct and save.
+              Kiwi was off hunting for awesome local brands. Piggy was busy sniffing out bargains.
+              One day they absolutely sent it around the supermarket corner, crashed trolleys, and
+              instead of arguing, decided to team up. That&apos;s how FoodVault was born. Now Kiwi
+              helps you discover great brands, and Piggy makes sure you save a few bucks along the
+              way.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <MemberSignupCtaLink
