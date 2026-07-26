@@ -122,51 +122,14 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
       <div className="lg:py-8">
-        <span className="inline-flex items-center gap-2 rounded-full bg-success-light px-3 py-1 text-xs font-semibold uppercase tracking-wide text-success">
-          ★ Membership Now Open in NZ
-        </span>
-        <h1 className="mt-6 text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
-          Pay Less For The Food You{" "}
-          <span className="text-primary">Already Buy</span>
+        <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
+          More Kiwi brands.{" "}
+          <span className="text-primary">More ways to save.</span>
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-          Unlock exclusive member pricing from independent food and beverage brands
-          across New Zealand. Join once. Save every month.
+          Unlock exclusive member discounts from Kiwi brands across New Zealand. Shop
+          direct, save money, and discover something new.
         </p>
-        <div className="mt-8 space-y-4">
-          {[
-            {
-              title: "Save Every Month",
-              description: "Access member-only pricing.",
-              icon: "💰",
-            },
-            {
-              title: "Discover New Brands",
-              description:
-                "Find exciting companies across Aotearoa making world-class products.",
-              icon: "🧭",
-            },
-            {
-              title: "Cancel Anytime",
-              description:
-                "We believe in our value. No lock-ins, no hidden exit fees, ever.",
-              icon: "🔓",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="flex gap-4 rounded-lg border border-border bg-background p-5 shadow-sm"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-lg">
-                {card.icon}
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">{card.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{card.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       <div>
