@@ -11,51 +11,6 @@ import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
-const partnerValueProps = [
-  {
-    title: "Free to list",
-    description:
-      "No listing fees, no monthly subscription, and no commission on product sales.",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Own every customer",
-    description:
-      "Members purchase directly on your website. You keep the relationship, the data, and 100% of the sale.",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Reach ready-to-buy members",
-    description:
-      "Get discovered by shoppers already looking for New Zealand brands offering exclusive member savings.",
-    icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
-  },
-];
-
 type PasswordChecks = {
   minLength: boolean;
   lowercase: boolean;
@@ -202,37 +157,14 @@ export function PartnerCreateAccountPage() {
                 Partner Access
               </span>
               <h1 className="mt-5 text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
-                Create Your{" "}
-                <span className="text-primary">FoodVault</span> Partner Account
+                Join the growing list of awesome{" "}
+                <span className="text-primary">Kiwi brands</span> on FoodVault!
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                List your New Zealand food, beverage or household brand on FoodVault for
-                free. Create your partner account, build your business profile, and start
-                reaching members looking for exclusive savings — with every purchase
-                completed on your own website.
+                Create your free profile in a couple of minutes and start getting
+                discovered by more Kiwis. Every order goes straight through your own
+                website, helping you grow your D2C business.
               </p>
-              <p className="mt-3 text-sm font-medium text-foreground">
-                Free to join · No listing fees · 0% commission on your sales
-              </p>
-
-              <div className="mt-8 space-y-4">
-                {partnerValueProps.map((item) => (
-                  <div
-                    key={item.title}
-                    className="flex gap-4 rounded-lg border border-border bg-background p-5 shadow-sm"
-                  >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
-                      {item.icon}
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-bold text-foreground">{item.title}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
