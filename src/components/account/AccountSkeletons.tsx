@@ -4,7 +4,7 @@ export function DashboardSkeleton() {
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
         <div className="h-10 w-56 rounded-lg bg-border" />
         <div className="mt-8 h-56 rounded-lg bg-border" />
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-[5px] sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className="h-36 rounded-lg bg-border" />
           ))}

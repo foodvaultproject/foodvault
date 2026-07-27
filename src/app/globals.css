@@ -38,13 +38,13 @@
 
   --font-sans: var(--font-hanken-grotesk);
 
-  /* Radius scale — xs 6 | sm 8 (buttons) | md 10 (inputs) | lg 12 (cards) | xl 16 (panels) */
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 12px;
+  /* Radius scale — xs 5 | sm 6 (buttons) | md 8 (inputs) | lg 10 (cards) | xl 13 (panels) */
+  --radius-xs: 5px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 13px;
+  --radius-2xl: 10px;
   --radius-full: 9999px;
 
   --shadow-card: 0 8px 30px rgba(111, 92, 232, 0.06);
@@ -79,11 +79,11 @@
   --warning: #f59e0b;
   --danger: #dc2626;
   --info: #8b7cf6;
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-xs: 5px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 13px;
   --radius-card: var(--radius-lg);
   --radius-button: var(--radius-sm);
   --radius-input: var(--radius-md);

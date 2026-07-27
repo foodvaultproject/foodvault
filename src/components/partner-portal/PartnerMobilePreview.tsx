@@ -27,7 +27,7 @@ export function PartnerMobilePreview({
         Live Preview
       </p>
 
-      <div className="overflow-hidden rounded-[2rem] border-[6px] border-foreground/90 bg-foreground shadow-2xl">
+      <div className="overflow-hidden rounded-[25.6px] border-[6px] border-foreground/90 bg-foreground shadow-2xl">
         <div className="bg-white">
           <div className="flex items-center justify-between px-4 py-3 text-xs text-muted-foreground">
             <span>←</span>

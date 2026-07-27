@@ -16,8 +16,8 @@ export const EMAIL_BRAND = {
   mutedLight: "#9ca3af",
   border: "#e7e2ff",
   surface: "#f5f2ff",
-  radiusButton: "8px",
-  radiusCard: "12px",
+  radiusButton: "6px",
+  radiusCard: "10px",
   fontFamily:
     "Hanken Grotesk, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   supportEmail: DEFAULT_SUPPORT_EMAIL,
