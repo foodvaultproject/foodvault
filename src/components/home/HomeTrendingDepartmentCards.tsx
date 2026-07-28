@@ -25,8 +25,8 @@ const TRENDING_DEPARTMENT_CARDS = [
   },
 ] as const;
 
-/** Cards render at ~50vw (mobile) up to ~300px (desktop); 640px source covers 2x retina. */
-const CARD_IMAGE_SIZES = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px";
+/** Cards render at ~50vw on mobile and desktop (2-up grid); 640px source covers 2x retina. */
+const CARD_IMAGE_SIZES = "(max-width: 640px) 50vw, 600px";
 
 type HomeTrendingDepartmentCardsProps = {
   keepBrowseOnHomepage?: boolean;
@@ -43,7 +43,7 @@ export function HomeTrendingDepartmentCards({
 }: HomeTrendingDepartmentCardsProps) {
   return (
     <div className={className}>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {TRENDING_DEPARTMENT_CARDS.map((card, index) => {
           const browseHref = departmentBrowseHref(card.department);
           const href = keepBrowseOnHomepage
