@@ -15,7 +15,7 @@ const memberFaqsBase: FAQItem[] = [
   {
     question: "What is FoodVault?",
     answer:
-      "FoodVault is a membership platform that helps Kiwis save money by connecting them with exclusive discounts from participating New Zealand brands. Members can discover new products, unlock member-only offers, and shop directly with the brands they know and love.",
+      "FoodVault helps Kiwis discover New Zealand brands, unlock exclusive member discounts, and shop direct. Save money while supporting local businesses.",
   },
   {
     question: "Is FoodVault an online store?",

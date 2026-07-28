@@ -192,7 +192,7 @@ export function getHomepageFaqs(settings: MembershipSettings) {
     {
       question: "What is FoodVault?",
       answer:
-        "FoodVault is a membership platform built for Kiwis looking to save more. We partner with New Zealand brands to provide exclusive member pricing while helping people discover great products and shop directly with trusted businesses.",
+        "FoodVault helps Kiwis discover New Zealand brands, unlock exclusive member discounts, and shop direct. Save money while supporting local businesses.",
     },
     {
       question: "How do I receive discounts?",
