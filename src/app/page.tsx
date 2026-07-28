@@ -110,6 +110,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <PartnerAffiliateSetupBanner variant="compact" />
         <HomeHero partners={heroPartners.slice(0, 4)} isPartner />
         <HomePartnerBrowseBrands
+          key={`browse-${initialDepartment}-${initialSubcategory}`}
           featured={browseFeatured}
           initialExplore={partnerBrowseInitial.brands}
           initialTotal={partnerBrowseInitial.total}
@@ -117,8 +118,8 @@ export default async function Home({ searchParams }: HomeProps) {
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
-          showTrendingSearches
           exploreHeading=""
+          compactSpacing
         />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
@@ -152,7 +153,6 @@ export default async function Home({ searchParams }: HomeProps) {
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
           exploreHeading=""
-          showTrendingSearches
           compactSpacing
           memberHomepage
         />
@@ -188,7 +188,6 @@ export default async function Home({ searchParams }: HomeProps) {
           initialDepartment={initialDepartment}
           initialSubcategory={initialSubcategory}
           exploreHeading=""
-          showTrendingSearches
           memberHomepage
         />
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />

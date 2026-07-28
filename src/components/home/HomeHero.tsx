@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
+import { HomeTrendingDepartmentCards } from "@/components/home/HomeTrendingDepartmentCards";
 import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER, HOME_HERO_PY_ACTIVE_MEMBER, HOME_HERO_PY_FREE_TRIAL } from "@/components/home/section-spacing";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { PartnerLogoItem } from "@/lib/member/browse-brands";
@@ -71,9 +71,9 @@ export function HomeHero({
       : visitorTrustIndicators(trialLengthDays);
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
   const isVisitorHero = !isPartner && !isFreeTrial && !isActiveMember;
-  // Trial and active members browse the embedded homepage explorer rather than
-  // the standalone Discover page, so keep their category links on the homepage.
-  const keepBrowseOnHomepage = isActiveMember || isFreeTrial;
+  // Trial, active members, and partners browse the embedded homepage explorer;
+  // visitors use the standalone Discover page.
+  const keepBrowseOnHomepage = isActiveMember || isFreeTrial || isPartner;
 
   return (
     <section
@@ -238,21 +238,11 @@ export function HomeHero({
       </div>
       )}
 
-      {!isPartner && !isFreeTrial && !isActiveMember ? (
-        <div className="relative z-10 border-t border-border bg-background">
-          <div
-            className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
-              isActiveMember ? "py-1.5" : "py-2"
-            }`}
-          >
-            <HomeTrendingSearches
-              keepBrowseOnHomepage={keepBrowseOnHomepage}
-              hideViewAll={keepBrowseOnHomepage}
-              compact={isActiveMember}
-            />
-          </div>
+      <div className="relative z-10 border-t border-border bg-background">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <HomeTrendingDepartmentCards keepBrowseOnHomepage={keepBrowseOnHomepage} />
         </div>
-      ) : null}
+      </div>
     </section>
   );
 }

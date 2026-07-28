@@ -22,6 +22,9 @@
 
 # misc
 .DS_Store
+
+# Unoptimized source art (keep WebP exports in public/trending-homepage/)
+/public/trending homepage/
 *.pem
 
 # debug

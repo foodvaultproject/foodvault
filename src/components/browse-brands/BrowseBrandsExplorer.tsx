@@ -11,7 +11,6 @@ import {
   browseFilterSelectClass,
 } from "@/components/browse-brands/BrowseMultiSelectFilter";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
-import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import {
   DIETARY_LIFESTYLE_ATTRIBUTES,
   flattenSubcategoryFilterGroups,
@@ -57,8 +56,6 @@ type BrowseBrandsExplorerProps = {
   exploreHeading?: string;
   /** Class names for the main brand-grid heading. */
   exploreHeadingClassName?: string;
-  /** Show trending search chips below the filter form (partner homepage). */
-  showTrendingSearches?: boolean;
   /** Tighter vertical rhythm for active member homepage. */
   compactSpacing?: boolean;
 };
@@ -74,7 +71,6 @@ export function BrowseBrandsExplorer({
   embedded = false,
   exploreHeading = "Explore More",
   exploreHeadingClassName = "text-2xl font-bold text-foreground",
-  showTrendingSearches = false,
   compactSpacing = false,
 }: BrowseBrandsExplorerProps) {
   const favoritedSet = useMemo(
@@ -226,22 +222,8 @@ export function BrowseBrandsExplorer({
     ? "pointer-events-none absolute -top-10 left-6 z-10 block h-10 w-auto max-w-[10.5rem] object-contain object-bottom sm:-top-12 sm:left-7 sm:h-12 md:-top-14 md:h-14 lg:-top-16 lg:left-8 lg:h-16 lg:max-w-[14rem]"
     : "pointer-events-none absolute -top-12 left-8 z-10 block h-12 w-auto max-w-[11rem] object-contain object-bottom sm:-top-14 sm:h-14 md:-top-16 md:h-16 lg:-top-[4.5rem] lg:left-8 lg:h-[4.5rem] lg:max-w-[14rem]";
 
-  const blockGap = compactSpacing
-    ? showTrendingSearches
-      ? "mt-3"
-      : "mt-6"
-    : showTrendingSearches
-      ? "mt-6"
-      : "mt-12";
-  const gridGap = compactSpacing
-    ? showTrendingSearches
-      ? "mt-1.5"
-      : "mt-3"
-    : showTrendingSearches
-      ? "mt-3"
-      : "mt-6";
-  const trendingGap = compactSpacing ? "mt-1.5" : showTrendingSearches ? "mt-3" : "mt-6";
-  const trendingPadding = compactSpacing ? "p-3" : "p-5";
+  const blockGap = compactSpacing ? "mt-6" : "mt-12";
+  const gridGap = compactSpacing ? "mt-3" : "mt-6";
 
   return (
     <>
@@ -329,15 +311,6 @@ export function BrowseBrandsExplorer({
           <BrowseFilterTags tags={activeFilterTags} onRemove={removeFilterTag} />
         </form>
       </div>
-
-      {showTrendingSearches ? (
-        <HomeTrendingSearches
-          keepBrowseOnHomepage
-          hideViewAll
-          compact={compactSpacing}
-          className={`${trendingGap} rounded-lg border border-border bg-background ${trendingPadding} shadow-sm`}
-        />
-      ) : null}
 
       {featured.length > 0 ? (
         <section className={blockGap}>

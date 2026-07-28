@@ -26,7 +26,6 @@ type HomePartnerBrowseBrandsProps = {
   initialSubcategory?: string;
   exploreHeading?: string;
   exploreHeadingClassName?: string;
-  showTrendingSearches?: boolean;
   compactSpacing?: boolean;
   /** Active/free trial member homepage — wider gap between hero and filters. */
   memberHomepage?: boolean;
@@ -42,13 +41,12 @@ export function HomePartnerBrowseBrands({
   initialSubcategory = "",
   exploreHeading,
   exploreHeadingClassName,
-  showTrendingSearches = false,
   compactSpacing = false,
   memberHomepage = false,
 }: HomePartnerBrowseBrandsProps) {
   const sectionPadding = memberHomepage
     ? SECTION_PY_HOME_MEMBER_BROWSE
-    : showTrendingSearches || compactSpacing
+    : compactSpacing
       ? SECTION_PY_HOME_PARTNER
       : SECTION_PY_HOME_REFINE;
 
@@ -69,7 +67,6 @@ export function HomePartnerBrowseBrands({
           exploreHeading={exploreHeading}
           exploreHeadingClassName={exploreHeadingClassName}
           embedded
-          showTrendingSearches={showTrendingSearches}
           compactSpacing={compactSpacing}
         />
       </div>
