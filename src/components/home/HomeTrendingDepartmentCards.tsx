@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 
@@ -7,6 +6,8 @@ const TRENDING_DEPARTMENT_CARDS = [
     title: "Drinks",
     department: "Drinks",
     imageSrc: "/trending-homepage/drinks-hp.webp",
+    imagePositionClassName: "bg-left",
+    underlayClassName: "bg-[#ffb8d9]",
   },
   {
     title: "Bakery",
@@ -25,8 +26,8 @@ const TRENDING_DEPARTMENT_CARDS = [
   },
 ] as const;
 
-/** Cards render at ~50vw on mobile and desktop (2-up grid); 640px source covers 2x retina. */
-const CARD_IMAGE_SIZES = "(max-width: 640px) 50vw, 600px";
+const CARD_IMAGE_BASE_CLASS =
+  "absolute inset-0 bg-cover bg-no-repeat transition-transform duration-300 group-hover:scale-[1.02]";
 
 type HomeTrendingDepartmentCardsProps = {
   keepBrowseOnHomepage?: boolean;
@@ -44,26 +45,22 @@ export function HomeTrendingDepartmentCards({
   return (
     <div className={className}>
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        {TRENDING_DEPARTMENT_CARDS.map((card, index) => {
+        {TRENDING_DEPARTMENT_CARDS.map((card) => {
           const browseHref = departmentBrowseHref(card.department);
           const href = keepBrowseOnHomepage
             ? toHomepageBrowseHref(browseHref)
             : browseHref;
-
           return (
             <Link
               key={card.department}
               href={href}
               scroll={!keepBrowseOnHomepage}
-              className="group relative block aspect-[4/3] overflow-hidden rounded-lg shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover"
+              className={`group relative block aspect-[4/3] overflow-hidden rounded-lg shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover lg:aspect-[8/3] ${"underlayClassName" in card ? card.underlayClassName : ""}`}
             >
-              <Image
-                src={card.imageSrc}
-                alt={card.title}
-                fill
-                sizes={CARD_IMAGE_SIZES}
-                priority={index < 2}
-                className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              <div
+                aria-hidden="true"
+                className={`${CARD_IMAGE_BASE_CLASS} ${"imagePositionClassName" in card ? card.imagePositionClassName : "bg-center"}`}
+                style={{ backgroundImage: `url("${card.imageSrc}")` }}
               />
               <div className="absolute left-0 top-0 z-10 p-2 sm:p-2.5">
                 <span className="inline-block -skew-x-12 bg-primary px-3 py-1.5 shadow-sm">

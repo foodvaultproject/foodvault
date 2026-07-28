@@ -4,8 +4,15 @@ import path from "path";
 
 const srcDir = path.join("public", "trending homepage");
 const outDir = path.join("public", "trending-homepage");
-const MAX_WIDTH = 640;
+const DESKTOP_CARD_ASPECT_WIDTH = 8;
+const DESKTOP_CARD_ASPECT_HEIGHT = 3;
+const OUTPUT_WIDTH = 960;
 const WEBP_QUALITY = 82;
+
+/** Source PNGs include a white strip on the right edge that must be cropped off. */
+const RIGHT_EDGE_CROP_RATIO = {
+  "drinks-hp.png": 0.9768,
+};
 
 fs.mkdirSync(outDir, { recursive: true });
 
@@ -17,16 +24,22 @@ for (const file of files) {
   const slugBase =
     base === "Beer, Wine & Liquor-hp" ? "beer-wine-liquor-hp" : base;
   const output = path.join(outDir, `${slugBase}.webp`);
+  const cropRatio = RIGHT_EDGE_CROP_RATIO[file] ?? 1;
 
   const meta = await sharp(input).metadata();
   const inputSize = fs.statSync(input).size;
+  const cropWidth = Math.floor(meta.width * cropRatio);
 
   await sharp(input)
     .rotate()
+    .extract({ left: 0, top: 0, width: cropWidth, height: meta.height })
     .resize({
-      width: MAX_WIDTH,
-      withoutEnlargement: true,
-      fit: "inside",
+      width: OUTPUT_WIDTH,
+      height: Math.round(
+        (OUTPUT_WIDTH * DESKTOP_CARD_ASPECT_HEIGHT) / DESKTOP_CARD_ASPECT_WIDTH
+      ),
+      fit: "cover",
+      position: "centre",
     })
     .webp({ quality: WEBP_QUALITY, effort: 6 })
     .toFile(output);
