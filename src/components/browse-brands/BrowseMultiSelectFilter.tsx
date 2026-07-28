@@ -5,10 +5,16 @@ import { useEffect, useRef, useState } from "react";
 export const browseFilterSelectClass =
   "w-full rounded-md border border-border bg-background px-2.5 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
+export type BrowseFilterOptionGroup = {
+  label: string;
+  options: readonly string[];
+};
+
 type BrowseMultiSelectFilterProps = {
   label: string;
   placeholder: string;
   options: readonly string[];
+  optionGroups?: readonly BrowseFilterOptionGroup[];
   selected: string[];
   onChange: (selected: string[]) => void;
   disabled?: boolean;
@@ -18,6 +24,7 @@ export function BrowseMultiSelectFilter({
   label,
   placeholder,
   options,
+  optionGroups,
   selected,
   onChange,
   disabled = false,
@@ -56,6 +63,13 @@ export function BrowseMultiSelectFilter({
         ? selected[0]
         : `${selected.length} selected`;
 
+  const groupedOptions =
+    optionGroups && optionGroups.length > 0
+      ? optionGroups
+      : options.length > 0
+        ? [{ label: "", options }]
+        : [];
+
   return (
     <div ref={containerRef} className="relative block min-w-0 flex-1">
       <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
@@ -81,28 +95,37 @@ export function BrowseMultiSelectFilter({
           aria-multiselectable="true"
           className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-background py-1 shadow-lg"
         >
-          {options.length === 0 ? (
+          {groupedOptions.length === 0 ? (
             <p className="px-3 py-2 text-sm text-muted-foreground">
               No options available
             </p>
           ) : (
-            options.map((option) => {
-              const isSelected = selected.includes(option);
-              return (
-                <label
-                  key={option}
-                  className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-primary/5"
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleOption(option)}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
-                  />
-                  <span>{option}</span>
-                </label>
-              );
-            })
+            groupedOptions.map((group) => (
+              <div key={group.label || "options"}>
+                {group.label ? (
+                  <p className="sticky top-0 bg-background px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </p>
+                ) : null}
+                {group.options.map((option) => {
+                  const isSelected = selected.includes(option);
+                  return (
+                    <label
+                      key={`${group.label}-${option}`}
+                      className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-primary/5"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleOption(option)}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            ))
           )}
         </div>
       ) : null}

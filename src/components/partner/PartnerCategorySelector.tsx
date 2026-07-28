@@ -5,6 +5,7 @@ import {
   emptyCategoryGroup,
   getDepartmentsFromGroups,
   getSubcategoriesForDepartment,
+  getSubcategoryGroupsForDepartment,
   groupShowsDietaryAttributes,
   normalizeDietaryLifestyleAttributes,
   PRIMARY_DEPARTMENTS,
@@ -20,6 +21,57 @@ import {
 } from "@/lib/partner-portal-classes";
 
 const selectClass = portalSelect;
+
+function SubcategoryCheckboxGrid({
+  subcategories,
+  selected,
+  onToggle,
+  idPrefix,
+  index,
+  disabled,
+}: {
+  subcategories: readonly string[];
+  selected: string[];
+  onToggle: (subcategory: string) => void;
+  idPrefix: string;
+  index: number;
+  disabled: boolean;
+}) {
+  return (
+    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {subcategories.map((subcategory) => {
+        const checked = selected.includes(subcategory);
+        const inputId = `${idPrefix}-subcategory-${index}-${subcategory
+          .replace(/[^a-z0-9]+/gi, "-")
+          .toLowerCase()}`;
+
+        return (
+          <label
+            key={subcategory}
+            htmlFor={inputId}
+            className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-2.5 py-2 transition-colors ${
+              checked
+                ? "border-primary bg-primary/5"
+                : "border-border bg-background hover:border-primary/30"
+            }${disabled ? " cursor-not-allowed opacity-60" : ""}`}
+          >
+            <input
+              id={inputId}
+              type="checkbox"
+              name={`subcategories-${index}`}
+              value={subcategory}
+              checked={checked}
+              disabled={disabled}
+              onChange={() => onToggle(subcategory)}
+              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+            />
+            <span className="text-[0.8125rem] text-foreground">{subcategory}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
 
 type PartnerCategoriesEditorProps = {
   categoryGroups: PartnerCategoryGroup[];
@@ -135,6 +187,7 @@ export function PartnerCategoriesEditor({
       <div className={compact ? "space-y-4" : "mt-6 space-y-5"}>
         {groups.map((group, index) => {
           const availableSubcategories = getSubcategoriesForDepartment(group.department);
+          const subcategoryGroups = getSubcategoryGroupsForDepartment(group.department);
           const departmentOptions = PRIMARY_DEPARTMENTS.filter(
             (department) =>
               department === group.department ||
@@ -210,38 +263,36 @@ export function PartnerCategoriesEditor({
                     ) : null}
                   </div>
 
-                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {availableSubcategories.map((subcategory) => {
-                      const checked = group.subcategories.includes(subcategory);
-                      const inputId = `${idPrefix}-subcategory-${index}-${subcategory
-                        .replace(/[^a-z0-9]+/gi, "-")
-                        .toLowerCase()}`;
-
-                      return (
-                        <label
-                          key={subcategory}
-                          htmlFor={inputId}
-                          className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-2.5 py-2 transition-colors ${
-                            checked
-                              ? "border-primary bg-primary/5"
-                              : "border-border bg-background hover:border-primary/30"
-                          }${disabled ? " cursor-not-allowed opacity-60" : ""}`}
-                        >
-                          <input
-                            id={inputId}
-                            type="checkbox"
-                            name={`subcategories-${index}`}
-                            value={subcategory}
-                            checked={checked}
+                  {subcategoryGroups ? (
+                    <div className="mt-3 space-y-5">
+                      {subcategoryGroups.map((subcategoryGroup) => (
+                        <div key={subcategoryGroup.label} className="space-y-2">
+                          <h4 className="text-[0.8125rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {subcategoryGroup.label}
+                          </h4>
+                          <SubcategoryCheckboxGrid
+                            subcategories={subcategoryGroup.subcategories}
+                            selected={group.subcategories}
+                            onToggle={(subcategory) =>
+                              toggleSubcategory(index, subcategory)
+                            }
+                            idPrefix={`${idPrefix}-${subcategoryGroup.label}`}
+                            index={index}
                             disabled={disabled}
-                            onChange={() => toggleSubcategory(index, subcategory)}
-                            className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                           />
-                          <span className="text-[0.8125rem] text-foreground">{subcategory}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <SubcategoryCheckboxGrid
+                      subcategories={availableSubcategories}
+                      selected={group.subcategories}
+                      onToggle={(subcategory) => toggleSubcategory(index, subcategory)}
+                      idPrefix={idPrefix}
+                      index={index}
+                      disabled={disabled}
+                    />
+                  )}
 
                   {group.subcategories.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-3">

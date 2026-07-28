@@ -14,9 +14,57 @@ export const PRIMARY_DEPARTMENTS = [
   "Kitchenware",
   "Baby & Child",
   "Pet",
+  "Gift Boxes & Hampers",
 ] as const;
 
 export type PrimaryDepartment = (typeof PRIMARY_DEPARTMENTS)[number];
+
+export type PartnerSubcategoryGroup = {
+  label: string;
+  subcategories: readonly string[];
+};
+
+export const GIFT_BOXES_GIFT_TYPE_SUBCATEGORIES = [
+  "Gourmet Food",
+  "Chocolate & Sweet Treats",
+  "Wine & Beverage Gifts",
+  "Coffee & Tea",
+  "Healthy & Organic",
+  "Artisan & Local",
+  "Luxury Hampers",
+  "Corporate Gifts",
+  "Build Your Own",
+  "Baby & New Parent",
+  "Wellness & Self Care",
+  "Eco-Friendly Gifts",
+  "Seasonal Collections",
+] as const;
+
+export const GIFT_BOXES_OCCASION_SUBCATEGORIES = [
+  "Birthday",
+  "Thank You",
+  "Congratulations",
+  "Get Well Soon",
+  "New Baby",
+  "Housewarming",
+  "Anniversary",
+  "Christmas",
+  "Mother's Day",
+  "Father's Day",
+  "Valentine's Day",
+  "Corporate Gifting",
+] as const;
+
+export const GIFT_BOXES_SUBCATEGORY_GROUPS: readonly PartnerSubcategoryGroup[] = [
+  { label: "Gift Type", subcategories: GIFT_BOXES_GIFT_TYPE_SUBCATEGORIES },
+  { label: "Occasion", subcategories: GIFT_BOXES_OCCASION_SUBCATEGORIES },
+];
+
+export const PARTNER_SUBCATEGORY_GROUPS: Partial<
+  Record<PrimaryDepartment, readonly PartnerSubcategoryGroup[]>
+> = {
+  "Gift Boxes & Hampers": GIFT_BOXES_SUBCATEGORY_GROUPS,
+};
 
 export const PARTNER_CATEGORY_TAXONOMY: Record<
   PrimaryDepartment,
@@ -218,6 +266,10 @@ export const PARTNER_CATEGORY_TAXONOMY: Record<
     "For Mum",
   ],
   Pet: ["Cats", "Dogs", "Birds, Fish & Small Animals", "Pet Health & Accessories"],
+  "Gift Boxes & Hampers": [
+    ...GIFT_BOXES_GIFT_TYPE_SUBCATEGORIES,
+    ...GIFT_BOXES_OCCASION_SUBCATEGORIES,
+  ],
 };
 
 export const DIETARY_LIFESTYLE_ATTRIBUTES = [
@@ -293,6 +345,65 @@ export function getSubcategoriesForDepartment(
   return (
     PARTNER_CATEGORY_TAXONOMY[department as PrimaryDepartment] ?? []
   );
+}
+
+export function getSubcategoryGroupsForDepartment(
+  department: string
+): readonly PartnerSubcategoryGroup[] | null {
+  if (!isPrimaryDepartment(department)) return null;
+  return PARTNER_SUBCATEGORY_GROUPS[department] ?? null;
+}
+
+export function departmentUsesGroupedSubcategories(
+  department: string
+): department is PrimaryDepartment {
+  return (
+    isPrimaryDepartment(department) &&
+    Boolean(PARTNER_SUBCATEGORY_GROUPS[department])
+  );
+}
+
+export type SubcategoryFilterGroup = {
+  label: string;
+  options: readonly string[];
+};
+
+/** Build grouped subcategory options for browse filters and selectors. */
+export function getSubcategoryFilterGroups(
+  departments: readonly string[]
+): SubcategoryFilterGroup[] {
+  const sourceDepartments =
+    departments.length > 0
+      ? departments.filter(isPrimaryDepartment)
+      : [...PRIMARY_DEPARTMENTS];
+
+  const groups: SubcategoryFilterGroup[] = [];
+
+  for (const department of sourceDepartments) {
+    const grouped = PARTNER_SUBCATEGORY_GROUPS[department];
+    if (grouped) {
+      for (const group of grouped) {
+        groups.push({
+          label: group.label,
+          options: group.subcategories,
+        });
+      }
+      continue;
+    }
+
+    groups.push({
+      label: department,
+      options: PARTNER_CATEGORY_TAXONOMY[department],
+    });
+  }
+
+  return groups;
+}
+
+export function flattenSubcategoryFilterGroups(
+  groups: readonly SubcategoryFilterGroup[]
+): string[] {
+  return [...new Set(groups.flatMap((group) => group.options))];
 }
 
 const LEGACY_DEPARTMENT_ALIASES: Record<string, PrimaryDepartment> = {

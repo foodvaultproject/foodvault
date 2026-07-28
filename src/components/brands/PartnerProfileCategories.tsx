@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { PartnerCategoryGroup } from "@/data/partner-categories";
+import {
+  getSubcategoryGroupsForDepartment,
+  type PartnerCategoryGroup,
+} from "@/data/partner-categories";
 
 const VISIBLE_CATEGORY_LIMIT = 2;
 
@@ -56,22 +59,51 @@ export function PartnerProfileCategories({
       </p>
 
       {showAll ? (
-        groupsWithCategories.map((group) => (
-          <div key={group.department}>
-            <p className="text-sm font-semibold text-foreground">{group.department}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {group.subcategories.map((category) => (
-                <Link
-                  key={`${group.department}-${category}`}
-                  href={browseCategoryHref(group.department, category)}
-                  className={categoryTagClassName}
-                >
-                  {category}
-                </Link>
-              ))}
+        groupsWithCategories.map((group) => {
+          const subcategoryGroups = getSubcategoryGroupsForDepartment(group.department);
+
+          return (
+            <div key={group.department}>
+              <p className="text-sm font-semibold text-foreground">{group.department}</p>
+              {subcategoryGroups ? (
+                <div className="mt-2 space-y-3">
+                  {subcategoryGroups.map((subcategoryGroup) => (
+                    <div key={subcategoryGroup.label}>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {subcategoryGroup.label}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {subcategoryGroup.subcategories
+                          .filter((category) => group.subcategories.includes(category))
+                          .map((category) => (
+                            <Link
+                              key={`${group.department}-${category}`}
+                              href={browseCategoryHref(group.department, category)}
+                              className={categoryTagClassName}
+                            >
+                              {category}
+                            </Link>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {group.subcategories.map((category) => (
+                    <Link
+                      key={`${group.department}-${category}`}
+                      href={browseCategoryHref(group.department, category)}
+                      className={categoryTagClassName}
+                    >
+                      {category}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))
+          );
+        })
       ) : (
         <div className="flex flex-wrap gap-2">
           {visibleTags.map((tag) => (

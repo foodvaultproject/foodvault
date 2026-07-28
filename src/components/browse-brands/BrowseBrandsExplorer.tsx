@@ -14,9 +14,9 @@ import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout
 import { HomeTrendingSearches } from "@/components/home/HomeTrendingSearches";
 import {
   DIETARY_LIFESTYLE_ATTRIBUTES,
-  PARTNER_CATEGORY_TAXONOMY,
+  flattenSubcategoryFilterGroups,
+  getSubcategoryFilterGroups,
   PRIMARY_DEPARTMENTS,
-  type PrimaryDepartment,
 } from "@/data/partner-categories";
 import {
   BROWSE_PAGE_SIZE,
@@ -97,21 +97,15 @@ export function BrowseBrandsExplorer({
   const [isPending, startTransition] = useTransition();
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const subcategoryOptions = useMemo(() => {
-    const sourceDepartments =
-      departments.length > 0
-        ? departments
-        : (PRIMARY_DEPARTMENTS as readonly string[]);
+  const subcategoryGroups = useMemo(
+    () => getSubcategoryFilterGroups(departments),
+    [departments]
+  );
 
-    return [
-      ...new Set(
-        sourceDepartments.flatMap(
-          (department) =>
-            PARTNER_CATEGORY_TAXONOMY[department as PrimaryDepartment] ?? []
-        )
-      ),
-    ].sort((a, b) => a.localeCompare(b));
-  }, [departments]);
+  const subcategoryOptions = useMemo(
+    () => flattenSubcategoryFilterGroups(subcategoryGroups).sort((a, b) => a.localeCompare(b)),
+    [subcategoryGroups]
+  );
 
   useEffect(() => {
     if (departments.length === 0) return;
@@ -273,6 +267,7 @@ export function BrowseBrandsExplorer({
                 label="Subcategory"
                 placeholder="All Subcategories"
                 options={subcategoryOptions}
+                optionGroups={subcategoryGroups}
                 selected={subcategories}
                 onChange={setSubcategories}
               />
