@@ -14,11 +14,14 @@ import {
 } from "@/lib/member/browse-brands-types";
 import { createClient } from "@/lib/supabase/server";
 import {
+  expandDepartmentSearchValues,
   flattenDietaryLifestyleAttributes,
   getDepartmentsFromGroups,
   isDietaryLifestyleAttribute,
   parseDietaryLifestyleAttributes,
   resolveCategoryGroupsFromRecord,
+  resolvePrimaryDepartment,
+  type PrimaryDepartment,
 } from "@/data/partner-categories";
 import { parseLogoCrop } from "@/lib/partner-logo-crop";
 
@@ -45,11 +48,12 @@ function normalizeDietaryLifestyleFilters(
 }
 
 function resolveSearchFilters(params: BrandSearchParams) {
+  const departments = expandDepartmentSearchValues(
+    normalizeStringArrayFilter(params.departments, params.department)
+  );
+
   return {
-    departments: normalizeStringArrayFilter(
-      params.departments,
-      params.department
-    ),
+    departments,
     subcategories: normalizeStringArrayFilter(
       params.subcategories,
       params.subcategory
@@ -61,13 +65,37 @@ function resolveSearchFilters(params: BrandSearchParams) {
   };
 }
 
+function normalizeBrandDepartments(values: string[]): PrimaryDepartment[] {
+  return [
+    ...new Set(
+      values
+        .map((value) => resolvePrimaryDepartment(value))
+        .filter((value): value is PrimaryDepartment => value !== null)
+    ),
+  ];
+}
+
 function brandMatchesDepartments(brand: BrandCard, departments: string[]) {
   if (!departments.length) return true;
 
-  return departments.some(
-    (department) =>
-      brand.department === department || brand.departments.includes(department)
+  const filterDepartments = new Set(
+    expandDepartmentSearchValues(departments).map(
+      (department) => resolvePrimaryDepartment(department) ?? department
+    )
   );
+  const brandDepartments = normalizeBrandDepartments([
+    ...(brand.department ? [brand.department] : []),
+    ...brand.departments,
+  ]);
+
+  return brandDepartments.some((department) => filterDepartments.has(department));
+}
+
+function postgrestFilterValue(value: string): string {
+  if (/[,.()]/.test(value) || value.includes('"')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
 }
 
 function brandMatchesSubcategories(brand: BrandCard, subcategories: string[]) {
@@ -247,10 +275,13 @@ async function searchPublicBrandsFromView(
     .select(PUBLIC_BRAND_LISTING_SELECT, { count: "exact" });
 
   if (filters.departments.length) {
-    const orParts = filters.departments.flatMap((department) => [
-      `department.eq.${department}`,
-      `primary_categories.cs.{"${department}"}`,
-    ]);
+    const orParts = filters.departments.flatMap((department) => {
+      const quoted = postgrestFilterValue(department);
+      return [
+        `department.eq.${quoted}`,
+        `primary_categories.cs.{${quoted}}`,
+      ];
+    });
     query = query.or(orParts.join(","));
   }
 
@@ -330,10 +361,13 @@ async function searchPublicBrandsFromPartners(
   query = query.or(dietaryOrParts.join(","));
 
   if (filters.departments.length) {
-    const orParts = filters.departments.flatMap((department) => [
-      `primary_category.eq.${department}`,
-      `primary_categories.cs.{"${department}"}`,
-    ]);
+    const orParts = filters.departments.flatMap((department) => {
+      const quoted = postgrestFilterValue(department);
+      return [
+        `primary_category.eq.${quoted}`,
+        `primary_categories.cs.{${quoted}}`,
+      ];
+    });
     query = query.or(orParts.join(","));
   }
 
@@ -555,12 +589,17 @@ function mapRpcRow(row: RpcBrandRow): BrandCard {
 function mapViewRow(row: ViewBrandRow): BrandCard {
   const businessName = formatBusinessName(row.business_name);
   const categoryGroups = resolveCategoryGroupsFromRecord(row);
-  const departments =
+  const rawDepartments =
     Array.isArray(row.primary_categories) && row.primary_categories.length > 0
       ? row.primary_categories.filter(
           (value): value is string => typeof value === "string" && value.length > 0
         )
       : getDepartmentsFromGroups(categoryGroups);
+  const departments = normalizeBrandDepartments(
+    rawDepartments.length > 0
+      ? rawDepartments
+      : getDepartmentsFromGroups(categoryGroups)
+  );
 
   const dietaryFromColumn = parseDietaryLifestyleAttributes(
     row.dietary_lifestyle_attributes
@@ -575,7 +614,8 @@ function mapViewRow(row: ViewBrandRow): BrandCard {
     businessName,
     slug: row.slug || partnerProfileSlug(businessName),
     shortDescription: row.short_description,
-    department: row.department ?? departments[0] ?? null,
+    department:
+      resolvePrimaryDepartment(row.department ?? "") ?? departments[0] ?? null,
     departments,
     subcategories: Array.isArray(row.subcategories) ? row.subcategories : [],
     dietaryLifestyleAttributes,

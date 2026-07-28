@@ -20,7 +20,9 @@ import { parseLogoCrop, type LogoCropSettings } from "@/lib/partner-logo-crop";
 import {
   getDepartmentsFromGroups,
   resolveCategoryGroupsFromRecord,
+  resolvePrimaryDepartment,
   type PartnerCategoryGroup,
+  type PrimaryDepartment,
 } from "@/data/partner-categories";
 import {
   offerScopeFromLegacyAppliesTo,
@@ -215,15 +217,30 @@ async function getPartnerOwnProfilePreview(
   return mapPartnerTableRow(row);
 }
 
+function normalizeProfileDepartments(values: string[]): PrimaryDepartment[] {
+  return [
+    ...new Set(
+      values
+        .map((value) => resolvePrimaryDepartment(value))
+        .filter((value): value is PrimaryDepartment => value !== null)
+    ),
+  ];
+}
+
 function mapProfileRow(row: ProfileViewRow): PartnerProfile {
   const businessName = formatBusinessName(row.business_name);
   const categoryGroups = resolveCategoryGroupsFromRecord(row);
-  const departments =
+  const rawDepartments =
     Array.isArray(row.primary_categories) && row.primary_categories.length > 0
       ? row.primary_categories.filter(
           (value): value is string => typeof value === "string" && value.length > 0
         )
       : getDepartmentsFromGroups(categoryGroups);
+  const departments = normalizeProfileDepartments(
+    rawDepartments.length > 0
+      ? rawDepartments
+      : getDepartmentsFromGroups(categoryGroups)
+  );
 
   return {
     id: row.id,
@@ -233,7 +250,8 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     brandStory: row.brand_story,
     websiteUrl: row.website_url,
     country: row.location ?? "New Zealand",
-    department: row.department ?? departments[0] ?? null,
+    department:
+      resolvePrimaryDepartment(row.department ?? "") ?? departments[0] ?? null,
     departments,
     subcategories: Array.isArray(row.subcategories) ? row.subcategories : [],
     categoryGroups,

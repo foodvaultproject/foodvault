@@ -410,6 +410,32 @@ const LEGACY_DEPARTMENT_ALIASES: Record<string, PrimaryDepartment> = {
   "Beer & Wine": "Beer, Wine & Liquor",
 };
 
+/** Include canonical and legacy stored values when querying browse filters. */
+export function expandDepartmentSearchValues(departments: string[]): string[] {
+  const expanded = new Set<string>();
+
+  for (const department of departments) {
+    const trimmed = department.trim();
+    if (!trimmed) continue;
+
+    expanded.add(trimmed);
+
+    const resolved = resolvePrimaryDepartment(trimmed);
+    if (resolved) {
+      expanded.add(resolved);
+    }
+
+    for (const [legacy, canonical] of Object.entries(LEGACY_DEPARTMENT_ALIASES)) {
+      if (trimmed === canonical || trimmed === legacy) {
+        expanded.add(legacy);
+        expanded.add(canonical);
+      }
+    }
+  }
+
+  return [...expanded];
+}
+
 export function resolvePrimaryDepartment(value: string): PrimaryDepartment | null {
   if (PRIMARY_DEPARTMENTS.includes(value as PrimaryDepartment)) {
     return value as PrimaryDepartment;
