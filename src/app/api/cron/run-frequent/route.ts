@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
+import { processPartnerActivationReminderEmails } from "@/lib/email-templates/partner-activation-cron";
 import { approveExpiredCommissions } from "@/lib/store-integration/engine";
 import { processPendingNotifications } from "@/lib/notification-service/engine";
 import { recordScheduledJobRun } from "@/lib/audit-service";
@@ -37,7 +38,20 @@ export async function POST(request: NextRequest) {
       result: trialEmails,
     });
 
-    return NextResponse.json({ ok: true, approved, processed, trialEmails });
+    const partnerActivationReminders = await processPartnerActivationReminderEmails();
+    await recordScheduledJobRun({
+      jobName: "process_partner_activation_reminders",
+      status: "success",
+      result: partnerActivationReminders,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      approved,
+      processed,
+      trialEmails,
+      partnerActivationReminders,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Cron failed";
     await recordScheduledJobRun({

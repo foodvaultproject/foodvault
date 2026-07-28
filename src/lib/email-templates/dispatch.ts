@@ -12,6 +12,10 @@ import {
   renderPartnerApplicationRejectedEmail,
 } from "@/lib/email-templates/render";
 import { renderPartnerListingLiveEmail } from "@/lib/email-templates/templates/partner/listing-live";
+import {
+  renderPartnerActivationReminderEmail,
+  type PartnerActivationReminderNumber,
+} from "@/lib/email-templates/templates/partner/activation-reminder";
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
 import { getMembershipSettings } from "@/lib/member/settings";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
@@ -247,6 +251,53 @@ export async function notifyPartnerLifecycleEmails(partnerId: string) {
   return { sent: false as const, reason: "unsupported_status" as const };
 }
 
+export type { PartnerActivationReminderNumber } from "@/lib/email-templates/templates/partner/activation-reminder";
+
+export async function sendPartnerActivationReminderEmail(input: {
+  partnerId: string;
+  reminderNumber: PartnerActivationReminderNumber;
+}) {
+  const admin = createAdminClient();
+  if (!admin) return { sent: false as const, reason: "admin_unavailable" as const };
+
+  const { data: partner } = await admin
+    .from("partners")
+    .select(
+      "business_name, support_email, user_id, contact_name, member_code, application_status_v2, listing_status_v2"
+    )
+    .eq("id", input.partnerId)
+    .maybeSingle();
+
+  if (!partner) return { sent: false as const, reason: "partner_not_found" as const };
+
+  if (
+    String(partner.application_status_v2).toUpperCase() !== "APPROVED" ||
+    String(partner.listing_status_v2).toUpperCase() === "LIVE"
+  ) {
+    return { sent: false as const, reason: "not_pending_activation" as const };
+  }
+
+  const { data: userData } = await admin.auth.admin.getUserById(String(partner.user_id));
+  const contactEmail =
+    partner.support_email?.trim() || userData?.user?.email?.trim() || "";
+  if (!contactEmail) return { sent: false as const, reason: "missing_email" as const };
+
+  const appUrl = getEmailAppUrl();
+  return sendPlatformEmailSafe({
+    to: contactEmail,
+    rendered: renderPartnerActivationReminderEmail({
+      appUrl,
+      contactName:
+        partner.contact_name?.trim() ||
+        resolveContactName(userData?.user?.user_metadata) ||
+        null,
+      businessName: partner.business_name?.trim() || "your brand",
+      memberCode: partner.member_code?.trim() || null,
+      reminderNumber: input.reminderNumber,
+    }),
+  });
+}
+
 export async function sendPartnerApprovalEmail(partnerId: string) {
   const admin = createAdminClient();
   if (!admin) return { sent: false as const, reason: "admin_unavailable" as const };
@@ -264,7 +315,7 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
     partner.support_email?.trim() || userData?.user?.email?.trim() || "";
   if (!contactEmail) return { sent: false as const, reason: "missing_email" as const };
 
-  return sendPartnerApplicationApprovedEmail({
+  const result = await sendPartnerApplicationApprovedEmail({
     to: contactEmail,
     contactName:
       partner.contact_name?.trim() ||
@@ -273,6 +324,17 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
     businessName: partner.business_name?.trim() || "your brand",
     memberCode: partner.member_code?.trim() || null,
   });
+
+  if (result.sent) {
+    await admin
+      .from("partners")
+      .update({
+        approval_email_sent_at: new Date().toISOString(),
+      })
+      .eq("id", partnerId);
+  }
+
+  return result;
 }
 
 export async function sendPartnerListingLiveEmailForPartner(partnerId: string) {

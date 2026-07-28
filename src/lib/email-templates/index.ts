@@ -42,8 +42,10 @@ export {
   sendPartnerApplicationRejectedEmail,
   sendAdminNewBrandApplicationEmail,
   sendPartnerApprovalEmail,
+  sendPartnerActivationReminderEmail,
   sendPartnerListingLiveEmailForPartner,
   sendPartnerRejectionEmail,
   notifyPartnerLifecycleEmails,
 } from "@/lib/email-templates/dispatch";
 export { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
+export { processPartnerActivationReminderEmails } from "@/lib/email-templates/partner-activation-cron";

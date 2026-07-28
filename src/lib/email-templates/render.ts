@@ -9,6 +9,7 @@ import { renderMemberWelcomeEmail } from "@/lib/email-templates/templates/member
 import { renderPartnerApplicationApprovedEmail } from "@/lib/email-templates/templates/partner/application-approved";
 import { renderPartnerApplicationReceivedEmail } from "@/lib/email-templates/templates/partner/application-received";
 import { renderPartnerApplicationRejectedEmail } from "@/lib/email-templates/templates/partner/application-rejected";
+import { renderPartnerActivationReminderEmail } from "@/lib/email-templates/templates/partner/activation-reminder";
 import { renderPartnerListingLiveEmail } from "@/lib/email-templates/templates/partner/listing-live";
 import type { RenderedEmail } from "@/lib/email-templates/types";
 
@@ -22,6 +23,7 @@ export type EmailTemplateId =
   | "member.password-reset"
   | "partner.application-received"
   | "partner.application-approved"
+  | "partner.activation-reminder"
   | "partner.listing-live"
   | "partner.application-rejected"
   | "admin.new-brand-application";
@@ -83,6 +85,18 @@ export function renderEmailTemplate(
         businessName: String(params.businessName ?? ""),
         memberCode: params.memberCode as string | null | undefined,
       });
+    case "partner.activation-reminder":
+      return renderPartnerActivationReminderEmail({
+        appUrl: String(params.appUrl ?? ""),
+        contactName: params.contactName as string | null | undefined,
+        businessName: String(params.businessName ?? ""),
+        memberCode: params.memberCode as string | null | undefined,
+        reminderNumber: (params.reminderNumber === 2
+          ? 2
+          : params.reminderNumber === 3
+            ? 3
+            : 1) as 1 | 2 | 3,
+      });
     case "partner.listing-live":
       return renderPartnerListingLiveEmail({
         appUrl: String(params.appUrl ?? ""),
@@ -125,6 +139,7 @@ export {
   renderMemberVerifyEmail,
   renderMemberWelcomeEmail,
   renderPartnerApplicationApprovedEmail,
+  renderPartnerActivationReminderEmail,
   renderPartnerListingLiveEmail,
   renderPartnerApplicationReceivedEmail,
   renderPartnerApplicationRejectedEmail,
