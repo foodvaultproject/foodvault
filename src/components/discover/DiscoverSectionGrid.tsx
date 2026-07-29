@@ -23,6 +23,13 @@ type DiscoverSectionGridProps = {
   equalHeight?: boolean;
 };
 
+function getItemKey(item: ReactNode, index: number): string | number {
+  if (isValidElement(item) && item.key != null) {
+    return item.key;
+  }
+  return index;
+}
+
 function wrapMobileItem(
   item: ReactNode,
   key: string | number | undefined,
@@ -50,12 +57,8 @@ function MobileTwoRowScroll({
       <div
         className={`grid w-max auto-cols-[calc((100vw-3rem)/2)] grid-flow-col grid-rows-2 gap-[5px] ${equalHeight ? "items-stretch" : ""}`}
       >
-        {items.map((item) =>
-          wrapMobileItem(
-            item,
-            isValidElement(item) ? item.key : undefined,
-            equalHeight
-          )
+        {items.map((item, index) =>
+          wrapMobileItem(item, getItemKey(item, index), equalHeight)
         )}
       </div>
     </div>
@@ -72,12 +75,8 @@ function MobileSingleRowScroll({
   return (
     <div className="-mx-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className={`flex w-max gap-[5px] ${equalHeight ? "items-stretch" : ""}`}>
-        {items.map((item) =>
-          wrapMobileItem(
-            item,
-            isValidElement(item) ? item.key : undefined,
-            equalHeight
-          )
+        {items.map((item, index) =>
+          wrapMobileItem(item, getItemKey(item, index), equalHeight)
         )}
       </div>
     </div>
