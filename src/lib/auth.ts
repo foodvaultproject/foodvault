@@ -75,7 +75,7 @@ export function resolvePostLoginRedirect(
     ? PARTNER_DASHBOARD_PATH
     : accountType === "affiliate"
       ? AFFILIATE_DASHBOARD_PATH
-      : MEMBER_DASHBOARD_PATH;
+      : MEMBER_HOME_PATH;
 }
 
 export async function getAuthSession(): Promise<AuthSession | null> {
@@ -165,9 +165,7 @@ export async function signInWithGoogle(options: {
         : PARTNER_DASHBOARD_PATH
       : options.accountType === "affiliate"
         ? AFFILIATE_DASHBOARD_PATH
-        : flow === "signup"
-          ? MEMBER_HOME_PATH
-          : MEMBER_DASHBOARD_PATH;
+        : MEMBER_HOME_PATH;
   const next = options.nextPath ?? defaultNext;
 
   await storeOAuthIntentAction({
