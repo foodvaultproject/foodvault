@@ -237,6 +237,7 @@ function MobileAuthSection({
           className="block rounded-lg px-3 py-2.5"
           onNavigate={onNavigate}
           menuPreview={menuPreview}
+          mobileMenu
         />
       ) : null}
       {items.map((item) => (
