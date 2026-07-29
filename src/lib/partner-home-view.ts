@@ -1,8 +1,16 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { resolveMemberFirstName } from "@/lib/member/active-member";
 import { createClient } from "@/lib/supabase/server";
+
+function firstWord(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  return trimmed.split(/\s+/)[0] ?? null;
+}
 
 export type PartnerHomeView = {
   isPartner: boolean;
+  partnerName: string | null;
 };
 
 /**
@@ -13,7 +21,7 @@ export type PartnerHomeView = {
  */
 export async function getPartnerHomeView(): Promise<PartnerHomeView> {
   if (!isSupabaseConfigured()) {
-    return { isPartner: false };
+    return { isPartner: false, partnerName: null };
   }
 
   const supabase = await createClient();
@@ -22,18 +30,33 @@ export async function getPartnerHomeView(): Promise<PartnerHomeView> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { isPartner: false };
+    return { isPartner: false, partnerName: null };
   }
 
   if (user.user_metadata?.account_type === "partner") {
-    return { isPartner: true };
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("contact_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    return {
+      isPartner: true,
+      partnerName:
+        firstWord(partner?.contact_name) ?? resolveMemberFirstName(null, user),
+    };
   }
 
   const { data } = await supabase
     .from("partners")
-    .select("id")
+    .select("id, contact_name")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  return { isPartner: Boolean(data) };
+  return {
+    isPartner: Boolean(data),
+    partnerName: data
+      ? firstWord(data.contact_name) ?? resolveMemberFirstName(null, user)
+      : null,
+  };
 }

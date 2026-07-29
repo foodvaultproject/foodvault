@@ -1,79 +1,40 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { HomeTrendingDepartmentCards } from "@/components/home/HomeTrendingDepartmentCards";
-import { HOME_HERO_PY_COMPACT, HOME_HERO_PY_PARTNER, HOME_HERO_PY_ACTIVE_MEMBER, HOME_HERO_PY_FREE_TRIAL } from "@/components/home/section-spacing";
-import { PartnerLogo } from "@/components/partners/PartnerLogo";
-import type { PartnerLogoItem } from "@/lib/member/browse-brands";
-import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
-import { DEFAULT_TRIAL_LENGTH_DAYS } from "@/lib/system-settings";
-
-function visitorTrustIndicators(trialLengthDays: number) {
-  return [
-    {
-      label:
-        trialLengthDays === 1
-          ? "1-Day Free Trial"
-          : `${trialLengthDays}-Day Free Trial`,
-    },
-    { label: "Kiwi Owned" },
-    { label: "Shop Directly With Brands" },
-  ] as const;
-}
-
-const MEMBER_TRUST_INDICATORS = [
-  { label: "Membership Active" },
-  { label: "Kiwi Owned" },
-  { label: "Shop Directly With Brands" },
-] as const;
-
-const PARTNER_TRUST_INDICATORS = [
-  { label: "Partner Account Active" },
-  { label: "Kiwi Owned" },
-  { label: "Reach NZ Members" },
-] as const;
-
-/** ~8% inset — consistent logo margin inside the white circular frame. */
-const HERO_LOGO_INSET = "inset-[8%]";
-
-const COMPACT_HERO_PY = "py-3.5 sm:py-5 lg:py-6";
-const PARTNER_HERO_PY = HOME_HERO_PY_PARTNER;
-const COMPACT_HERO_GRID_GAP = "gap-5 lg:gap-7";
-const COMPACT_LOGO_GRID_CLASS =
-  "mx-auto hidden w-[32%] max-w-[9.6rem] lg:block";
+import {
+  HOME_HERO_PY_COMPACT,
+  HOME_HERO_PY_ACTIVE_MEMBER,
+  HOME_HERO_PY_FREE_TRIAL,
+  HOME_HERO_PY_PARTNER,
+} from "@/components/home/section-spacing";
 
 const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-background.webp";
 const VISITOR_HERO_ILLUSTRATION = "/home/kiwi_piggy_hp.webp";
 
-type HeroEnterDirection = "top" | "left" | "right" | "bottom";
-
 type HomeHeroProps = {
-  partners: PartnerLogoItem[];
   isActiveMember?: boolean;
   isFreeTrial?: boolean;
   isPartner?: boolean;
   memberName?: string | null;
-  trialLengthDays?: number;
 };
 
 export function HomeHero({
-  partners,
   isActiveMember = false,
   isFreeTrial = false,
   isPartner = false,
   memberName = null,
-  trialLengthDays = DEFAULT_TRIAL_LENGTH_DAYS,
 }: HomeHeroProps) {
-  const [partner1, partner2, partner3, partner4] = partners;
-  const trustIndicators: readonly { label: string }[] = isPartner
-    ? PARTNER_TRUST_INDICATORS
-    : isActiveMember
-      ? MEMBER_TRUST_INDICATORS
-      : visitorTrustIndicators(trialLengthDays);
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
-  const isVisitorHero = !isPartner && !isFreeTrial && !isActiveMember;
+  const isVisitorHero = !isCompactHero;
   // Trial, active members, and partners browse the embedded homepage explorer;
   // visitors use the standalone Discover page.
   const keepBrowseOnHomepage = isActiveMember || isFreeTrial || isPartner;
+
+  const compactHeroPadding = isActiveMember
+    ? HOME_HERO_PY_ACTIVE_MEMBER
+    : isPartner
+      ? HOME_HERO_PY_PARTNER
+      : HOME_HERO_PY_FREE_TRIAL;
 
   return (
     <section
@@ -104,138 +65,11 @@ export function HomeHero({
       {isVisitorHero ? (
         <VisitorHeroBanner />
       ) : (
-      <div
-        className={
-          isActiveMember
-            ? `relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${HOME_HERO_PY_ACTIVE_MEMBER}`
-            : `relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
-                isPartner
-                  ? `grid items-center lg:grid-cols-2 ${PARTNER_HERO_PY} gap-2.5 lg:gap-3.5`
-                  : isFreeTrial
-                    ? `grid items-center lg:grid-cols-2 ${HOME_HERO_PY_FREE_TRIAL} gap-2.5 lg:gap-3.5`
-                    : `grid items-center lg:grid-cols-2 ${COMPACT_HERO_PY} ${COMPACT_HERO_GRID_GAP}`
-              }`
-        }
-      >
-        <div>
-          {isPartner ? (
-            <>
-              <h1 className="text-base font-bold leading-snug tracking-tight text-foreground">
-                Welcome back to your FoodVault{" "}
-                <span className="text-primary">Partner Portal.</span>
-              </h1>
-              <p className="mt-2.5 max-w-xl text-xs leading-relaxed text-muted-foreground">
-                Manage your brand profile, member offers and product listings — and
-                discover new ways to connect with FoodVault members across New Zealand.
-              </p>
-              <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
-                <Link
-                  href="/partner/listing"
-                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-5 py-2 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
-                >
-                  Partner Dashboard
-                </Link>
-              </div>
-            </>
-          ) : isFreeTrial ? (
-            <>
-              <h1 className="text-[22px] font-bold leading-snug tracking-tight text-foreground">
-                Welcome Back
-                {memberName ? (
-                  <>
-                    , <span className="text-primary">{memberName}</span>
-                  </>
-                ) : (
-                  "!"
-                )}
-              </h1>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Unlock exclusive member discounts from participating New Zealand food,
-                beverage, household and health brands — and buy direct on each partner&apos;s
-                own website.
-              </p>
-              <div className="mt-3 flex flex-col gap-2.5 sm:flex-row sm:items-center">
-                <MemberSignupCtaLink
-                  variant="start-free-trial"
-                  className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-medium text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
-                />
-              </div>
-            </>
-          ) : isActiveMember ? (
-            <>
-              <h1 className="text-[22px] font-bold leading-snug tracking-tight text-foreground">
-                Welcome back
-                {memberName ? (
-                  <>
-                    , <span className="text-primary">{memberName}</span>.
-                  </>
-                ) : (
-                  "."
-                )}
-              </h1>
-            </>
-          ) : null}
-          {isPartner ? (
-            <ul className={`flex flex-wrap gap-x-5 gap-y-2 ${isCompactHero ? "mt-3" : "mt-5"}`}>
-              {trustIndicators.map((item) => (
-                <li
-                  key={item.label}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                >
-                  <svg
-                    className="h-3.5 w-3.5 shrink-0 text-success"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    aria-hidden="true"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+        <div
+          className={`relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${compactHeroPadding}`}
+        >
+          <CompactHeroWelcome memberName={memberName} />
         </div>
-
-        {isCompactHero ? (
-          <div className={COMPACT_LOGO_GRID_CLASS}>
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="space-y-1.5">
-                <HeroPartnerFrame
-                  partner={partner1}
-                  priority
-                  enterFrom="top"
-                  delayMs={0}
-                  compact
-                />
-                <HeroPartnerFrame
-                  partner={partner3}
-                  enterFrom="left"
-                  delayMs={160}
-                  compact
-                />
-              </div>
-              <div className="space-y-1.5 pt-2.5">
-                <HeroPartnerFrame
-                  partner={partner2}
-                  enterFrom="right"
-                  delayMs={80}
-                  compact
-                />
-                <HeroPartnerFrame
-                  partner={partner4}
-                  priority
-                  enterFrom="bottom"
-                  delayMs={240}
-                  compact
-                />
-              </div>
-            </div>
-          </div>
-        ) : null}
-      </div>
       )}
 
       <div className="relative z-10 border-t border-border bg-background">
@@ -244,6 +78,21 @@ export function HomeHero({
         </div>
       </div>
     </section>
+  );
+}
+
+function CompactHeroWelcome({ memberName }: { memberName: string | null }) {
+  return (
+    <h1 className="text-[22px] font-bold leading-snug tracking-tight text-foreground">
+      Welcome back
+      {memberName ? (
+        <>
+          , <span className="text-primary">{memberName}</span>.
+        </>
+      ) : (
+        "."
+      )}
+    </h1>
   );
 }
 
@@ -288,65 +137,5 @@ function VisitorHeroBanner() {
         </div>
       </div>
     </div>
-  );
-}
-
-function HeroPartnerFrame({
-  partner,
-  priority,
-  enterFrom,
-  delayMs,
-  compact = false,
-}: {
-  partner?: PartnerLogoItem;
-  priority?: boolean;
-  enterFrom: HeroEnterDirection;
-  delayMs: number;
-  compact?: boolean;
-}) {
-  const enterClass = `fv-hero-logo-enter-${enterFrom}`;
-  const frameClass =
-    "relative block aspect-square overflow-hidden rounded-full border border-border bg-white shadow-card transition-[box-shadow,transform,opacity] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover";
-
-  if (!partner) {
-    return (
-      <div
-        className={`${frameClass} ${enterClass} bg-gradient-to-br from-primary/20 to-primary/5`}
-        style={{ animationDelay: `${delayMs}ms` }}
-      />
-    );
-  }
-
-  const hasLogo = Boolean(partner.logoUrl);
-  const initial = partner.businessName.trim().charAt(0).toUpperCase() || "?";
-
-  return (
-    <Link
-      href={partnerProfilePathFromSlug(partner.slug)}
-      aria-label={partner.businessName}
-      className={`${frameClass} ${enterClass}`}
-      style={{ animationDelay: `${delayMs}ms` }}
-    >
-      {hasLogo ? (
-        <div className={`absolute ${HERO_LOGO_INSET}`}>
-          <PartnerLogo
-            src={partner.logoUrl}
-            originalSrc={partner.logoOriginalUrl}
-            alt={`${partner.businessName} logo`}
-            businessName={partner.businessName}
-            size="hero"
-            crop={partner.logoCrop}
-            priority={priority}
-            className="h-full w-full"
-          />
-        </div>
-      ) : (
-        <div className="flex h-full w-full items-center justify-center bg-surface">
-          <span className={`font-bold text-primary ${compact ? "text-base" : "text-3xl"}`}>
-            {initial}
-          </span>
-        </div>
-      )}
-    </Link>
   );
 }

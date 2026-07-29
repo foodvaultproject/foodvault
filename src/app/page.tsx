@@ -23,7 +23,6 @@ import {
   BROWSE_PAGE_SIZE,
   getFeaturedBrands,
   getHomepageFeaturedBrands,
-  getPartnerLogos,
   getRecentBrandCards,
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
@@ -41,7 +40,6 @@ export default async function Home({ searchParams }: HomeProps) {
 
   const [
     featured,
-    logos,
     discover,
     settings,
     newBrands,
@@ -50,13 +48,12 @@ export default async function Home({ searchParams }: HomeProps) {
     favoriteContext,
     { isActiveMember: activeMember, memberName: activeMemberName },
     { isFreeTrialMember: freeTrialMember, memberName: freeTrialMemberName },
-    { isPartner },
+    { isPartner, partnerName },
     adminUser,
     browseFeatured,
     partnerBrowseInitial,
   ] = await Promise.all([
     getHomepageFeaturedBrands(12),
-    getPartnerLogos(40),
     getDiscoverPageContent(),
     getMembershipSettings(),
     getRecentBrandCards(5),
@@ -81,34 +78,11 @@ export default async function Home({ searchParams }: HomeProps) {
   const isFreeTrialMember = Boolean(freeTrialMember) && !adminUser;
   const homepageFaqs = getHomepageFaqs(settings);
 
-  const featuredHeroPartners = featured
-    .filter((brand) => Boolean(brand.logoUrl))
-    .map((brand) => ({
-      id: brand.id,
-      businessName: brand.businessName,
-      slug: brand.slug,
-      logoUrl: brand.logoUrl,
-      logoOriginalUrl: brand.logoOriginalUrl,
-      logoCrop: brand.logoCrop,
-      bannerImageUrl: brand.bannerImageUrl,
-    }));
-
-  const seen = new Set(featuredHeroPartners.map((partner) => partner.id));
-  const heroPartners = [...featuredHeroPartners];
-
-  for (const partner of logos) {
-    if (heroPartners.length >= 4) break;
-    if (!partner.logoUrl) continue;
-    if (seen.has(partner.id)) continue;
-    heroPartners.push(partner);
-    seen.add(partner.id);
-  }
-
   if (isPartner) {
     return (
       <>
         <PartnerAffiliateSetupBanner variant="compact" />
-        <HomeHero partners={heroPartners.slice(0, 4)} isPartner />
+        <HomeHero isPartner memberName={partnerName} />
         <HomePartnerBrowseBrands
           key={`browse-${initialDepartment}-${initialSubcategory}`}
           featured={browseFeatured}
@@ -139,7 +113,6 @@ export default async function Home({ searchParams }: HomeProps) {
     return (
       <>
         <HomeHero
-          partners={heroPartners.slice(0, 4)}
           isActiveMember
           memberName={activeMemberName}
         />
@@ -173,10 +146,8 @@ export default async function Home({ searchParams }: HomeProps) {
     return (
       <>
         <HomeHero
-          partners={heroPartners.slice(0, 4)}
           isFreeTrial
           memberName={freeTrialMemberName}
-          trialLengthDays={settings.trialLengthDays}
         />
         <HomePartnerBrowseBrands
           key={`browse-${initialDepartment}-${initialSubcategory}`}
@@ -207,10 +178,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <>
-      <HomeHero
-        partners={heroPartners.slice(0, 4)}
-        trialLengthDays={settings.trialLengthDays}
-      />
+      <HomeHero />
       <HomeFeaturedBrands
         brands={featured}
         canFavorite={favoriteContext.canFavorite}
