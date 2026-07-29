@@ -58,26 +58,19 @@ function FAQAnswer({ faq }: { faq: FAQItem }) {
 function FAQAccordionGroup({
   id,
   title,
-  icon,
-  accentClass,
   items,
   openKey,
   onToggle,
 }: {
   id: string;
   title: string;
-  icon: React.ReactNode;
-  accentClass: string;
   items: FAQItem[];
   openKey: string | null;
   onToggle: (key: string) => void;
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <div className={`mb-6 flex items-center gap-3 ${accentClass}`}>
-        {icon}
-        <h2 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h2>
-      </div>
+      <h2 className="mb-6 text-xl font-bold text-foreground sm:text-2xl">{title}</h2>
 
       <div className="divide-y divide-border rounded-lg border border-border bg-background">
         {items.map((faq) => {
@@ -148,12 +141,7 @@ export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
               </Link>
             }
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-            </div>
-            <h2 className="mt-5 text-sm font-bold uppercase tracking-wide text-primary">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
               Members
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -171,12 +159,7 @@ export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
               </Link>
             }
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success-light text-success">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75z" />
-              </svg>
-            </div>
-            <h2 className="mt-5 text-sm font-bold uppercase tracking-wide text-success">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-success">
               Partners
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -195,12 +178,7 @@ export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
               </Link>
             }
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-              </svg>
-            </div>
-            <h2 className="mt-5 text-sm font-bold uppercase tracking-wide text-amber-700">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-amber-700">
               Affiliates
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -215,49 +193,25 @@ export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
         <FAQAccordionGroup
           id="member-faqs"
           title="Member FAQs"
-          accentClass="text-primary"
           items={memberFaqs}
           openKey={openKey}
           onToggle={handleToggle}
-          icon={
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
-            </span>
-          }
         />
 
         <FAQAccordionGroup
           id="partner-faqs"
           title="Partner FAQs"
-          accentClass="text-success"
           items={partnerFaqs}
           openKey={openKey}
           onToggle={handleToggle}
-          icon={
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-success-light text-success">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75z" />
-              </svg>
-            </span>
-          }
         />
 
         <FAQAccordionGroup
           id="affiliate-faqs"
           title="FoodVault Affiliate Program FAQ"
-          accentClass="text-amber-700"
           items={affiliateFaqs}
           openKey={openKey}
           onToggle={handleToggle}
-          icon={
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-              </svg>
-            </span>
-          }
         />
       </div>
     </>
