@@ -31,9 +31,8 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
           Simple, Transparent Membership
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-          Save money on the food you actually buy. Unlock exclusive member pricing
-          from a growing network of New Zealand food, beverage and household brands — and shop
-          directly with the brands you trust.
+          Become a FoodVault member and unlock exclusive discounts from Kiwi brands across
+          New Zealand. Discover something new, shop direct, and save.
         </p>
 
         <div className="mx-auto mt-10 max-w-md rounded-lg border border-border bg-background p-6 text-left shadow-lg sm:mt-12 sm:p-8">
