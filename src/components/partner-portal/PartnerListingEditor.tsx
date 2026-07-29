@@ -286,13 +286,25 @@ export function PartnerListingEditor() {
     setListingLoaded(false);
 
     (async () => {
-      const data = await getPartnerListing(partner.user_id);
-      if (!active) return;
+      try {
+        const data = await getPartnerListing(partner.user_id);
+        if (!active) return;
 
-      setListing(
-        data ? listingFromData(data, partner) : listingFromPartnerRecord(partner)
-      );
-      setListingLoaded(true);
+        setListing(
+          data ? listingFromData(data, partner) : listingFromPartnerRecord(partner)
+        );
+      } catch {
+        if (!active) return;
+        setListing(listingFromPartnerRecord(partner));
+        setStatus({
+          type: "error",
+          message: "Some listing details could not be loaded. You can still review and save.",
+        });
+      } finally {
+        if (active) {
+          setListingLoaded(true);
+        }
+      }
     })();
 
     return () => {

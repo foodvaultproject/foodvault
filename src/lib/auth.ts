@@ -9,7 +9,7 @@ export const SIGNUP_PATH = "/signup";
 export const FORGOT_PASSWORD_PATH = "/forgot-password";
 export const RESET_PASSWORD_PATH = "/reset-password";
 export const MEMBER_DASHBOARD_PATH = "/dashboard";
-export const PARTNER_DASHBOARD_PATH = "/partner";
+export const PARTNER_DASHBOARD_PATH = "/partner/listing";
 export const AFFILIATE_DASHBOARD_PATH = "/affiliate/dashboard";
 export const AFFILIATE_LOGIN_PATH = "/affiliate/login";
 
@@ -85,10 +85,12 @@ export async function getAuthSession(): Promise<AuthSession | null> {
 
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
 
-  if (!user?.email || !user.email_confirmed_at) return null;
+  const user = session?.user;
+  if (error || !user?.email || !user.email_confirmed_at) return null;
 
   return {
     id: user.id,

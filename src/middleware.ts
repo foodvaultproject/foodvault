@@ -38,12 +38,19 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  const pathname = request.nextUrl.pathname;
+
+  if (pathname === "/partner") {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/partner/listing";
+    return NextResponse.redirect(redirectUrl);
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user?.email && !user.email_confirmed_at) {
-    const pathname = request.nextUrl.pathname;
     if (!pathAllowsUnverifiedAccess(pathname)) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = AUTH_CHECK_EMAIL_PATH;

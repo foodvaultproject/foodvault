@@ -48,22 +48,28 @@ export function PartnerOnboardingProvider({ children }: { children: ReactNode })
   const [confirmingActivation, setConfirmingActivation] = useState(false);
 
   const refreshPartner = useCallback(async () => {
-    const session = await getPartnerSession();
-    if (!session) {
-      setPartner(null);
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem(PARTNER_ACTIVE_ID_SESSION_KEY);
-      }
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
-    const record = await getPartnerRecord(session.id);
-    setPartner(record);
-    if (typeof window !== "undefined" && record?.id) {
-      sessionStorage.setItem(PARTNER_ACTIVE_ID_SESSION_KEY, record.id);
+    try {
+      const session = await getPartnerSession();
+      if (!session) {
+        setPartner(null);
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(PARTNER_ACTIVE_ID_SESSION_KEY);
+        }
+        return;
+      }
+
+      const record = await getPartnerRecord(session.id);
+      setPartner(record);
+      if (typeof window !== "undefined" && record?.id) {
+        sessionStorage.setItem(PARTNER_ACTIVE_ID_SESSION_KEY, record.id);
+      }
+    } catch {
+      setPartner(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
