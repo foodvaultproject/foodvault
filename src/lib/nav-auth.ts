@@ -20,6 +20,7 @@ export const affiliateNavMenuItems = [
 ] as const;
 
 export const partnerNavMenuItems = [
+  { href: "/", label: "Home" },
   { href: "/partner/listing", label: "My Listing" },
   { href: "/partner/affiliate-program", label: "Affiliate Program" },
   { href: "/partner/account", label: "My Account" },
@@ -27,6 +28,7 @@ export const partnerNavMenuItems = [
 ] as const;
 
 export const memberNavMenuItems = [
+  { href: "/", label: "Home" },
   { href: MEMBER_DASHBOARD_PATH, label: "My Dashboard" },
   { href: MEMBER_ACCOUNT_PATH, label: "My Account" },
   { href: MEMBER_MEMBERSHIP_PATH, label: "Membership" },
