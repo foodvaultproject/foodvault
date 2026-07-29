@@ -6,40 +6,25 @@ import { type DiscoverArticleCard } from "@/lib/discover/queries";
 const HOMEPAGE_DISCOVER_LIMIT = 4;
 const HOMEPAGE_TILE_IMAGE_SIZES = "(max-width: 768px) 80vw, (max-width: 1200px) 25vw, 280px";
 
-type DiscoverSectionVariant = "default" | "partner";
-
 type DiscoverSectionProps = {
   articles: DiscoverArticleCard[];
-  variant?: DiscoverSectionVariant;
   compactSpacing?: boolean;
 };
 
-const DISCOVER_COPY: Record<
-  DiscoverSectionVariant,
-  { heading: string; subtitle: string; ctaLabel: string }
-> = {
-  default: {
-    heading: "Discover More Than Just Great Brands",
-    subtitle: "Recipes, guides and stories from the independent food community.",
-    ctaLabel: "Discover more →",
-  },
-  partner: {
-    heading: "Grow Your Brand",
-    subtitle:
-      "Marketing tips, platform updates and partner success stories to help you get more from FoodVault.",
-    ctaLabel: "View all resources →",
-  },
+const DISCOVER_COPY = {
+  heading: "Discover More Than Just Great Brands",
+  subtitle: "Recipes, guides and stories from the independent food community.",
+  ctaLabel: "Discover more →",
 };
 
 export function DiscoverSection({
   articles,
-  variant = "default",
   compactSpacing = false,
 }: DiscoverSectionProps) {
   const homepageArticles = articles.slice(0, HOMEPAGE_DISCOVER_LIMIT);
   if (homepageArticles.length === 0) return null;
 
-  const copy = DISCOVER_COPY[variant];
+  const copy = DISCOVER_COPY;
 
   return (
     <section

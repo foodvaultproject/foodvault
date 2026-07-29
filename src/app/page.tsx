@@ -107,7 +107,6 @@ export default async function Home({ searchParams }: HomeProps) {
           compactSpacing
         />
         <HomePartnerQuickLinks compactSpacing />
-        <DiscoverSection articles={discover.homepageCards} variant="partner" compactSpacing />
       </>
     );
   }
