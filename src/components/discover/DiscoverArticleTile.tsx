@@ -21,6 +21,7 @@ type DiscoverArticleTileProps = {
   readMoreLabel?: string;
   layout?: "fixed" | "homepage" | "grid";
   imageSizes?: string;
+  equalHeight?: boolean;
 };
 
 export function DiscoverArticleTile({
@@ -29,19 +30,20 @@ export function DiscoverArticleTile({
   readMoreLabel = "Read More",
   layout = "fixed",
   imageSizes = TILE_IMAGE_SIZES,
+  equalHeight = false,
 }: DiscoverArticleTileProps) {
   const cardClass =
     layout === "homepage"
-      ? DISCOVER_FIVE_TILE_CARD_CLASS
+      ? `${DISCOVER_FIVE_TILE_CARD_CLASS} lg:w-full lg:max-w-none`
       : layout === "grid"
-        ? `${DISCOVER_TILE_CARD_BASE_CLASS} w-full shrink-0`
+        ? `${DISCOVER_TILE_CARD_BASE_CLASS} h-full w-full shrink-0`
         : DISCOVER_TILE_CARD_CLASS;
 
   if (variant === "overlay") {
     return (
       <Link
         href={articleHref(article.slug)}
-        className={`${cardClass} group relative`}
+        className={`${cardClass} group relative block w-full ${equalHeight ? "h-full" : ""}`}
       >
         <div className={DISCOVER_TILE_IMAGE_CLASS}>
           <Image
@@ -62,7 +64,7 @@ export function DiscoverArticleTile({
   }
 
   return (
-    <article className={cardClass}>
+    <article className={`${cardClass} ${equalHeight ? "h-full" : ""}`}>
       <Link href={articleHref(article.slug)} className="block">
         <div className={DISCOVER_TILE_IMAGE_CLASS}>
           <Image
@@ -75,18 +77,26 @@ export function DiscoverArticleTile({
           />
         </div>
       </Link>
-      <div className="flex flex-1 flex-col p-3">
+      <div className="flex min-h-0 flex-1 flex-col p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
           {article.category}
         </p>
-        <h3 className="mt-2 text-sm font-bold leading-snug text-foreground line-clamp-3">
+        <h3
+          className={`mt-2 text-sm font-bold leading-snug text-foreground line-clamp-3 ${equalHeight ? "min-h-[3.75rem]" : ""}`}
+        >
           <Link href={articleHref(article.slug)} className="hover:text-primary">
             {article.title}
           </Link>
         </h3>
 
-        {variant === "detailed" && article.summary ? (
-          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{article.summary}</p>
+        {variant === "detailed" ? (
+          <div className={equalHeight ? "mt-2 min-h-[2.5rem] flex-1" : "mt-2"}>
+            {article.summary ? (
+              <p className="text-sm text-muted-foreground line-clamp-2">{article.summary}</p>
+            ) : equalHeight ? (
+              <span className="block min-h-[2.5rem]" aria-hidden="true" />
+            ) : null}
+          </div>
         ) : null}
 
         {variant === "guide" ? (
@@ -112,7 +122,7 @@ export function DiscoverArticleTile({
         ) : (
           <Link
             href={articleHref(article.slug)}
-            className="mt-auto pt-4 text-sm font-semibold text-primary hover:text-primary-hover"
+            className="mt-auto shrink-0 pt-4 text-sm font-semibold text-primary hover:text-primary-hover"
           >
             {readMoreLabel}
           </Link>
@@ -125,17 +135,22 @@ export function DiscoverArticleTile({
 export function DiscoverRecipeTile({
   article,
   layout = "fixed",
+  equalHeight = false,
 }: {
   article: DiscoverArticleCard;
   layout?: "fixed" | "grid";
+  equalHeight?: boolean;
 }) {
   const cardClass =
     layout === "grid"
-      ? `${DISCOVER_TILE_CARD_BASE_CLASS} w-full`
+      ? `${DISCOVER_TILE_CARD_BASE_CLASS} h-full w-full shrink-0`
       : DISCOVER_TILE_CARD_CLASS;
 
   return (
-    <Link href={articleHref(article.slug)} className={`${cardClass} group relative shrink-0`}>
+    <Link
+      href={articleHref(article.slug)}
+      className={`${cardClass} group relative shrink-0 ${equalHeight ? "h-full" : ""}`}
+    >
       <div className={DISCOVER_TILE_IMAGE_CLASS}>
         <Image
           src={article.heroImageUrl}

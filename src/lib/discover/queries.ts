@@ -108,9 +108,7 @@ function buildDiscoverContent(rows: DiscoverArticleRow[]): DiscoverPageContent {
     cards[0] ??
     null;
 
-  const homepageCards = DISCOVER_CMS_CATEGORIES.map(
-    (category) => byCategory[category][0]
-  ).filter((card): card is DiscoverArticleCard => Boolean(card));
+  const homepageCards = cards.slice(0, 6);
 
   return { featured, byCategory, homepageCards };
 }

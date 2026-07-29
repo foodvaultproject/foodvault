@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { brandTileGridGapClass } from "@/components/browse-brands/brand-card-layout";
 import { DiscoverArticleTile } from "@/components/discover/DiscoverArticleTile";
 import { SECTION_PY_HOME, SECTION_PY_HOME_PARTNER_WIDE } from "@/components/home/section-spacing";
 import { type DiscoverArticleCard } from "@/lib/discover/queries";
 
-const HOMEPAGE_DISCOVER_LIMIT = 4;
-const HOMEPAGE_TILE_IMAGE_SIZES = "(max-width: 768px) 80vw, (max-width: 1200px) 25vw, 280px";
+const HOMEPAGE_DISCOVER_LIMIT = 6;
+const HOMEPAGE_TILE_IMAGE_SIZES = "(max-width: 768px) 50vw, (max-width: 1200px) 16vw, 180px";
 
 type DiscoverSectionProps = {
   articles: DiscoverArticleCard[];
@@ -48,12 +49,14 @@ export function DiscoverSection({
           </Link>
         </div>
 
-        <div className={`${compactSpacing ? "mt-3" : "mt-6"} grid grid-cols-2 gap-4 lg:grid-cols-4`}>
+        <div
+          className={`${compactSpacing ? "mt-3" : "mt-6"} ${brandTileGridGapClass} grid grid-cols-2 lg:grid-cols-6`}
+        >
           {homepageArticles.map((article) => (
             <DiscoverArticleTile
               key={article.id}
               article={article}
-              layout="homepage"
+              layout="grid"
               imageSizes={HOMEPAGE_TILE_IMAGE_SIZES}
               variant="overlay"
             />

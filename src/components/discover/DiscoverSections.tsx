@@ -93,7 +93,7 @@ export function SavingSection({ articles }: { articles: DiscoverArticleCard[] })
     <section id="saving" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeader title="Saving" />
-        <DiscoverSectionGrid>
+        <DiscoverSectionGrid mobileLayout="single-row-scroll">
           {articles.map((article) => (
             <DiscoverArticleTile
               key={article.id}
@@ -116,7 +116,7 @@ export function RecipesSection({ articles }: { articles: DiscoverArticleCard[] }
     <section id="recipes" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeader title="Recipes" />
-        <DiscoverSectionGrid>
+        <DiscoverSectionGrid mobileLayout="single-row-infinite">
           {articles.map((recipe) => (
             <DiscoverRecipeTile key={recipe.id} article={recipe} layout="grid" />
           ))}
@@ -133,7 +133,7 @@ export function PartnersSection({ articles }: { articles: DiscoverArticleCard[] 
     <section id="partners" className="bg-background py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeader title="Partners" />
-        <DiscoverSectionGrid>
+        <DiscoverSectionGrid mobileLayout="single-row-infinite">
           {articles.map((article) => (
             <DiscoverArticleTile
               key={article.id}
@@ -155,7 +155,7 @@ export function NewsSection({ articles }: { articles: DiscoverArticleCard[] }) {
     <section id="news" className="bg-surface py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeader title="News" />
-        <DiscoverSectionGrid>
+        <DiscoverSectionGrid mobileLayout="single-row-infinite" equalHeight>
           {articles.map((article) => (
             <DiscoverArticleTile
               key={article.id}
@@ -163,6 +163,7 @@ export function NewsSection({ articles }: { articles: DiscoverArticleCard[] }) {
               variant="detailed"
               layout="grid"
               readMoreLabel="Read Article"
+              equalHeight
             />
           ))}
         </DiscoverSectionGrid>
