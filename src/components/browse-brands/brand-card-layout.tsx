@@ -13,12 +13,12 @@ type BrandTileBodyProps = {
 /** Shared layout classes for partner/brand listing cards. */
 export const brandTileSectionClass = "mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8";
 
+/** Shared 5px tile gap used by browse grids and homepage brand rows. */
+export const brandTileGridGapClass = "grid items-stretch gap-[5px]";
+
 /** Homepage grid — 2 tiles across on mobile, 4 across at lg, matching Top Brands section. */
 export const brandTileGridClass =
-  "grid grid-cols-2 items-stretch gap-[5px] lg:grid-cols-4";
-
-/** @deprecated Use brandTileGridClass */
-export const brandTileGridClassWide = brandTileGridClass;
+  `${brandTileGridGapClass} grid-cols-2 lg:grid-cols-4`;
 
 /** Homepage-style partner tile shell (Top Brands section). */
 export const partnerBrandCardShellClass =
