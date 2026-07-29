@@ -38,6 +38,7 @@ export function SignupField({
   onChange,
   placeholder,
   required = true,
+  onBlur,
 }: {
   label: string;
   id: string;
@@ -46,6 +47,7 @@ export function SignupField({
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
+  onBlur?: () => void;
 }) {
   return (
     <div>
@@ -58,6 +60,7 @@ export function SignupField({
         required={required}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         className={`mt-2 ${inputClass}`}
       />

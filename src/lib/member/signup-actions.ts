@@ -3,6 +3,10 @@
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, SIGNUP_PATH } from "@/lib/auth";
 import {
+  finalizeBusinessNameInput,
+  MAX_CONTACT_NAME_LENGTH,
+} from "@/lib/business-name";
+import {
   AUTH_CHECK_EMAIL_PATH,
   issueAndSendSignupVerification,
 } from "@/lib/auth/email-verification";
@@ -53,19 +57,27 @@ export async function createMemberAccountAction(
   }
 
   const email = data.email.trim();
+  const firstName = finalizeBusinessNameInput(
+    data.firstName.trim(),
+    MAX_CONTACT_NAME_LENGTH
+  );
+  const lastName = finalizeBusinessNameInput(
+    data.lastName.trim(),
+    MAX_CONTACT_NAME_LENGTH
+  );
   const nextPath = mode === "trial" ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH;
 
   const sendResult = await issueAndSendSignupVerification({
     email,
     password: data.password,
-    firstName: data.firstName.trim(),
+    firstName,
     next: nextPath,
     account: "member",
     linkType: "signup",
     userMetadata: {
       account_type: "member",
-      first_name: data.firstName.trim(),
-      last_name: data.lastName.trim(),
+      first_name: firstName,
+      last_name: lastName,
       signup_mode: mode,
       country: data.country,
       marketing_opt_in: data.marketingOptIn,

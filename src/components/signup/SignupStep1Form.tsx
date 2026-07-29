@@ -12,6 +12,11 @@ import {
 } from "@/lib/auth";
 import { createMemberAccountAction } from "@/lib/member/signup-actions";
 import { MEMBER_HOME_PATH } from "@/lib/member/paths";
+import {
+  finalizeBusinessNameInput,
+  formatBusinessNameInput,
+  MAX_CONTACT_NAME_LENGTH,
+} from "@/lib/business-name";
 import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import {
   formatFreeTrialLabel,
@@ -177,14 +182,28 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
                 label="First Name"
                 id="firstName"
                 value={firstName}
-                onChange={setFirstName}
+                onChange={(value) =>
+                  setFirstName(formatBusinessNameInput(value, MAX_CONTACT_NAME_LENGTH))
+                }
+                onBlur={() =>
+                  setFirstName((current) =>
+                    finalizeBusinessNameInput(current, MAX_CONTACT_NAME_LENGTH)
+                  )
+                }
                 placeholder="Enter first name"
               />
               <SignupField
                 label="Last Name"
                 id="lastName"
                 value={lastName}
-                onChange={setLastName}
+                onChange={(value) =>
+                  setLastName(formatBusinessNameInput(value, MAX_CONTACT_NAME_LENGTH))
+                }
+                onBlur={() =>
+                  setLastName((current) =>
+                    finalizeBusinessNameInput(current, MAX_CONTACT_NAME_LENGTH)
+                  )
+                }
                 placeholder="Enter last name"
               />
             </div>
