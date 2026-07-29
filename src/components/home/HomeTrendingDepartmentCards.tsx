@@ -38,6 +38,20 @@ function departmentBrowseHref(department: string) {
   return `/browse-brands?department=${encodeURIComponent(department)}`;
 }
 
+export function HomeTrendingDepartmentCardsSection({
+  keepBrowseOnHomepage = false,
+}: {
+  keepBrowseOnHomepage?: boolean;
+}) {
+  return (
+    <div className="border-t border-border bg-background">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+        <HomeTrendingDepartmentCards keepBrowseOnHomepage={keepBrowseOnHomepage} />
+      </div>
+    </div>
+  );
+}
+
 export function HomeTrendingDepartmentCards({
   keepBrowseOnHomepage = false,
   className = "",

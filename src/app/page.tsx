@@ -2,6 +2,7 @@ import { DiscoverSection } from "@/components/home/DiscoverSection";
 import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomePartnerBrowseBrands } from "@/components/home/HomePartnerBrowseBrands";
+import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendingDepartmentCards";
 import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
 import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
@@ -95,6 +96,7 @@ export default async function Home({ searchParams }: HomeProps) {
           exploreHeading=""
           compactSpacing
         />
+        <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
@@ -129,6 +131,7 @@ export default async function Home({ searchParams }: HomeProps) {
           compactSpacing
           memberHomepage
         />
+        <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
@@ -161,6 +164,7 @@ export default async function Home({ searchParams }: HomeProps) {
           exploreHeading=""
           memberHomepage
         />
+        <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection

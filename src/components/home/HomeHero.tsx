@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import { HomeTrendingDepartmentCards } from "@/components/home/HomeTrendingDepartmentCards";
+import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendingDepartmentCards";
 import {
   HOME_HERO_PY_COMPACT,
   HOME_HERO_PY_ACTIVE_MEMBER,
@@ -26,9 +26,6 @@ export function HomeHero({
 }: HomeHeroProps) {
   const isCompactHero = isPartner || isActiveMember || isFreeTrial;
   const isVisitorHero = !isCompactHero;
-  // Trial, active members, and partners browse the embedded homepage explorer;
-  // visitors use the standalone Discover page.
-  const keepBrowseOnHomepage = isActiveMember || isFreeTrial || isPartner;
 
   const compactHeroPadding = isActiveMember
     ? HOME_HERO_PY_ACTIVE_MEMBER
@@ -72,11 +69,7 @@ export function HomeHero({
         </div>
       )}
 
-      <div className="relative z-10 border-t border-border bg-background">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <HomeTrendingDepartmentCards keepBrowseOnHomepage={keepBrowseOnHomepage} />
-        </div>
-      </div>
+      {isVisitorHero ? <HomeTrendingDepartmentCardsSection /> : null}
     </section>
   );
 }
