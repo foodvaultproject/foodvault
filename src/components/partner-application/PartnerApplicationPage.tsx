@@ -197,7 +197,7 @@ export function PartnerApplicationPage() {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [brandStory, setBrandStory] = useState("");
-  const [discountValue, setDiscountValue] = useState("10");
+  const [discountValue, setDiscountValue] = useState("20");
   const [offerScope, setOfferScope] = useState<OfferScope>("entire_store");
   const [selectedProducts, setSelectedProducts] = useState<SelectedProductDraft[]>([]);
   const [supportEmail, setSupportEmail] = useState("");
@@ -257,7 +257,7 @@ export function PartnerApplicationPage() {
           setDiscountValue(
             sanitizeDiscountValue(
               draft.discountValue ??
-                (deriveSelectedProductsDiscount(draft.selectedProducts ?? []) || "10")
+                (deriveSelectedProductsDiscount(draft.selectedProducts ?? []) || "20")
             )
           );
           setOfferScope(
@@ -414,6 +414,30 @@ export function PartnerApplicationPage() {
 
     setSubmitting(true);
     setSubmitError(null);
+
+    if (!bannerUpload?.croppedFile) {
+      setSubmitError("Please upload a banner image.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!logoUpload?.croppedFile) {
+      setSubmitError("Please upload a brand logo.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!shortDescription.trim()) {
+      setSubmitError("Please enter a short description.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!brandStory.trim()) {
+      setSubmitError("Please add your brand story.");
+      setSubmitting(false);
+      return;
+    }
 
     const galleryItems = galleryDraftItems.filter(
       (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
@@ -653,7 +677,7 @@ export function PartnerApplicationPage() {
                 <PartnerBannerUploadField
                   variant="compact"
                   previewUrl={bannerUpload?.previewUrl}
-                  label="Banner Image"
+                  label="Banner Image *"
                   hint="Wide 3:1 cover image for your brand profile — upload, then adjust crop and zoom"
                   onChange={setBannerUpload}
                 />
@@ -662,14 +686,14 @@ export function PartnerApplicationPage() {
                   businessName={businessName}
                   previewUrl={logoUpload?.previewUrl}
                   hasStoredCrop={Boolean(logoUpload)}
-                  label="Brand Logo"
+                  label="Brand Logo *"
                   hint="Upload your logo, then adjust how it appears in the circular frame"
                   onChange={setLogoUpload}
                 />
               </div>
               <div className="mt-2">
                 <label htmlFor="shortDescription" className={labelClass}>
-                  Short Description (Max 100 chars)
+                  Short Description (Max 100 characters) <span className="text-red-600">*</span>
                 </label>
                 <input
                   id="shortDescription"
@@ -684,7 +708,7 @@ export function PartnerApplicationPage() {
               </div>
               <div className="mt-2">
                 <label htmlFor="brandStory" className={labelClass}>
-                  Your Story
+                  Your Story <span className="text-red-600">*</span>
                 </label>
                 <textarea
                   id="brandStory"

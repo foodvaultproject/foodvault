@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GalleryCropEditor } from "@/components/partners/GalleryCropEditor";
 import { PartnerGalleryImage } from "@/components/partners/PartnerGalleryImage";
 import { portalTextAction, portalThumbGallery } from "@/lib/partner-portal-classes";
@@ -184,8 +184,17 @@ export function PartnerGalleryUploadGrid({
   const [slotCount, setSlotCount] = useState(() =>
     Math.max(minItems, Math.min(maxItems, Math.max(items.length, minItems || 1)))
   );
+  const pendingPickerIndexRef = useRef<number | null>(null);
 
   const visibleSlots = Math.max(slotCount, items.length, minItems || 1);
+
+  useEffect(() => {
+    if (pendingPickerIndexRef.current === null) return;
+    const index = pendingPickerIndexRef.current;
+    pendingPickerIndexRef.current = null;
+    setEditIndex(index);
+    inputRef.current?.click();
+  }, [items.length, slotCount]);
 
   function closeEditor() {
     revokeIfBlobUrl(editorSrc ?? undefined);
@@ -202,6 +211,25 @@ export function PartnerGalleryUploadGrid({
     if (disabled || uploading) return;
     setEditIndex(index);
     inputRef.current?.click();
+  }
+
+  function handleUploadMore() {
+    if (disabled || uploading) return;
+
+    if (items.length >= maxItems) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (!items[i]?.displayUrl) {
+        openFilePicker(i);
+        return;
+      }
+    }
+
+    const nextIndex = items.length;
+    if (nextIndex >= maxItems) return;
+
+    setSlotCount((count) => Math.max(count, nextIndex + 1));
+    pendingPickerIndexRef.current = nextIndex;
   }
 
   function handleFileSelected(file: File) {
@@ -295,11 +323,11 @@ export function PartnerGalleryUploadGrid({
           {slots}
         </div>
 
-        {!disabled && visibleSlots < maxItems ? (
+        {!disabled && items.length < maxItems ? (
           <button
             type="button"
             disabled={uploading}
-            onClick={() => setSlotCount((count) => Math.min(count + 1, maxItems))}
+            onClick={handleUploadMore}
             className="inline-flex h-9 w-fit items-center gap-1.5 rounded-sm border border-border bg-background px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-surface disabled:opacity-60"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -364,8 +392,17 @@ export function PartnerGalleryDraftGrid({
   const [slotCount, setSlotCount] = useState(() =>
     Math.max(minItems, Math.min(maxItems, Math.max(items.length, minItems)))
   );
+  const pendingPickerIndexRef = useRef<number | null>(null);
 
   const visibleSlots = Math.max(slotCount, items.filter(Boolean).length, minItems);
+
+  useEffect(() => {
+    if (pendingPickerIndexRef.current === null) return;
+    const index = pendingPickerIndexRef.current;
+    pendingPickerIndexRef.current = null;
+    setEditIndex(index);
+    inputRef.current?.click();
+  }, [items.length, slotCount]);
 
   function closeEditor() {
     revokeIfBlobUrl(editorSrc ?? undefined);
@@ -382,6 +419,27 @@ export function PartnerGalleryDraftGrid({
     if (disabled) return;
     setEditIndex(index);
     inputRef.current?.click();
+  }
+
+  function handleUploadMore() {
+    if (disabled) return;
+
+    const filledCount = items.filter(Boolean).length;
+    if (filledCount >= maxItems) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (!items[i]) {
+        openFilePicker(i);
+        return;
+      }
+    }
+
+    const nextIndex = items.length;
+    if (nextIndex >= maxItems) return;
+
+    onChange([...items, null]);
+    setSlotCount((count) => Math.max(count, nextIndex + 1));
+    pendingPickerIndexRef.current = nextIndex;
   }
 
   function handleFileSelected(file: File) {
@@ -475,10 +533,10 @@ export function PartnerGalleryDraftGrid({
           {slots}
         </div>
 
-        {!disabled && visibleSlots < maxItems ? (
+        {!disabled && items.filter(Boolean).length < maxItems ? (
           <button
             type="button"
-            onClick={() => setSlotCount((count) => Math.min(count + 1, maxItems))}
+            onClick={handleUploadMore}
             className={
               compact
                 ? "inline-flex h-9 w-fit items-center gap-1.5 rounded-sm border border-border bg-background px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-surface"
@@ -490,7 +548,7 @@ export function PartnerGalleryDraftGrid({
             </svg>
             Upload More
           </button>
-        ) : visibleSlots >= maxItems ? (
+        ) : items.filter(Boolean).length >= maxItems ? (
           <p className="text-xs text-muted-foreground">
             Maximum of {maxItems} gallery images reached.
           </p>

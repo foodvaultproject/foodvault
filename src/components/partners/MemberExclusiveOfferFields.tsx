@@ -63,7 +63,7 @@ function DiscountValueField({
           onChange={(event) =>
             onDiscountValueChange(sanitizeDiscountValue(event.target.value))
           }
-          placeholder="10"
+          placeholder="20"
           className={`${inputClass} pr-10`}
         />
         <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.9375rem] text-muted-foreground">
