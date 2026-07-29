@@ -14,7 +14,7 @@ import {
 
 const quickActions = [
   {
-    href: "/browse-brands",
+    href: "/",
     label: "Browse Brands",
     icon: (
       <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
