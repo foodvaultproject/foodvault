@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HomeTrendingDepartmentCardLink } from "@/components/home/HomeTrendingDepartmentCardLink";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 
 const TRENDING_DEPARTMENT_CARDS = [
@@ -65,10 +65,10 @@ export function HomeTrendingDepartmentCards({
             ? toHomepageBrowseHref(browseHref)
             : browseHref;
           return (
-            <Link
+            <HomeTrendingDepartmentCardLink
               key={card.department}
               href={href}
-              scroll={!keepBrowseOnHomepage}
+              keepBrowseOnHomepage={keepBrowseOnHomepage}
               className={`group relative block aspect-[4/3] overflow-hidden rounded-lg shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover lg:aspect-[8/3] ${"underlayClassName" in card ? card.underlayClassName : ""}`}
             >
               <div
@@ -83,7 +83,7 @@ export function HomeTrendingDepartmentCards({
                   </span>
                 </span>
               </div>
-            </Link>
+            </HomeTrendingDepartmentCardLink>
           );
         })}
       </div>
