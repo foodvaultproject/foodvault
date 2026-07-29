@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendingDepartmentCards";
 import {
   HOME_HERO_PY_COMPACT,
   HOME_HERO_PY_ACTIVE_MEMBER,
@@ -68,8 +67,6 @@ export function HomeHero({
           <CompactHeroWelcome memberName={memberName} />
         </div>
       )}
-
-      {isVisitorHero ? <HomeTrendingDepartmentCardsSection /> : null}
     </section>
   );
 }

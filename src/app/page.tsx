@@ -183,6 +183,7 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <>
       <HomeHero />
+      <HomeTrendingDepartmentCardsSection />
       <HomeFeaturedBrands
         brands={featured}
         canFavorite={favoriteContext.canFavorite}
