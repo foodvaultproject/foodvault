@@ -1,7 +1,9 @@
 import type { AccountType } from "@/lib/auth";
 import {
   OAUTH_INTENT_COOKIE,
+  OAUTH_INTENT_CLIENT_COOKIE,
   readOAuthIntentCookie,
+  readOAuthIntentFromRequestCookies,
   type OAuthIntent,
 } from "@/lib/auth/oauth-intent";
 import { resolveOAuthExpectedAccountType } from "@/lib/auth/infer-oauth-account-type";
@@ -75,4 +77,10 @@ export function parseOAuthCallbackContext(
   };
 }
 
-export { ensureAuthenticatedSession, OAUTH_INTENT_COOKIE, readOAuthIntentCookie };
+export {
+  ensureAuthenticatedSession,
+  OAUTH_INTENT_COOKIE,
+  OAUTH_INTENT_CLIENT_COOKIE,
+  readOAuthIntentFromRequestCookies,
+  readOAuthIntentCookie,
+};

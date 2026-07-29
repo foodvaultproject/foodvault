@@ -2,6 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { finalizeVerifiedSessionAction } from "@/lib/auth/finalize-verified-session";
+import {
+  consumePartnerOAuthSignup,
+  isPartnerOAuthNextPath,
+} from "@/lib/auth/oauth-intent-client";
 
 const AUTH_JUST_COMPLETED_KEY = "fv-auth-just-completed";
 
@@ -38,8 +43,15 @@ export function AuthCompleteRedirect() {
 
     const next = searchParams.get("next");
     const target = next?.startsWith("/") ? next : "/";
-    markAuthJustCompleted();
-    window.location.replace(target);
+
+    void (async () => {
+      if (isPartnerOAuthNextPath(target) || consumePartnerOAuthSignup()) {
+        await finalizeVerifiedSessionAction("partner");
+      }
+
+      markAuthJustCompleted();
+      window.location.replace(target);
+    })();
   }, [searchParams]);
 
   return (

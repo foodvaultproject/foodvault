@@ -35,8 +35,19 @@ export async function getFreeTrialMemberView(): Promise<FreeTrialMemberView> {
   if (
     !user ||
     user.user_metadata?.account_type === "partner" ||
-    user.user_metadata?.account_type === "affiliate"
+    user.user_metadata?.account_type === "affiliate" ||
+    user.user_metadata?.partner_account_created === true
   ) {
+    return { isFreeTrialMember: false, memberName: null };
+  }
+
+  const { data: partnerRow } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (partnerRow) {
     return { isFreeTrialMember: false, memberName: null };
   }
 

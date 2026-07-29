@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
 import { storeOAuthIntentAction } from "@/lib/auth/oauth-intent-actions";
+import {
+  markPartnerOAuthSignup,
+  storeOAuthIntentClient,
+} from "@/lib/auth/oauth-intent-client";
+
+const PARTNER_OAUTH_CALLBACK_PATH = "/auth/callback/partner";
 import { MEMBER_HOME_PATH } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
@@ -176,6 +182,25 @@ export async function signInWithGoogle(options: {
     flow,
   });
 
+  const intent = {
+    accountType: options.accountType,
+    nextPath: next,
+    signupMode: options.signupMode,
+    marketingOptIn: options.marketingOptIn,
+    flow,
+  } as const;
+
+  storeOAuthIntentClient(intent);
+
+  if (options.accountType === "partner" && flow === "signup") {
+    markPartnerOAuthSignup();
+  }
+
+  const callbackPath =
+    options.accountType === "partner"
+      ? PARTNER_OAUTH_CALLBACK_PATH
+      : "/auth/callback";
+
   const callbackParams = new URLSearchParams({
     next,
     account: options.accountType,
@@ -193,7 +218,7 @@ export async function signInWithGoogle(options: {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback?${callbackParams.toString()}`,
+      redirectTo: `${window.location.origin}${callbackPath}?${callbackParams.toString()}`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",

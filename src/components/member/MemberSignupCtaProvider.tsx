@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
-import { isSupabaseConfigured } from "@/lib/auth";
+import { isSupabaseConfigured, getAuthSession } from "@/lib/auth";
 import { repairMemberSessionAction } from "@/lib/auth/finalize-verified-session";
 import { resolveClientMembershipView } from "@/lib/member/client-membership";
 import { createClient } from "@/lib/supabase/client";
@@ -54,13 +54,20 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      const session = await getAuthSession();
+      if (!session || session.accountType !== "member") {
+        setState({
+          isFreeTrial: false,
+          isActiveMember: false,
+          trialEndsAt: null,
+          isLoading: false,
+        });
+        return;
+      }
+
       let view = await resolveClientMembershipView();
 
-      if (
-        isSupabaseConfigured() &&
-        !view.isFreeTrial &&
-        !view.isActiveMember
-      ) {
+      if (isSupabaseConfigured() && !view.isFreeTrial && !view.isActiveMember) {
         const repaired = await repairMemberSessionAction();
         if (repaired) {
           view = await resolveClientMembershipView();

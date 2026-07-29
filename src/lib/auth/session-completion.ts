@@ -318,14 +318,26 @@ export async function repairMemberSessionIfNeeded(
     return;
   }
 
+  const { data: partnerRow } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (partnerRow) {
+    return;
+  }
+
+  if (!readMetadataString(metadata, "signup_mode")) {
+    return;
+  }
+
   if (await isSignupSetupComplete(supabase, user, "member")) {
     return;
   }
 
   await ensureAuthenticatedSession(supabase, user, {
     expectedAccountType: "member",
-    signupMode: resolveMemberSignupMode(
-      (user.user_metadata ?? {}) as Record<string, unknown>
-    ),
+    signupMode: resolveMemberSignupMode(metadata),
   });
 }
