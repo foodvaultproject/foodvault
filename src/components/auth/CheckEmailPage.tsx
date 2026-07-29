@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -248,8 +249,15 @@ function CheckEmailContent() {
     <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-surface-lavender px-4 py-10 sm:py-14">
       <div className="w-full max-w-lg">
         <div className="rounded-lg border border-border bg-background p-6 text-center shadow-sm sm:p-10">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl">
-            📧
+          <div className="mx-auto flex h-[168px] w-[168px] items-center justify-center">
+            <Image
+              src="/verify-email/piggyemail.webp"
+              alt=""
+              width={168}
+              height={168}
+              priority
+              className="h-[168px] w-[168px] object-contain"
+            />
           </div>
 
           <h1 className="mt-5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
