@@ -1,7 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
-import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
-import { getAccountTypeFromMetadata } from "@/lib/auth";
+import { AFFILIATE_DASHBOARD_PATH, type AccountType, getAccountTypeFromMetadata } from "@/lib/auth";
 import { sendMemberFreeTrialStartedEmail } from "@/lib/email-templates/dispatch";
 import {
   MEMBER_HOME_PATH,
@@ -55,10 +54,11 @@ async function registerAffiliateProfileWithSession(
 
 export async function completeSignupVerification(
   supabase: SupabaseClient,
-  user: User
+  user: User,
+  expectedAccountType?: AccountType
 ): Promise<{ redirectPath: string; error?: string }> {
   const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
-  const accountType = getAccountTypeFromMetadata(metadata);
+  const accountType = expectedAccountType ?? getAccountTypeFromMetadata(metadata);
   const signupCompletedAt = readMetadataString(metadata, "signup_completed_at");
 
   if (signupCompletedAt) {

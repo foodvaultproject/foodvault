@@ -86,7 +86,7 @@ function PartnerLoginForm() {
 
         const needsSetup = await needsSignupSetupAction();
         if (needsSetup) {
-          const finalize = await finalizeVerifiedSessionAction();
+          const finalize = await finalizeVerifiedSessionAction("partner");
           if (finalize.ready && !finalize.error) {
             router.replace(finalize.redirectPath);
             return;

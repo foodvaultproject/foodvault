@@ -5,7 +5,7 @@ import {
   isSignupSetupComplete,
   repairMemberSessionIfNeeded,
 } from "@/lib/auth/session-completion";
-import { getAccountTypeFromMetadata } from "@/lib/auth";
+import { getAccountTypeFromMetadata, type AccountType } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export async function needsSignupSetupAction(): Promise<boolean> {
@@ -36,7 +36,9 @@ export async function repairMemberSessionAction(): Promise<boolean> {
   return !(await needsSignupSetupAction());
 }
 
-export async function finalizeVerifiedSessionAction() {
+export async function finalizeVerifiedSessionAction(
+  expectedAccountType?: AccountType
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -46,7 +48,8 @@ export async function finalizeVerifiedSessionAction() {
     return { ready: false as const };
   }
 
-  const accountType = getAccountTypeFromMetadata(user.user_metadata);
+  const accountType =
+    expectedAccountType ?? getAccountTypeFromMetadata(user.user_metadata);
   const completion = await ensureAuthenticatedSession(supabase, user, {
     expectedAccountType: accountType,
   });

@@ -4,6 +4,7 @@ import {
   readOAuthIntentCookie,
   type OAuthIntent,
 } from "@/lib/auth/oauth-intent";
+import { resolveOAuthExpectedAccountType } from "@/lib/auth/infer-oauth-account-type";
 import {
   ensureAuthenticatedSession,
   readMetadataString,
@@ -22,6 +23,14 @@ export function validateOAuthAccountType(
     existingType &&
     getAccountTypeFromMetadata(metadata) !== expectedType
   ) {
+    if (
+      expectedType === "partner" &&
+      getAccountTypeFromMetadata(metadata) === "member" &&
+      metadata.partner_account_created !== true
+    ) {
+      return true;
+    }
+
     return false;
   }
 
@@ -37,13 +46,12 @@ export function parseOAuthCallbackContext(
   searchParams: URLSearchParams,
   cookieIntent: OAuthIntent | null
 ): SessionCompletionContext & { expectedAccountType: AccountType } {
-  const accountFromQuery = searchParams.get("account");
-  const expectedAccountType: AccountType =
-    accountFromQuery === "partner"
-      ? "partner"
-      : accountFromQuery === "affiliate"
-        ? "affiliate"
-        : cookieIntent?.accountType ?? "member";
+  const nextPath = searchParams.get("next") ?? cookieIntent?.nextPath ?? null;
+  const expectedAccountType = resolveOAuthExpectedAccountType({
+    accountFromQuery: searchParams.get("account"),
+    cookieIntent,
+    nextPath,
+  });
 
   const signupModeParam = searchParams.get("signup_mode");
   const signupModeFromQuery =
@@ -61,7 +69,7 @@ export function parseOAuthCallbackContext(
 
   return {
     expectedAccountType,
-    nextPath: searchParams.get("next") ?? cookieIntent?.nextPath ?? null,
+    nextPath,
     signupMode: signupModeFromQuery ?? cookieIntent?.signupMode,
     marketingOptIn: marketingOptInFromQuery ?? cookieIntent?.marketingOptIn,
   };

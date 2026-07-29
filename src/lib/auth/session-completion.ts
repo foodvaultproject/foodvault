@@ -199,12 +199,61 @@ export async function prepareAuthUserMetadata(
   return { user: refreshed ?? user };
 }
 
+async function reconcilePartnerOAuthAccount(
+  supabase: SupabaseClient,
+  user: User,
+  context: SessionCompletionContext
+): Promise<User> {
+  if (context.expectedAccountType !== "partner") {
+    return user;
+  }
+
+  const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+  if (getAccountTypeFromMetadata(metadata) === "partner") {
+    return user;
+  }
+
+  const { data: partnerRow } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (partnerRow) {
+    return user;
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    data: {
+      account_type: "partner",
+      partner_account_created: true,
+      onboarding_step:
+        typeof metadata.onboarding_step === "number" ? metadata.onboarding_step : 2,
+      signup_completed_at:
+        readMetadataString(metadata, "signup_completed_at") ||
+        new Date().toISOString(),
+    },
+  });
+
+  if (error) {
+    return user;
+  }
+
+  const {
+    data: { user: refreshed },
+  } = await supabase.auth.getUser();
+
+  return refreshed ?? user;
+}
+
 /** Match email confirm + check-email: finish onboarding, then redirect. */
 export async function ensureAuthenticatedSession(
   supabase: SupabaseClient,
   user: User,
   context: SessionCompletionContext
 ): Promise<{ redirectPath: string; error?: string }> {
+  user = await reconcilePartnerOAuthAccount(supabase, user, context);
+
   const setupComplete = await isSignupSetupComplete(
     supabase,
     user,
@@ -225,7 +274,11 @@ export async function ensureAuthenticatedSession(
     };
   }
 
-  const completion = await completeSignupVerification(supabase, prepared.user);
+  const completion = await completeSignupVerification(
+    supabase,
+    prepared.user,
+    context.expectedAccountType
+  );
   const metadata = (prepared.user.user_metadata ?? {}) as Record<string, unknown>;
 
   return {
@@ -255,8 +308,13 @@ export async function repairMemberSessionIfNeeded(
     return;
   }
 
-  const accountType = getAccountTypeFromMetadata(user.user_metadata);
+  const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const accountType = getAccountTypeFromMetadata(metadata);
   if (accountType === "partner" || accountType === "affiliate") {
+    return;
+  }
+
+  if (metadata.partner_account_created === true) {
     return;
   }
 
