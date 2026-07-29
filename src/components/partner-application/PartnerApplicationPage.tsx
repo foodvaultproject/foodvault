@@ -60,6 +60,9 @@ import {
   createSelectedProductDraft,
   DEFAULT_PARTNER_DISCOUNT_PERCENT,
   resolvePartnerApplicationDiscountValue,
+  MIN_PARTNER_GALLERY_IMAGES,
+  MAX_PARTNER_SHORT_DESCRIPTION_LENGTH,
+  validatePartnerBrandDetails,
   validateOfferForm,
   type OfferScope,
   type SelectedProductDraft,
@@ -80,7 +83,6 @@ const labelClass = "text-sm font-bold text-foreground";
 const DEFAULT_OFFER_TYPE = "Percentage Discount";
 
 const MAX_PRODUCT_GALLERY_IMAGES = 30;
-const MIN_PRODUCT_GALLERY_IMAGES = 3;
 const MAX_SUPPORT_PHONE_LENGTH = 15;
 
 function sanitizePhoneNumber(raw: string): string {
@@ -216,7 +218,7 @@ export function PartnerApplicationPage() {
   const [logoUpload, setLogoUpload] = useState<PartnerLogoUploadValue | null>(null);
   const [bannerUpload, setBannerUpload] = useState<PartnerBannerUploadValue | null>(null);
   const [galleryDraftItems, setGalleryDraftItems] = useState<PartnerGalleryDraftItem[]>(
-    () => Array.from({ length: MIN_PRODUCT_GALLERY_IMAGES }, () => null)
+    () => Array.from({ length: MIN_PARTNER_GALLERY_IMAGES }, () => null)
   );
   const [affiliateProgram, setAffiliateProgram] = useState<AffiliateProgramConfig>(
     defaultAffiliateProgramConfig()
@@ -415,38 +417,19 @@ export function PartnerApplicationPage() {
     setSubmitting(true);
     setSubmitError(null);
 
-    if (!bannerUpload?.croppedFile) {
-      setSubmitError("Please upload a banner image.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!logoUpload?.croppedFile) {
-      setSubmitError("Please upload a brand logo.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!shortDescription.trim()) {
-      setSubmitError("Please enter a short description.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!brandStory.trim()) {
-      setSubmitError("Please add your brand story.");
-      setSubmitting(false);
-      return;
-    }
-
     const galleryItems = galleryDraftItems.filter(
       (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
     );
 
-    if (galleryItems.length < MIN_PRODUCT_GALLERY_IMAGES) {
-      setSubmitError(
-        `Please upload at least ${MIN_PRODUCT_GALLERY_IMAGES} gallery images.`
-      );
+    const brandDetailsValidation = validatePartnerBrandDetails({
+      bannerImageUrl: bannerUpload?.croppedFile ? bannerUpload.previewUrl : null,
+      logoUrl: logoUpload?.croppedFile ? logoUpload.previewUrl : null,
+      shortDescription,
+      brandStory,
+      galleryImageCount: galleryItems.length,
+    });
+    if (!brandDetailsValidation.ok) {
+      setSubmitError(brandDetailsValidation.message);
       setSubmitting(false);
       return;
     }
@@ -699,7 +682,7 @@ export function PartnerApplicationPage() {
                   id="shortDescription"
                   name="shortDescription"
                   required
-                  maxLength={100}
+                  maxLength={MAX_PARTNER_SHORT_DESCRIPTION_LENGTH}
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
                   placeholder="Freshly baked bread delivered to your door"
@@ -733,7 +716,7 @@ export function PartnerApplicationPage() {
                 }
               />
               <p className="mt-3 text-sm text-muted-foreground">
-                Upload at least {MIN_PRODUCT_GALLERY_IMAGES} high-quality images of your
+                Upload at least {MIN_PARTNER_GALLERY_IMAGES} high-quality images of your
                 products or brand (maximum {MAX_PRODUCT_GALLERY_IMAGES}). Images are
                 cropped to a 4:5 portrait format, like Instagram.
               </p>
@@ -741,7 +724,7 @@ export function PartnerApplicationPage() {
                 variant="compact"
                 className="mt-2"
                 items={galleryDraftItems}
-                minItems={MIN_PRODUCT_GALLERY_IMAGES}
+                minItems={MIN_PARTNER_GALLERY_IMAGES}
                 maxItems={MAX_PRODUCT_GALLERY_IMAGES}
                 disabled={submitting}
                 onChange={setGalleryDraftItems}

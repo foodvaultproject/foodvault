@@ -26,9 +26,12 @@ import {
 import {
   buildStorewideDiscountTitle,
   deriveSelectedProductsDiscount,
+  MIN_PARTNER_GALLERY_IMAGES,
+  MAX_PARTNER_SHORT_DESCRIPTION_LENGTH,
   sanitizeDiscountValue,
   selectedProductToDraft,
   validateOfferForm,
+  validatePartnerBrandDetails,
   type OfferScope,
   type SelectedProductDraft,
 } from "@/lib/partner-offer";
@@ -484,6 +487,18 @@ export function PartnerListingEditor() {
   async function handleSave() {
     if (!partner || onboardingState === "APPLICATION_UNDER_REVIEW") return;
 
+    const brandDetailsValidation = validatePartnerBrandDetails({
+      bannerImageUrl: listing.bannerImageUrl,
+      logoUrl: listing.logoUrl,
+      shortDescription: listing.shortDescription,
+      brandStory: listing.brandStory,
+      galleryImageCount: listing.galleryItems.length,
+    });
+    if (!brandDetailsValidation.ok) {
+      setStatus({ type: "error", message: brandDetailsValidation.message });
+      return;
+    }
+
     const validation = validateOfferForm(
       listing.offerScope,
       listing.offerValue,
@@ -731,7 +746,7 @@ export function PartnerListingEditor() {
                     existingOriginalUrl={listing.bannerOriginalUrl}
                     existingCrop={listing.bannerCrop}
                     disabled={!isListingEditable || uploading !== null}
-                    label="Cover Banner"
+                    label="Cover Banner *"
                     hint="3:1 wide banner — upload, then adjust crop and zoom"
                     onChange={(value) => void handleBannerChange(value)}
                   />
@@ -748,7 +763,7 @@ export function PartnerListingEditor() {
                     existingCrop={listing.logoCrop}
                     hasStoredCrop={Boolean(listing.logoCrop)}
                     disabled={!isListingEditable || uploading !== null}
-                    label="Brand Logo"
+                    label="Brand Logo *"
                     hint="Circular logo for listings — upload, then adjust crop"
                     onChange={(value) => void handleLogoChange(value)}
                   />
@@ -762,12 +777,15 @@ export function PartnerListingEditor() {
             <section className={portalCard}>
               <h2 className={portalSectionTitle}>Products & Brand Images</h2>
               <p className={`${portalHelper} mt-1`}>
-                Up to 30 gallery images in 4:5 portrait format for your brand profile.
+                Upload at least {MIN_PARTNER_GALLERY_IMAGES} high-quality images of your
+                products or brand (maximum 30). Images are cropped to a 4:5 portrait format,
+                like Instagram.
               </p>
               <PartnerGalleryUploadGrid
                 variant="compact"
                 className={portalCardContent}
                 items={listing.galleryItems}
+                minItems={MIN_PARTNER_GALLERY_IMAGES}
                 maxItems={30}
                 disabled={!isListingEditable}
                 uploading={uploading === "gallery" || uploading === "gallery-original"}
@@ -801,19 +819,27 @@ export function PartnerListingEditor() {
               <h2 className={portalSectionTitle}>Brand Content</h2>
               <div className={`space-y-3 ${portalCardContent}`}>
                 <div>
-                  <label className={labelClass}>Short Description (Max 80 chars)</label>
+                  <label className={labelClass}>
+                    Short Description (Max 100 characters){" "}
+                    <span className="text-red-600">*</span>
+                  </label>
                   <input
                     value={listing.shortDescription}
                     onChange={(e) => update("shortDescription", e.target.value)}
+                    maxLength={MAX_PARTNER_SHORT_DESCRIPTION_LENGTH}
+                    required
                     className={`${portalFieldGap} ${inputClass}`}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Brand Story</label>
+                  <label className={labelClass}>
+                    Brand Story <span className="text-red-600">*</span>
+                  </label>
                   <textarea
                     value={listing.brandStory}
                     onChange={(e) => update("brandStory", e.target.value)}
                     rows={4}
+                    required
                     className={`${portalFieldGap} ${portalTextarea}`}
                   />
                 </div>

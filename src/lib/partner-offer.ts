@@ -5,6 +5,8 @@ export const MAX_PRODUCT_DESCRIPTION_LENGTH = 50;
 export const MAX_PRODUCT_NAME_LENGTH = 40;
 export const DEFAULT_PARTNER_DISCOUNT_PERCENT = "20";
 const LEGACY_PARTNER_DISCOUNT_PERCENT = "10";
+export const MIN_PARTNER_GALLERY_IMAGES = 3;
+export const MAX_PARTNER_SHORT_DESCRIPTION_LENGTH = 100;
 
 export type SelectedProduct = {
   id: string;
@@ -264,6 +266,39 @@ export function memberCodeDiscountFromOffer(
 }
 
 export type OfferValidationResult = { ok: true } | { ok: false; message: string };
+
+export function validatePartnerBrandDetails(input: {
+  bannerImageUrl: string | null | undefined;
+  logoUrl: string | null | undefined;
+  shortDescription: string;
+  brandStory: string;
+  galleryImageCount: number;
+}): OfferValidationResult {
+  if (!input.bannerImageUrl?.trim()) {
+    return { ok: false, message: "Please upload a banner image." };
+  }
+
+  if (!input.logoUrl?.trim()) {
+    return { ok: false, message: "Please upload a brand logo." };
+  }
+
+  if (!input.shortDescription.trim()) {
+    return { ok: false, message: "Please enter a short description." };
+  }
+
+  if (!input.brandStory.trim()) {
+    return { ok: false, message: "Please add your brand story." };
+  }
+
+  if (input.galleryImageCount < MIN_PARTNER_GALLERY_IMAGES) {
+    return {
+      ok: false,
+      message: `Please upload at least ${MIN_PARTNER_GALLERY_IMAGES} gallery images.`,
+    };
+  }
+
+  return { ok: true };
+}
 
 export function validateOfferForm(
   scope: OfferScope,
