@@ -58,6 +58,8 @@ type BrowseBrandsExplorerProps = {
   exploreHeadingClassName?: string;
   /** Tighter vertical rhythm for active member homepage. */
   compactSpacing?: boolean;
+  /** Signed-in partner brand homepage — smaller filter peeping image. */
+  partnerHomepage?: boolean;
 };
 
 export function BrowseBrandsExplorer({
@@ -72,6 +74,7 @@ export function BrowseBrandsExplorer({
   exploreHeading = "Explore More",
   exploreHeadingClassName = "text-2xl font-bold text-foreground",
   compactSpacing = false,
+  partnerHomepage = false,
 }: BrowseBrandsExplorerProps) {
   const favoritedSet = useMemo(
     () => new Set(favoritedPartnerIds),
@@ -218,9 +221,11 @@ export function BrowseBrandsExplorer({
     ? "relative overflow-visible"
     : `${formTopMargin} relative overflow-visible`;
   const filterFormClassName = `overflow-visible rounded-lg border border-border bg-background ${formPadding} shadow-sm`;
-  const filterPeepingClassName = compactSpacing
-    ? "pointer-events-none absolute -top-10 left-6 z-10 block h-10 w-auto max-w-[10.5rem] object-contain object-bottom sm:-top-12 sm:left-7 sm:h-12 md:-top-14 md:h-14 lg:-top-16 lg:left-8 lg:h-16 lg:max-w-[14rem]"
-    : "pointer-events-none absolute -top-12 left-8 z-10 block h-12 w-auto max-w-[11rem] object-contain object-bottom sm:-top-14 sm:h-14 md:-top-16 md:h-16 lg:-top-[4.5rem] lg:left-8 lg:h-[4.5rem] lg:max-w-[14rem]";
+  const filterPeepingClassName = partnerHomepage
+    ? "pointer-events-none absolute -top-8 left-6 z-10 block h-8 w-auto max-w-[8.4rem] object-contain object-bottom sm:-top-[2.4rem] sm:left-7 sm:h-[2.4rem] md:-top-[2.8rem] md:h-[2.8rem] lg:-top-[3.2rem] lg:left-8 lg:h-[3.2rem] lg:max-w-[11.2rem]"
+    : compactSpacing
+      ? "pointer-events-none absolute -top-10 left-6 z-10 block h-10 w-auto max-w-[10.5rem] object-contain object-bottom sm:-top-12 sm:left-7 sm:h-12 md:-top-14 md:h-14 lg:-top-16 lg:left-8 lg:h-16 lg:max-w-[14rem]"
+      : "pointer-events-none absolute -top-12 left-8 z-10 block h-12 w-auto max-w-[11rem] object-contain object-bottom sm:-top-14 sm:h-14 md:-top-16 md:h-16 lg:-top-[4.5rem] lg:left-8 lg:h-[4.5rem] lg:max-w-[14rem]";
 
   const blockGap = compactSpacing ? "mt-6" : "mt-12";
   const gridGap = compactSpacing ? "mt-3" : "mt-6";

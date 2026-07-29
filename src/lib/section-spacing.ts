@@ -66,7 +66,12 @@ export const SECTION_PY_HOME_PARTNER = "py-3.5 sm:py-4 md:py-[1.375rem]";
 export const SECTION_PY_HOME_PARTNER_WIDE = "py-4 sm:py-[1.375rem] md:py-7";
 
 /** Partner homepage hero padding (~50% tighter than compact member hero). */
-export const HOME_HERO_PY_PARTNER = "py-2 sm:py-2.5 lg:py-3";
+export const HOME_HERO_PY_PARTNER =
+  "pt-2 pb-[0.6rem] sm:pt-2.5 sm:pb-[0.75rem] lg:pt-3 lg:pb-[0.9rem]";
+
+/** Partner homepage browse section — extra top padding before filter bar (+20%). */
+export const SECTION_PY_HOME_PARTNER_BROWSE =
+  "pt-[1.05rem] pb-3.5 sm:pt-[1.2rem] sm:pb-4 md:pt-[1.65rem] md:pb-[1.375rem]";
 
 /** Free trial member homepage hero — extra bottom padding before browse filters. */
 export const HOME_HERO_PY_FREE_TRIAL =

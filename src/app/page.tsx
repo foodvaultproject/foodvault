@@ -95,6 +95,7 @@ export default async function Home({ searchParams }: HomeProps) {
           initialSubcategory={initialSubcategory}
           exploreHeading=""
           compactSpacing
+          partnerHomepage
         />
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeCategories onHomepage compactSpacing />

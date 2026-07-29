@@ -1,5 +1,5 @@
 import { BrowseBrandsExplorer } from "@/components/browse-brands/BrowseBrandsExplorer";
-import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_MEMBER_BROWSE, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_PARTNER_BROWSE, SECTION_PY_HOME_MEMBER_BROWSE, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 /** Anchor id for the embedded Discover explorer rendered on the homepage. */
@@ -29,6 +29,8 @@ type HomePartnerBrowseBrandsProps = {
   compactSpacing?: boolean;
   /** Active/free trial member homepage — wider gap between hero and filters. */
   memberHomepage?: boolean;
+  /** Signed-in partner brand homepage — tighter filter image and wider nav-to-filter gap. */
+  partnerHomepage?: boolean;
 };
 
 export function HomePartnerBrowseBrands({
@@ -43,12 +45,15 @@ export function HomePartnerBrowseBrands({
   exploreHeadingClassName,
   compactSpacing = false,
   memberHomepage = false,
+  partnerHomepage = false,
 }: HomePartnerBrowseBrandsProps) {
   const sectionPadding = memberHomepage
     ? SECTION_PY_HOME_MEMBER_BROWSE
-    : compactSpacing
-      ? SECTION_PY_HOME_PARTNER
-      : SECTION_PY_HOME_REFINE;
+    : partnerHomepage
+      ? SECTION_PY_HOME_PARTNER_BROWSE
+      : compactSpacing
+        ? SECTION_PY_HOME_PARTNER
+        : SECTION_PY_HOME_REFINE;
 
   return (
     <section
@@ -68,6 +73,7 @@ export function HomePartnerBrowseBrands({
           exploreHeadingClassName={exploreHeadingClassName}
           embedded
           compactSpacing={compactSpacing}
+          partnerHomepage={partnerHomepage}
         />
       </div>
     </section>
