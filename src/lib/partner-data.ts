@@ -37,6 +37,7 @@ import {
   buildStorewideDiscountTitle,
   draftToStoredProduct,
   memberCodeDiscountFromOffer,
+  normalizeOfferExclusionsForStorage,
   offerAppliesToLabel,
   offerScopeFromLegacyAppliesTo,
   parseOfferScope,
@@ -210,6 +211,7 @@ export async function submitPartnerApplication(
     affiliateConfig.enabled
       ? Number(affiliateConfig.commissionPercent.replace(/\D/g, ""))
       : null;
+  const offerExclusions = normalizeOfferExclusionsForStorage(draft.offerExclusions);
 
   const payload = {
     user_id: userId,
@@ -227,6 +229,7 @@ export async function submitPartnerApplication(
       offerScope === "entire_store" ? draft.discountValue ?? null : null,
     offer_applies_to: offerAppliesToLabel(offerScope),
     offer_terms: null,
+    offer_exclusions: offerExclusions,
     support_email: draft.supportEmail ?? null,
     support_phone: draft.supportPhone ?? null,
     contact_name: formatBusinessNameOrNull(draft.contactName),
@@ -306,6 +309,7 @@ export async function submitPartnerApplication(
       offerScope === "entire_store" ? draft.discountValue ?? null : null,
     p_offer_applies_to: offerAppliesToLabel(offerScope),
     p_offer_terms: null,
+    p_offer_exclusions: offerExclusions,
     p_support_email: draft.supportEmail ?? null,
     p_support_phone: draft.supportPhone ?? null,
     p_instagram: normalizeSocialValueForStorage(draft.instagram),
@@ -383,6 +387,7 @@ export async function submitPartnerApplication(
             primary_categories: categoryFields.primary_categories,
             dietary_lifestyle_attributes:
               categoryFields.dietary_lifestyle_attributes,
+            offer_exclusions: offerExclusions,
             youtube: normalizeSocialValueForStorage(draft.youtube),
             ...affiliatePayload,
           })
@@ -401,6 +406,7 @@ export async function submitPartnerApplication(
       category_groups: categoryFields.category_groups,
       primary_categories: categoryFields.primary_categories,
       dietary_lifestyle_attributes: categoryFields.dietary_lifestyle_attributes,
+      offer_exclusions: offerExclusions,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
       ...affiliatePayload,
@@ -462,6 +468,7 @@ export type PartnerListingData = {
   offerTitle: string;
   offerScope: OfferScope;
   selectedProducts: SelectedProduct[];
+  offerExclusions: string;
   supportEmail: string;
   supportPhone: string;
   contactName: string;
@@ -501,7 +508,7 @@ const LISTING_COLUMNS_MULTI_CATEGORY =
   `${LISTING_COLUMNS_SOCIAL}, primary_categories, category_groups`;
 
 const LISTING_COLUMNS_BASE =
-  `${LISTING_COLUMNS_MULTI_CATEGORY}, offer_scope, selected_products`;
+  `${LISTING_COLUMNS_MULTI_CATEGORY}, offer_scope, selected_products, offer_exclusions`;
 
 const LISTING_COLUMNS_WITH_LOGO =
   `${LISTING_COLUMNS_BASE}, logo_original_url, logo_crop`;
@@ -613,6 +620,7 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
       parseOfferScope(row.offer_scope) ??
       offerScopeFromLegacyAppliesTo(str(row.offer_applies_to)),
     selectedProducts: parseSelectedProducts(row.selected_products),
+    offerExclusions: str(row.offer_exclusions),
     supportEmail: str(row.support_email),
     supportPhone: str(row.support_phone),
     contactName: formatBusinessName(str(row.contact_name)),
@@ -755,6 +763,7 @@ function buildPartnerListingUpdatePayload(
     offer_applies_to: offerAppliesToLabel(data.offerScope),
     offer_scope: data.offerScope,
     selected_products: data.selectedProducts ?? [],
+    offer_exclusions: normalizeOfferExclusionsForStorage(data.offerExclusions),
     offer_terms: null,
     support_email: data.supportEmail || null,
     support_phone: data.supportPhone || null,

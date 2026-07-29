@@ -3,7 +3,9 @@
 import { OfferScopeSelector } from "@/components/partners/OfferScopeSelector";
 import { SelectedProductsEditor } from "@/components/partners/SelectedProductsEditor";
 import {
+  MAX_OFFER_EXCLUSIONS_LENGTH,
   sanitizeDiscountValue,
+  sanitizeOfferExclusions,
   type OfferScope,
   type SelectedProductDraft,
 } from "@/lib/partner-offer";
@@ -13,6 +15,8 @@ type MemberExclusiveOfferFieldsProps = {
   onOfferScopeChange: (scope: OfferScope) => void;
   discountValue: string;
   onDiscountValueChange: (value: string) => void;
+  offerExclusions: string;
+  onOfferExclusionsChange: (value: string) => void;
   selectedProducts: SelectedProductDraft[];
   onSelectedProductsChange: (products: SelectedProductDraft[]) => void;
   disabled?: boolean;
@@ -75,11 +79,57 @@ function DiscountValueField({
   );
 }
 
+function OfferExclusionsField({
+  id,
+  offerExclusions,
+  onOfferExclusionsChange,
+  disabled,
+  inputClass,
+  labelClass,
+  helperClass,
+  fieldGapClass,
+}: {
+  id: string;
+  offerExclusions: string;
+  onOfferExclusionsChange: (value: string) => void;
+  disabled?: boolean;
+  inputClass: string;
+  labelClass: string;
+  helperClass: string;
+  fieldGapClass: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className={labelClass}>
+        Offer Exclusions <span className="font-normal text-muted-foreground">(optional)</span>
+      </label>
+      <input
+        id={id}
+        name={id}
+        type="text"
+        maxLength={MAX_OFFER_EXCLUSIONS_LENGTH}
+        disabled={disabled}
+        value={offerExclusions}
+        onChange={(event) =>
+          onOfferExclusionsChange(sanitizeOfferExclusions(event.target.value))
+        }
+        placeholder="e.g. Excludes sale items and gift cards"
+        className={`${inputClass} ${fieldGapClass}`}
+      />
+      <p className={`${helperClass} mt-1`}>
+        {offerExclusions.length}/{MAX_OFFER_EXCLUSIONS_LENGTH} characters
+      </p>
+    </div>
+  );
+}
+
 export function MemberExclusiveOfferFields({
   offerScope,
   onOfferScopeChange,
   discountValue,
   onDiscountValueChange,
+  offerExclusions,
+  onOfferExclusionsChange,
   selectedProducts,
   onSelectedProductsChange,
   disabled = false,
@@ -104,17 +154,29 @@ export function MemberExclusiveOfferFields({
       </div>
 
       {offerScope === "entire_store" ? (
-        <DiscountValueField
-          id="discountValue"
-          discountValue={discountValue}
-          onDiscountValueChange={onDiscountValueChange}
-          disabled={disabled}
-          inputClass={inputClass}
-          labelClass={labelClass}
-          helperClass={helperClass}
-          fieldGapClass={fieldGapClass}
-          helperText={discountHelperText}
-        />
+        <>
+          <DiscountValueField
+            id="discountValue"
+            discountValue={discountValue}
+            onDiscountValueChange={onDiscountValueChange}
+            disabled={disabled}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            helperClass={helperClass}
+            fieldGapClass={fieldGapClass}
+            helperText={discountHelperText}
+          />
+          <OfferExclusionsField
+            id="offerExclusions"
+            offerExclusions={offerExclusions}
+            onOfferExclusionsChange={onOfferExclusionsChange}
+            disabled={disabled}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            helperClass={helperClass}
+            fieldGapClass={fieldGapClass}
+          />
+        </>
       ) : (
         <div className="space-y-4">
           <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
@@ -135,6 +197,17 @@ export function MemberExclusiveOfferFields({
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
             helperText="Enter a number from 1 to 99. This discount applies to all products in your selection."
+          />
+
+          <OfferExclusionsField
+            id="selectedProductsOfferExclusions"
+            offerExclusions={offerExclusions}
+            onOfferExclusionsChange={onOfferExclusionsChange}
+            disabled={disabled}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            helperClass={helperClass}
+            fieldGapClass={fieldGapClass}
           />
 
           <SelectedProductsEditor

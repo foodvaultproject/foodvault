@@ -52,6 +52,7 @@ export type PartnerProfile = {
   selectedProducts: SelectedProduct[];
   /** @deprecated Legacy free-text scope label */
   offerAppliesTo: string | null;
+  offerExclusions: string | null;
   bannerImageUrl: string | null;
   logoUrl: string | null;
   logoOriginalUrl: string | null;
@@ -104,6 +105,7 @@ type ProfileViewRow = {
   discount_value: string | null;
   discount_percent: number | null;
   offer_applies_to: string | null;
+  offer_exclusions: string | null;
   offer_scope: string | null;
   selected_products: unknown;
   banner_image_url: string | null;
@@ -125,7 +127,7 @@ type ProfileViewRow = {
 };
 
 const PARTNER_PREVIEW_COLUMNS_BASE =
-  "id, slug, business_name, short_description, brand_story, website_url, location, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, banner_image_url, logo_url, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, featured_until";
+  "id, slug, business_name, short_description, brand_story, website_url, location, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, offer_exclusions, banner_image_url, logo_url, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, featured_until";
 
 const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms`;
 
@@ -173,6 +175,7 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
     discount_value: row.discount_value,
     discount_percent: row.discount_percent,
     offer_applies_to: row.offer_applies_to,
+    offer_exclusions: row.offer_exclusions,
     offer_scope: row.offer_scope,
     selected_products: row.selected_products,
     banner_image_url: row.banner_image_url,
@@ -267,6 +270,7 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
       offerScopeFromLegacyAppliesTo(row.offer_applies_to),
     selectedProducts: parseSelectedProducts(row.selected_products),
     offerAppliesTo: row.offer_applies_to,
+    offerExclusions: row.offer_exclusions,
     bannerImageUrl: row.banner_image_url,
     logoUrl: row.logo_url,
     logoOriginalUrl: row.logo_original_url ?? null,
@@ -320,6 +324,7 @@ function buildDevProfile(slug: string): PartnerProfile | null {
     discountPercent: percent,
     discountLabel: brand.discount,
     offerAppliesTo: "Entire storewide selection",
+    offerExclusions: null,
     offerScope: "entire_store" as const,
     selectedProducts: [],
     bannerImageUrl: brand.image,

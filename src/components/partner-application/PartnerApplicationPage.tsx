@@ -200,6 +200,7 @@ export function PartnerApplicationPage() {
   const [shortDescription, setShortDescription] = useState("");
   const [brandStory, setBrandStory] = useState("");
   const [discountValue, setDiscountValue] = useState(DEFAULT_PARTNER_DISCOUNT_PERCENT);
+  const [offerExclusions, setOfferExclusions] = useState("");
   const [offerScope, setOfferScope] = useState<OfferScope>("entire_store");
   const [selectedProducts, setSelectedProducts] = useState<SelectedProductDraft[]>([]);
   const [supportEmail, setSupportEmail] = useState("");
@@ -262,6 +263,7 @@ export function PartnerApplicationPage() {
               draft.selectedProducts ?? []
             )
           );
+          setOfferExclusions(draft.offerExclusions ?? "");
           setOfferScope(
             draft.offerScope ??
               offerScopeFromLegacyAppliesTo(draft.offerAppliesTo)
@@ -340,6 +342,7 @@ export function PartnerApplicationPage() {
       categoryGroups,
       dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(categoryGroups),
       discountValue,
+      offerExclusions,
       offerScope,
       selectedProducts: selectedProducts.map((product) => ({
         ...product,
@@ -367,6 +370,7 @@ export function PartnerApplicationPage() {
     brandStory,
     categoryGroups,
     discountValue,
+    offerExclusions,
     offerScope,
     selectedProducts,
     supportEmail,
@@ -483,6 +487,7 @@ export function PartnerApplicationPage() {
           dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(categoryGroups),
           offerType: DEFAULT_OFFER_TYPE,
           discountValue,
+          offerExclusions,
           offerScope,
           selectedProducts,
           supportEmail,
@@ -784,6 +789,8 @@ export function PartnerApplicationPage() {
                   onOfferScopeChange={setOfferScope}
                   discountValue={discountValue}
                   onDiscountValueChange={setDiscountValue}
+                  offerExclusions={offerExclusions}
+                  onOfferExclusionsChange={setOfferExclusions}
                   selectedProducts={selectedProducts}
                   onSelectedProductsChange={setSelectedProducts}
                   inputClass={inputClass}

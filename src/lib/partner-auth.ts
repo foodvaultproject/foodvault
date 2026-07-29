@@ -27,6 +27,7 @@ export type PartnerApplicationDraft = {
   dietaryLifestyleAttributes?: string[];
   offerType?: string;
   discountValue?: string;
+  offerExclusions?: string;
   offerScope?: import("@/lib/partner-offer").OfferScope;
   selectedProducts?: import("@/lib/partner-offer").SelectedProductDraft[];
   /** @deprecated Use offerScope */

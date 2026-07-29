@@ -114,6 +114,7 @@ type EditorListing = {
   offerValue: string;
   offerTitle: string;
   offerScope: OfferScope;
+  offerExclusions: string;
   selectedProductDrafts: SelectedProductDraft[];
   memberCode: string;
   supportEmail: string;
@@ -151,6 +152,7 @@ const emptyListing: EditorListing = {
   offerValue: "",
   offerTitle: "",
   offerScope: "entire_store",
+  offerExclusions: "",
   selectedProductDrafts: [],
   memberCode: "",
   supportEmail: "",
@@ -216,6 +218,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     offerValue,
     offerTitle: data.offerTitle,
     offerScope: data.offerScope,
+    offerExclusions: data.offerExclusions,
     selectedProductDrafts: data.selectedProducts.map(selectedProductToDraft),
     memberCode: partner.member_code ?? "",
     supportEmail: data.supportEmail,
@@ -593,6 +596,7 @@ export function PartnerListingEditor() {
       offerValue: listing.offerValue,
       offerTitle,
       offerScope: listing.offerScope,
+      offerExclusions: listing.offerExclusions,
       selectedProducts,
       supportEmail: listing.supportEmail,
       supportPhone: listing.supportPhone,
@@ -916,6 +920,10 @@ export function PartnerListingEditor() {
               }
               discountValue={listing.offerValue}
               onDiscountValueChange={(offerValue) => updateOfferValue(offerValue)}
+              offerExclusions={listing.offerExclusions}
+              onOfferExclusionsChange={(offerExclusions) =>
+                setListing((prev) => ({ ...prev, offerExclusions }))
+              }
               selectedProducts={listing.selectedProductDrafts}
               onSelectedProductsChange={(selectedProductDrafts) =>
                 setListing((prev) => ({ ...prev, selectedProductDrafts }))

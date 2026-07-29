@@ -185,6 +185,13 @@ export function PartnerProfileView({
         </p>
       ) : null}
 
+      {profile.offerExclusions ? (
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          <span className="font-semibold uppercase tracking-wide">Exclusions: </span>
+          {profile.offerExclusions}
+        </p>
+      ) : null}
+
       <div className="mt-3">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           Discount Code

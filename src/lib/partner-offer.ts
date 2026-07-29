@@ -7,6 +7,18 @@ export const DEFAULT_PARTNER_DISCOUNT_PERCENT = "20";
 const LEGACY_PARTNER_DISCOUNT_PERCENT = "10";
 export const MIN_PARTNER_GALLERY_IMAGES = 3;
 export const MAX_PARTNER_SHORT_DESCRIPTION_LENGTH = 100;
+export const MAX_OFFER_EXCLUSIONS_LENGTH = 100;
+
+export function sanitizeOfferExclusions(raw: string): string {
+  return raw.slice(0, MAX_OFFER_EXCLUSIONS_LENGTH);
+}
+
+export function normalizeOfferExclusionsForStorage(
+  raw: string | undefined | null
+): string | null {
+  const trimmed = sanitizeOfferExclusions((raw ?? "").trim());
+  return trimmed || null;
+}
 
 export type SelectedProduct = {
   id: string;
