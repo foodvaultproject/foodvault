@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import {
+  FAQAccordionQuestion,
+  FAQAccordionToggleIcon,
+  faqAccordionButtonClassNameCompact,
+} from "@/components/faq/FAQAccordion";
 import type { FAQItem } from "@/data/faq";
 import { heading2, heading3 } from "@/lib/ui-classes";
 
@@ -25,16 +29,13 @@ function FAQColumn({ title, items }: { title: string; items: FAQItem[] }) {
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors duration-200 hover:bg-surface/80"
+                className={`${faqAccordionButtonClassNameCompact} ${isOpen ? "bg-surface-lavender/40" : ""}`}
                 aria-expanded={isOpen}
               >
-                <span className="min-w-0 flex-1 text-[13px] font-semibold text-foreground">
+                <FAQAccordionQuestion isOpen={isOpen} className="text-[13px]">
                   {faq.question}
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                  strokeWidth={2}
-                />
+                </FAQAccordionQuestion>
+                <FAQAccordionToggleIcon isOpen={isOpen} size="sm" />
               </button>
               {isOpen ? (
                 <div className="px-4 pb-3">
