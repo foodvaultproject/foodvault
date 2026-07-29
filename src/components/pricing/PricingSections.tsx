@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { OwnAKiwiBrandCard } from "@/components/partners/OwnAKiwiBrandCard";
+import { PricingMembershipCardCtas } from "@/components/pricing/PricingMembershipCardCtas";
 import {
   formatMembershipPrice,
   type MembershipSettings,
@@ -57,24 +57,7 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
             ))}
           </ul>
 
-          <div className="mt-8 space-y-3">
-            <Link
-              href="/signup"
-              className="fv-btn-primary flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-            >
-              Start Membership
-            </Link>
-            <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              or
-            </p>
-            <MemberSignupCtaLink
-              variant="start-free-trial"
-              className="fv-btn-primary flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-            />
-            <p className="text-center text-xs text-muted-foreground">
-              {settings.trialLengthDays}-day free trial · No payment card required
-            </p>
-          </div>
+          <PricingMembershipCardCtas trialLengthDays={settings.trialLengthDays} />
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:mt-10 sm:flex-row sm:gap-8">
