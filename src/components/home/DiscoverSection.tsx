@@ -5,6 +5,7 @@ import { SECTION_PY_HOME, SECTION_PY_HOME_PARTNER_WIDE } from "@/components/home
 import { type DiscoverArticleCard } from "@/lib/discover/queries";
 
 const HOMEPAGE_DISCOVER_LIMIT = 6;
+const HOMEPAGE_DISCOVER_MOBILE_LIMIT = 4;
 const HOMEPAGE_TILE_IMAGE_SIZES = "(max-width: 768px) 50vw, (max-width: 1200px) 16vw, 180px";
 
 type DiscoverSectionProps = {
@@ -52,14 +53,18 @@ export function DiscoverSection({
         <div
           className={`${compactSpacing ? "mt-3" : "mt-6"} ${brandTileGridGapClass} grid grid-cols-2 lg:grid-cols-6`}
         >
-          {homepageArticles.map((article) => (
-            <DiscoverArticleTile
+          {homepageArticles.map((article, index) => (
+            <div
               key={article.id}
-              article={article}
-              layout="grid"
-              imageSizes={HOMEPAGE_TILE_IMAGE_SIZES}
-              variant="overlay"
-            />
+              className={index >= HOMEPAGE_DISCOVER_MOBILE_LIMIT ? "max-lg:hidden" : undefined}
+            >
+              <DiscoverArticleTile
+                article={article}
+                layout="grid"
+                imageSizes={HOMEPAGE_TILE_IMAGE_SIZES}
+                variant="overlay"
+              />
+            </div>
           ))}
         </div>
 
