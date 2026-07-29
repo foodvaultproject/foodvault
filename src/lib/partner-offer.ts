@@ -3,6 +3,8 @@ export type OfferScope = "entire_store" | "selected_products";
 export const MAX_SELECTED_PRODUCTS = 20;
 export const MAX_PRODUCT_DESCRIPTION_LENGTH = 50;
 export const MAX_PRODUCT_NAME_LENGTH = 40;
+export const DEFAULT_PARTNER_DISCOUNT_PERCENT = "20";
+const LEGACY_PARTNER_DISCOUNT_PERCENT = "10";
 
 export type SelectedProduct = {
   id: string;
@@ -198,6 +200,24 @@ export function deriveSelectedProductsDiscount(
   return "";
 }
 
+/** Default discount for new partner applications; migrates legacy pre-filled 10% drafts. */
+export function resolvePartnerApplicationDiscountValue(
+  draftValue: string | undefined,
+  products: Array<{ discountPercent?: number; discountValue?: string }> = []
+): string {
+  const fromProducts = deriveSelectedProductsDiscount(products);
+  if (fromProducts) {
+    return sanitizeDiscountValue(fromProducts) || DEFAULT_PARTNER_DISCOUNT_PERCENT;
+  }
+
+  const sanitized = sanitizeDiscountValue(draftValue ?? "");
+  if (!sanitized || sanitized === LEGACY_PARTNER_DISCOUNT_PERCENT) {
+    return DEFAULT_PARTNER_DISCOUNT_PERCENT;
+  }
+
+  return sanitized;
+}
+
 export function draftToStoredProduct(
   draft: SelectedProductDraft,
   sharedDiscountPercent = ""
@@ -233,10 +253,14 @@ export function memberCodeDiscountFromOffer(
   _products: SelectedProductDraft[] | SelectedProduct[] = []
 ): string {
   if (scope === "entire_store") {
-    return sanitizeDiscountValue(discountValue) || "10";
+    return sanitizeDiscountValue(discountValue) || DEFAULT_PARTNER_DISCOUNT_PERCENT;
   }
 
-  return sanitizeDiscountValue(discountValue) || deriveSelectedProductsDiscount(_products) || "10";
+  return (
+    sanitizeDiscountValue(discountValue) ||
+    deriveSelectedProductsDiscount(_products) ||
+    DEFAULT_PARTNER_DISCOUNT_PERCENT
+  );
 }
 
 export type OfferValidationResult = { ok: true } | { ok: false; message: string };

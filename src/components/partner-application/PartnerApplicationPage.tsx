@@ -57,9 +57,9 @@ import {
 } from "@/lib/partner-social";
 import {
   offerScopeFromLegacyAppliesTo,
-  sanitizeDiscountValue,
   createSelectedProductDraft,
-  deriveSelectedProductsDiscount,
+  DEFAULT_PARTNER_DISCOUNT_PERCENT,
+  resolvePartnerApplicationDiscountValue,
   validateOfferForm,
   type OfferScope,
   type SelectedProductDraft,
@@ -197,7 +197,7 @@ export function PartnerApplicationPage() {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [brandStory, setBrandStory] = useState("");
-  const [discountValue, setDiscountValue] = useState("20");
+  const [discountValue, setDiscountValue] = useState(DEFAULT_PARTNER_DISCOUNT_PERCENT);
   const [offerScope, setOfferScope] = useState<OfferScope>("entire_store");
   const [selectedProducts, setSelectedProducts] = useState<SelectedProductDraft[]>([]);
   const [supportEmail, setSupportEmail] = useState("");
@@ -255,9 +255,9 @@ export function PartnerApplicationPage() {
           setShortDescription(draft.shortDescription ?? "");
           setBrandStory(draft.brandStory ?? "");
           setDiscountValue(
-            sanitizeDiscountValue(
-              draft.discountValue ??
-                (deriveSelectedProductsDiscount(draft.selectedProducts ?? []) || "20")
+            resolvePartnerApplicationDiscountValue(
+              draft.discountValue,
+              draft.selectedProducts ?? []
             )
           );
           setOfferScope(
