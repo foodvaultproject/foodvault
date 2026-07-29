@@ -52,6 +52,14 @@ export type PartnerRow = {
   member_code: string | null;
 };
 
+export type PartnerContactRow = {
+  id: string;
+  business_name: string | null;
+  contact_name: string | null;
+  support_email: string | null;
+  support_phone: string | null;
+};
+
 export type MemberRow = {
   id: string;
   email: string;

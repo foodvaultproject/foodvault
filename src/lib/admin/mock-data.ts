@@ -4,6 +4,7 @@ import type {
   DiscoverArticleRow,
   MemberRow,
   PartnerApplicationRow,
+  PartnerContactRow,
   PartnerRow,
   SystemSettings,
 } from "@/lib/admin/types";
@@ -56,6 +57,30 @@ export const mockApplications: PartnerApplicationRow[] = [
     banner_image_url: null,
     logo_url: null,
     gallery_image_urls: [],
+  },
+];
+
+export const mockPartnerContacts: PartnerContactRow[] = [
+  {
+    id: "pc1",
+    business_name: "Green Leaf Organics",
+    contact_name: "Sarah Chen",
+    support_email: "hello@greenleaf.co.nz",
+    support_phone: "+64210000001",
+  },
+  {
+    id: "pc2",
+    business_name: "Artisan Crust Co.",
+    contact_name: "James Wilson",
+    support_email: "orders@artisancrust.co.nz",
+    support_phone: null,
+  },
+  {
+    id: "pc3",
+    business_name: "Nordic Fish Co.",
+    contact_name: "Helena Ruud",
+    support_email: "support@nordicfish.co.nz",
+    support_phone: "+64275551234",
   },
 ];
 

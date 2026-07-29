@@ -18,6 +18,7 @@ import type {
   AdminUserOption,
   MemberRow,
   PartnerApplicationRow,
+  PartnerContactRow,
   PartnerRow,
   SystemSettings,
 } from "@/lib/admin/types";
@@ -34,6 +35,7 @@ import {
   mockDashboardStats,
   mockEnquiries,
   mockMembers,
+  mockPartnerContacts,
   mockPartners,
   mockRecentEnquiries,
   mockRecentMembers,
@@ -126,6 +128,37 @@ export async function getAllPartners(search?: string): Promise<PartnerRow[]> {
   });
 
   return ((data ?? []) as PartnerRow[]).map(formatPartnerRow);
+}
+
+function formatPartnerContactRow(row: PartnerContactRow): PartnerContactRow {
+  return {
+    ...row,
+    business_name: formatBusinessNameOrNull(row.business_name),
+    contact_name: formatBusinessNameOrNull(row.contact_name),
+  };
+}
+
+export async function getPartnerContacts(search?: string): Promise<PartnerContactRow[]> {
+  if (!isSupabaseConfigured()) {
+    const q = search?.toLowerCase() ?? "";
+    return mockPartnerContacts
+      .filter(
+        (row) =>
+          !q ||
+          row.business_name?.toLowerCase().includes(q) ||
+          row.contact_name?.toLowerCase().includes(q) ||
+          row.support_email?.toLowerCase().includes(q) ||
+          row.support_phone?.toLowerCase().includes(q)
+      )
+      .map(formatPartnerContactRow);
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("admin_list_partner_contacts", {
+    p_search: search ?? null,
+  });
+
+  return ((data ?? []) as PartnerContactRow[]).map(formatPartnerContactRow);
 }
 
 export async function getMembers(search?: string): Promise<MemberRow[]> {
