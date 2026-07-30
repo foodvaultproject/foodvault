@@ -1082,14 +1082,25 @@ export async function uploadPartnerAsset(
   }
 
   const supabase = createClient();
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+
+  let uploadFile = file;
+  if (typeof window !== "undefined") {
+    const { compressImageForUpload } = await import("@/lib/image-compress");
+    uploadFile = await compressImageForUpload(file);
+  }
+
+  const ext = (uploadFile.name.split(".").pop() || "webp").toLowerCase();
   const path = `${userId}/${kind}-${Date.now()}-${Math.random()
     .toString(36)
     .slice(2, 8)}.${ext}`;
 
   const { error } = await supabase.storage
     .from("partner-assets")
-    .upload(path, file, { upsert: true, cacheControl: "3600" });
+    .upload(path, uploadFile, {
+      upsert: true,
+      cacheControl: "3600",
+      contentType: uploadFile.type || "image/webp",
+    });
 
   if (error) {
     throw new Error(error.message);

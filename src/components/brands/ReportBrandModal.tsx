@@ -67,10 +67,17 @@ export function ReportBrandModal({
     if (!canSubmit) return;
 
     setError(null);
-    const formData = new FormData();
-    files.forEach((file) => formData.append("attachments", file));
 
     startTransition(async () => {
+      const { compressImageForUpload } = await import("@/lib/image-compress");
+      const preparedFiles = await Promise.all(
+        files.map(async (file) =>
+          file.type.startsWith("image/") ? compressImageForUpload(file) : file
+        )
+      );
+
+      const formData = new FormData();
+      preparedFiles.forEach((file) => formData.append("attachments", file));
       const result = await submitBrandReportAction(
         {
           brandId,

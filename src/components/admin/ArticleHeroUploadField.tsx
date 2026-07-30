@@ -83,8 +83,11 @@ export function ArticleHeroUploadField({
     onError("");
 
     try {
+      const { compressImageForUpload } = await import("@/lib/image-compress");
+      const uploadFile = await compressImageForUpload(croppedFile);
+
       const fd = new FormData();
-      fd.set("file", croppedFile);
+      fd.set("file", uploadFile);
       const uploadResult = await uploadArticleHeroAction(fd);
 
       if (uploadResult.error) {
