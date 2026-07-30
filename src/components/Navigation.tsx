@@ -35,7 +35,6 @@ import {
   NAV_MENU_PREVIEW_GRADIENT,
 } from "@/lib/nav-menu-preview";
 import {
-  FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM,
   FreeTrialCountdownBar,
 } from "@/components/member/FreeTrialCountdownBar";
 import { getTrialCountdownParts } from "@/lib/member/trial-countdown";
@@ -304,6 +303,7 @@ function DesktopAuthActions({
 
 export function Navigation() {
   const auth = useNavAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
   const isFreeTrial = useIsFreeTrialMember();
   const trialEndsAt = useTrialEndsAt();
@@ -312,14 +312,13 @@ export function Navigation() {
     isFreeTrial &&
     Boolean(trialEndsAt) &&
     !getTrialCountdownParts(trialEndsAt).expired;
-  const mobileMenuTop = showCountdownBar
-    ? menuPreview
-      ? `calc(4.25rem + ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
-      : `calc(4.25rem + 1.5rem + ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
-    : undefined;
 
   return (
-    <header className={`sticky top-0 z-50 ${menuPreview ? NAV_MENU_PREVIEW_GRADIENT : "bg-white"}`}>
+    <header
+      className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
+        menuPreview ? NAV_MENU_PREVIEW_GRADIENT : "bg-white"
+      }`}
+    >
       {!menuPreview ? <NzAnnouncementBar /> : null}
       <nav
         className={`mx-auto flex h-[4.25rem] max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 ${
@@ -346,10 +345,15 @@ export function Navigation() {
 
         <div className="flex items-center gap-3 sm:gap-4">
           <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
-          <MobileMenu auth={auth} menuTop={mobileMenuTop} menuPreview={menuPreview} />
+          <MobileMenu
+            auth={auth}
+            menuPreview={menuPreview}
+            open={mobileMenuOpen}
+            onOpenChange={setMobileMenuOpen}
+          />
         </div>
       </nav>
-      {showCountdownBar ? <FreeTrialCountdownBar /> : null}
+      {showCountdownBar && !mobileMenuOpen ? <FreeTrialCountdownBar /> : null}
     </header>
   );
 }

@@ -16,7 +16,6 @@ import {
   useIsFreeTrialMember,
 } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
-import { FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM } from "@/components/member/FreeTrialCountdownBar";
 import {
   NAV_MENU_CTA_BLOCK_CLASS,
   NAV_MENU_CTA_CLASS,
@@ -305,28 +304,24 @@ function MobileLogoutButton({
 
 export function MobileMenu({
   auth,
-  menuTop,
   menuPreview = false,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   auth: NavAuthState;
-  menuTop?: string;
   menuPreview?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const pathname = usePathname();
-  const overlayTop =
-    menuTop ?? (menuPreview ? "4.25rem" : "calc(4.25rem + 1.5rem)");
-  const panelTop =
-    menuTop ?? (menuPreview ? "4.25rem" : "calc(4.25rem + 1.5rem)");
-  const panelMaxHeight = menuTop
-    ? `calc(100vh - 4.25rem - 1.5rem - ${FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM}rem)`
-    : menuPreview
-      ? "calc(100vh - 4.25rem)"
-      : "calc(100vh - 4.25rem - 1.5rem)";
+  const navOffset = menuPreview ? "4.25rem" : "calc(4.25rem + 1.5rem)";
 
   useEffect(() => {
     setOpen(false);
-  }, [pathname]);
+  }, [pathname, setOpen]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -342,7 +337,7 @@ export function MobileMenu({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`inline-flex h-10 w-10 items-center justify-center rounded-sm border transition-colors ${
+        className={`relative z-[101] inline-flex h-10 w-10 items-center justify-center rounded-sm border transition-colors ${
           menuPreview
             ? "border-white text-white hover:bg-white/10"
             : "border-border text-foreground hover:bg-primary/5 hover:text-primary"
@@ -362,25 +357,29 @@ export function MobileMenu({
         )}
       </button>
 
-      {open && (
-        <>
+      {open ? (
+        <div
+          className="fixed inset-0 z-[100] xl:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation menu"
+        >
           <button
             type="button"
-            className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
-            style={{ top: overlayTop }}
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
             onClick={closeMenu}
             aria-label="Close menu overlay"
           />
           <div
             id="mobile-nav"
-            className={`fixed inset-x-0 z-50 flex flex-col border-b shadow-card ${
+            className={`absolute inset-x-0 bottom-0 flex min-h-0 flex-col ${
               menuPreview
                 ? `border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}`
                 : "border-border bg-white"
             }`}
-            style={{ top: panelTop, maxHeight: panelMaxHeight }}
+            style={{ top: navOffset }}
           >
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
               <nav className="space-y-1" aria-label="Mobile navigation">
                 <NavLinks mobile isPartner={auth.status === "partner"} menuPreview={menuPreview} />
               </nav>
@@ -401,8 +400,8 @@ export function MobileMenu({
               </div>
             ) : null}
           </div>
-        </>
-      )}
+        </div>
+      ) : null}
     </div>
   );
 }
