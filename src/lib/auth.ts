@@ -237,3 +237,11 @@ export async function signOut() {
   const supabase = createClient();
   await supabase.auth.signOut();
 }
+
+/** Sign out and hard-navigate home so SSR membership/partner UI refreshes. */
+export async function signOutAndGoHome() {
+  await signOut();
+  if (typeof window !== "undefined") {
+    window.location.assign("/");
+  }
+}

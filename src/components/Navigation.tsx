@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MobileMenu } from "@/components/NavLinks";
 import { NavLinks } from "@/components/NavLinks";
@@ -14,7 +13,7 @@ import {
   getAuthSession,
   isSupabaseConfigured,
   LOGIN_PATH,
-  signOut,
+  signOutAndGoHome,
 } from "@/lib/auth";
 import {
   affiliateNavMenuItems,
@@ -139,7 +138,6 @@ function AccountDropdown({
   auth: Extract<NavAuthState, { status: "member" | "partner" | "affiliate" | "admin" }>;
   menuPreview?: boolean;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const items =
@@ -176,9 +174,7 @@ function AccountDropdown({
 
   async function handleLogout() {
     setOpen(false);
-    await signOut();
-    router.push("/");
-    router.refresh();
+    await signOutAndGoHome();
   }
 
   return (

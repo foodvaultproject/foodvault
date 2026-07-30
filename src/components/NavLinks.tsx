@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { NavAuthState } from "@/lib/nav-auth";
 import {
@@ -15,7 +15,7 @@ import {
   useIsActiveMember,
   useIsFreeTrialMember,
 } from "@/components/member/MemberSignupCtaProvider";
-import { LOGIN_PATH, signOut } from "@/lib/auth";
+import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
 import { FREE_TRIAL_COUNTDOWN_BAR_HEIGHT_REM } from "@/components/member/FreeTrialCountdownBar";
 import {
   NAV_MENU_CTA_BLOCK_CLASS,
@@ -118,7 +118,6 @@ function MobileAuthSection({
   onNavigate: () => void;
   menuPreview?: boolean;
 }) {
-  const router = useRouter();
   const isFreeTrial = useIsFreeTrialMember();
 
   if (auth.status === "loading") {
@@ -183,10 +182,7 @@ function MobileAuthSection({
             type="button"
             onClick={() => {
               onNavigate();
-              void signOut().then(() => {
-                router.push("/");
-                router.refresh();
-              });
+              void signOutAndGoHome();
             }}
             className={`block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium transition-colors ${
               menuPreview
@@ -210,9 +206,7 @@ function MobileAuthSection({
 
   async function handleLogout() {
     onNavigate();
-    await signOut();
-    router.push("/");
-    router.refresh();
+    await signOutAndGoHome();
   }
 
   return (

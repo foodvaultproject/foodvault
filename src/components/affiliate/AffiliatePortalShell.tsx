@@ -1,7 +1,7 @@
 "use client";
 
 import { AFFILIATE_DASHBOARD_TABS, type AffiliateDashboardTab } from "@/lib/affiliate/paths";
-import { signOut } from "@/lib/auth";
+import { signOutAndGoHome } from "@/lib/auth";
 import { AffiliateNotificationBell } from "@/components/notification-service/AffiliateNotificationBell";
 
 type AffiliatePortalShellProps = {
@@ -45,9 +45,7 @@ export function AffiliatePortalShell({
         <div className="border-t border-white/10 px-4 py-4">
           <button
             type="button"
-            onClick={() => void signOut().then(() => {
-              window.location.href = "/";
-            })}
+            onClick={() => void signOutAndGoHome()}
             className="text-sm font-medium text-white/70 transition-colors hover:text-white"
           >
             Logout
