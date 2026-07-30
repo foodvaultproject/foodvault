@@ -61,10 +61,10 @@ export function PartnerApplicationsClient({
         <StatCard label="Rejection Rate" value={stats.rejectionRate} />
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row">
         <div className={`min-w-0 flex-1 ${selected ? "lg:max-w-[calc(100%-380px)]" : ""}`}>
-          <div className="overflow-hidden rounded border border-border bg-white">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto rounded border border-border bg-white">
+            <table className="min-w-[640px] w-full text-left text-sm">
               <thead className="border-b border-border">
                 <tr>
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">Business</th>

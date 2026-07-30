@@ -46,7 +46,7 @@ export function PartnersClient({
         <p className="mt-1 text-sm text-muted">Manage live and pending partner listings</p>
       </div>
 
-      <form onSubmit={handleSearch} className="flex gap-3">
+      <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:flex-row">
         <input
           type="search"
           value={search}
@@ -62,8 +62,8 @@ export function PartnersClient({
         </button>
       </form>
 
-      <div className="overflow-hidden rounded border border-border bg-white">
-        <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto rounded border border-border bg-white">
+        <table className="min-w-[640px] w-full text-left text-sm">
           <thead className="border-b border-border">
             <tr>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">Business</th>

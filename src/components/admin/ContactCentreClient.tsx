@@ -95,8 +95,8 @@ export function ContactCentreClient({
 
       <div className="flex gap-6">
         <div className={`min-w-0 flex-1 ${selected ? "lg:max-w-[calc(100%-400px)]" : ""}`}>
-          <div className="overflow-hidden rounded border border-border bg-white">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto rounded border border-border bg-white">
+            <table className="min-w-[640px] w-full text-left text-sm">
               <thead className="border-b border-border">
                 <tr>
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">Ref</th>

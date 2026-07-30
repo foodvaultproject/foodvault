@@ -9,6 +9,9 @@ export const adminMutedText = "text-muted";
 
 export const adminBodyText = "text-foreground";
 
+export const adminTableWrap =
+  "overflow-x-auto rounded border border-border bg-white";
+
 export const adminSecondaryButton =
   "rounded-sm border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors duration-150 hover:bg-surface disabled:opacity-60";
 
