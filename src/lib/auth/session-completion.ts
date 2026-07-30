@@ -68,6 +68,20 @@ export async function isSignupSetupComplete(
     );
   }
 
+  if (accountType === "partner") {
+    return (
+      getAccountTypeFromMetadata(metadata) === "partner" &&
+      Boolean(signupCompletedAt)
+    );
+  }
+
+  if (accountType === "affiliate") {
+    return (
+      getAccountTypeFromMetadata(metadata) === "affiliate" &&
+      Boolean(signupCompletedAt)
+    );
+  }
+
   if (!signupCompletedAt) {
     return false;
   }

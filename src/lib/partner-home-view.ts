@@ -47,6 +47,13 @@ export async function getPartnerHomeView(): Promise<PartnerHomeView> {
     };
   }
 
+  if (user.user_metadata?.partner_account_created === true) {
+    return {
+      isPartner: true,
+      partnerName: resolveMemberFirstName(null, user),
+    };
+  }
+
   const { data } = await supabase
     .from("partners")
     .select("id, contact_name")

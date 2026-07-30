@@ -12,6 +12,7 @@ import {
   validateOAuthAccountType,
 } from "@/lib/auth/complete-oauth-session";
 import { clearOAuthIntentCookie } from "@/lib/auth/oauth-intent";
+import { ensurePartnerOAuthSession } from "@/lib/auth/partner-oauth-session";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
 type PendingCookie = {
@@ -121,6 +122,27 @@ export async function handleAuthCallback(
     await supabase.auth.signOut();
     clearOAuthIntentCookie(cookieStore);
     return redirectTo(`${loginPathForAccount}?error=wrong_account_type`);
+  }
+
+  if (options.forcedAccountType === "partner") {
+    const { redirectPath, error: setupError } = await ensurePartnerOAuthSession(
+      supabase,
+      user,
+      context.nextPath
+    );
+
+    clearOAuthIntentCookie(cookieStore);
+
+    if (setupError) {
+      console.error("[auth/callback/partner] Partner OAuth setup failed", {
+        userId: user.id,
+        error: setupError,
+      });
+      await supabase.auth.signOut();
+      return redirectTo(`${PARTNER_LOGIN_PATH}?error=oauth_setup_failed`);
+    }
+
+    return redirectTo(redirectPath);
   }
 
   const { redirectPath, error: setupError } = await ensureAuthenticatedSession(

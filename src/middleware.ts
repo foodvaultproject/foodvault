@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_CHECK_EMAIL_PATH } from "@/lib/auth/email-verification";
+import { requestHasPartnerOAuthIntent } from "@/lib/auth/partner-oauth-session";
 import { pathAllowsUnverifiedAccess } from "@/lib/auth/unverified-access";
 
 export async function middleware(request: NextRequest) {
@@ -39,6 +40,17 @@ export async function middleware(request: NextRequest) {
   );
 
   const pathname = request.nextUrl.pathname;
+
+  const oauthCode = request.nextUrl.searchParams.get("code");
+  if (
+    oauthCode &&
+    !pathname.startsWith("/auth/callback") &&
+    requestHasPartnerOAuthIntent((name) => request.cookies.get(name)?.value)
+  ) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/auth/callback/partner";
+    return NextResponse.redirect(redirectUrl);
+  }
 
   if (pathname === "/partner") {
     const redirectUrl = request.nextUrl.clone();

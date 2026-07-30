@@ -201,24 +201,11 @@ export async function signInWithGoogle(options: {
       ? PARTNER_OAUTH_CALLBACK_PATH
       : "/auth/callback";
 
-  const callbackParams = new URLSearchParams({
-    next,
-    account: options.accountType,
-  });
-
-  if (options.signupMode) {
-    callbackParams.set("signup_mode", options.signupMode);
-  }
-
-  if (options.marketingOptIn !== undefined) {
-    callbackParams.set("marketing_opt_in", options.marketingOptIn ? "1" : "0");
-  }
-
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}${callbackPath}?${callbackParams.toString()}`,
+      redirectTo: `${window.location.origin}${callbackPath}`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",

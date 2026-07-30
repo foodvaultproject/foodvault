@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createPartnerAccountWithEmail, getPartnerSession, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
-import { createDevSession, isSupabaseConfigured, PARTNER_LOGIN_PATH } from "@/lib/auth";
+import { createDevSession, getAuthSession, isSupabaseConfigured, PARTNER_LOGIN_PATH, signOut } from "@/lib/auth";
 import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 
@@ -131,6 +131,12 @@ export function PartnerCreateAccountPage() {
 
   const handleGoogleSignIn = async () => {
     setError(null);
+
+    const session = await getAuthSession();
+    if (session && session.accountType !== "partner") {
+      await signOut();
+    }
+
     const result = await signInPartnerWithGoogle();
     if (result?.error) {
       setError(result.error);
