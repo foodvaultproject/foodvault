@@ -113,10 +113,12 @@ function MobileAuthSection({
   auth,
   onNavigate,
   menuPreview = false,
+  showLogout = true,
 }: {
   auth: NavAuthState;
   onNavigate: () => void;
   menuPreview?: boolean;
+  showLogout?: boolean;
 }) {
   const isFreeTrial = useIsFreeTrialMember();
 
@@ -177,7 +179,7 @@ function MobileAuthSection({
         >
           Start FREE Trial
         </MemberSignupCtaLink>
-        {auth.status === "admin" ? (
+        {auth.status === "admin" && showLogout ? (
           <button
             type="button"
             onClick={() => {
@@ -248,18 +250,56 @@ function MobileAuthSection({
           {item.label}
         </Link>
       ))}
-      <button
-        type="button"
-        onClick={() => void handleLogout()}
-        className={`block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium transition-colors ${
-          menuPreview
-            ? "text-white/90 hover:bg-white/10 hover:text-white"
-            : "text-foreground hover:bg-primary/5 hover:text-primary"
-        }`}
-      >
-        Logout
-      </button>
+      {showLogout ? (
+        <button
+          type="button"
+          onClick={() => void handleLogout()}
+          className={`block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium transition-colors ${
+            menuPreview
+              ? "text-white/90 hover:bg-white/10 hover:text-white"
+              : "text-foreground hover:bg-primary/5 hover:text-primary"
+          }`}
+        >
+          Logout
+        </button>
+      ) : null}
     </div>
+  );
+}
+
+function isAuthenticatedNavState(
+  auth: NavAuthState
+): auth is Extract<NavAuthState, { status: "member" | "partner" | "affiliate" | "admin" }> {
+  return (
+    auth.status === "member" ||
+    auth.status === "partner" ||
+    auth.status === "affiliate" ||
+    auth.status === "admin"
+  );
+}
+
+function MobileLogoutButton({
+  menuPreview = false,
+  onNavigate,
+}: {
+  menuPreview?: boolean;
+  onNavigate: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onNavigate();
+        void signOutAndGoHome();
+      }}
+      className={`block w-full rounded-lg px-3 py-3 text-left text-base font-semibold transition-colors ${
+        menuPreview
+          ? "text-white hover:bg-white/10"
+          : "text-foreground hover:bg-primary/5 hover:text-primary"
+      }`}
+    >
+      Logout
+    </button>
   );
 }
 
@@ -333,17 +373,33 @@ export function MobileMenu({
           />
           <div
             id="mobile-nav"
-            className={`fixed inset-x-0 z-50 overflow-y-auto border-b px-4 py-5 shadow-card sm:px-6 md:max-h-[calc(100vh-4.25rem-1.75rem)] ${
+            className={`fixed inset-x-0 z-50 flex flex-col border-b shadow-card ${
               menuPreview
                 ? `border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}`
                 : "border-border bg-white"
             }`}
             style={{ top: panelTop, maxHeight: panelMaxHeight }}
           >
-            <nav className="space-y-1" aria-label="Mobile navigation">
-              <NavLinks mobile isPartner={auth.status === "partner"} menuPreview={menuPreview} />
-            </nav>
-            <MobileAuthSection auth={auth} onNavigate={closeMenu} menuPreview={menuPreview} />
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+              <nav className="space-y-1" aria-label="Mobile navigation">
+                <NavLinks mobile isPartner={auth.status === "partner"} menuPreview={menuPreview} />
+              </nav>
+              <MobileAuthSection
+                auth={auth}
+                onNavigate={closeMenu}
+                menuPreview={menuPreview}
+                showLogout={false}
+              />
+            </div>
+            {isAuthenticatedNavState(auth) ? (
+              <div
+                className={`shrink-0 border-t px-4 py-3 sm:px-6 ${
+                  menuPreview ? "border-white/15 bg-[#8B7CF6]" : "border-border bg-white"
+                }`}
+              >
+                <MobileLogoutButton menuPreview={menuPreview} onNavigate={closeMenu} />
+              </div>
+            ) : null}
           </div>
         </>
       )}
