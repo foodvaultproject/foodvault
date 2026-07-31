@@ -34,6 +34,12 @@ import {
   type PartnerCategoryGroup,
 } from "@/data/partner-categories";
 import {
+  parseVaultDropStored,
+  validateVaultDropForm,
+  type VaultDropFormDraft,
+  type VaultDropStored,
+} from "@/lib/vault-drop";
+import {
   buildStorewideDiscountTitle,
   draftToStoredProduct,
   memberCodeDiscountFromOffer,
@@ -160,6 +166,51 @@ export async function isPartnerAccount(userId: string): Promise<boolean> {
 
   const record = await getPartnerRecord(userId);
   return record !== null;
+}
+
+export async function uploadVaultDropDraft(
+  userId: string,
+  draft: VaultDropFormDraft
+): Promise<VaultDropStored | null> {
+  const validation = validateVaultDropForm(draft, {
+    requireComplete: draft.enabled && draft.status === "active",
+  });
+  if (!validation.ok) {
+    throw new Error(validation.message);
+  }
+
+  if (!validation.stored) {
+    return null;
+  }
+
+  let imageUrl = draft.imageUrl;
+  if (draft.imageFile) {
+    imageUrl = await uploadPartnerAsset(userId, draft.imageFile, "vault-drop");
+  }
+
+  if (!imageUrl && draft.status === "active") {
+    throw new Error("Vault Drop product image is required.");
+  }
+
+  return {
+    ...validation.stored,
+    image_url: imageUrl,
+  };
+}
+
+async function resolveVaultDropForSubmit(
+  userId: string,
+  draft: VaultDropFormDraft | undefined,
+  imageFile?: File | null
+): Promise<VaultDropStored | null> {
+  if (!draft?.enabled) {
+    return null;
+  }
+
+  return uploadVaultDropDraft(userId, {
+    ...draft,
+    imageFile: imageFile ?? draft.imageFile ?? null,
+  });
 }
 
 export async function submitPartnerApplication(
@@ -409,6 +460,7 @@ export async function submitPartnerApplication(
       offer_exclusions: offerExclusions,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
+      vault_drop: await resolveVaultDropForSubmit(userId, draft.vaultDrop, assets?.vaultDropImageFile),
       ...affiliatePayload,
     })
     .eq("user_id", userId);
@@ -494,6 +546,7 @@ export type PartnerListingData = {
   affiliateTerms: string;
   affiliateCreatedAt: string | null;
   affiliateUpdatedAt: string | null;
+  vaultDrop: import("@/lib/vault-drop").VaultDropStored | null;
 };
 
 const LISTING_COLUMNS_CORE =
@@ -525,9 +578,13 @@ const LISTING_COLUMNS_DIETARY =
 const LISTING_COLUMNS_DIETARY_WITH_CONTACT =
   `${LISTING_COLUMNS_DIETARY}, contact_name`;
 
-const LISTING_COLUMNS = LISTING_COLUMNS_DIETARY;
+const LISTING_COLUMNS_VAULT_DROP =
+  `${LISTING_COLUMNS_DIETARY_WITH_CONTACT}, vault_drop`;
+
+const LISTING_COLUMNS = LISTING_COLUMNS_VAULT_DROP;
 
 const LISTING_COLUMN_TIERS = [
+  LISTING_COLUMNS_VAULT_DROP,
   LISTING_COLUMNS_DIETARY_WITH_CONTACT,
   LISTING_COLUMNS_DIETARY,
   LISTING_COLUMNS_AFFILIATE_WITH_CONTACT,
@@ -658,6 +715,7 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
       typeof row.affiliate_created_at === "string" ? row.affiliate_created_at : null,
     affiliateUpdatedAt:
       typeof row.affiliate_updated_at === "string" ? row.affiliate_updated_at : null,
+    vaultDrop: parseVaultDropStored(row.vault_drop),
   };
 }
 
@@ -820,6 +878,8 @@ function buildPartnerListingUpdatePayload(
     )
   );
 
+  payload.vault_drop = data.vaultDrop;
+
   return payload;
 }
 
@@ -884,7 +944,8 @@ export type PartnerAssetKind =
   | "banner-original"
   | "gallery"
   | "gallery-original"
-  | "offer-product";
+  | "offer-product"
+  | "vault-drop";
 
 export type PartnerBannerUploadPayload = {
   croppedFile: File;

@@ -47,6 +47,7 @@ export type PartnerApplicationDraft = {
   affiliateCookieDurationDays?: import("@/lib/partner-affiliate").AffiliateCookieDurationDays;
   affiliateProgramDescription?: string;
   affiliateTerms?: string;
+  vaultDrop?: import("@/lib/vault-drop").VaultDropFormDraft;
 };
 
 export type PartnerApplicationAssets = {
@@ -71,6 +72,7 @@ export type PartnerApplicationAssets = {
   }[];
   /** @deprecated Use galleryItems with crop metadata instead. */
   galleryFiles?: File[];
+  vaultDropImageFile?: File | null;
 };
 
 export type PartnerSession = {

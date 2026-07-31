@@ -6,6 +6,7 @@ import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendi
 import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
 import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
+import { HomeVaultDropSection } from "@/components/home/HomeVaultDropSection";
 import {
   HomeCategories,
   HomePartnerBanner,
@@ -27,6 +28,7 @@ import {
   getRecentBrandCards,
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
+import { getActiveVaultDrops } from "@/lib/vault-drop-data";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +55,7 @@ export default async function Home({ searchParams }: HomeProps) {
     adminUser,
     browseFeatured,
     partnerBrowseInitial,
+    vaultDrops,
   ] = await Promise.all([
     getHomepageFeaturedBrands(12),
     getDiscoverPageContent(),
@@ -73,6 +76,7 @@ export default async function Home({ searchParams }: HomeProps) {
       limit: BROWSE_PAGE_SIZE,
       offset: 0,
     }),
+    getActiveVaultDrops(12),
   ]);
   // Admins browsing the public homepage must match the visitor experience.
   const isActiveMember = Boolean(activeMember) && !adminUser;
@@ -165,6 +169,7 @@ export default async function Home({ searchParams }: HomeProps) {
           memberHomepage
         />
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
+        <HomeVaultDropSection drops={vaultDrops} />
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
@@ -189,6 +194,7 @@ export default async function Home({ searchParams }: HomeProps) {
         canFavorite={favoriteContext.canFavorite}
         favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
       />
+      <HomeVaultDropSection drops={vaultDrops} />
       <HomeWhyJoinFeatures mobileTwoColumn />
       <HomeCategories />
       <HomeTrendingSection

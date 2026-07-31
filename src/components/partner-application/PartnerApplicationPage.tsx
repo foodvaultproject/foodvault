@@ -22,6 +22,12 @@ import {
   type PartnerSession,
 } from "@/lib/partner-auth";
 import { getPartnerRecord, submitPartnerApplication } from "@/lib/partner-data";
+import {
+  emptyVaultDropFormDraft,
+  validateVaultDropForm,
+  vaultDropDraftFromSerializable,
+  type VaultDropFormDraft,
+} from "@/lib/vault-drop";
 import { notifyAdminPartnerListingSubmittedAction } from "@/lib/partner/submission-notifications";
 import { PARTNER_DASHBOARD_PATH } from "@/lib/auth";
 import {
@@ -43,6 +49,7 @@ import {
   type PartnerGalleryDraftItem,
 } from "@/components/partners/PartnerGalleryUploadGrid";
 import { MemberExclusiveOfferFields } from "@/components/partners/MemberExclusiveOfferFields";
+import { VaultDropFields } from "@/components/partners/VaultDropFields";
 import { AffiliateProgramFields } from "@/components/partners/AffiliateProgramFields";
 import { PartnerSocialFields } from "@/components/partners/PartnerSocialFields";
 import {
@@ -224,6 +231,7 @@ export function PartnerApplicationPage() {
   const [affiliateProgram, setAffiliateProgram] = useState<AffiliateProgramConfig>(
     defaultAffiliateProgramConfig()
   );
+  const [vaultDrop, setVaultDrop] = useState<VaultDropFormDraft>(emptyVaultDropFormDraft());
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -306,6 +314,7 @@ export function PartnerApplicationPage() {
             programDescription: draft.affiliateProgramDescription ?? "",
             affiliateTerms: draft.affiliateTerms ?? "",
           });
+          setVaultDrop(vaultDropDraftFromSerializable(draft.vaultDrop));
         } else {
           setSupportEmail(partnerSession.email);
         }
@@ -361,6 +370,10 @@ export function PartnerApplicationPage() {
       affiliateCookieDurationDays: affiliateProgram.cookieDurationDays,
       affiliateProgramDescription: affiliateProgram.programDescription,
       affiliateTerms: affiliateProgram.affiliateTerms,
+      vaultDrop: {
+        ...vaultDrop,
+        imageFile: null,
+      },
     });
   }, [
     session,
@@ -382,6 +395,7 @@ export function PartnerApplicationPage() {
     tiktok,
     youtube,
     affiliateProgram,
+    vaultDrop,
   ]);
 
   const socialValues: PartnerSocialLinks = {
@@ -475,6 +489,15 @@ export function PartnerApplicationPage() {
       return;
     }
 
+    const vaultDropValidation = validateVaultDropForm(vaultDrop, {
+      requireComplete: vaultDrop.enabled && vaultDrop.status === "active",
+    });
+    if (!vaultDropValidation.ok) {
+      setSubmitError(vaultDropValidation.message);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const record = await submitPartnerApplication(
         session.id,
@@ -507,6 +530,7 @@ export function PartnerApplicationPage() {
             ? ""
             : affiliateProgram.programDescription,
           affiliateTerms: AFFILIATE_PROGRAM_COMING_SOON ? "" : affiliateProgram.affiliateTerms,
+          vaultDrop,
         },
         {
           bannerUpload: bannerUpload
@@ -520,6 +544,7 @@ export function PartnerApplicationPage() {
           logoOriginalFile: logoUpload?.originalFile ?? null,
           logoCrop: logoUpload?.crop ?? null,
           galleryItems: galleryItems.slice(0, MAX_PRODUCT_GALLERY_IMAGES),
+          vaultDropImageFile: vaultDrop.imageFile,
         }
       );
       await notifyAdminPartnerListingSubmittedAction(record.id);
@@ -795,6 +820,33 @@ export function PartnerApplicationPage() {
                   onSelectedProductsChange={setSelectedProducts}
                   inputClass={inputClass}
                   labelClass={labelClass}
+                />
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm sm:p-4">
+              <SectionHeader
+                title="The Vault Drop"
+                description={
+                  <p>
+                    Optional clearance offer for deleted SKUs, old packaging, surplus stock, or
+                    short-term bulk deals.
+                  </p>
+                }
+                icon={
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+              />
+              <div className="mt-3">
+                <VaultDropFields
+                  value={vaultDrop}
+                  onChange={setVaultDrop}
+                  disabled={submitting}
+                  inputClass={inputClass}
+                  labelClass={labelClass}
+                  idPrefix="application-vault-drop"
                 />
               </div>
             </section>

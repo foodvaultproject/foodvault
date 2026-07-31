@@ -11,6 +11,7 @@ import {
   type PartnerCategoryGroup,
 } from "@/data/partner-categories";
 import { MemberExclusiveOfferFields } from "@/components/partners/MemberExclusiveOfferFields";
+import { VaultDropFields } from "@/components/partners/VaultDropFields";
 import { AffiliateProgramFields } from "@/components/partners/AffiliateProgramFields";
 import { PartnerSocialFields } from "@/components/partners/PartnerSocialFields";
 import {
@@ -49,6 +50,7 @@ import {
   uploadPartnerGalleryItem,
   uploadPartnerLogo,
   uploadSelectedProductDrafts,
+  uploadVaultDropDraft,
   persistPartnerLogo,
   type PartnerAssetKind,
   type PartnerListingData,
@@ -65,6 +67,12 @@ import {
   partnerProfileSlug,
 } from "@/lib/member/favorites-utils";
 import type { LogoCropSettings } from "@/lib/partner-logo-crop";
+import {
+  emptyVaultDropFormDraft,
+  validateVaultDropForm,
+  vaultDropFormFromStored,
+  type VaultDropFormDraft,
+} from "@/lib/vault-drop";
 import {
   PartnerLogoUploadField,
   type PartnerLogoUploadValue,
@@ -139,6 +147,7 @@ type EditorListing = {
   affiliateProgramDescription: string;
   affiliateTerms: string;
   affiliateCreatedAt: string | null;
+  vaultDrop: VaultDropFormDraft;
 };
 
 const emptyListing: EditorListing = {
@@ -177,6 +186,7 @@ const emptyListing: EditorListing = {
   affiliateProgramDescription: "",
   affiliateTerms: "",
   affiliateCreatedAt: null,
+  vaultDrop: emptyVaultDropFormDraft(),
 };
 
 function galleryItemsFromData(data: PartnerListingData): PartnerGalleryItem[] {
@@ -244,6 +254,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     affiliateProgramDescription: data.affiliateProgramDescription,
     affiliateTerms: data.affiliateTerms,
     affiliateCreatedAt: data.affiliateCreatedAt,
+    vaultDrop: vaultDropFormFromStored(data.vaultDrop),
   };
 }
 
@@ -556,6 +567,14 @@ export function PartnerListingEditor() {
       return;
     }
 
+    const vaultDropValidation = validateVaultDropForm(listing.vaultDrop, {
+      requireComplete: listing.vaultDrop.enabled && listing.vaultDrop.status === "active",
+    });
+    if (!vaultDropValidation.ok) {
+      setStatus({ type: "error", message: vaultDropValidation.message });
+      return;
+    }
+
     setSaving(true);
     setStatus(null);
 
@@ -577,6 +596,18 @@ export function PartnerListingEditor() {
       setStatus({
         type: "error",
         message: error instanceof Error ? error.message : "Product upload failed.",
+      });
+      return;
+    }
+
+    let vaultDropStored = null;
+    try {
+      vaultDropStored = await uploadVaultDropDraft(partner.user_id, listing.vaultDrop);
+    } catch (error) {
+      setSaving(false);
+      setStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Vault Drop upload failed.",
       });
       return;
     }
@@ -631,6 +662,7 @@ export function PartnerListingEditor() {
       affiliateTerms: AFFILIATE_PROGRAM_COMING_SOON ? "" : listing.affiliateTerms,
       affiliateCreatedAt: listing.affiliateCreatedAt,
       affiliateUpdatedAt: null,
+      vaultDrop: vaultDropStored,
     };
 
     try {
@@ -934,6 +966,22 @@ export function PartnerListingEditor() {
               helperClass={helperClass}
               compact
               discountHelperText="Updates the discount shown on your public brand profile."
+            />
+          </div>
+        </section>
+
+        <section id="vault-drop" className={`${portalCard} mt-6 scroll-mt-20`}>
+          <h2 className={portalSectionTitle}>The Vault Drop</h2>
+          <div className={portalCardContent}>
+            <VaultDropFields
+              value={listing.vaultDrop}
+              onChange={(vaultDrop) => setListing((prev) => ({ ...prev, vaultDrop }))}
+              disabled={!isListingEditable || saving}
+              inputClass={isListingEditable ? fieldProps.className : portalInputDisabled}
+              labelClass={labelClass}
+              helperClass={helperClass}
+              fieldGapClass={portalFieldGap}
+              idPrefix="listing-vault-drop"
             />
           </div>
         </section>
