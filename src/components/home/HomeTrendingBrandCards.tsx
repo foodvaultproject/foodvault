@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { ReactNode } from "react";
 import {
   BrandTileDiscountBadge,
   getBrandDiscountPercent,
@@ -24,10 +25,28 @@ function formatDiscountValue(brand: BrandCard) {
 const bannerCardClass =
   "group block overflow-hidden rounded-lg border border-border shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
-const cardBannerSizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
+const cardBannerSizes = "(max-width: 640px) 100vw, 50vw";
 
 const bannerTextOverlayClass =
-  "pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/45 to-transparent px-3 pb-3 pt-12 sm:px-4 sm:pb-4";
+  "pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/36 to-transparent px-3 pb-3 pt-12 sm:px-4 sm:pb-4";
+
+function SlantedPrimaryBadge({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`inline-block -skew-x-12 bg-primary px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5 ${className}`.trim()}
+    >
+      <span className="inline-block skew-x-12 text-xs font-bold leading-none text-primary-foreground sm:text-sm">
+        {children}
+      </span>
+    </span>
+  );
+}
 
 function TrendingGrowthArrow({ className = "" }: { className?: string }) {
   return (
@@ -82,8 +101,8 @@ export function TrendingThisWeekCard({ brand }: { brand: BrandCard }) {
             {brand.businessName}
           </p>
           <p className="mt-0.5 truncate text-xs text-white/85">{category}</p>
-          <p className="mt-1 text-sm font-extrabold tracking-wide text-violet-200 sm:text-base">
-            {formatDiscountValue(brand)}
+          <p className="mt-1.5">
+            <SlantedPrimaryBadge>{formatDiscountValue(brand)}</SlantedPrimaryBadge>
           </p>
         </div>
       </div>

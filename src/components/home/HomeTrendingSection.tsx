@@ -90,8 +90,8 @@ export function HomeTrendingSection({
             viewAllLabel="View all trending →"
             hideViewAll={hideViewAll}
           >
-            <div className={`${brandTileGridGapClass} grid-cols-1 md:grid-cols-3`}>
-              {trending.slice(0, 3).map((brand) => (
+            <div className={`${brandTileGridGapClass} grid grid-cols-1 sm:grid-cols-2`}>
+              {trending.slice(0, 4).map((brand) => (
                 <TrendingThisWeekCard key={brand.id} brand={brand} />
               ))}
             </div>

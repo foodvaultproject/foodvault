@@ -59,7 +59,7 @@ export default async function Home({ searchParams }: HomeProps) {
     getMembershipSettings(),
     getRecentBrandCards(3),
     searchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
-    searchPublicBrands({ sort: "featured", limit: 3, offset: 0 }),
+    searchPublicBrands({ sort: "featured", limit: 4, offset: 0 }),
     getViewerFavoriteContext(),
     getActiveMemberView(),
     getFreeTrialMemberView(),
