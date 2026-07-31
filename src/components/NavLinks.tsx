@@ -331,12 +331,13 @@ export function MobileMenu({
   }, [open]);
 
   const closeMenu = () => setOpen(false);
+  const toggleMenu = () => setOpen(!open);
 
   return (
     <div className="xl:hidden">
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={toggleMenu}
         className={`relative z-[101] inline-flex h-10 w-10 items-center justify-center rounded-sm border transition-colors ${
           menuPreview
             ? "border-white text-white hover:bg-white/10"
