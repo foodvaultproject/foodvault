@@ -568,7 +568,7 @@ export function PartnerListingEditor() {
     }
 
     const vaultDropValidation = validateVaultDropForm(listing.vaultDrop, {
-      requireComplete: listing.vaultDrop.enabled && listing.vaultDrop.status === "active",
+      requireComplete: listing.vaultDrop.enabled,
     });
     if (!vaultDropValidation.ok) {
       setStatus({ type: "error", message: vaultDropValidation.message });
@@ -971,7 +971,7 @@ export function PartnerListingEditor() {
         </section>
 
         <section id="vault-drop" className={`${portalCard} mt-6 scroll-mt-20`}>
-          <h2 className={portalSectionTitle}>The Vault Drop</h2>
+          <h2 className={portalSectionTitle}>The Vault Drop (Optional)</h2>
           <div className={portalCardContent}>
             <VaultDropFields
               value={listing.vaultDrop}

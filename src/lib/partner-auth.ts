@@ -72,7 +72,6 @@ export type PartnerApplicationAssets = {
   }[];
   /** @deprecated Use galleryItems with crop metadata instead. */
   galleryFiles?: File[];
-  vaultDropImageFile?: File | null;
 };
 
 export type PartnerSession = {

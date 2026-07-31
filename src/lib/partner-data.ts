@@ -34,9 +34,11 @@ import {
   type PartnerCategoryGroup,
 } from "@/data/partner-categories";
 import {
+  getVaultDropStartedProducts,
   parseVaultDropStored,
   validateVaultDropForm,
   type VaultDropFormDraft,
+  type VaultDropProductStored,
   type VaultDropStored,
 } from "@/lib/vault-drop";
 import {
@@ -173,7 +175,7 @@ export async function uploadVaultDropDraft(
   draft: VaultDropFormDraft
 ): Promise<VaultDropStored | null> {
   const validation = validateVaultDropForm(draft, {
-    requireComplete: draft.enabled && draft.status === "active",
+    requireComplete: draft.enabled,
   });
   if (!validation.ok) {
     throw new Error(validation.message);
@@ -183,34 +185,70 @@ export async function uploadVaultDropDraft(
     return null;
   }
 
-  let imageUrl = draft.imageUrl;
-  if (draft.imageFile) {
-    imageUrl = await uploadPartnerAsset(userId, draft.imageFile, "vault-drop");
+  const products: VaultDropProductStored[] = [];
+  const startedProducts = getVaultDropStartedProducts(draft);
+
+  for (let index = 0; index < validation.stored.products.length; index += 1) {
+    const productDraft = startedProducts[index];
+    const storedProduct = validation.stored.products[index];
+    if (!productDraft || !storedProduct) continue;
+
+    const imageUrls = await uploadVaultDropProductImages(userId, productDraft.images);
+    if (imageUrls.length === 0) {
+      throw new Error(`Vault Drop product ${index + 1} is missing a required photo.`);
+    }
+
+    products.push({
+      ...storedProduct,
+      image_urls: imageUrls,
+    });
   }
 
-  if (!imageUrl && draft.status === "active") {
-    throw new Error("Vault Drop product image is required.");
+  if (products.length === 0) {
+    return null;
   }
 
   return {
-    ...validation.stored,
-    image_url: imageUrl,
+    duration_days: validation.stored.duration_days,
+    countdown_end_time: validation.stored.countdown_end_time,
+    products,
   };
+}
+
+async function uploadVaultDropProductImages(
+  userId: string,
+  images: import("@/components/partners/PartnerGalleryUploadGrid").PartnerGalleryDraftItem[]
+): Promise<string[]> {
+  const urls: string[] = [];
+
+  for (const item of images) {
+    if (!item) continue;
+
+    if (
+      item.previewUrl.startsWith("http://") ||
+      item.previewUrl.startsWith("https://")
+    ) {
+      urls.push(item.previewUrl);
+      continue;
+    }
+
+    if (item.croppedFile && item.croppedFile.size > 0) {
+      urls.push(await uploadPartnerAsset(userId, item.croppedFile, "vault-drop"));
+    }
+  }
+
+  return urls;
 }
 
 async function resolveVaultDropForSubmit(
   userId: string,
-  draft: VaultDropFormDraft | undefined,
-  imageFile?: File | null
+  draft: VaultDropFormDraft | undefined
 ): Promise<VaultDropStored | null> {
   if (!draft?.enabled) {
     return null;
   }
 
-  return uploadVaultDropDraft(userId, {
-    ...draft,
-    imageFile: imageFile ?? draft.imageFile ?? null,
-  });
+  return uploadVaultDropDraft(userId, draft);
 }
 
 export async function submitPartnerApplication(
@@ -460,7 +498,7 @@ export async function submitPartnerApplication(
       offer_exclusions: offerExclusions,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
-      vault_drop: await resolveVaultDropForSubmit(userId, draft.vaultDrop, assets?.vaultDropImageFile),
+      vault_drop: await resolveVaultDropForSubmit(userId, draft.vaultDrop),
       ...affiliatePayload,
     })
     .eq("user_id", userId);

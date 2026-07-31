@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { VaultDropCountdown } from "@/components/home/VaultDropCountdown";
 import type { PublicVaultDrop } from "@/lib/vault-drop-data";
 import {
@@ -28,6 +28,53 @@ function SlantedBadge({
   );
 }
 
+function VaultDropImageCarousel({ images }: { images: string[] }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const slides = images.length > 0 ? images : [""];
+
+  useEffect(() => {
+    if (slides.length <= 1) return undefined;
+    const interval = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % slides.length);
+    }, 3500);
+    return () => window.clearInterval(interval);
+  }, [slides.length]);
+
+  const src = slides[activeIndex];
+
+  if (!src) {
+    return (
+      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+        No image
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Image
+        src={src}
+        alt=""
+        fill
+        sizes="(max-width: 640px) 80vw, 19rem"
+        className="object-cover transition-opacity duration-500"
+      />
+      {slides.length > 1 ? (
+        <div className="absolute bottom-2 right-2 z-10 flex gap-1">
+          {slides.map((_, index) => (
+            <span
+              key={index}
+              className={`h-1.5 w-1.5 rounded-full ${
+                index === activeIndex ? "bg-white" : "bg-white/45"
+              }`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
   const [expired, setExpired] = useState(false);
 
@@ -38,19 +85,7 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
       }`}
     >
       <div className="relative aspect-[4/3] bg-muted">
-        {drop.image_url ? (
-          <Image
-            src={drop.image_url}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 80vw, 19rem"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            No image
-          </div>
-        )}
+        <VaultDropImageCarousel images={drop.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
           <SlantedBadge className="bg-primary text-primary-foreground">
             THE VAULT DROP
@@ -139,7 +174,10 @@ export function HomeVaultDropSection({ drops }: { drops: PublicVaultDrop[] }) {
 
         <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {drops.map((drop) => (
-            <VaultDropCard key={`${drop.partnerId}-${drop.title}`} drop={drop} />
+            <VaultDropCard
+              key={`${drop.partnerId}-${drop.title}-${drop.direct_store_link}`}
+              drop={drop}
+            />
           ))}
         </div>
       </div>

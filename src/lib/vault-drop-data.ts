@@ -5,13 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getVaultDropCountdownParts,
   parseVaultDropStored,
-  type VaultDropStored,
+  type VaultDropProductStored,
 } from "@/lib/vault-drop";
 
-export type PublicVaultDrop = VaultDropStored & {
+export type PublicVaultDrop = VaultDropProductStored & {
   partnerId: string;
   brandName: string;
   brandSlug: string;
+  countdown_end_time: string | null;
 };
 
 function isMissingVaultDropColumnError(message: string | undefined): boolean {
@@ -24,12 +25,12 @@ function isMissingVaultDropColumnError(message: string | undefined): boolean {
   );
 }
 
-function mapPublicVaultDrop(row: Record<string, unknown>): PublicVaultDrop | null {
+function mapPublicVaultDrops(row: Record<string, unknown>): PublicVaultDrop[] {
   const vaultDrop = parseVaultDropStored(row.vault_drop);
-  if (!vaultDrop || vaultDrop.status !== "active") return null;
+  if (!vaultDrop || vaultDrop.products.length === 0) return [];
 
   const countdown = getVaultDropCountdownParts(vaultDrop.countdown_end_time);
-  if (countdown.expired) return null;
+  if (countdown.expired) return [];
 
   const businessName =
     typeof row.business_name === "string" ? formatBusinessName(row.business_name) : "Brand";
@@ -38,12 +39,13 @@ function mapPublicVaultDrop(row: Record<string, unknown>): PublicVaultDrop | nul
       ? row.slug.trim()
       : partnerProfileSlug(businessName);
 
-  return {
-    ...vaultDrop,
+  return vaultDrop.products.map((product) => ({
+    ...product,
     partnerId: String(row.id),
     brandName: businessName,
     brandSlug: slug,
-  };
+    countdown_end_time: vaultDrop.countdown_end_time,
+  }));
 }
 
 function developmentPreviewVaultDrops(): PublicVaultDrop[] {
@@ -59,16 +61,18 @@ function developmentPreviewVaultDrops(): PublicVaultDrop[] {
       partnerId: "dev-vault-drop-preview",
       brandName: "Preview Brand Co.",
       brandSlug: "preview-brand-co",
-      title: "Surplus Protein Bars — Vault Clearance",
+      title: "Surplus Protein Bars Vault Clearance",
       description: "Short-dated stock clearance for FoodVault members only.",
-      image_url: "/for-brands/promote-exclusive-offers.png",
+      image_urls: [
+        "/for-brands/promote-exclusive-offers.png",
+        "/for-brands/sell-direct.png",
+      ],
       original_price: 59.99,
       clearance_price: 38.99,
       discount_percentage: 35,
       reason_tag: "Surplus / Overstock",
       direct_store_link: "https://example.com/vault-drop",
       countdown_end_time: end.toISOString(),
-      status: "active",
     },
   ];
 }
@@ -95,8 +99,7 @@ export async function getActiveVaultDrops(limit = 12): Promise<PublicVaultDrop[]
   }
 
   const drops = (data ?? [])
-    .map((row) => mapPublicVaultDrop(row as Record<string, unknown>))
-    .filter((drop): drop is PublicVaultDrop => drop != null)
+    .flatMap((row) => mapPublicVaultDrops(row as Record<string, unknown>))
     .slice(0, limit);
 
   if (drops.length === 0) {

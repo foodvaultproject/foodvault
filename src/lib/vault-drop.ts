@@ -1,5 +1,10 @@
+import { formatBusinessNameInput } from "@/lib/business-name";
+import { sanitizeDiscountValue } from "@/lib/partner-offer";
+import type { PartnerGalleryDraftItem } from "@/components/partners/PartnerGalleryUploadGrid";
+import { DEFAULT_GALLERY_CROP } from "@/lib/partner-gallery-crop";
+
 export const VAULT_DROP_SECTION_INTRO =
-  "What is The Vault Drop? This feature is designed to help you quickly liquidate deleted SKUs, clear inventory with old packaging, move surplus/overstock items, or run exclusive short-term bulk offers directly to FoodVault members.";
+  "What is The Vault Drop? This tool is designed to help you quickly liquidate deleted SKUs, clear inventory with old packaging, move surplus/overstock items, or run exclusive short-term bulk offers directly to FoodVault members.";
 
 export const VAULT_DROP_REASON_TAGS = [
   "Deleted SKU",
@@ -10,56 +15,81 @@ export const VAULT_DROP_REASON_TAGS = [
 
 export type VaultDropReasonTag = (typeof VAULT_DROP_REASON_TAGS)[number];
 
-export const VAULT_DROP_STATUSES = ["draft", "active", "ended"] as const;
-
-export type VaultDropStatus = (typeof VAULT_DROP_STATUSES)[number];
-
 export const VAULT_DROP_MIN_DISCOUNT_PERCENT = 30;
 
 export const VAULT_DROP_DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 export type VaultDropDurationDays = (typeof VAULT_DROP_DURATION_OPTIONS)[number];
 
-export type VaultDropStored = {
+export const VAULT_DROP_MAX_PRODUCTS = 10;
+export const VAULT_DROP_MAX_IMAGES_PER_PRODUCT = 10;
+export const VAULT_DROP_MAX_DESCRIPTION_LENGTH = 160;
+export const VAULT_DROP_MAX_TITLE_LENGTH = 120;
+
+export type VaultDropProductStored = {
   title: string;
   description: string;
-  image_url: string;
+  image_urls: string[];
   original_price: number;
   clearance_price: number;
   discount_percentage: number;
   reason_tag: VaultDropReasonTag;
   direct_store_link: string;
+};
+
+export type VaultDropStored = {
+  duration_days: VaultDropDurationDays;
   countdown_end_time: string | null;
-  status: VaultDropStatus;
+  products: VaultDropProductStored[];
+};
+
+export type VaultDropProductDraft = {
+  id: string;
+  collapsed: boolean;
+  title: string;
+  description: string;
+  images: PartnerGalleryDraftItem[];
+  discountPercent: string;
+  originalPrice: string;
+  reasonTag: VaultDropReasonTag | "";
+  directStoreLink: string;
 };
 
 export type VaultDropFormDraft = {
   enabled: boolean;
-  title: string;
-  description: string;
-  imageUrl: string;
-  imageFile: File | null;
-  originalPrice: string;
-  clearancePrice: string;
-  reasonTag: VaultDropReasonTag | "";
-  directStoreLink: string;
   durationDays: VaultDropDurationDays;
-  status: VaultDropStatus;
+  products: VaultDropProductDraft[];
 };
+
+function createProductId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `vault-drop-product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function createVaultDropProductDraft(
+  overrides: Partial<VaultDropProductDraft> = {}
+): VaultDropProductDraft {
+  return {
+    id: createProductId(),
+    collapsed: false,
+    title: "",
+    description: "",
+    images: [],
+    discountPercent: "",
+    originalPrice: "",
+    reasonTag: "",
+    directStoreLink: "",
+    ...overrides,
+  };
+}
 
 export function emptyVaultDropFormDraft(): VaultDropFormDraft {
   return {
     enabled: false,
-    title: "",
-    description: "",
-    imageUrl: "",
-    imageFile: null,
-    originalPrice: "",
-    clearancePrice: "",
-    reasonTag: "",
-    directStoreLink: "",
     durationDays: 3,
-    status: "draft",
+    products: [createVaultDropProductDraft()],
   };
 }
 
@@ -77,43 +107,67 @@ export function sanitizePriceInput(value: string): string {
   return `${parts[0]}.${parts.slice(1).join("")}`;
 }
 
-export function calculateVaultDropDiscountPercent(
+export function sanitizeVaultDropTitleInput(value: string): string {
+  return formatBusinessNameInput(value, VAULT_DROP_MAX_TITLE_LENGTH);
+}
+
+export function finalizeVaultDropTitle(value: string): string {
+  return formatBusinessNameInput(value, VAULT_DROP_MAX_TITLE_LENGTH);
+}
+
+export function sanitizeVaultDropDescription(value: string): string {
+  return value.slice(0, VAULT_DROP_MAX_DESCRIPTION_LENGTH);
+}
+
+export function finalizeVaultDropDescription(value: string): string {
+  const trimmed = sanitizeVaultDropDescription(value.trim());
+  if (!trimmed) return "";
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+export function sanitizeVaultDropDiscount(value: string): string {
+  return sanitizeDiscountValue(value);
+}
+
+export function calculateClearancePrice(
   originalPrice: number,
-  clearancePrice: number
+  discountPercent: number
 ): number | null {
-  if (originalPrice <= 0 || clearancePrice < 0 || clearancePrice >= originalPrice) {
+  if (originalPrice <= 0 || discountPercent <= 0 || discountPercent >= 100) {
     return null;
   }
+  return Math.round(originalPrice * (1 - discountPercent / 100) * 100) / 100;
+}
 
-  return Math.round(((originalPrice - clearancePrice) / originalPrice) * 100);
+export function formatCalculatedClearancePrice(
+  originalPrice: string,
+  discountPercent: string
+): string {
+  const original = parsePriceInput(originalPrice);
+  const discount = Number(sanitizeVaultDropDiscount(discountPercent));
+  if (original == null || !Number.isFinite(discount) || discount <= 0) {
+    return "";
+  }
+  const clearance = calculateClearancePrice(original, discount);
+  return clearance != null ? clearance.toFixed(2) : "";
+}
+
+export function validateVaultDropDiscountInput(value: string): string | null {
+  const discount = Number(sanitizeVaultDropDiscount(value));
+  if (!Number.isFinite(discount) || discount <= 0) {
+    return `Enter a discount of at least ${VAULT_DROP_MIN_DISCOUNT_PERCENT}%.`;
+  }
+  if (discount < VAULT_DROP_MIN_DISCOUNT_PERCENT) {
+    return `Vault Drop requires a minimum ${VAULT_DROP_MIN_DISCOUNT_PERCENT}% discount.`;
+  }
+  if (discount > 99) {
+    return "Discount cannot exceed 99%.";
+  }
+  return null;
 }
 
 export function formatVaultDropDiscountLabel(percent: number): string {
   return `${percent}% OFF`;
-}
-
-export function vaultDropDiscountError(
-  originalPrice: number | null,
-  clearancePrice: number | null
-): string | null {
-  if (originalPrice == null || clearancePrice == null) {
-    return null;
-  }
-
-  if (clearancePrice >= originalPrice) {
-    return "Clearance price must be lower than the original price.";
-  }
-
-  const discount = calculateVaultDropDiscountPercent(originalPrice, clearancePrice);
-  if (discount == null) {
-    return "Enter valid prices to calculate the discount.";
-  }
-
-  if (discount < VAULT_DROP_MIN_DISCOUNT_PERCENT) {
-    return `Vault Drop requires a minimum ${VAULT_DROP_MIN_DISCOUNT_PERCENT}% discount (currently ${discount}%).`;
-  }
-
-  return null;
 }
 
 export function computeCountdownEndTime(durationDays: VaultDropDurationDays): string {
@@ -126,32 +180,23 @@ export function isVaultDropReasonTag(value: string): value is VaultDropReasonTag
   return (VAULT_DROP_REASON_TAGS as readonly string[]).includes(value);
 }
 
-export function isVaultDropStatus(value: string): value is VaultDropStatus {
-  return (VAULT_DROP_STATUSES as readonly string[]).includes(value);
-}
-
-export function parseVaultDropStored(value: unknown): VaultDropStored | null {
-  if (!value || typeof value !== "object") return null;
-
-  const record = value as Record<string, unknown>;
+function parseLegacyVaultDropProduct(record: Record<string, unknown>): VaultDropProductStored | null {
   const reasonTag = typeof record.reason_tag === "string" ? record.reason_tag : "";
   if (!isVaultDropReasonTag(reasonTag)) return null;
-
-  const status = typeof record.status === "string" ? record.status : "draft";
-  if (!isVaultDropStatus(status)) return null;
 
   const originalPrice = Number(record.original_price);
   const clearancePrice = Number(record.clearance_price);
   const discountPercentage = Number(record.discount_percentage);
+  const imageUrl = typeof record.image_url === "string" ? record.image_url : "";
 
   if (
     typeof record.title !== "string" ||
     typeof record.description !== "string" ||
-    typeof record.image_url !== "string" ||
     typeof record.direct_store_link !== "string" ||
     !Number.isFinite(originalPrice) ||
     !Number.isFinite(clearancePrice) ||
-    !Number.isFinite(discountPercentage)
+    !Number.isFinite(discountPercentage) ||
+    !imageUrl
   ) {
     return null;
   }
@@ -159,16 +204,94 @@ export function parseVaultDropStored(value: unknown): VaultDropStored | null {
   return {
     title: record.title,
     description: record.description,
-    image_url: record.image_url,
+    image_urls: [imageUrl],
     original_price: originalPrice,
     clearance_price: clearancePrice,
     discount_percentage: discountPercentage,
     reason_tag: reasonTag,
     direct_store_link: record.direct_store_link,
+  };
+}
+
+function parseVaultDropProduct(value: unknown): VaultDropProductStored | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const reasonTag = typeof record.reason_tag === "string" ? record.reason_tag : "";
+  if (!isVaultDropReasonTag(reasonTag)) return null;
+
+  const originalPrice = Number(record.original_price);
+  const clearancePrice = Number(record.clearance_price);
+  const discountPercentage = Number(record.discount_percentage);
+  const imageUrls = Array.isArray(record.image_urls)
+    ? (record.image_urls as unknown[]).filter((url): url is string => typeof url === "string")
+    : typeof record.image_url === "string" && record.image_url
+      ? [record.image_url]
+      : [];
+
+  if (
+    typeof record.title !== "string" ||
+    typeof record.description !== "string" ||
+    typeof record.direct_store_link !== "string" ||
+    !Number.isFinite(originalPrice) ||
+    !Number.isFinite(clearancePrice) ||
+    !Number.isFinite(discountPercentage) ||
+    imageUrls.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    title: record.title,
+    description: record.description,
+    image_urls: imageUrls,
+    original_price: originalPrice,
+    clearance_price: clearancePrice,
+    discount_percentage: discountPercentage,
+    reason_tag: reasonTag,
+    direct_store_link: record.direct_store_link,
+  };
+}
+
+export function parseVaultDropStored(value: unknown): VaultDropStored | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+
+  if (Array.isArray(record.products)) {
+    const products = record.products
+      .map(parseVaultDropProduct)
+      .filter((product): product is VaultDropProductStored => product != null);
+    if (products.length === 0) return null;
+
+    const durationDays = Number(record.duration_days);
+    return {
+      duration_days: VAULT_DROP_DURATION_OPTIONS.includes(durationDays as VaultDropDurationDays)
+        ? (durationDays as VaultDropDurationDays)
+        : 3,
+      countdown_end_time:
+        typeof record.countdown_end_time === "string" ? record.countdown_end_time : null,
+      products,
+    };
+  }
+
+  const legacyProduct = parseLegacyVaultDropProduct(record);
+  if (!legacyProduct) return null;
+
+  return {
+    duration_days: 3,
     countdown_end_time:
       typeof record.countdown_end_time === "string" ? record.countdown_end_time : null,
-    status,
+    products: [legacyProduct],
   };
+}
+
+function galleryItemsFromStoredUrls(urls: string[]): PartnerGalleryDraftItem[] {
+  return urls.map((url) => ({
+    croppedFile: new File([], "stored.jpg", { type: "image/jpeg" }),
+    previewUrl: url,
+    crop: DEFAULT_GALLERY_CROP,
+    recropOnly: true,
+    existingOriginalUrl: url,
+  }));
 }
 
 export function vaultDropFormFromStored(stored: VaultDropStored | null): VaultDropFormDraft {
@@ -176,16 +299,19 @@ export function vaultDropFormFromStored(stored: VaultDropStored | null): VaultDr
 
   return {
     enabled: true,
-    title: stored.title,
-    description: stored.description,
-    imageUrl: stored.image_url,
-    imageFile: null,
-    originalPrice: String(stored.original_price),
-    clearancePrice: String(stored.clearance_price),
-    reasonTag: stored.reason_tag,
-    directStoreLink: stored.direct_store_link,
-    durationDays: 3,
-    status: stored.status,
+    durationDays: stored.duration_days,
+    products: stored.products.map((product, index) =>
+      createVaultDropProductDraft({
+        collapsed: index > 0,
+        title: product.title,
+        description: product.description,
+        images: galleryItemsFromStoredUrls(product.image_urls),
+        discountPercent: String(product.discount_percentage),
+        originalPrice: String(product.original_price),
+        reasonTag: product.reason_tag,
+        directStoreLink: product.direct_store_link,
+      })
+    ),
   };
 }
 
@@ -200,21 +326,111 @@ export function vaultDropDraftFromSerializable(
     ? (draft.durationDays as VaultDropDurationDays)
     : 3;
 
+  const products =
+    draft.products?.map((product, index) =>
+      createVaultDropProductDraft({
+        ...product,
+        id: product.id || createProductId(),
+        collapsed: product.collapsed ?? index > 0,
+        images: (product.images ?? []).map((item) =>
+          item
+            ? {
+                ...item,
+                croppedFile: null as unknown as File,
+              }
+            : null
+        ),
+        reasonTag:
+          product.reasonTag && isVaultDropReasonTag(product.reasonTag) ? product.reasonTag : "",
+      })
+    ) ?? [createVaultDropProductDraft()];
+
   return {
-    ...emptyVaultDropFormDraft(),
-    ...draft,
-    imageFile: null,
+    enabled: draft.enabled ?? false,
     durationDays,
-    reasonTag:
-      draft.reasonTag && isVaultDropReasonTag(draft.reasonTag) ? draft.reasonTag : "",
-    status:
-      draft.status && isVaultDropStatus(draft.status) ? draft.status : "draft",
+    products: products.length > 0 ? products : [createVaultDropProductDraft()],
   };
+}
+
+function productHasAnyValue(product: VaultDropProductDraft): boolean {
+  return Boolean(
+    product.title.trim() ||
+      product.description.trim() ||
+      product.images.some(Boolean) ||
+      product.discountPercent ||
+      product.originalPrice ||
+      product.reasonTag ||
+      product.directStoreLink.trim()
+  );
+}
+
+export function getVaultDropStartedProducts(
+  draft: VaultDropFormDraft
+): VaultDropProductDraft[] {
+  return draft.products.filter(productHasAnyValue);
 }
 
 export type VaultDropValidationResult =
   | { ok: true; stored: VaultDropStored | null }
-  | { ok: false; message: string; field?: keyof VaultDropFormDraft };
+  | { ok: false; message: string };
+
+function validateVaultDropProduct(
+  product: VaultDropProductDraft
+): { ok: true; product: VaultDropProductStored } | { ok: false; message: string } | { ok: true; product: null } {
+  if (!productHasAnyValue(product)) {
+    return { ok: true, product: null };
+  }
+
+  if (!product.title.trim()) {
+    return { ok: false, message: "Vault Drop offer title is required." };
+  }
+
+  if (!product.description.trim()) {
+    return { ok: false, message: "Vault Drop description is required." };
+  }
+
+  if (!product.images.some(Boolean)) {
+    return { ok: false, message: "Add at least one product photo for each Vault Drop item." };
+  }
+
+  const originalPrice = parsePriceInput(product.originalPrice);
+  if (originalPrice == null) {
+    return { ok: false, message: "Enter a valid original price for each Vault Drop item." };
+  }
+
+  const discountError = validateVaultDropDiscountInput(product.discountPercent);
+  if (discountError) {
+    return { ok: false, message: discountError };
+  }
+
+  const discountPercentage = Number(sanitizeVaultDropDiscount(product.discountPercent));
+  const clearancePrice = calculateClearancePrice(originalPrice, discountPercentage);
+  if (clearancePrice == null) {
+    return { ok: false, message: "Unable to calculate clearance price." };
+  }
+
+  if (!product.reasonTag) {
+    return { ok: false, message: "Select a reason for each Vault Drop item." };
+  }
+
+  if (!product.directStoreLink.trim()) {
+    return { ok: false, message: "Direct store link is required for each Vault Drop item." };
+  }
+
+  return {
+    ok: true,
+    product: {
+      title: finalizeVaultDropTitle(product.title),
+      description: finalizeVaultDropDescription(product.description),
+      image_urls: [],
+      original_price: originalPrice,
+      clearance_price: clearancePrice,
+      discount_percentage: discountPercentage,
+      reason_tag: product.reasonTag,
+      direct_store_link: product.directStoreLink.trim(),
+    },
+  };
+}
 
 export function validateVaultDropForm(
   draft: VaultDropFormDraft,
@@ -224,145 +440,42 @@ export function validateVaultDropForm(
     return { ok: true, stored: null };
   }
 
-  const requireComplete =
-    options.requireComplete ?? draft.status === "active";
+  const requireComplete = options.requireComplete ?? true;
+  const startedProducts = draft.products.filter(productHasAnyValue);
 
-  const hasAnyValue =
-    draft.title.trim() ||
-    draft.description.trim() ||
-    draft.imageUrl ||
-    draft.originalPrice ||
-    draft.clearancePrice ||
-    draft.reasonTag ||
-    draft.directStoreLink.trim();
-
-  if (!requireComplete && !hasAnyValue) {
+  if (!requireComplete && startedProducts.length === 0) {
     return { ok: true, stored: null };
   }
 
-  if (!requireComplete) {
-    const originalPrice = parsePriceInput(draft.originalPrice);
-    const clearancePrice = parsePriceInput(draft.clearancePrice);
-    if (originalPrice != null && clearancePrice != null) {
-      const discountError = vaultDropDiscountError(originalPrice, clearancePrice);
-      if (discountError) {
-        return { ok: false, message: discountError, field: "clearancePrice" };
-      }
+  if (requireComplete && startedProducts.length === 0) {
+    return {
+      ok: false,
+      message: "Add at least one Vault Drop product or disable The Vault Drop section.",
+    };
+  }
+
+  const storedProducts: VaultDropProductStored[] = [];
+
+  for (const product of startedProducts) {
+    const result = validateVaultDropProduct(product);
+    if (!result.ok) {
+      return result;
     }
-
-    const discountPercentage =
-      originalPrice != null && clearancePrice != null
-        ? calculateVaultDropDiscountPercent(originalPrice, clearancePrice)
-        : 0;
-
-    return {
-      ok: true,
-      stored: {
-        title: draft.title.trim(),
-        description: draft.description.trim(),
-        image_url: draft.imageUrl,
-        original_price: originalPrice ?? 0,
-        clearance_price: clearancePrice ?? 0,
-        discount_percentage: discountPercentage ?? 0,
-        reason_tag: draft.reasonTag || "Surplus / Overstock",
-        direct_store_link: draft.directStoreLink.trim(),
-        countdown_end_time: null,
-        status: "draft",
-      },
-    };
+    if (result.product) {
+      storedProducts.push(result.product);
+    }
   }
 
-  if (!draft.title.trim()) {
-    return { ok: false, message: "Vault Drop title is required.", field: "title" };
-  }
-
-  if (!draft.description.trim()) {
-    return {
-      ok: false,
-      message: "Vault Drop description is required.",
-      field: "description",
-    };
-  }
-
-  if (!draft.imageUrl && !draft.imageFile) {
-    return {
-      ok: false,
-      message: "Vault Drop product image is required.",
-      field: "imageUrl",
-    };
-  }
-
-  const originalPrice = parsePriceInput(draft.originalPrice);
-  const clearancePrice = parsePriceInput(draft.clearancePrice);
-
-  if (originalPrice == null) {
-    return {
-      ok: false,
-      message: "Enter a valid original price.",
-      field: "originalPrice",
-    };
-  }
-
-  if (clearancePrice == null) {
-    return {
-      ok: false,
-      message: "Enter a valid clearance price.",
-      field: "clearancePrice",
-    };
-  }
-
-  const discountError = vaultDropDiscountError(originalPrice, clearancePrice);
-  if (discountError) {
-    return { ok: false, message: discountError, field: "clearancePrice" };
-  }
-
-  if (!draft.reasonTag) {
-    return {
-      ok: false,
-      message: "Select a reason for this Vault Drop.",
-      field: "reasonTag",
-    };
-  }
-
-  if (!draft.directStoreLink.trim()) {
-    return {
-      ok: false,
-      message: "Direct store link is required.",
-      field: "directStoreLink",
-    };
-  }
-
-  const discountPercentage = calculateVaultDropDiscountPercent(
-    originalPrice,
-    clearancePrice
-  );
-
-  if (discountPercentage == null) {
-    return {
-      ok: false,
-      message: "Unable to calculate Vault Drop discount.",
-      field: "clearancePrice",
-    };
-  }
-
-  let countdownEndTime: string | null = null;
-  if (draft.status === "active") {
-    countdownEndTime = computeCountdownEndTime(draft.durationDays);
+  if (storedProducts.length === 0) {
+    return { ok: true, stored: null };
   }
 
   return {
     ok: true,
     stored: {
-      title: draft.title.trim(),
-      description: draft.description.trim(),
-      image_url: draft.imageUrl,
-      original_price: originalPrice,
-      clearance_price: clearancePrice,
-      discount_percentage: discountPercentage,
-      reason_tag: draft.reasonTag,
-      direct_store_link: draft.directStoreLink.trim(),
-      countdown_end_time: countdownEndTime,
-      status: draft.status,
+      duration_days: draft.durationDays,
+      countdown_end_time: computeCountdownEndTime(draft.durationDays),
+      products: storedProducts,
     },
   };
 }

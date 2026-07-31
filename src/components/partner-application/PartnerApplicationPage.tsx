@@ -372,7 +372,18 @@ export function PartnerApplicationPage() {
       affiliateTerms: affiliateProgram.affiliateTerms,
       vaultDrop: {
         ...vaultDrop,
-        imageFile: null,
+        products: vaultDrop.products.map((product) => ({
+          ...product,
+          images: product.images.map((image) =>
+            image
+              ? {
+                  ...image,
+                  croppedFile: null as unknown as File,
+                  originalFile: null,
+                }
+              : null
+          ),
+        })),
       },
     });
   }, [
@@ -490,7 +501,7 @@ export function PartnerApplicationPage() {
     }
 
     const vaultDropValidation = validateVaultDropForm(vaultDrop, {
-      requireComplete: vaultDrop.enabled && vaultDrop.status === "active",
+      requireComplete: vaultDrop.enabled,
     });
     if (!vaultDropValidation.ok) {
       setSubmitError(vaultDropValidation.message);
@@ -544,7 +555,6 @@ export function PartnerApplicationPage() {
           logoOriginalFile: logoUpload?.originalFile ?? null,
           logoCrop: logoUpload?.crop ?? null,
           galleryItems: galleryItems.slice(0, MAX_PRODUCT_GALLERY_IMAGES),
-          vaultDropImageFile: vaultDrop.imageFile,
         }
       );
       await notifyAdminPartnerListingSubmittedAction(record.id);
@@ -826,7 +836,7 @@ export function PartnerApplicationPage() {
 
             <section className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm sm:p-4">
               <SectionHeader
-                title="The Vault Drop"
+                title="The Vault Drop (Optional)"
                 description={
                   <p>
                     Optional clearance offer for deleted SKUs, old packaging, surplus stock, or
