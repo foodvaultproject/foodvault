@@ -982,6 +982,7 @@ export function PartnerListingEditor() {
               helperClass={helperClass}
               fieldGapClass={portalFieldGap}
               idPrefix="listing-vault-drop"
+              scrollAnchorId="vault-drop"
             />
           </div>
         </section>

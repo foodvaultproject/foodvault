@@ -1,22 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   PartnerGalleryDraftGrid,
   type PartnerGalleryDraftItem,
 } from "@/components/partners/PartnerGalleryUploadGrid";
 import {
+  VAULT_DROP_ADD_PRODUCT_INCOMPLETE_MESSAGE,
   VAULT_DROP_DURATION_OPTIONS,
   VAULT_DROP_MAX_DESCRIPTION_LENGTH,
   VAULT_DROP_MAX_IMAGES_PER_PRODUCT,
   VAULT_DROP_MAX_PRODUCTS,
   VAULT_DROP_MIN_DISCOUNT_PERCENT,
-  VAULT_DROP_REASON_TAGS,
+  VAULT_DROP_REASONS,
   VAULT_DROP_SECTION_INTRO,
   createVaultDropProductDraft,
   finalizeVaultDropDescription,
   finalizeVaultDropTitle,
   formatCalculatedClearancePrice,
+  isVaultDropProductComplete,
   sanitizePriceInput,
   sanitizeVaultDropDescription,
   sanitizeVaultDropDiscount,
@@ -35,6 +37,7 @@ type VaultDropFieldsProps = {
   helperClass?: string;
   fieldGapClass?: string;
   idPrefix?: string;
+  scrollAnchorId?: string;
 };
 
 function VaultDropProductForm({
@@ -227,7 +230,7 @@ function VaultDropProductForm({
           className={`${inputClass} ${fieldGapClass} max-w-md`}
         >
           <option value="">Select a reason</option>
-          {VAULT_DROP_REASON_TAGS.map((tag) => (
+          {VAULT_DROP_REASONS.map((tag) => (
             <option key={tag} value={tag}>
               {tag}
             </option>
@@ -298,7 +301,24 @@ export function VaultDropFields({
   helperClass = "text-xs text-muted-foreground",
   fieldGapClass = "mt-1.5",
   idPrefix = "vault-drop",
+  scrollAnchorId,
 }: VaultDropFieldsProps) {
+  const [showIncompleteNote, setShowIncompleteNote] = useState(false);
+
+  useEffect(() => {
+    if (!showIncompleteNote) return undefined;
+    const timer = window.setTimeout(() => setShowIncompleteNote(false), 4000);
+    return () => window.clearTimeout(timer);
+  }, [showIncompleteNote]);
+
+  function scrollToVaultDropSection() {
+    const anchorId = scrollAnchorId ?? `${idPrefix}-section-top`;
+    document.getElementById(anchorId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   function patchForm(partial: Partial<VaultDropFormDraft>) {
     onChange({ ...value, ...partial });
   }
@@ -321,11 +341,24 @@ export function VaultDropFields({
   function handleAddProduct() {
     if (value.products.length >= VAULT_DROP_MAX_PRODUCTS) return;
 
+    const activeProduct =
+      value.products.find((product) => !product.collapsed) ??
+      value.products[value.products.length - 1];
+
+    if (!activeProduct || !isVaultDropProductComplete(activeProduct)) {
+      setShowIncompleteNote(true);
+      return;
+    }
+
     patchForm({
       products: [
         ...value.products.map((entry) => ({ ...entry, collapsed: true })),
         createVaultDropProductDraft({ collapsed: false }),
       ],
+    });
+
+    window.requestAnimationFrame(() => {
+      scrollToVaultDropSection();
     });
   }
 
@@ -334,7 +367,7 @@ export function VaultDropFields({
   const activeIndex = value.products.findIndex((product) => product.id === activeProduct?.id);
 
   return (
-    <div className="space-y-4">
+    <div id={`${idPrefix}-section-top`} className="space-y-4 scroll-mt-24">
       <p
         className={`${helperClass} rounded-md border border-primary/15 bg-primary/5 px-3 py-2.5 text-[0.8125rem] leading-relaxed text-foreground`}
       >
@@ -418,14 +451,21 @@ export function VaultDropFields({
           ) : null}
 
           {value.products.length < VAULT_DROP_MAX_PRODUCTS ? (
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={handleAddProduct}
-              className="inline-flex items-center justify-center rounded-sm border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 disabled:opacity-60"
-            >
-              Add new product
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={handleAddProduct}
+                className="inline-flex items-center justify-center rounded-sm border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Add new product
+              </button>
+              {showIncompleteNote ? (
+                <p className="text-xs font-medium text-red-600" role="alert">
+                  {VAULT_DROP_ADD_PRODUCT_INCOMPLETE_MESSAGE}
+                </p>
+              ) : null}
+            </div>
           ) : (
             <p className={`${helperClass}`}>
               Maximum of {VAULT_DROP_MAX_PRODUCTS} Vault Drop products reached.

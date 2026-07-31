@@ -834,7 +834,7 @@ export function PartnerApplicationPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm sm:p-4">
+            <section id="vault-drop" className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm scroll-mt-20 sm:p-4">
               <SectionHeader
                 title="The Vault Drop (Optional)"
                 description={
@@ -857,6 +857,7 @@ export function PartnerApplicationPage() {
                   inputClass={inputClass}
                   labelClass={labelClass}
                   idPrefix="application-vault-drop"
+                  scrollAnchorId="vault-drop"
                 />
               </div>
             </section>

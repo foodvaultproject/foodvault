@@ -6,14 +6,26 @@ import { DEFAULT_GALLERY_CROP } from "@/lib/partner-gallery-crop";
 export const VAULT_DROP_SECTION_INTRO =
   "What is The Vault Drop? This tool is designed to help you quickly liquidate deleted SKUs, clear inventory with old packaging, move surplus/overstock items, or run exclusive short-term bulk offers directly to FoodVault members.";
 
-export const VAULT_DROP_REASON_TAGS = [
-  "Deleted SKU",
-  "Old Packaging",
+export const VAULT_DROP_REASONS = [
+  "Discontinued SKU",
+  "Old Packaging / Rebrand",
   "Surplus / Overstock",
+  "Short Best Before Date",
+  "Seasonal / Holiday Clearance",
   "Limited Time Bulk Offer",
+  "Packaging Seconds / B-Grade",
+  "Warehouse / Space Clearance",
 ] as const;
 
-export type VaultDropReasonTag = (typeof VAULT_DROP_REASON_TAGS)[number];
+/** @deprecated Use VAULT_DROP_REASONS */
+export const VAULT_DROP_REASON_TAGS = VAULT_DROP_REASONS;
+
+export type VaultDropReasonTag = (typeof VAULT_DROP_REASONS)[number];
+
+const LEGACY_VAULT_DROP_REASON_MAP: Record<string, VaultDropReasonTag> = {
+  "Deleted SKU": "Discontinued SKU",
+  "Old Packaging": "Old Packaging / Rebrand",
+};
 
 export const VAULT_DROP_MIN_DISCOUNT_PERCENT = 30;
 
@@ -177,12 +189,18 @@ export function computeCountdownEndTime(durationDays: VaultDropDurationDays): st
 }
 
 export function isVaultDropReasonTag(value: string): value is VaultDropReasonTag {
-  return (VAULT_DROP_REASON_TAGS as readonly string[]).includes(value);
+  return (VAULT_DROP_REASONS as readonly string[]).includes(value);
+}
+
+export function normalizeVaultDropReasonTag(value: string): VaultDropReasonTag | null {
+  if (isVaultDropReasonTag(value)) return value;
+  return LEGACY_VAULT_DROP_REASON_MAP[value] ?? null;
 }
 
 function parseLegacyVaultDropProduct(record: Record<string, unknown>): VaultDropProductStored | null {
-  const reasonTag = typeof record.reason_tag === "string" ? record.reason_tag : "";
-  if (!isVaultDropReasonTag(reasonTag)) return null;
+  const reasonTagRaw = typeof record.reason_tag === "string" ? record.reason_tag : "";
+  const reasonTag = normalizeVaultDropReasonTag(reasonTagRaw);
+  if (!reasonTag) return null;
 
   const originalPrice = Number(record.original_price);
   const clearancePrice = Number(record.clearance_price);
@@ -216,8 +234,9 @@ function parseLegacyVaultDropProduct(record: Record<string, unknown>): VaultDrop
 function parseVaultDropProduct(value: unknown): VaultDropProductStored | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
-  const reasonTag = typeof record.reason_tag === "string" ? record.reason_tag : "";
-  if (!isVaultDropReasonTag(reasonTag)) return null;
+  const reasonTagRaw = typeof record.reason_tag === "string" ? record.reason_tag : "";
+  const reasonTag = normalizeVaultDropReasonTag(reasonTagRaw);
+  if (!reasonTag) return null;
 
   const originalPrice = Number(record.original_price);
   const clearancePrice = Number(record.clearance_price);
@@ -364,11 +383,33 @@ function productHasAnyValue(product: VaultDropProductDraft): boolean {
   );
 }
 
+export function isVaultDropProductComplete(product: VaultDropProductDraft): boolean {
+  if (!product.title.trim()) return false;
+  if (!product.description.trim()) return false;
+  if (!product.images.some(Boolean)) return false;
+
+  const originalPrice = parsePriceInput(product.originalPrice);
+  if (originalPrice == null) return false;
+
+  if (validateVaultDropDiscountInput(product.discountPercent)) return false;
+
+  const discountPercentage = Number(sanitizeVaultDropDiscount(product.discountPercent));
+  if (calculateClearancePrice(originalPrice, discountPercentage) == null) return false;
+
+  if (!product.reasonTag || !isVaultDropReasonTag(product.reasonTag)) return false;
+  if (!product.directStoreLink.trim()) return false;
+
+  return true;
+}
+
 export function getVaultDropStartedProducts(
   draft: VaultDropFormDraft
 ): VaultDropProductDraft[] {
   return draft.products.filter(productHasAnyValue);
 }
+
+export const VAULT_DROP_ADD_PRODUCT_INCOMPLETE_MESSAGE =
+  "Please complete all fields before adding new items.";
 
 export type VaultDropValidationResult =
   | { ok: true; stored: VaultDropStored | null }
