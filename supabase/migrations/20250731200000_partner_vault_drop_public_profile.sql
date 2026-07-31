@@ -1,4 +1,11 @@
 -- Expose Vault Drop clearance offers on public brand profiles.
+-- Ensures partners.vault_drop exists (may not have been applied on prod yet).
+
+alter table public.partners
+  add column if not exists vault_drop jsonb;
+
+comment on column public.partners.vault_drop is
+  'Optional Vault Drop clearance offers (duration, countdown, products).';
 
 drop view if exists public.v_public_brand_profile;
 
