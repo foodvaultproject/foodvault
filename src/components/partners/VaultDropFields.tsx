@@ -264,11 +264,13 @@ function CollapsedVaultDropProduct({
   index,
   disabled,
   onEdit,
+  onDelete,
 }: {
   product: VaultDropProductDraft;
   index: number;
   disabled?: boolean;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   const label = product.title.trim() || `Product ${index + 1}`;
 
@@ -280,14 +282,24 @@ function CollapsedVaultDropProduct({
           <p className="text-xs text-muted-foreground">{product.discountPercent}% off</p>
         ) : null}
       </div>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={onEdit}
-        className="shrink-0 rounded-sm border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"
-      >
-        Edit
-      </button>
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={onEdit}
+          className="rounded-sm border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={onDelete}
+          className="rounded-sm border border-red-200 bg-background px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -338,23 +350,24 @@ export function VaultDropFields({
     });
   }
 
-  function handleAddProduct() {
-    if (value.products.length >= VAULT_DROP_MAX_PRODUCTS) return;
+  function handleDeleteProduct(productId: string) {
+    patchForm({
+      products: value.products.filter((entry) => entry.id !== productId),
+    });
+  }
 
-    const activeProduct =
-      value.products.find((product) => !product.collapsed) ??
-      value.products[value.products.length - 1];
-
-    if (!activeProduct || !isVaultDropProductComplete(activeProduct)) {
+  function handleConfirmProduct() {
+    const editingProduct = value.products.find((product) => !product.collapsed);
+    if (!editingProduct || !isVaultDropProductComplete(editingProduct)) {
       setShowIncompleteNote(true);
       return;
     }
 
+    setShowIncompleteNote(false);
     patchForm({
-      products: [
-        ...value.products.map((entry) => ({ ...entry, collapsed: true })),
-        createVaultDropProductDraft({ collapsed: false }),
-      ],
+      products: value.products.map((entry) =>
+        entry.id === editingProduct.id ? { ...entry, collapsed: true } : entry
+      ),
     });
 
     window.requestAnimationFrame(() => {
@@ -362,9 +375,22 @@ export function VaultDropFields({
     });
   }
 
-  const activeProduct =
-    value.products.find((product) => !product.collapsed) ?? value.products[value.products.length - 1];
-  const activeIndex = value.products.findIndex((product) => product.id === activeProduct?.id);
+  function handleAddNewProduct() {
+    if (value.products.length >= VAULT_DROP_MAX_PRODUCTS) return;
+    if (value.products.some((product) => !product.collapsed)) return;
+
+    patchForm({
+      products: [...value.products, createVaultDropProductDraft({ collapsed: false })],
+    });
+  }
+
+  const activeProduct = value.products.find((product) => !product.collapsed) ?? null;
+  const activeIndex = activeProduct
+    ? value.products.findIndex((product) => product.id === activeProduct.id)
+    : -1;
+  const collapsedProducts = value.products.filter((product) => product.collapsed);
+  const canAddNewProduct =
+    !activeProduct && value.products.length < VAULT_DROP_MAX_PRODUCTS;
 
   return (
     <div id={`${idPrefix}-section-top`} className="space-y-4 scroll-mt-24">
@@ -415,9 +441,7 @@ export function VaultDropFields({
             </p>
           </div>
 
-          {value.products
-            .filter((product) => product.collapsed)
-            .map((product) => {
+          {collapsedProducts.map((product) => {
               const index = value.products.findIndex((entry) => entry.id === product.id);
               return (
                 <CollapsedVaultDropProduct
@@ -426,6 +450,7 @@ export function VaultDropFields({
                   index={index}
                   disabled={disabled}
                   onEdit={() => expandProduct(product.id)}
+                  onDelete={() => handleDeleteProduct(product.id)}
                 />
               );
             })}
@@ -447,30 +472,38 @@ export function VaultDropFields({
                 idPrefix={idPrefix}
                 onChange={(product) => updateProduct(product.id, product)}
               />
+              <div className="mt-4 space-y-2 border-t border-border pt-4">
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={handleConfirmProduct}
+                  className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                >
+                  Add
+                </button>
+                {showIncompleteNote ? (
+                  <p className="text-xs font-medium text-red-600" role="alert">
+                    {VAULT_DROP_ADD_PRODUCT_INCOMPLETE_MESSAGE}
+                  </p>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
-          {value.products.length < VAULT_DROP_MAX_PRODUCTS ? (
-            <div className="space-y-2">
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={handleAddProduct}
-                className="inline-flex items-center justify-center rounded-sm border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Add new product
-              </button>
-              {showIncompleteNote ? (
-                <p className="text-xs font-medium text-red-600" role="alert">
-                  {VAULT_DROP_ADD_PRODUCT_INCOMPLETE_MESSAGE}
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <p className={`${helperClass}`}>
+          {canAddNewProduct ? (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={handleAddNewProduct}
+              className="inline-flex items-center justify-center rounded-sm border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Add new product
+            </button>
+          ) : value.products.length >= VAULT_DROP_MAX_PRODUCTS && !activeProduct ? (
+            <p className={helperClass}>
               Maximum of {VAULT_DROP_MAX_PRODUCTS} Vault Drop products reached.
             </p>
-          )}
+          ) : null}
         </div>
       ) : null}
     </div>
