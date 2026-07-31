@@ -36,6 +36,7 @@ import {
 import {
   getVaultDropStartedProducts,
   parseVaultDropStored,
+  prepareVaultDropDraftForSubmit,
   validateVaultDropForm,
   type VaultDropFormDraft,
   type VaultDropProductStored,
@@ -244,11 +245,12 @@ async function resolveVaultDropForSubmit(
   userId: string,
   draft: VaultDropFormDraft | undefined
 ): Promise<VaultDropStored | null> {
-  if (!draft?.enabled) {
+  const prepared = prepareVaultDropDraftForSubmit(draft);
+  if (!prepared.enabled) {
     return null;
   }
 
-  return uploadVaultDropDraft(userId, draft);
+  return uploadVaultDropDraft(userId, prepared);
 }
 
 export async function submitPartnerApplication(
@@ -489,7 +491,9 @@ export async function submitPartnerApplication(
     throw new Error(error?.message ?? "Unable to submit partner application.");
   }
 
-  await supabase
+  const vaultDropStored = await resolveVaultDropForSubmit(userId, draft.vaultDrop);
+
+  const { error: postSubmitError } = await supabase
     .from("partners")
     .update({
       category_groups: categoryFields.category_groups,
@@ -498,10 +502,18 @@ export async function submitPartnerApplication(
       offer_exclusions: offerExclusions,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
-      vault_drop: await resolveVaultDropForSubmit(userId, draft.vaultDrop),
+      vault_drop: vaultDropStored,
       ...affiliatePayload,
     })
     .eq("user_id", userId);
+
+  if (postSubmitError) {
+    throw new Error(
+      postSubmitError.message.includes("vault_drop")
+        ? "Your application was submitted, but Vault Drop details could not be saved. Please add them again on My Listing."
+        : `Unable to save application details: ${postSubmitError.message}`
+    );
+  }
 
   const record = mapRow(data as Record<string, unknown>);
   record.member_code = memberCode;
@@ -813,6 +825,20 @@ export async function getPartnerListing(
     if (!error && data) {
       listing.contactName = formatBusinessName(
         str((data as Record<string, unknown>).contact_name)
+      );
+    }
+  }
+
+  if (listing.vaultDrop == null) {
+    const { data, error } = await supabase
+      .from("partners")
+      .select("vault_drop")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      listing.vaultDrop = parseVaultDropStored(
+        (data as Record<string, unknown>).vault_drop
       );
     }
   }

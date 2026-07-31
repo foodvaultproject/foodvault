@@ -25,6 +25,7 @@ import { getPartnerRecord, submitPartnerApplication } from "@/lib/partner-data";
 import {
   emptyVaultDropFormDraft,
   validateVaultDropForm,
+  prepareVaultDropDraftForSubmit,
   vaultDropDraftFromSerializable,
   type VaultDropFormDraft,
 } from "@/lib/vault-drop";
@@ -500,8 +501,9 @@ export function PartnerApplicationPage() {
       return;
     }
 
-    const vaultDropValidation = validateVaultDropForm(vaultDrop, {
-      requireComplete: vaultDrop.enabled,
+    const preparedVaultDrop = prepareVaultDropDraftForSubmit(vaultDrop);
+    const vaultDropValidation = validateVaultDropForm(preparedVaultDrop, {
+      requireComplete: preparedVaultDrop.enabled,
     });
     if (!vaultDropValidation.ok) {
       setSubmitError(vaultDropValidation.message);

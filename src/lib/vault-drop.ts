@@ -408,6 +408,19 @@ export function getVaultDropStartedProducts(
   return draft.products.filter(productHasAnyValue);
 }
 
+/** Treat filled-in Vault Drop products as enabled when saving from the application. */
+export function prepareVaultDropDraftForSubmit(
+  draft: VaultDropFormDraft | undefined
+): VaultDropFormDraft {
+  if (!draft) return emptyVaultDropFormDraft();
+
+  if (getVaultDropStartedProducts(draft).length === 0) {
+    return { ...draft, enabled: false };
+  }
+
+  return { ...draft, enabled: true };
+}
+
 export const VAULT_DROP_ADD_PRODUCT_INCOMPLETE_MESSAGE =
   "Please complete all fields before adding new items.";
 
