@@ -319,9 +319,9 @@ export function vaultDropFormFromStored(stored: VaultDropStored | null): VaultDr
   return {
     enabled: true,
     durationDays: stored.duration_days,
-    products: stored.products.map((product, index) =>
+    products: stored.products.map((product) =>
       createVaultDropProductDraft({
-        collapsed: index > 0,
+        collapsed: true,
         title: product.title,
         description: product.description,
         images: galleryItemsFromStoredUrls(product.image_urls),

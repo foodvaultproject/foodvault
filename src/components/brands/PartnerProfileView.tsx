@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { BrandGallery } from "@/components/brands/BrandGallery";
+import { PartnerProfileVaultDropSection } from "@/components/brands/PartnerProfileVaultDropSection";
 import { PartnerProfileCategories } from "@/components/brands/PartnerProfileCategories";
 import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
 import { AffiliateProgramProfileSection } from "@/components/brands/AffiliateProgramProfileSection";
@@ -316,6 +317,10 @@ export function PartnerProfileView({
     </section>
   ) : null;
 
+  const vaultDropSection = profile.vaultDrop?.products.length ? (
+    <PartnerProfileVaultDropSection vaultDrop={profile.vaultDrop} />
+  ) : null;
+
   const businessInfoSection = (
     <div className={`grid gap-4 ${showAffiliate ? "lg:grid-cols-2" : ""}`}>
       <section id="info" className={SECTION_CARD}>
@@ -460,6 +465,7 @@ export function PartnerProfileView({
             <>
               {selectedProductsSection}
               {aboutSection}
+              {vaultDropSection}
               {gallerySection}
               {businessInfoSection}
             </>
@@ -467,6 +473,7 @@ export function PartnerProfileView({
             <>
               {aboutSection}
               {selectedProductsSection}
+              {vaultDropSection}
               {gallerySection}
               {businessInfoSection}
             </>

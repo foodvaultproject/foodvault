@@ -31,6 +31,7 @@ import {
   type OfferScope,
   type SelectedProduct,
 } from "@/lib/partner-offer";
+import { parseVaultDropStored, type VaultDropStored } from "@/lib/vault-drop";
 
 export type PartnerProfile = {
   id: string;
@@ -69,6 +70,7 @@ export type PartnerProfile = {
   affiliateCookieDurationDays: number | null;
   affiliateProgramDescription: string | null;
   affiliateTerms: string | null;
+  vaultDrop: VaultDropStored | null;
 };
 
 export type CodeAccessState =
@@ -124,12 +126,13 @@ type ProfileViewRow = {
   affiliate_cookie_duration_days: number | null;
   affiliate_program_description: string | null;
   affiliate_terms: string | null;
+  vault_drop?: unknown;
 };
 
 const PARTNER_PREVIEW_COLUMNS_BASE =
   "id, slug, business_name, short_description, brand_story, website_url, location, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, offer_exclusions, banner_image_url, logo_url, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, featured_until";
 
-const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms`;
+const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop`;
 
 async function fetchOwnPartnerPreviewRow(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -196,6 +199,7 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
     affiliate_cookie_duration_days: row.affiliate_cookie_duration_days,
     affiliate_program_description: row.affiliate_program_description,
     affiliate_terms: row.affiliate_terms,
+    vault_drop: row.vault_drop,
   } as ProfileViewRow);
 }
 
@@ -289,6 +293,7 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     affiliateCookieDurationDays: row.affiliate_cookie_duration_days,
     affiliateProgramDescription: row.affiliate_program_description,
     affiliateTerms: row.affiliate_terms,
+    vaultDrop: parseVaultDropStored(row.vault_drop),
   };
 }
 
@@ -347,6 +352,7 @@ function buildDevProfile(slug: string): PartnerProfile | null {
     affiliateCookieDurationDays: null,
     affiliateProgramDescription: null,
     affiliateTerms: null,
+    vaultDrop: null,
   };
 }
 
