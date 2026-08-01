@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
-import { VaultDropCountdown } from "@/components/home/VaultDropCountdown";
 import type { CodeAccessState } from "@/lib/member/partner-profile";
 import {
   formatVaultDropDiscountLabel,
@@ -15,9 +14,9 @@ import {
   type VaultDropStored,
 } from "@/lib/vault-drop";
 import {
+  VaultDropCountdownBadge,
   VaultDropDiscountBadge,
   VaultDropReasonTag,
-  VaultDropTitleBadge,
 } from "@/components/vault-drop/VaultDropCardBadges";
 
 const SECTION_CARD =
@@ -95,7 +94,12 @@ function ProfileVaultDropProductCard({
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={product.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-          <VaultDropTitleBadge label="FLASH SALE" />
+          {countdownEndTime ? (
+            <VaultDropCountdownBadge
+              endTimeIso={countdownEndTime}
+              onExpired={() => setExpired(true)}
+            />
+          ) : null}
           <VaultDropDiscountBadge
             label={formatVaultDropDiscountLabel(discountPercent)}
           />
@@ -124,23 +128,6 @@ function ProfileVaultDropProductCard({
           </p>
           <DiscountCodeBlock code={flashSaleCode} state={codeState} variant="card" />
         </div>
-
-        {countdownEndTime ? (
-          <div className="mt-3 rounded-md bg-red-600 px-2.5 py-2 text-center">
-            <p className="text-[0.625rem] font-semibold uppercase tracking-wide text-white/90">
-              {expired ? "Offer ended" : "Ends in"}
-            </p>
-            {!expired ? (
-              <VaultDropCountdown
-                endTimeIso={countdownEndTime}
-                onExpired={() => setExpired(true)}
-                className="text-white"
-              />
-            ) : (
-              <p className="font-mono text-xs font-semibold text-white/80">Expired</p>
-            )}
-          </div>
-        ) : null}
 
         {expired ? (
           <span className="fv-btn-secondary mt-3 inline-flex items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold opacity-70">

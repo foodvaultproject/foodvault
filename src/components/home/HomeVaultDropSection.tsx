@@ -3,16 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { VaultDropCountdown } from "@/components/home/VaultDropCountdown";
 import type { PublicVaultDrop } from "@/lib/vault-drop-data";
 import {
   formatVaultDropDiscountLabel,
   formatVaultDropPrice,
 } from "@/lib/vault-drop";
 import {
+  VaultDropCountdownBadge,
   VaultDropDiscountBadge,
   VaultDropReasonTag,
-  VaultDropTitleBadge,
 } from "@/components/vault-drop/VaultDropCardBadges";
 
 function VaultDropImageCarousel({ images }: { images: string[] }) {
@@ -74,7 +73,10 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={drop.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-          <VaultDropTitleBadge label="FLASH SALE" />
+          <VaultDropCountdownBadge
+            endTimeIso={drop.countdown_end_time}
+            onExpired={() => setExpired(true)}
+          />
           <VaultDropDiscountBadge
             label={formatVaultDropDiscountLabel(drop.discount_percentage)}
           />
@@ -102,17 +104,6 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
           <span className="text-lg font-bold text-primary">
             {formatVaultDropPrice(drop.clearance_price)}
           </span>
-        </div>
-
-        <div className="mt-3 rounded-md bg-red-600 px-2.5 py-2 text-center">
-          <p className="text-[0.625rem] font-semibold uppercase tracking-wide text-white/90">
-            Ends in
-          </p>
-          <VaultDropCountdown
-            endTimeIso={drop.countdown_end_time}
-            onExpired={() => setExpired(true)}
-            className={expired ? "text-white/70" : "text-white"}
-          />
         </div>
 
         {expired ? (

@@ -1,8 +1,43 @@
-export function VaultDropTitleBadge({ label }: { label: string }) {
+"use client";
+
+import { useEffect, useState } from "react";
+import { VaultDropCountdown } from "@/components/home/VaultDropCountdown";
+import { getVaultDropCountdownParts } from "@/lib/vault-drop";
+
+export function VaultDropCountdownBadge({
+  endTimeIso,
+  onExpired,
+}: {
+  endTimeIso: string | null;
+  onExpired?: () => void;
+}) {
+  const [expired, setExpired] = useState(() =>
+    getVaultDropCountdownParts(endTimeIso).expired
+  );
+
+  useEffect(() => {
+    setExpired(getVaultDropCountdownParts(endTimeIso).expired);
+  }, [endTimeIso]);
+
+  function handleExpired() {
+    setExpired(true);
+    onExpired?.();
+  }
+
   return (
-    <span className="inline-block -skew-x-12 bg-primary px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5">
-      <span className="inline-block skew-x-12 text-[0.625rem] font-bold uppercase leading-none tracking-wide text-primary-foreground sm:text-xs">
-        {label}
+    <span className="inline-block -skew-x-12 bg-red-600 px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5">
+      <span className="inline-block skew-x-12">
+        {expired || !endTimeIso ? (
+          <span className="text-[0.625rem] font-bold uppercase leading-none tracking-wide text-white sm:text-xs">
+            Expired
+          </span>
+        ) : (
+          <VaultDropCountdown
+            endTimeIso={endTimeIso}
+            onExpired={handleExpired}
+            className="text-[0.625rem] font-semibold leading-none text-white sm:text-xs"
+          />
+        )}
       </span>
     </span>
   );
