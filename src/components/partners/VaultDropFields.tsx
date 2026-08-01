@@ -316,6 +316,7 @@ export function VaultDropFields({
   scrollAnchorId,
 }: VaultDropFieldsProps) {
   const [showIncompleteNote, setShowIncompleteNote] = useState(false);
+  const [editingExistingProduct, setEditingExistingProduct] = useState(false);
 
   useEffect(() => {
     if (!showIncompleteNote) return undefined;
@@ -342,6 +343,7 @@ export function VaultDropFields({
   }
 
   function expandProduct(productId: string) {
+    setEditingExistingProduct(true);
     patchForm({
       products: value.products.map((entry) => ({
         ...entry,
@@ -364,6 +366,7 @@ export function VaultDropFields({
     }
 
     setShowIncompleteNote(false);
+    setEditingExistingProduct(false);
     patchForm({
       products: value.products.map((entry) =>
         entry.id === editingProduct.id ? { ...entry, collapsed: true } : entry
@@ -379,6 +382,7 @@ export function VaultDropFields({
     if (value.products.length >= VAULT_DROP_MAX_PRODUCTS) return;
     if (value.products.some((product) => !product.collapsed)) return;
 
+    setEditingExistingProduct(false);
     patchForm({
       products: [...value.products, createVaultDropProductDraft({ collapsed: false })],
     });
@@ -391,6 +395,7 @@ export function VaultDropFields({
   const collapsedProducts = value.products.filter((product) => product.collapsed);
   const canAddNewProduct =
     !activeProduct && value.products.length < VAULT_DROP_MAX_PRODUCTS;
+  const confirmLabel = editingExistingProduct ? "Save" : "Add";
 
   return (
     <div id={`${idPrefix}-section-top`} className="space-y-4 scroll-mt-24">
@@ -479,7 +484,7 @@ export function VaultDropFields({
                   onClick={handleConfirmProduct}
                   className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                 >
-                  Add
+                  {confirmLabel}
                 </button>
                 {showIncompleteNote ? (
                   <p className="text-xs font-medium text-red-600" role="alert">
