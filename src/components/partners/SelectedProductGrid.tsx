@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
+import type { CodeAccessState } from "@/lib/member/partner-profile";
 import {
   calculateMemberPriceLabel,
   formatNzPrice,
@@ -8,11 +10,19 @@ import {
 type SelectedProductGridProps = {
   products: SelectedProduct[];
   horizontal?: boolean;
+  embedMemberOffer?: boolean;
+  memberCode?: string | null;
+  codeState?: CodeAccessState;
+  offerExclusions?: string | null;
 };
 
 export function SelectedProductGrid({
   products,
   horizontal = false,
+  embedMemberOffer = false,
+  memberCode = null,
+  codeState = "anon",
+  offerExclusions = null,
 }: SelectedProductGridProps) {
   if (products.length === 0) return null;
 
@@ -29,7 +39,11 @@ export function SelectedProductGrid({
     return (
       <article
         key={product.id}
-        className="flex flex-col rounded-lg border border-border bg-background p-2.5 shadow-sm sm:p-3"
+        className={`flex flex-col rounded-lg border bg-background shadow-sm sm:p-3 ${
+          embedMemberOffer
+            ? "border-primary/25 p-2.5"
+            : "border-border p-2.5"
+        }`}
       >
         <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-surface">
           <Image
@@ -63,11 +77,34 @@ export function SelectedProductGrid({
           ) : null}
         </div>
 
+        {embedMemberOffer ? (
+          <div className="mt-3 space-y-2 border-t border-border/80 pt-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Discount Code
+              </p>
+              <div className="mt-1">
+                <DiscountCodeBlock
+                  code={memberCode}
+                  state={codeState}
+                  variant="card"
+                />
+              </div>
+            </div>
+            {offerExclusions ? (
+              <p className="text-[10px] leading-snug text-muted-foreground">
+                <span className="font-semibold uppercase tracking-wide">Exclusions: </span>
+                {offerExclusions}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <a
           href={product.productUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="fv-btn-primary mt-2 inline-flex h-8 items-center justify-center rounded-sm px-2.5 text-[11px] font-bold text-primary-foreground transition-[transform,box-shadow] duration-150"
+          className="fv-btn-primary mt-3 inline-flex h-8 items-center justify-center rounded-sm px-2.5 text-[11px] font-bold text-primary-foreground transition-[transform,box-shadow] duration-150"
         >
           View Product
         </a>

@@ -8,6 +8,7 @@ type DiscountCodeBlockProps = {
   code: string | null;
   state: CodeAccessState;
   compact?: boolean;
+  variant?: "default" | "card";
 };
 
 const LOCKED_MESSAGE: Record<Exclude<CodeAccessState, "visible">, string> = {
@@ -22,8 +23,10 @@ export function DiscountCodeBlock({
   code,
   state,
   compact = false,
+  variant = "default",
 }: DiscountCodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const isCard = variant === "card";
 
   async function handleCopy() {
     if (!code) return;
@@ -38,22 +41,38 @@ export function DiscountCodeBlock({
 
   if (state === "visible" && code) {
     return (
-      <div className={compact ? "" : "mt-2"}>
-        <div className="flex items-stretch overflow-hidden rounded-lg border-2 border-dashed border-primary/40 bg-primary/5">
-          <div className="flex flex-1 items-center px-4 py-3">
-            <span className="font-mono text-base font-bold tracking-wide text-foreground">
+      <div className={compact || isCard ? "" : "mt-2"}>
+        <div
+          className={`flex overflow-hidden rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 ${
+            isCard ? "flex-col sm:flex-row sm:items-stretch" : "items-stretch"
+          }`}
+        >
+          <div
+            className={`flex flex-1 items-center ${
+              isCard ? "justify-center px-2 py-2 sm:justify-start sm:px-3" : "px-4 py-3"
+            }`}
+          >
+            <span
+              className={`break-all text-center font-mono font-bold tracking-wide text-foreground sm:text-left ${
+                isCard ? "text-xs sm:text-sm" : "text-base"
+              }`}
+            >
               {code}
             </span>
           </div>
           <button
             type="button"
             onClick={handleCopy}
-            className="fv-btn-primary inline-flex items-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+            className={`fv-btn-primary inline-flex items-center justify-center gap-1.5 rounded-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 ${
+              isCard
+                ? "border-t border-primary/20 px-3 py-2 text-[11px] sm:border-l sm:border-t-0 sm:px-3 sm:py-2"
+                : "px-4 py-2 text-sm"
+            }`}
           >
-            {copied ? "Copied!" : "Copy Code"}
+            {copied ? "Copied!" : isCard ? "Copy" : "Copy Code"}
           </button>
         </div>
-        {!compact ? (
+        {!compact && !isCard ? (
           <p className="mt-2 text-xs text-muted-foreground">
             Enter this code during checkout on the partner&apos;s website.
           </p>
@@ -65,26 +84,46 @@ export function DiscountCodeBlock({
   const message = LOCKED_MESSAGE[state as Exclude<CodeAccessState, "visible">];
 
   return (
-    <div className={compact ? "" : "mt-2"}>
-      <div className="flex items-stretch overflow-hidden rounded-lg border-2 border-dashed border-border bg-surface">
-        <div className="flex flex-1 items-center px-4 py-3">
-          <span className="select-none font-mono text-base font-bold tracking-wide text-muted-foreground blur-sm">
+    <div className={compact || isCard ? "" : "mt-2"}>
+      <div
+        className={`flex overflow-hidden rounded-lg border-2 border-dashed border-border bg-surface ${
+          isCard ? "flex-col sm:flex-row sm:items-stretch" : "items-stretch"
+        }`}
+      >
+        <div
+          className={`flex flex-1 items-center ${
+            isCard ? "justify-center px-2 py-2 sm:justify-start sm:px-3" : "px-4 py-3"
+          }`}
+        >
+          <span
+            className={`select-none break-all text-center font-mono font-bold tracking-wide text-muted-foreground blur-sm sm:text-left ${
+              isCard ? "text-xs sm:text-sm" : "text-base"
+            }`}
+          >
             FOODVAULT-XXXXX
           </span>
         </div>
         <button
           type="button"
           disabled
-          className="flex cursor-not-allowed items-center gap-1.5 border-l border-border bg-surface px-4 text-sm font-semibold text-muted-foreground"
+          className={`flex cursor-not-allowed items-center justify-center gap-1.5 border-border bg-surface font-semibold text-muted-foreground ${
+            isCard
+              ? "border-t px-3 py-2 text-[11px] sm:border-l sm:border-t-0"
+              : "border-l px-4 text-sm"
+          }`}
         >
-          Copy Code
+          {isCard ? "Copy" : "Copy Code"}
         </button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">{message}</p>
+      <p className={`text-muted-foreground ${isCard ? "mt-1.5 text-[10px] leading-snug" : "mt-2 text-xs"}`}>
+        {message}
+      </p>
       {state === "anon" ? (
         <Link
           href="/signup"
-          className="mt-2 inline-flex text-xs font-semibold text-primary hover:underline"
+          className={`inline-flex font-semibold text-primary hover:underline ${
+            isCard ? "mt-1 text-[10px]" : "mt-2 text-xs"
+          }`}
         >
           Become a member to unlock &rarr;
         </Link>

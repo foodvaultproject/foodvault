@@ -173,13 +173,14 @@ export function PartnerProfileView({
     ? "w-full rounded-lg border border-primary/30 bg-primary/[0.04] p-4"
     : "w-full shrink-0 rounded-lg border border-primary/30 bg-primary/[0.04] p-4 lg:max-w-sm";
 
-  const memberExclusiveOfferCard = (
+  const memberExclusiveOfferCard =
+    profile.offerScope === "entire_store" ? (
     <div id="offer" className={memberOfferCardClassName}>
       <div>
         <MemberOfferHeadline profile={profile} />
       </div>
 
-      {profile.offerScope === "entire_store" && profile.offerAppliesTo ? (
+      {profile.offerAppliesTo ? (
         <p className="mt-2 text-[11px] text-muted-foreground">
           <span className="font-semibold uppercase tracking-wide">Applies to: </span>
           {profile.offerAppliesTo}
@@ -197,28 +198,10 @@ export function PartnerProfileView({
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           Discount Code
         </p>
-        <DiscountCodeBlock
-          code={code}
-          state={codeState}
-          compact={isSelectedProductsOffer}
-        />
-        {isSelectedProductsOffer && codeState === "visible" && code ? (
-          <>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              This member discount code only applies to the products listed below. Copy your
-              code, then scroll down to view all eligible products included in this offer.
-            </p>
-            <div className="mt-2 rounded-md border border-primary/15 bg-primary/5 px-3 py-2.5">
-              <p className="text-[11px] leading-relaxed text-muted-foreground">
-                Other products on this website are not included in this member offer unless
-                displayed below.
-              </p>
-            </div>
-          </>
-        ) : null}
+        <DiscountCodeBlock code={code} state={codeState} />
       </div>
     </div>
-  );
+  ) : null;
 
   const brandHeader = (
     <div className="min-w-0 flex-1">
@@ -293,13 +276,32 @@ export function PartnerProfileView({
       <h2 className="text-sm font-semibold text-foreground">
         {isSelectedProductsOffer ? "Products Included In This Offer" : "Selected Products"}
       </h2>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {isSelectedProductsOffer
-          ? "These are the products this member discount code can be used on. Simply copy your code above, then purchase any of the products below directly from the partner's website."
-          : "These products qualify for this exclusive member offer."}
-      </p>
+      {isSelectedProductsOffer ? (
+        <>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            This member discount code only applies to the products listed below. Copy your
+            code on any eligible product, then purchase directly from the partner&apos;s website.
+          </p>
+          <div className="mt-3 rounded-md border border-primary/15 bg-primary/5 px-3 py-2.5">
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Other products on this website are not included unless displayed here.
+            </p>
+          </div>
+        </>
+      ) : (
+        <p className="mt-1 text-xs text-muted-foreground">
+          These products qualify for this exclusive member offer.
+        </p>
+      )}
       <div className="mt-3">
-        <SelectedProductGrid products={profile.selectedProducts} horizontal />
+        <SelectedProductGrid
+          products={profile.selectedProducts}
+          horizontal
+          embedMemberOffer={isSelectedProductsOffer}
+          memberCode={code}
+          codeState={codeState}
+          offerExclusions={profile.offerExclusions}
+        />
       </div>
     </section>
   ) : null;
@@ -445,20 +447,12 @@ export function PartnerProfileView({
           </PartnerBanner>
 
           <div className="relative p-5">
-            {isSelectedProductsOffer ? (
-              brandHeader
-            ) : (
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                {brandHeader}
-                {memberExclusiveOfferCard}
-              </div>
-            )}
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              {brandHeader}
+              {memberExclusiveOfferCard}
+            </div>
           </div>
         </section>
-
-        {isSelectedProductsOffer ? (
-          <div className="mt-4">{memberExclusiveOfferCard}</div>
-        ) : null}
 
         <div className="mt-4 space-y-4">
           {isSelectedProductsOffer ? (
