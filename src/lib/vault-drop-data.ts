@@ -1,6 +1,10 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import { formatBusinessName } from "@/lib/business-name";
 import { partnerProfileSlug } from "@/lib/member/favorites-utils";
+import {
+  getPartnerVaultDropCode,
+  type CodeAccessState,
+} from "@/lib/member/partner-profile";
 import { createClient } from "@/lib/supabase/server";
 import {
   getVaultDropCountdownParts,
@@ -13,6 +17,11 @@ export type PublicVaultDrop = VaultDropProductStored & {
   brandName: string;
   brandSlug: string;
   countdown_end_time: string | null;
+};
+
+export type HomeVaultDrop = PublicVaultDrop & {
+  flashSaleCode: string | null;
+  codeState: CodeAccessState;
 };
 
 function isMissingVaultDropColumnError(message: string | undefined): boolean {
@@ -107,4 +116,30 @@ export async function getActiveVaultDrops(limit = 12): Promise<PublicVaultDrop[]
   }
 
   return drops;
+}
+
+export async function getHomeVaultDrops(limit = 12): Promise<HomeVaultDrop[]> {
+  const drops = await getActiveVaultDrops(limit);
+  if (drops.length === 0) return [];
+
+  const partnerIds = [...new Set(drops.map((drop) => drop.partnerId))];
+  const codeByPartner = new Map<
+    string,
+    { code: string | null; state: CodeAccessState }
+  >();
+
+  await Promise.all(
+    partnerIds.map(async (partnerId) => {
+      codeByPartner.set(partnerId, await getPartnerVaultDropCode(partnerId));
+    })
+  );
+
+  return drops.map((drop) => {
+    const access = codeByPartner.get(drop.partnerId);
+    return {
+      ...drop,
+      flashSaleCode: access?.code ?? null,
+      codeState: access?.state ?? "anon",
+    };
+  });
 }

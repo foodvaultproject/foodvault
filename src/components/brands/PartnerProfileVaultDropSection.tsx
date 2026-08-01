@@ -140,7 +140,7 @@ function ProfileVaultDropProductCard({
             rel="noopener noreferrer"
             className="fv-btn-primary mt-3 inline-flex items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground"
           >
-            Shop This Offer
+            Shop FLASH SALE
           </Link>
         )}
       </div>

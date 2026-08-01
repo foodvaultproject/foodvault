@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { PublicVaultDrop } from "@/lib/vault-drop-data";
+import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
+import type { HomeVaultDrop } from "@/lib/vault-drop-data";
 import {
   formatVaultDropDiscountLabel,
   formatVaultDropPrice,
@@ -61,7 +62,7 @@ function VaultDropImageCarousel({ images }: { images: string[] }) {
   );
 }
 
-function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
+function VaultDropCard({ drop }: { drop: HomeVaultDrop }) {
   const [expired, setExpired] = useState(false);
 
   return (
@@ -106,6 +107,17 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
           </span>
         </div>
 
+        <div className="mt-3 space-y-1.5 border-t border-border/80 pt-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            FLASH SALE Code
+          </p>
+          <DiscountCodeBlock
+            code={drop.flashSaleCode}
+            state={drop.codeState}
+            variant="card"
+          />
+        </div>
+
         {expired ? (
           <span className="fv-btn-secondary mt-4 inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold opacity-70">
             Offer Ended
@@ -125,7 +137,7 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
   );
 }
 
-export function HomeVaultDropSection({ drops }: { drops: PublicVaultDrop[] }) {
+export function HomeVaultDropSection({ drops }: { drops: HomeVaultDrop[] }) {
   if (drops.length === 0) return null;
 
   return (

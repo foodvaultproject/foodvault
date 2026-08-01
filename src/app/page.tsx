@@ -28,7 +28,7 @@ import {
   getRecentBrandCards,
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
-import { getActiveVaultDrops } from "@/lib/vault-drop-data";
+import { getHomeVaultDrops } from "@/lib/vault-drop-data";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +76,7 @@ export default async function Home({ searchParams }: HomeProps) {
       limit: BROWSE_PAGE_SIZE,
       offset: 0,
     }),
-    getActiveVaultDrops(12),
+    getHomeVaultDrops(12),
   ]);
   // Admins browsing the public homepage must match the visitor experience.
   const isActiveMember = Boolean(activeMember) && !adminUser;
@@ -111,6 +111,7 @@ export default async function Home({ searchParams }: HomeProps) {
           compactSpacing
         />
         <HomePartnerQuickLinks compactSpacing />
+        <HomeVaultDropSection drops={vaultDrops} />
       </>
     );
   }
@@ -136,6 +137,7 @@ export default async function Home({ searchParams }: HomeProps) {
           memberHomepage
         />
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
+        <HomeVaultDropSection drops={vaultDrops} />
         <HomeCategories onHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
