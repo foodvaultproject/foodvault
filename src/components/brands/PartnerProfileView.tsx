@@ -31,6 +31,8 @@ type PartnerProfileViewProps = {
   profile: PartnerProfile;
   code: string | null;
   codeState: CodeAccessState;
+  flashSaleCode?: string | null;
+  flashSaleCodeState?: CodeAccessState;
   viewer: ProfileViewerContext;
   recommended: BrandCard[];
   favoritedPartnerIds?: string[];
@@ -125,6 +127,8 @@ export function PartnerProfileView({
   profile,
   code,
   codeState,
+  flashSaleCode = null,
+  flashSaleCodeState = "anon",
   viewer,
   recommended,
   favoritedPartnerIds = [],
@@ -320,7 +324,11 @@ export function PartnerProfileView({
   ) : null;
 
   const vaultDropSection = profile.vaultDrop?.products.length ? (
-    <PartnerProfileVaultDropSection vaultDrop={profile.vaultDrop} />
+    <PartnerProfileVaultDropSection
+      vaultDrop={profile.vaultDrop}
+      flashSaleCode={flashSaleCode}
+      codeState={flashSaleCodeState}
+    />
   ) : null;
 
   const businessInfoSection = (
@@ -431,6 +439,7 @@ export function PartnerProfileView({
           <PartnerOnboardingStatusBanner
             state={viewer.ownOnboardingState}
             memberCode={code}
+            vaultDropCode={flashSaleCode}
             previewMode
             className="mb-4"
           />

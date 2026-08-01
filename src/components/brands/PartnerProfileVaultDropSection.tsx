@@ -3,11 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
 import { VaultDropCountdown } from "@/components/home/VaultDropCountdown";
+import type { CodeAccessState } from "@/lib/member/partner-profile";
 import {
   formatVaultDropDiscountLabel,
   formatVaultDropPrice,
   getVaultDropCountdownParts,
+  resolveVaultDropDiscountPercent,
   type VaultDropProductStored,
   type VaultDropStored,
 } from "@/lib/vault-drop";
@@ -69,9 +72,15 @@ function VaultDropImageCarousel({ images }: { images: string[] }) {
 function ProfileVaultDropProductCard({
   product,
   countdownEndTime,
+  discountPercent,
+  flashSaleCode,
+  codeState,
 }: {
   product: VaultDropProductStored;
   countdownEndTime: string | null;
+  discountPercent: number;
+  flashSaleCode: string | null;
+  codeState: CodeAccessState;
 }) {
   const [expired, setExpired] = useState(() =>
     getVaultDropCountdownParts(countdownEndTime).expired
@@ -86,9 +95,9 @@ function ProfileVaultDropProductCard({
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={product.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-          <VaultDropTitleBadge label="The Vault Drop" />
+          <VaultDropTitleBadge label="FLASH SALE" />
           <VaultDropDiscountBadge
-            label={formatVaultDropDiscountLabel(product.discount_percentage)}
+            label={formatVaultDropDiscountLabel(discountPercent)}
           />
         </div>
       </div>
@@ -107,6 +116,13 @@ function ProfileVaultDropProductCard({
           <span className="text-base font-bold text-primary">
             {formatVaultDropPrice(product.clearance_price)}
           </span>
+        </div>
+
+        <div className="mt-3 space-y-1.5 border-t border-border/80 pt-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            FLASH SALE Code
+          </p>
+          <DiscountCodeBlock code={flashSaleCode} state={codeState} variant="card" />
         </div>
 
         {countdownEndTime ? (
@@ -147,16 +163,23 @@ function ProfileVaultDropProductCard({
 
 export function PartnerProfileVaultDropSection({
   vaultDrop,
+  flashSaleCode,
+  codeState,
 }: {
   vaultDrop: VaultDropStored | null;
+  flashSaleCode: string | null;
+  codeState: CodeAccessState;
 }) {
   if (!vaultDrop?.products.length) return null;
 
+  const discountPercent = resolveVaultDropDiscountPercent(vaultDrop);
+
   return (
-    <section id="vault-drop" className={SECTION_CARD}>
-      <h2 className="text-sm font-semibold text-foreground">The Vault Drop</h2>
+    <section id="flash-sale" className={SECTION_CARD}>
+      <h2 className="text-sm font-semibold text-foreground">FLASH SALE</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Limited-time clearance offers available exclusively to FoodVault members.
+        Limited-time clearance offers available exclusively to FoodVault members. Use your
+        FLASH SALE code on any item below.
       </p>
       <div className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {vaultDrop.products.map((product) => (
@@ -164,6 +187,9 @@ export function PartnerProfileVaultDropSection({
             key={`${product.title}-${product.direct_store_link}`}
             product={product}
             countdownEndTime={vaultDrop.countdown_end_time}
+            discountPercent={discountPercent}
+            flashSaleCode={flashSaleCode}
+            codeState={codeState}
           />
         ))}
       </div>

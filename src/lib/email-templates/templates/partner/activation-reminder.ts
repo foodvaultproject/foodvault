@@ -15,6 +15,7 @@ export type PartnerActivationReminderEmailParams = {
   contactName?: string | null;
   businessName: string;
   memberCode?: string | null;
+  vaultDropCode?: string | null;
   reminderNumber: PartnerActivationReminderNumber;
 };
 
@@ -60,6 +61,7 @@ export function renderPartnerActivationReminderEmail(
   const loginUrl = `${params.appUrl.replace(/\/$/, "")}/partner-login`;
   const listingUrl = `${params.appUrl.replace(/\/$/, "")}/partner/listing`;
   const memberCode = params.memberCode?.trim();
+  const vaultDropCode = params.vaultDropCode?.trim();
   const copy = REMINDER_COPY[params.reminderNumber];
 
   const membersCannotDiscover =
@@ -98,6 +100,11 @@ export function renderPartnerActivationReminderEmail(
     memberCode
       ? emailParagraph(
           `Your FoodVault member discount code: <strong style="font-size:18px;letter-spacing:0.04em;">${escapeHtml(memberCode)}</strong>`
+        )
+      : "",
+    vaultDropCode
+      ? emailParagraph(
+          `Your FoodVault FLASH SALE code: <strong style="font-size:18px;letter-spacing:0.04em;">${escapeHtml(vaultDropCode)}</strong>`
         )
       : "",
     emailButton(loginUrl, copy.button),

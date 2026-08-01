@@ -471,6 +471,66 @@ export async function getPartnerDiscountCode(
   return { code: null, state: "member-required" };
 }
 
+export async function getPartnerVaultDropCode(
+  partnerId: string
+): Promise<{ code: string | null; state: CodeAccessState }> {
+  if (!isSupabaseConfigured()) {
+    return { code: "FOODVAULT-DEV-FS-35", state: "visible" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: code } = await supabase.rpc("get_partner_vault_drop_code", {
+    p_partner_id: partnerId,
+  });
+
+  if (code) {
+    return { code: code as string, state: "visible" };
+  }
+
+  if (user) {
+    const hasAccess = await memberHasActiveAccess(user.id);
+    if (hasAccess) {
+      const admin = createAdminClient();
+      if (admin) {
+        const { data: partner } = await admin
+          .from("partners")
+          .select(
+            "vault_drop_code, user_id, application_status_v2, listing_status_v2, suspended"
+          )
+          .eq("id", partnerId)
+          .maybeSingle();
+
+        const isLive =
+          partner?.application_status_v2 === "APPROVED" &&
+          partner?.listing_status_v2 === "LIVE" &&
+          !partner?.suspended;
+
+        if (
+          partner?.vault_drop_code &&
+          isLive &&
+          partner.user_id !== user.id
+        ) {
+          return { code: partner.vault_drop_code, state: "visible" };
+        }
+      }
+    }
+  }
+
+  if (!user) {
+    return { code: null, state: "anon" };
+  }
+
+  if (isPartnerUser(user) || (await userHasPartnerRecord(supabase, user.id))) {
+    return { code: null, state: "partner-other" };
+  }
+
+  return { code: null, state: "member-required" };
+}
+
 function isPartnerUser(user: { user_metadata?: Record<string, unknown> }) {
   return user.user_metadata?.account_type === "partner";
 }

@@ -42,6 +42,7 @@ type VaultDropFieldsProps = {
 
 function VaultDropProductForm({
   product,
+  discountPercent,
   disabled,
   inputClass,
   labelClass,
@@ -51,6 +52,7 @@ function VaultDropProductForm({
   onChange,
 }: {
   product: VaultDropProductDraft;
+  discountPercent: string;
   disabled?: boolean;
   inputClass: string;
   labelClass: string;
@@ -60,13 +62,9 @@ function VaultDropProductForm({
   onChange: (product: VaultDropProductDraft) => void;
 }) {
   const clearancePrice = useMemo(
-    () => formatCalculatedClearancePrice(product.originalPrice, product.discountPercent),
-    [product.originalPrice, product.discountPercent]
+    () => formatCalculatedClearancePrice(product.originalPrice, discountPercent),
+    [product.originalPrice, discountPercent]
   );
-
-  const discountError = product.discountPercent
-    ? validateVaultDropDiscountInput(product.discountPercent)
-    : null;
 
   const galleryItems = useMemo(
     () =>
@@ -167,50 +165,19 @@ function VaultDropProductForm({
       </div>
 
       <div>
-        <label htmlFor={`${idPrefix}-discount-${product.id}`} className={labelClass}>
-          Discount <span className="text-red-600">*</span>
-        </label>
-        <div className={`relative max-w-xs ${fieldGapClass}`}>
-          <input
-            id={`${idPrefix}-discount-${product.id}`}
-            type="text"
-            inputMode="numeric"
-            maxLength={2}
-            disabled={disabled}
-            value={product.discountPercent}
-            onChange={(event) =>
-              patch({ discountPercent: sanitizeVaultDropDiscount(event.target.value) })
-            }
-            placeholder="35"
-            className={`${inputClass} pr-10`}
-          />
-          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.9375rem] text-muted-foreground">
-            %
-          </span>
-        </div>
-        <p className={`${helperClass} mt-1`}>
-          Vault Drop offers require a minimum {VAULT_DROP_MIN_DISCOUNT_PERCENT}% discount for
-          members.
-        </p>
-        {discountError ? (
-          <p className="mt-1 text-xs font-medium text-red-600">{discountError}</p>
-        ) : null}
-      </div>
-
-      <div>
         <label htmlFor={`${idPrefix}-clearance-price-${product.id}`} className={labelClass}>
-          Clearance Price (NZD) <span className="text-red-600">*</span>
+          Clearance Price (NZD)
         </label>
         <input
           id={`${idPrefix}-clearance-price-${product.id}`}
           type="text"
           readOnly
           value={clearancePrice ? `$${clearancePrice}` : ""}
-          placeholder="Calculated automatically"
+          placeholder="Calculated from shared discount"
           className={`${inputClass} ${fieldGapClass} max-w-xs bg-muted/60`}
         />
         <p className={`${helperClass} mt-1`}>
-          Calculated from your original price and discount.
+          Calculated from this product&apos;s original price and the FLASH SALE discount above.
         </p>
       </div>
 
@@ -262,12 +229,14 @@ function VaultDropProductForm({
 function CollapsedVaultDropProduct({
   product,
   index,
+  discountPercent,
   disabled,
   onEdit,
   onDelete,
 }: {
   product: VaultDropProductDraft;
   index: number;
+  discountPercent: string;
   disabled?: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -278,8 +247,8 @@ function CollapsedVaultDropProduct({
     <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5">
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-foreground">{label}</p>
-        {product.discountPercent ? (
-          <p className="text-xs text-muted-foreground">{product.discountPercent}% off</p>
+        {discountPercent ? (
+          <p className="text-xs text-muted-foreground">{discountPercent}% off</p>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
@@ -324,6 +293,10 @@ export function VaultDropFields({
     return () => window.clearTimeout(timer);
   }, [showIncompleteNote]);
 
+  const formDiscountError = value.discountPercent
+    ? validateVaultDropDiscountInput(value.discountPercent)
+    : null;
+
   function scrollToVaultDropSection() {
     const anchorId = scrollAnchorId ?? `${idPrefix}-section-top`;
     document.getElementById(anchorId)?.scrollIntoView({
@@ -360,7 +333,10 @@ export function VaultDropFields({
 
   function handleConfirmProduct() {
     const editingProduct = value.products.find((product) => !product.collapsed);
-    if (!editingProduct || !isVaultDropProductComplete(editingProduct)) {
+    if (
+      !editingProduct ||
+      !isVaultDropProductComplete(editingProduct, value.discountPercent)
+    ) {
       setShowIncompleteNote(true);
       return;
     }
@@ -414,7 +390,7 @@ export function VaultDropFields({
           className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
         />
         <span className="text-sm text-foreground">
-          Create Vault Drop offers for this listing
+          Create FLASH SALE offers for this listing
         </span>
       </label>
 
@@ -442,23 +418,65 @@ export function VaultDropFields({
               ))}
             </select>
             <p className={`${helperClass} mt-1`}>
-              Applies to all Vault Drop products. Maximum run time is 7 days.
+              Applies to all FLASH SALE products. Maximum run time is 7 days.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor={`${idPrefix}-discount`} className={labelClass}>
+              FLASH SALE Discount <span className="text-red-600">*</span>
+            </label>
+            <div className={`relative max-w-xs ${fieldGapClass}`}>
+              <input
+                id={`${idPrefix}-discount`}
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                disabled={disabled}
+                value={value.discountPercent}
+                onChange={(event) =>
+                  patchForm({ discountPercent: sanitizeVaultDropDiscount(event.target.value) })
+                }
+                placeholder="35"
+                className={`${inputClass} pr-10`}
+              />
+              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.9375rem] text-muted-foreground">
+                %
+              </span>
+            </div>
+            <p className={`${helperClass} mt-1`}>
+              One discount applies to all FLASH SALE products. Minimum{" "}
+              {VAULT_DROP_MIN_DISCOUNT_PERCENT}% for members.
+            </p>
+            {formDiscountError ? (
+              <p className="mt-1 text-xs font-medium text-red-600">{formDiscountError}</p>
+            ) : null}
+          </div>
+
+          <div className="border-t border-border/80 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Products Included
+            </p>
+            <p className={`${helperClass} mt-1`}>
+              Add up to {VAULT_DROP_MAX_PRODUCTS} products. Each receives the same FLASH SALE
+              discount above.
             </p>
           </div>
 
           {collapsedProducts.map((product) => {
-              const index = value.products.findIndex((entry) => entry.id === product.id);
-              return (
-                <CollapsedVaultDropProduct
-                  key={product.id}
-                  product={product}
-                  index={index}
-                  disabled={disabled}
-                  onEdit={() => expandProduct(product.id)}
-                  onDelete={() => handleDeleteProduct(product.id)}
-                />
-              );
-            })}
+            const index = value.products.findIndex((entry) => entry.id === product.id);
+            return (
+              <CollapsedVaultDropProduct
+                key={product.id}
+                product={product}
+                index={index}
+                discountPercent={value.discountPercent}
+                disabled={disabled}
+                onEdit={() => expandProduct(product.id)}
+                onDelete={() => handleDeleteProduct(product.id)}
+              />
+            );
+          })}
 
           {activeProduct ? (
             <div className="rounded-md border border-border bg-background p-3 sm:p-4">
@@ -469,6 +487,7 @@ export function VaultDropFields({
               ) : null}
               <VaultDropProductForm
                 product={activeProduct}
+                discountPercent={value.discountPercent}
                 disabled={disabled}
                 inputClass={inputClass}
                 labelClass={labelClass}
@@ -506,7 +525,7 @@ export function VaultDropFields({
             </button>
           ) : value.products.length >= VAULT_DROP_MAX_PRODUCTS && !activeProduct ? (
             <p className={helperClass}>
-              Maximum of {VAULT_DROP_MAX_PRODUCTS} Vault Drop products reached.
+              Maximum of {VAULT_DROP_MAX_PRODUCTS} FLASH SALE products reached.
             </p>
           ) : null}
         </div>

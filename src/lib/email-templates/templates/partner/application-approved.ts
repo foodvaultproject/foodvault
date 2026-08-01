@@ -13,6 +13,7 @@ export type PartnerApplicationApprovedEmailParams = {
   contactName?: string | null;
   businessName: string;
   memberCode?: string | null;
+  vaultDropCode?: string | null;
 };
 
 export function renderPartnerApplicationApprovedEmail(
@@ -24,6 +25,7 @@ export function renderPartnerApplicationApprovedEmail(
   const loginUrl = `${params.appUrl.replace(/\/$/, "")}/partner-login`;
   const listingUrl = `${params.appUrl.replace(/\/$/, "")}/partner/listing`;
   const memberCode = params.memberCode?.trim();
+  const vaultDropCode = params.vaultDropCode?.trim();
 
   const content = [
     emailHeading("Your application is approved — action required"),
@@ -42,6 +44,11 @@ export function renderPartnerApplicationApprovedEmail(
     memberCode
       ? emailParagraph(
           `Your FoodVault member discount code: <strong style="font-size:18px;letter-spacing:0.04em;">${escapeHtml(memberCode)}</strong>`
+        )
+      : "",
+    vaultDropCode
+      ? emailParagraph(
+          `Your FoodVault FLASH SALE code: <strong style="font-size:18px;letter-spacing:0.04em;">${escapeHtml(vaultDropCode)}</strong>`
         )
       : "",
     emailButton(loginUrl, "Log in to FoodVault"),

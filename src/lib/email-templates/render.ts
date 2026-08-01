@@ -84,6 +84,7 @@ export function renderEmailTemplate(
         contactName: params.contactName as string | null | undefined,
         businessName: String(params.businessName ?? ""),
         memberCode: params.memberCode as string | null | undefined,
+        vaultDropCode: params.vaultDropCode as string | null | undefined,
       });
     case "partner.activation-reminder":
       return renderPartnerActivationReminderEmail({
@@ -91,6 +92,7 @@ export function renderEmailTemplate(
         contactName: params.contactName as string | null | undefined,
         businessName: String(params.businessName ?? ""),
         memberCode: params.memberCode as string | null | undefined,
+        vaultDropCode: params.vaultDropCode as string | null | undefined,
         reminderNumber: (params.reminderNumber === 2
           ? 2
           : params.reminderNumber === 3

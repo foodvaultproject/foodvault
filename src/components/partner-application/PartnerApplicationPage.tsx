@@ -844,9 +844,9 @@ export function PartnerApplicationPage() {
               </div>
             </section>
 
-            <section id="vault-drop" className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm scroll-mt-20 sm:p-4">
+            <section id="flash-sale" className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm scroll-mt-20 sm:p-4">
               <SectionHeader
-                title="The Vault Drop (Optional)"
+                title="FLASH SALE (Optional)"
                 description={
                   <p>
                     Optional clearance offer for deleted SKUs, old packaging, surplus stock, or

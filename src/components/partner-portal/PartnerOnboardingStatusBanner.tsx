@@ -61,33 +61,41 @@ function ChecklistStep({
   );
 }
 
-function MemberCodeCopyPanel({ memberCode }: { memberCode: string }) {
+function CodeCopyPanel({
+  code,
+  label,
+  copyAriaLabel,
+}: {
+  code: string;
+  label: string;
+  copyAriaLabel: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(memberCode);
+      await navigator.clipboard.writeText(code);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
-  }, [memberCode]);
+  }, [code]);
 
   return (
     <div className="mt-3 flex items-stretch overflow-hidden rounded-lg bg-white/15">
       <div className="flex min-w-0 flex-1 flex-col px-3 py-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">
-          Your Member Code
+          {label}
         </p>
         <p className={`${portalMetricValue} mt-1 truncate font-mono text-white`}>
-          {memberCode}
+          {code}
         </p>
       </div>
       <button
         type="button"
         onClick={handleCopy}
-        aria-label={copied ? "Member code copied" : "Copy member code"}
+        aria-label={copied ? `${copyAriaLabel} copied` : copyAriaLabel}
         className="inline-flex shrink-0 items-center gap-1.5 border-l border-white/20 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/10 sm:px-4 sm:text-sm"
       >
         {copied ? (
@@ -114,9 +122,20 @@ function MemberCodeCopyPanel({ memberCode }: { memberCode: string }) {
   );
 }
 
+function MemberCodeCopyPanel({ memberCode }: { memberCode: string }) {
+  return (
+    <CodeCopyPanel
+      code={memberCode}
+      label="Your Member Code"
+      copyAriaLabel="Copy member code"
+    />
+  );
+}
+
 type PartnerOnboardingStatusBannerProps = {
   state: PartnerOnboardingState;
   memberCode?: string | null;
+  vaultDropCode?: string | null;
   partnerId?: string | null;
   className?: string;
   previewMode?: boolean;
@@ -193,6 +212,7 @@ function ListingLiveBanner({
 export function PartnerOnboardingStatusBanner({
   state,
   memberCode,
+  vaultDropCode,
   partnerId,
   className = "mb-4",
   previewMode = false,
@@ -253,12 +273,25 @@ export function PartnerOnboardingStatusBanner({
               <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-white/90">
                 One final step remains before FoodVault members can discover your
                 business. Add your FoodVault member discount code to your own website,
+                {vaultDropCode
+                  ? " plus your FLASH SALE code if you listed clearance items,"
+                  : " "}
                 then confirm it has been activated.
               </p>
               {memberCode ? <MemberCodeCopyPanel memberCode={memberCode} /> : null}
+              {vaultDropCode ? (
+                <CodeCopyPanel
+                  code={vaultDropCode}
+                  label="Your FLASH SALE Code"
+                  copyAriaLabel="Copy FLASH SALE code"
+                />
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
                 <ChecklistStep label="Application Approved" complete />
                 <ChecklistStep label="Member Code Generated" complete />
+                {vaultDropCode ? (
+                  <ChecklistStep label="FLASH SALE Code Generated" complete />
+                ) : null}
                 <ChecklistStep label="Confirm Member Offer Activated" complete={false} />
                 <ChecklistStep label="Listing Live" complete={false} />
               </div>

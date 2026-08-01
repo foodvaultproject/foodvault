@@ -4,6 +4,7 @@ import { PartnerProfileView } from "@/components/brands/PartnerProfileView";
 import {
   getPartnerDiscountCode,
   getPartnerProfile,
+  getPartnerVaultDropCode,
   getProfileViewerContext,
   getRecommendedBrands,
   isPartnerAffiliateProgramPublic,
@@ -45,9 +46,12 @@ export default async function PartnerProfilePage({
     notFound();
   }
 
-  const [codeAccess, viewer, recommended, favoriteContext, affiliateContext, affiliatePubliclyVisible] =
+  const [codeAccess, flashSaleCodeAccess, viewer, recommended, favoriteContext, affiliateContext, affiliatePubliclyVisible] =
     await Promise.all([
     getPartnerDiscountCode(profile.id),
+    profile.vaultDrop?.products.length
+      ? getPartnerVaultDropCode(profile.id)
+      : Promise.resolve({ code: null, state: "anon" as const }),
     getProfileViewerContext(profile.id),
     getRecommendedBrands(profile.id, profile, 4),
     getViewerFavoriteContext(),
@@ -60,6 +64,8 @@ export default async function PartnerProfilePage({
       profile={profile}
       code={codeAccess.code}
       codeState={codeAccess.state}
+      flashSaleCode={flashSaleCodeAccess.code}
+      flashSaleCodeState={flashSaleCodeAccess.state}
       viewer={viewer}
       recommended={recommended}
       favoritedPartnerIds={favoriteContext.favoritedPartnerIds}

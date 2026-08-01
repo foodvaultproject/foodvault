@@ -69,6 +69,7 @@ export type PartnerRecord = {
   application_status_v2: ApplicationStatusV2;
   listing_status_v2: ListingStatusV2;
   member_code: string | null;
+  vault_drop_code: string | null;
   business_name: string | null;
   website_url: string | null;
   affiliate_enabled: boolean;
@@ -111,6 +112,12 @@ export function generateMemberCode(businessName: string, discountValue?: string)
   return `FOODVAULT-${slug}-${discount}`;
 }
 
+export function generateVaultDropCode(businessName: string, discountPercent: number | string) {
+  const slug = slugify(businessName || "PARTNER");
+  const discount = String(discountPercent).replace(/\D/g, "") || "30";
+  return `FOODVAULT-${slug}-FS-${discount}`;
+}
+
 function mapRow(row: Record<string, unknown>): PartnerRecord {
   return {
     id: String(row.id),
@@ -118,6 +125,7 @@ function mapRow(row: Record<string, unknown>): PartnerRecord {
     application_status_v2: row.application_status_v2 as ApplicationStatusV2,
     listing_status_v2: row.listing_status_v2 as ListingStatusV2,
     member_code: (row.member_code as string | null) ?? null,
+    vault_drop_code: (row.vault_drop_code as string | null) ?? null,
     business_name: formatBusinessNameOrNull(row.business_name as string | null),
     website_url: (row.website_url as string | null) ?? null,
     affiliate_enabled: Boolean(row.affiliate_enabled),
@@ -131,6 +139,16 @@ async function fetchOwnMemberCode(
   partnerId: string
 ): Promise<string | null> {
   const { data } = await supabase.rpc("get_partner_discount_code", {
+    p_partner_id: partnerId,
+  });
+  return (data as string | null) ?? null;
+}
+
+async function fetchOwnVaultDropCode(
+  supabase: ReturnType<typeof createClient>,
+  partnerId: string
+): Promise<string | null> {
+  const { data } = await supabase.rpc("get_partner_vault_drop_code", {
     p_partner_id: partnerId,
   });
   return (data as string | null) ?? null;
@@ -157,6 +175,7 @@ export async function getPartnerRecord(userId: string): Promise<PartnerRecord | 
 
   const record = mapRow(data);
   record.member_code = await fetchOwnMemberCode(supabase, record.id);
+  record.vault_drop_code = await fetchOwnVaultDropCode(supabase, record.id);
   return record;
 }
 
@@ -196,7 +215,7 @@ export async function uploadVaultDropDraft(
 
     const imageUrls = await uploadVaultDropProductImages(userId, productDraft.images);
     if (imageUrls.length === 0) {
-      throw new Error(`Vault Drop product ${index + 1} is missing a required photo.`);
+      throw new Error(`FLASH SALE product ${index + 1} is missing a required photo.`);
     }
 
     products.push({
@@ -212,6 +231,7 @@ export async function uploadVaultDropDraft(
   return {
     duration_days: validation.stored.duration_days,
     countdown_end_time: validation.stored.countdown_end_time,
+    discount_percentage: validation.stored.discount_percentage,
     products,
   };
 }
@@ -338,6 +358,7 @@ export async function submitPartnerApplication(
       id: existing?.id ?? `dev-partner-${userId}`,
       ...payload,
       affiliate_enabled: affiliateConfig.enabled,
+      vault_drop_code: existing?.vault_drop_code ?? null,
     };
     writeDevPartner(record);
     return record;
@@ -492,6 +513,9 @@ export async function submitPartnerApplication(
   }
 
   const vaultDropStored = await resolveVaultDropForSubmit(userId, draft.vaultDrop);
+  const vaultDropCode = vaultDropStored
+    ? generateVaultDropCode(businessName ?? "Partner", vaultDropStored.discount_percentage)
+    : null;
 
   const { error: postSubmitError } = await supabase
     .from("partners")
@@ -503,6 +527,7 @@ export async function submitPartnerApplication(
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
       vault_drop: vaultDropStored,
+      ...(vaultDropCode ? { vault_drop_code: vaultDropCode } : {}),
       ...affiliatePayload,
     })
     .eq("user_id", userId);
@@ -510,13 +535,14 @@ export async function submitPartnerApplication(
   if (postSubmitError) {
     throw new Error(
       postSubmitError.message.includes("vault_drop")
-        ? "Your application was submitted, but Vault Drop details could not be saved. Please add them again on My Listing."
+        ? "Your application was submitted, but FLASH SALE details could not be saved. Please add them again on My Listing."
         : `Unable to save application details: ${postSubmitError.message}`
     );
   }
 
   const record = mapRow(data as Record<string, unknown>);
   record.member_code = memberCode;
+  record.vault_drop_code = vaultDropCode;
   return record;
 }
 
@@ -549,6 +575,7 @@ export async function confirmMemberOfferLive(
 
   const record = mapRow(data as Record<string, unknown>);
   record.member_code = await fetchOwnMemberCode(supabase, record.id);
+  record.vault_drop_code = await fetchOwnVaultDropCode(supabase, record.id);
   return record;
 }
 
@@ -963,6 +990,27 @@ export async function updatePartnerListing(
     bannerCrop: true,
     galleryCrop: true,
   });
+
+  const { data: partnerRow } = await supabase
+    .from("partners")
+    .select("id, business_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (partnerRow && data.vaultDrop) {
+    const existingVaultDropCode = await fetchOwnVaultDropCode(
+      supabase,
+      String(partnerRow.id)
+    );
+    if (!existingVaultDropCode) {
+      fullPayload.vault_drop_code = generateVaultDropCode(
+        formatBusinessNameOrNull(partnerRow.business_name as string | null) ??
+          data.companyName,
+        data.vaultDrop.discount_percentage
+      );
+    }
+  }
+
   let { error } = await supabase
     .from("partners")
     .update(fullPayload)

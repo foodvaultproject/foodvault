@@ -125,6 +125,7 @@ export async function sendPartnerApplicationApprovedEmail(input: {
   contactName?: string | null;
   businessName: string;
   memberCode?: string | null;
+  vaultDropCode?: string | null;
 }) {
   const appUrl = getEmailAppUrl();
 
@@ -135,6 +136,7 @@ export async function sendPartnerApplicationApprovedEmail(input: {
       contactName: input.contactName,
       businessName: input.businessName,
       memberCode: input.memberCode,
+      vaultDropCode: input.vaultDropCode,
     }),
   });
 }
@@ -263,7 +265,7 @@ export async function sendPartnerActivationReminderEmail(input: {
   const { data: partner } = await admin
     .from("partners")
     .select(
-      "business_name, support_email, user_id, contact_name, member_code, application_status_v2, listing_status_v2"
+      "business_name, support_email, user_id, contact_name, member_code, vault_drop_code, application_status_v2, listing_status_v2"
     )
     .eq("id", input.partnerId)
     .maybeSingle();
@@ -293,6 +295,7 @@ export async function sendPartnerActivationReminderEmail(input: {
         null,
       businessName: partner.business_name?.trim() || "your brand",
       memberCode: partner.member_code?.trim() || null,
+      vaultDropCode: partner.vault_drop_code?.trim() || null,
       reminderNumber: input.reminderNumber,
     }),
   });
@@ -304,7 +307,7 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
 
   const { data: partner } = await admin
     .from("partners")
-    .select("business_name, support_email, slug, user_id, contact_name, member_code")
+    .select("business_name, support_email, slug, user_id, contact_name, member_code, vault_drop_code")
     .eq("id", partnerId)
     .maybeSingle();
 
@@ -323,6 +326,7 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
       null,
     businessName: partner.business_name?.trim() || "your brand",
     memberCode: partner.member_code?.trim() || null,
+    vaultDropCode: partner.vault_drop_code?.trim() || null,
   });
 
   if (result.sent) {

@@ -70,6 +70,7 @@ export function PartnerOnboardingBanner() {
       <PartnerOnboardingStatusBanner
         state={onboardingState}
         memberCode={partner?.member_code}
+        vaultDropCode={partner?.vault_drop_code}
         partnerId={partner?.id}
         onActivate={openActivationDialog}
         confirmingActivation={confirmingActivation}

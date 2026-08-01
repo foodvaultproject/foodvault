@@ -4,7 +4,7 @@ import type { PartnerGalleryDraftItem } from "@/components/partners/PartnerGalle
 import { DEFAULT_GALLERY_CROP } from "@/lib/partner-gallery-crop";
 
 export const VAULT_DROP_SECTION_INTRO =
-  "What is The Vault Drop? This tool is designed to help you quickly liquidate deleted SKUs, clear inventory with old packaging, move surplus/overstock items, or run exclusive short-term bulk offers directly to FoodVault members.";
+  "What is FLASH SALE? This tool is designed to help you quickly liquidate deleted SKUs, clear inventory with old packaging, move surplus/overstock items, or run exclusive short-term bulk offers directly to FoodVault members.";
 
 export const VAULT_DROP_REASONS = [
   "Discontinued SKU",
@@ -33,7 +33,7 @@ export const VAULT_DROP_DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 export type VaultDropDurationDays = (typeof VAULT_DROP_DURATION_OPTIONS)[number];
 
-export const VAULT_DROP_MAX_PRODUCTS = 10;
+export const VAULT_DROP_MAX_PRODUCTS = 20;
 export const VAULT_DROP_MAX_IMAGES_PER_PRODUCT = 10;
 export const VAULT_DROP_MAX_DESCRIPTION_LENGTH = 160;
 export const VAULT_DROP_MAX_TITLE_LENGTH = 120;
@@ -44,6 +44,7 @@ export type VaultDropProductStored = {
   image_urls: string[];
   original_price: number;
   clearance_price: number;
+  /** Kept on each product for display/back-compat; mirrors form-level discount. */
   discount_percentage: number;
   reason_tag: VaultDropReasonTag;
   direct_store_link: string;
@@ -52,6 +53,7 @@ export type VaultDropProductStored = {
 export type VaultDropStored = {
   duration_days: VaultDropDurationDays;
   countdown_end_time: string | null;
+  discount_percentage: number;
   products: VaultDropProductStored[];
 };
 
@@ -61,7 +63,6 @@ export type VaultDropProductDraft = {
   title: string;
   description: string;
   images: PartnerGalleryDraftItem[];
-  discountPercent: string;
   originalPrice: string;
   reasonTag: VaultDropReasonTag | "";
   directStoreLink: string;
@@ -70,6 +71,7 @@ export type VaultDropProductDraft = {
 export type VaultDropFormDraft = {
   enabled: boolean;
   durationDays: VaultDropDurationDays;
+  discountPercent: string;
   products: VaultDropProductDraft[];
 };
 
@@ -89,7 +91,6 @@ export function createVaultDropProductDraft(
     title: "",
     description: "",
     images: [],
-    discountPercent: "",
     originalPrice: "",
     reasonTag: "",
     directStoreLink: "",
@@ -101,6 +102,7 @@ export function emptyVaultDropFormDraft(): VaultDropFormDraft {
   return {
     enabled: false,
     durationDays: 3,
+    discountPercent: "",
     products: [createVaultDropProductDraft()],
   };
 }
@@ -170,7 +172,7 @@ export function validateVaultDropDiscountInput(value: string): string | null {
     return `Enter a discount of at least ${VAULT_DROP_MIN_DISCOUNT_PERCENT}%.`;
   }
   if (discount < VAULT_DROP_MIN_DISCOUNT_PERCENT) {
-    return `Vault Drop requires a minimum ${VAULT_DROP_MIN_DISCOUNT_PERCENT}% discount.`;
+    return `FLASH SALE requires a minimum ${VAULT_DROP_MIN_DISCOUNT_PERCENT}% discount.`;
   }
   if (discount > 99) {
     return "Discount cannot exceed 99%.";
@@ -180,6 +182,16 @@ export function validateVaultDropDiscountInput(value: string): string | null {
 
 export function formatVaultDropDiscountLabel(percent: number): string {
   return `${percent}% OFF`;
+}
+
+export function resolveVaultDropDiscountPercent(stored: VaultDropStored): number {
+  if (
+    Number.isFinite(stored.discount_percentage) &&
+    stored.discount_percentage > 0
+  ) {
+    return stored.discount_percentage;
+  }
+  return stored.products[0]?.discount_percentage ?? 0;
 }
 
 export function computeCountdownEndTime(durationDays: VaultDropDurationDays): string {
@@ -231,7 +243,10 @@ function parseLegacyVaultDropProduct(record: Record<string, unknown>): VaultDrop
   };
 }
 
-function parseVaultDropProduct(value: unknown): VaultDropProductStored | null {
+function parseVaultDropProduct(
+  value: unknown,
+  sharedDiscount: number
+): VaultDropProductStored | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
   const reasonTagRaw = typeof record.reason_tag === "string" ? record.reason_tag : "";
@@ -239,8 +254,15 @@ function parseVaultDropProduct(value: unknown): VaultDropProductStored | null {
   if (!reasonTag) return null;
 
   const originalPrice = Number(record.original_price);
-  const clearancePrice = Number(record.clearance_price);
-  const discountPercentage = Number(record.discount_percentage);
+  const perProductDiscount = Number(record.discount_percentage);
+  const discountPercentage =
+    Number.isFinite(sharedDiscount) && sharedDiscount > 0
+      ? sharedDiscount
+      : perProductDiscount;
+  const clearancePrice =
+    Number.isFinite(Number(record.clearance_price)) && Number(record.clearance_price) > 0
+      ? Number(record.clearance_price)
+      : calculateClearancePrice(originalPrice, discountPercentage);
   const imageUrls = Array.isArray(record.image_urls)
     ? (record.image_urls as unknown[]).filter((url): url is string => typeof url === "string")
     : typeof record.image_url === "string" && record.image_url
@@ -252,7 +274,7 @@ function parseVaultDropProduct(value: unknown): VaultDropProductStored | null {
     typeof record.description !== "string" ||
     typeof record.direct_store_link !== "string" ||
     !Number.isFinite(originalPrice) ||
-    !Number.isFinite(clearancePrice) ||
+    clearancePrice == null ||
     !Number.isFinite(discountPercentage) ||
     imageUrls.length === 0
   ) {
@@ -276,10 +298,17 @@ export function parseVaultDropStored(value: unknown): VaultDropStored | null {
   const record = value as Record<string, unknown>;
 
   if (Array.isArray(record.products)) {
+    const rootDiscount = Number(record.discount_percentage);
+    const sharedDiscount =
+      Number.isFinite(rootDiscount) && rootDiscount > 0 ? rootDiscount : 0;
+
     const products = record.products
-      .map(parseVaultDropProduct)
+      .map((product) => parseVaultDropProduct(product, sharedDiscount))
       .filter((product): product is VaultDropProductStored => product != null);
     if (products.length === 0) return null;
+
+    const discountPercentage =
+      sharedDiscount > 0 ? sharedDiscount : products[0]?.discount_percentage ?? 0;
 
     const durationDays = Number(record.duration_days);
     return {
@@ -288,7 +317,14 @@ export function parseVaultDropStored(value: unknown): VaultDropStored | null {
         : 3,
       countdown_end_time:
         typeof record.countdown_end_time === "string" ? record.countdown_end_time : null,
-      products,
+      discount_percentage: discountPercentage,
+      products: products.map((product) => ({
+        ...product,
+        discount_percentage: discountPercentage,
+        clearance_price:
+          calculateClearancePrice(product.original_price, discountPercentage) ??
+          product.clearance_price,
+      })),
     };
   }
 
@@ -299,6 +335,7 @@ export function parseVaultDropStored(value: unknown): VaultDropStored | null {
     duration_days: 3,
     countdown_end_time:
       typeof record.countdown_end_time === "string" ? record.countdown_end_time : null,
+    discount_percentage: legacyProduct.discount_percentage,
     products: [legacyProduct],
   };
 }
@@ -316,16 +353,18 @@ function galleryItemsFromStoredUrls(urls: string[]): PartnerGalleryDraftItem[] {
 export function vaultDropFormFromStored(stored: VaultDropStored | null): VaultDropFormDraft {
   if (!stored) return emptyVaultDropFormDraft();
 
+  const discountPercent = String(resolveVaultDropDiscountPercent(stored));
+
   return {
     enabled: true,
     durationDays: stored.duration_days,
+    discountPercent,
     products: stored.products.map((product) =>
       createVaultDropProductDraft({
         collapsed: true,
         title: product.title,
         description: product.description,
         images: galleryItemsFromStoredUrls(product.image_urls),
-        discountPercent: String(product.discount_percentage),
         originalPrice: String(product.original_price),
         reasonTag: product.reason_tag,
         directStoreLink: product.direct_store_link,
@@ -346,9 +385,12 @@ export function vaultDropDraftFromSerializable(
     : 3;
 
   const products =
-    draft.products?.map((product, index) =>
-      createVaultDropProductDraft({
-        ...product,
+    draft.products?.map((product, index) => {
+      const { discountPercent: _legacyDiscount, ...rest } = product as VaultDropProductDraft & {
+        discountPercent?: string;
+      };
+      return createVaultDropProductDraft({
+        ...rest,
         id: product.id || createProductId(),
         collapsed: product.collapsed ?? index > 0,
         images: (product.images ?? []).map((item) =>
@@ -361,12 +403,13 @@ export function vaultDropDraftFromSerializable(
         ),
         reasonTag:
           product.reasonTag && isVaultDropReasonTag(product.reasonTag) ? product.reasonTag : "",
-      })
-    ) ?? [createVaultDropProductDraft()];
+      });
+    }) ?? [createVaultDropProductDraft()];
 
   return {
     enabled: draft.enabled ?? false,
     durationDays,
+    discountPercent: draft.discountPercent ?? "",
     products: products.length > 0 ? products : [createVaultDropProductDraft()],
   };
 }
@@ -376,14 +419,16 @@ function productHasAnyValue(product: VaultDropProductDraft): boolean {
     product.title.trim() ||
       product.description.trim() ||
       product.images.some(Boolean) ||
-      product.discountPercent ||
       product.originalPrice ||
       product.reasonTag ||
       product.directStoreLink.trim()
   );
 }
 
-export function isVaultDropProductComplete(product: VaultDropProductDraft): boolean {
+export function isVaultDropProductComplete(
+  product: VaultDropProductDraft,
+  formDiscountPercent: string
+): boolean {
   if (!product.title.trim()) return false;
   if (!product.description.trim()) return false;
   if (!product.images.some(Boolean)) return false;
@@ -391,9 +436,9 @@ export function isVaultDropProductComplete(product: VaultDropProductDraft): bool
   const originalPrice = parsePriceInput(product.originalPrice);
   if (originalPrice == null) return false;
 
-  if (validateVaultDropDiscountInput(product.discountPercent)) return false;
+  if (validateVaultDropDiscountInput(formDiscountPercent)) return false;
 
-  const discountPercentage = Number(sanitizeVaultDropDiscount(product.discountPercent));
+  const discountPercentage = Number(sanitizeVaultDropDiscount(formDiscountPercent));
   if (calculateClearancePrice(originalPrice, discountPercentage) == null) return false;
 
   if (!product.reasonTag || !isVaultDropReasonTag(product.reasonTag)) return false;
@@ -408,7 +453,7 @@ export function getVaultDropStartedProducts(
   return draft.products.filter(productHasAnyValue);
 }
 
-/** Treat filled-in Vault Drop products as enabled when saving from the application. */
+/** Treat filled-in FLASH SALE products as enabled when saving from the application. */
 export function prepareVaultDropDraftForSubmit(
   draft: VaultDropFormDraft | undefined
 ): VaultDropFormDraft {
@@ -429,46 +474,41 @@ export type VaultDropValidationResult =
   | { ok: false; message: string };
 
 function validateVaultDropProduct(
-  product: VaultDropProductDraft
+  product: VaultDropProductDraft,
+  discountPercentage: number
 ): { ok: true; product: VaultDropProductStored } | { ok: false; message: string } | { ok: true; product: null } {
   if (!productHasAnyValue(product)) {
     return { ok: true, product: null };
   }
 
   if (!product.title.trim()) {
-    return { ok: false, message: "Vault Drop offer title is required." };
+    return { ok: false, message: "FLASH SALE offer title is required." };
   }
 
   if (!product.description.trim()) {
-    return { ok: false, message: "Vault Drop description is required." };
+    return { ok: false, message: "FLASH SALE description is required." };
   }
 
   if (!product.images.some(Boolean)) {
-    return { ok: false, message: "Add at least one product photo for each Vault Drop item." };
+    return { ok: false, message: "Add at least one product photo for each FLASH SALE item." };
   }
 
   const originalPrice = parsePriceInput(product.originalPrice);
   if (originalPrice == null) {
-    return { ok: false, message: "Enter a valid original price for each Vault Drop item." };
+    return { ok: false, message: "Enter a valid original price for each FLASH SALE item." };
   }
 
-  const discountError = validateVaultDropDiscountInput(product.discountPercent);
-  if (discountError) {
-    return { ok: false, message: discountError };
-  }
-
-  const discountPercentage = Number(sanitizeVaultDropDiscount(product.discountPercent));
   const clearancePrice = calculateClearancePrice(originalPrice, discountPercentage);
   if (clearancePrice == null) {
     return { ok: false, message: "Unable to calculate clearance price." };
   }
 
   if (!product.reasonTag) {
-    return { ok: false, message: "Select a reason for each Vault Drop item." };
+    return { ok: false, message: "Select a reason for each FLASH SALE item." };
   }
 
   if (!product.directStoreLink.trim()) {
-    return { ok: false, message: "Direct store link is required for each Vault Drop item." };
+    return { ok: false, message: "Direct store link is required for each FLASH SALE item." };
   }
 
   return {
@@ -504,14 +544,20 @@ export function validateVaultDropForm(
   if (requireComplete && startedProducts.length === 0) {
     return {
       ok: false,
-      message: "Add at least one Vault Drop product or disable The Vault Drop section.",
+      message: "Add at least one FLASH SALE product or disable the FLASH SALE section.",
     };
   }
 
+  const discountError = validateVaultDropDiscountInput(draft.discountPercent);
+  if (discountError) {
+    return { ok: false, message: discountError };
+  }
+
+  const discountPercentage = Number(sanitizeVaultDropDiscount(draft.discountPercent));
   const storedProducts: VaultDropProductStored[] = [];
 
   for (const product of startedProducts) {
-    const result = validateVaultDropProduct(product);
+    const result = validateVaultDropProduct(product, discountPercentage);
     if (!result.ok) {
       return result;
     }
@@ -529,6 +575,7 @@ export function validateVaultDropForm(
     stored: {
       duration_days: draft.durationDays,
       countdown_end_time: computeCountdownEndTime(draft.durationDays),
+      discount_percentage: discountPercentage,
       products: storedProducts,
     },
   };

@@ -44,6 +44,7 @@ import {
 } from "@/lib/partner-affiliate";
 import {
   getPartnerListing,
+  getPartnerRecord,
   updatePartnerListing,
   uploadPartnerAsset,
   uploadPartnerBanner,
@@ -125,6 +126,7 @@ type EditorListing = {
   offerExclusions: string;
   selectedProductDrafts: SelectedProductDraft[];
   memberCode: string;
+  vaultDropCode: string;
   supportEmail: string;
   supportPhone: string;
   contactName: string;
@@ -164,6 +166,7 @@ const emptyListing: EditorListing = {
   offerExclusions: "",
   selectedProductDrafts: [],
   memberCode: "",
+  vaultDropCode: "",
   supportEmail: "",
   supportPhone: "",
   contactName: "",
@@ -203,6 +206,7 @@ function listingFromPartnerRecord(partner: PartnerRecord): EditorListing {
     companyName: partner.business_name ?? "",
     websiteUrl: partner.website_url ?? "",
     memberCode: partner.member_code ?? "",
+    vaultDropCode: partner.vault_drop_code ?? "",
     profileSlug: partnerProfileSlug(partner.business_name ?? ""),
   };
 }
@@ -231,6 +235,7 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     offerExclusions: data.offerExclusions,
     selectedProductDrafts: data.selectedProducts.map(selectedProductToDraft),
     memberCode: partner.member_code ?? "",
+    vaultDropCode: partner.vault_drop_code ?? "",
     supportEmail: data.supportEmail,
     supportPhone: data.supportPhone,
     contactName: data.contactName,
@@ -607,7 +612,7 @@ export function PartnerListingEditor() {
       setSaving(false);
       setStatus({
         type: "error",
-        message: error instanceof Error ? error.message : "Vault Drop upload failed.",
+        message: error instanceof Error ? error.message : "FLASH SALE upload failed.",
       });
       return;
     }
@@ -667,9 +672,11 @@ export function PartnerListingEditor() {
 
     try {
       await updatePartnerListing(partner.user_id, payload);
+      const refreshedPartner = await getPartnerRecord(partner.user_id);
       setListing((prev) => ({
         ...prev,
         companyName: payload.companyName,
+        vaultDropCode: refreshedPartner?.vault_drop_code ?? prev.vaultDropCode,
         affiliateCreatedAt:
           payload.affiliateEnabled && !prev.affiliateCreatedAt
             ? new Date().toISOString()
@@ -970,8 +977,22 @@ export function PartnerListingEditor() {
           </div>
         </section>
 
-        <section id="vault-drop" className={`${portalCard} mt-6 scroll-mt-20`}>
-          <h2 className={portalSectionTitle}>The Vault Drop (Optional)</h2>
+        {listing.vaultDropCode ? (
+          <section className="mt-6 rounded-lg border-2 border-amber-300/40 bg-amber-50/60 px-5 py-4 shadow-sm">
+            <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">
+              FLASH SALE Discount Code
+            </p>
+            <p className={`${portalMetricValue} mt-0.5 text-primary`}>{listing.vaultDropCode}</p>
+            <p className={`${portalHelper} mt-2 font-bold text-foreground`}>
+              This is your official FoodVault FLASH SALE code. Members enter this code on your
+              website to receive the clearance discount on your listed FLASH SALE items. This code
+              cannot be changed.
+            </p>
+          </section>
+        ) : null}
+
+        <section id="flash-sale" className={`${portalCard} mt-6 scroll-mt-20`}>
+          <h2 className={portalSectionTitle}>FLASH SALE (Optional)</h2>
           <div className={portalCardContent}>
             <VaultDropFields
               value={listing.vaultDrop}
@@ -982,7 +1003,7 @@ export function PartnerListingEditor() {
               helperClass={helperClass}
               fieldGapClass={portalFieldGap}
               idPrefix="listing-vault-drop"
-              scrollAnchorId="vault-drop"
+              scrollAnchorId="flash-sale"
             />
           </div>
         </section>

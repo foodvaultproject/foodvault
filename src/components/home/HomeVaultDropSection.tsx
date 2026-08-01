@@ -74,7 +74,7 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={drop.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-          <VaultDropTitleBadge label="THE VAULT DROP" />
+          <VaultDropTitleBadge label="FLASH SALE" />
           <VaultDropDiscountBadge
             label={formatVaultDropDiscountLabel(drop.discount_percentage)}
           />
@@ -126,7 +126,7 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
             rel="noopener noreferrer"
             className="fv-btn-primary mt-4 inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground"
           >
-            Shop Vault Drop
+            Shop FLASH SALE
           </Link>
         )}
       </div>
@@ -146,10 +146,10 @@ export function HomeVaultDropSection({ drops }: { drops: PublicVaultDrop[] }) {
               Limited Time
             </p>
             <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-              The Vault Drop
+              FLASH SALE
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Exclusive clearance offers from FoodVault partner brands — deep discounts for a
+              Exclusive clearance offers from FoodVault partner brands — one shared discount for a
               short time only.
             </p>
           </div>
