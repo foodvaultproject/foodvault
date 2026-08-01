@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { processOpenPartnerInvoices, processOpenPayoutBatch } from "@/lib/payment-service/engine";
-import { queueNotification } from "@/lib/notification-service/engine";
 import { recordScheduledJobRun } from "@/lib/audit-service";
+import { queueNotification } from "@/lib/notification-service/engine";
+import { processOpenPartnerInvoices, processOpenPayoutBatch } from "@/lib/payment-service/engine";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export const maxDuration = 30;
 
 function authorizeCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET ?? process.env.PAYMENT_CRON_SECRET ?? "";

@@ -125,7 +125,7 @@ export async function deliverNotificationEvent(event: NotificationEventRow) {
   );
 }
 
-export async function processPendingNotifications(limit = 50) {
+export async function processPendingNotifications(limit = 20) {
   const admin = createAdminClient();
   if (!admin) throw new Error("Admin client unavailable");
 

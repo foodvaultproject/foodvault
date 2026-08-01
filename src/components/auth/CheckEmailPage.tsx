@@ -19,7 +19,7 @@ import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import { getVerificationStatusAction } from "@/lib/auth/verification-status";
 import { createClient } from "@/lib/supabase/client";
 
-const POLL_INTERVAL_MS = 4000;
+const POLL_INTERVAL_MS = 10_000;
 const RESEND_COOLDOWN_SECONDS = 60;
 
 function parseAccountType(value: string | null): AccountType {
@@ -65,9 +65,14 @@ function CheckEmailContent() {
 
   const pollingActiveRef = useRef(true);
   const redirectingRef = useRef(false);
+  const pollIntervalRef = useRef<number | null>(null);
 
   const stopPolling = useCallback(() => {
     pollingActiveRef.current = false;
+    if (pollIntervalRef.current !== null) {
+      window.clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
   }, []);
 
   const finishRedirect = useCallback(
@@ -107,6 +112,10 @@ function CheckEmailContent() {
       return false;
     }
 
+    if (!pollingActiveRef.current || redirectingRef.current) {
+      return false;
+    }
+
     const supabase = createClient();
     await supabase.auth.refreshSession();
 
@@ -115,8 +124,13 @@ function CheckEmailContent() {
     } = await supabase.auth.getUser();
 
     if (user?.email_confirmed_at) {
+      stopPolling();
       await supabase.auth.refreshSession();
       return tryCompleteVerifiedSession(options);
+    }
+
+    if (!pollingActiveRef.current || redirectingRef.current) {
+      return false;
     }
 
     const status = await getVerificationStatusAction(email, account);
@@ -163,7 +177,7 @@ function CheckEmailContent() {
     }
 
     return tryCompleteVerifiedSession(options);
-  }, [account, email, finishRedirect, tryCompleteVerifiedSession]);
+  }, [account, email, finishRedirect, stopPolling, tryCompleteVerifiedSession]);
 
   const handleVerifiedClick = useCallback(async () => {
     setChecking(true);
@@ -229,19 +243,35 @@ function CheckEmailContent() {
         return;
       }
 
+      const supabase = createClient();
+      await supabase.auth.refreshSession();
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user?.email_confirmed_at) {
+        stopPolling();
+        await tryCompleteVerifiedSession({ silent: true });
+        return;
+      }
+
+      if (!pollingActiveRef.current || redirectingRef.current) {
+        return;
+      }
+
       await trySignInAndContinue({ silent: true });
     };
 
     void poll();
-    const intervalId = window.setInterval(() => {
+    pollIntervalRef.current = window.setInterval(() => {
       void poll();
     }, POLL_INTERVAL_MS);
 
     return () => {
       stopPolling();
-      window.clearInterval(intervalId);
     };
-  }, [email, stopPolling, trySignInAndContinue]);
+  }, [email, stopPolling, tryCompleteVerifiedSession, trySignInAndContinue]);
 
   const resendDisabled = resending || cooldownSeconds > 0 || !email || isRedirecting;
 

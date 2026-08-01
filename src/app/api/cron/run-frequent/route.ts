@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
-import { processPartnerActivationReminderEmails } from "@/lib/email-templates/partner-activation-cron";
-import { approveExpiredCommissions } from "@/lib/store-integration/engine";
-import { processPendingNotifications } from "@/lib/notification-service/engine";
 import { recordScheduledJobRun } from "@/lib/audit-service";
+import { CRON_EMAIL_BATCH_LIMIT } from "@/lib/cron/constants";
+import { processPartnerActivationReminderEmails } from "@/lib/email-templates/partner-activation-cron";
+import { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
+import { processPendingNotifications } from "@/lib/notification-service/engine";
+import { approveExpiredCommissions } from "@/lib/store-integration/engine";
+
+export const maxDuration = 30;
 
 function authorizeCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET ?? process.env.NOTIFICATION_CRON_SECRET ?? "";
@@ -24,21 +27,23 @@ export async function POST(request: NextRequest) {
       result: { approved },
     });
 
-    const processed = await processPendingNotifications(50);
+    const processed = await processPendingNotifications(CRON_EMAIL_BATCH_LIMIT);
     await recordScheduledJobRun({
       jobName: "process_notifications",
       status: "success",
       result: { processed },
     });
 
-    const trialEmails = await processMemberTrialEmails();
+    const trialEmails = await processMemberTrialEmails(CRON_EMAIL_BATCH_LIMIT);
     await recordScheduledJobRun({
       jobName: "process_member_trial_emails",
       status: "success",
       result: trialEmails,
     });
 
-    const partnerActivationReminders = await processPartnerActivationReminderEmails();
+    const partnerActivationReminders = await processPartnerActivationReminderEmails(
+      CRON_EMAIL_BATCH_LIMIT
+    );
     await recordScheduledJobRun({
       jobName: "process_partner_activation_reminders",
       status: "success",

@@ -24,7 +24,9 @@ function daysUntilTrialEnd(trialEndsAt: string, now = new Date()) {
   return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
 
-export async function processMemberTrialEmails(): Promise<TrialEmailProcessResult> {
+export async function processMemberTrialEmails(
+  maxEmails = 20
+): Promise<TrialEmailProcessResult> {
   const admin = createAdminClient();
   if (!admin) {
     return { reminder3d: 0, reminder1d: 0, ended: 0 };
@@ -51,8 +53,10 @@ export async function processMemberTrialEmails(): Promise<TrialEmailProcessResul
   let reminder3d = 0;
   let reminder1d = 0;
   let ended = 0;
+  let sent = 0;
 
   for (const member of members) {
+    if (sent >= maxEmails) break;
     const email = member.email?.trim();
     const trialEndsAt = member.trial_ends_at;
     if (!email || !trialEndsAt) continue;
@@ -77,8 +81,11 @@ export async function processMemberTrialEmails(): Promise<TrialEmailProcessResul
           .update({ trial_reminder_3d_sent_at: nowIso })
           .or(`auth_user_id.eq.${memberId},id.eq.${memberId}`);
         reminder3d += 1;
+        sent += 1;
       }
     }
+
+    if (sent >= maxEmails) break;
 
     if (daysRemaining === 1 && !member.trial_reminder_1d_sent_at) {
       const result = await sendMemberFreeTrialReminderEmail({
@@ -93,8 +100,11 @@ export async function processMemberTrialEmails(): Promise<TrialEmailProcessResul
           .update({ trial_reminder_1d_sent_at: nowIso })
           .or(`auth_user_id.eq.${memberId},id.eq.${memberId}`);
         reminder1d += 1;
+        sent += 1;
       }
     }
+
+    if (sent >= maxEmails) break;
 
     if (daysRemaining < 0 && !member.trial_ended_email_sent_at) {
       const result = await sendMemberFreeTrialEndedEmail({
@@ -108,6 +118,7 @@ export async function processMemberTrialEmails(): Promise<TrialEmailProcessResul
           .update({ trial_ended_email_sent_at: nowIso })
           .or(`auth_user_id.eq.${memberId},id.eq.${memberId}`);
         ended += 1;
+        sent += 1;
       }
     }
   }

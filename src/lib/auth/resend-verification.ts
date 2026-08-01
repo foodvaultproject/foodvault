@@ -1,10 +1,10 @@
 "use server";
 
-import type { User } from "@supabase/supabase-js";
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
+import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
 import {
   MEMBER_HOME_PATH,
   SIGNUP_MEMBERSHIP_PATH,
@@ -24,36 +24,6 @@ function defaultNextPathForAccount(accountType: AccountType) {
   }
 }
 
-async function findUserByEmail(email: string): Promise<User | null> {
-  const admin = createAdminClient();
-  if (!admin) {
-    return null;
-  }
-
-  let page = 1;
-  const perPage = 1000;
-
-  while (true) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    const user = data.users.find(
-      (candidate) => candidate.email?.toLowerCase() === email.toLowerCase()
-    );
-    if (user) {
-      return user;
-    }
-
-    if (data.users.length < perPage) {
-      return null;
-    }
-
-    page += 1;
-  }
-}
-
 export async function resendSignupVerificationAction(
   email: string,
   accountType: AccountType
@@ -67,9 +37,9 @@ export async function resendSignupVerificationAction(
     return { error: "Email verification is not configured in this environment." };
   }
 
-  let user: User | null;
+  let user;
   try {
-    user = await findUserByEmail(trimmed);
+    user = await findAuthUserByEmail(trimmed);
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : "Unable to look up account.",

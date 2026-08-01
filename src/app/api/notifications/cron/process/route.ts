@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordScheduledJobRun } from "@/lib/audit-service";
+import { CRON_EMAIL_BATCH_LIMIT } from "@/lib/cron/constants";
 import { processPendingNotifications } from "@/lib/notification-service/engine";
 import { approveExpiredCommissions } from "@/lib/store-integration/engine";
-import { recordScheduledJobRun } from "@/lib/audit-service";
+
+export const maxDuration = 30;
 
 function authorizeCron(request: NextRequest) {
   const secret = process.env.NOTIFICATION_CRON_SECRET ?? process.env.CRON_SECRET ?? "";
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
       result: { approved },
     });
 
-    const processed = await processPendingNotifications(50);
+    const processed = await processPendingNotifications(CRON_EMAIL_BATCH_LIMIT);
     await recordScheduledJobRun({
       jobName: "process_notifications",
       status: "success",

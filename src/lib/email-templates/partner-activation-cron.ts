@@ -28,7 +28,9 @@ function isPendingActivation(partner: {
   );
 }
 
-export async function processPartnerActivationReminderEmails(): Promise<PartnerActivationEmailProcessResult> {
+export async function processPartnerActivationReminderEmails(
+  maxEmails = 20
+): Promise<PartnerActivationEmailProcessResult> {
   const admin = createAdminClient();
   if (!admin) {
     return { reminder1: 0, reminder2: 0, reminder3: 0 };
@@ -59,8 +61,10 @@ export async function processPartnerActivationReminderEmails(): Promise<PartnerA
   let reminder1 = 0;
   let reminder2 = 0;
   let reminder3 = 0;
+  let sent = 0;
 
   for (const partner of partners) {
+    if (sent >= maxEmails) break;
     if (!isPendingActivation(partner)) continue;
 
     const approvedAt = partner.approval_email_sent_at ?? partner.approved_at;
@@ -121,6 +125,7 @@ export async function processPartnerActivationReminderEmails(): Promise<PartnerA
     if (reminderNumber === 1) reminder1 += 1;
     if (reminderNumber === 2) reminder2 += 1;
     if (reminderNumber === 3) reminder3 += 1;
+    sent += 1;
   }
 
   return { reminder1, reminder2, reminder3 };

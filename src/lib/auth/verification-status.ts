@@ -2,6 +2,7 @@
 
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
+import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type VerificationStatusResult =
@@ -14,37 +15,6 @@ export type VerificationStatusResult =
       signupCompleted: boolean;
       accountType: AccountType;
     };
-
-async function findUserByEmail(email: string) {
-  const admin = createAdminClient();
-  if (!admin) {
-    return null;
-  }
-
-  let page = 1;
-  const perPage = 1000;
-  const normalized = email.trim().toLowerCase();
-
-  while (true) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    const user = data.users.find(
-      (candidate) => candidate.email?.toLowerCase() === normalized
-    );
-    if (user) {
-      return user;
-    }
-
-    if (data.users.length < perPage) {
-      return null;
-    }
-
-    page += 1;
-  }
-}
 
 export async function getVerificationStatusAction(
   email: string,
@@ -59,7 +29,7 @@ export async function getVerificationStatusAction(
     return { found: false };
   }
 
-  const user = await findUserByEmail(trimmed);
+  const user = await findAuthUserByEmail(trimmed);
   if (!user) {
     return { found: false };
   }

@@ -1,11 +1,9 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import { formatBusinessName } from "@/lib/business-name";
 import { partnerProfileSlug } from "@/lib/member/favorites-utils";
-import {
-  getPartnerVaultDropCode,
-  type CodeAccessState,
-} from "@/lib/member/partner-profile";
+import type { CodeAccessState } from "@/lib/member/partner-profile";
 import { createClient } from "@/lib/supabase/server";
+import { resolveHomeVaultDropCodesByPartner } from "@/lib/vault-drop-home-codes";
 import {
   getVaultDropCountdownParts,
   parseVaultDropStored,
@@ -123,16 +121,7 @@ export async function getHomeVaultDrops(limit = 12): Promise<HomeVaultDrop[]> {
   if (drops.length === 0) return [];
 
   const partnerIds = [...new Set(drops.map((drop) => drop.partnerId))];
-  const codeByPartner = new Map<
-    string,
-    { code: string | null; state: CodeAccessState }
-  >();
-
-  await Promise.all(
-    partnerIds.map(async (partnerId) => {
-      codeByPartner.set(partnerId, await getPartnerVaultDropCode(partnerId));
-    })
-  );
+  const codeByPartner = await resolveHomeVaultDropCodesByPartner(partnerIds);
 
   return drops.map((drop) => {
     const access = codeByPartner.get(drop.partnerId);
