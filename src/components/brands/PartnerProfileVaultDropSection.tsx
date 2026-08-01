@@ -11,6 +11,11 @@ import {
   type VaultDropProductStored,
   type VaultDropStored,
 } from "@/lib/vault-drop";
+import {
+  VaultDropDiscountBadge,
+  VaultDropReasonTag,
+  VaultDropTitleBadge,
+} from "@/components/vault-drop/VaultDropCardBadges";
 
 const SECTION_CARD =
   "rounded-lg border border-border bg-background p-4 shadow-sm sm:p-5";
@@ -81,23 +86,15 @@ function ProfileVaultDropProductCard({
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={product.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-          <span className="inline-block -skew-x-12 bg-primary px-2 py-1 shadow-sm">
-            <span className="inline-block skew-x-12 text-[0.625rem] font-bold uppercase leading-none text-primary-foreground">
-              The Vault Drop
-            </span>
-          </span>
-          <span className="inline-block -skew-x-12 bg-amber-500 px-2 py-1 shadow-sm">
-            <span className="inline-block skew-x-12 text-[0.625rem] font-bold uppercase leading-none text-white">
-              {formatVaultDropDiscountLabel(product.discount_percentage)}
-            </span>
-          </span>
+          <VaultDropTitleBadge label="The Vault Drop" />
+          <VaultDropDiscountBadge
+            label={formatVaultDropDiscountLabel(product.discount_percentage)}
+          />
         </div>
       </div>
 
       <div className="flex flex-1 flex-col p-3">
-        <span className="mb-2 inline-flex w-fit rounded-full bg-muted px-2 py-0.5 text-[0.6875rem] font-semibold text-muted-foreground">
-          {product.reason_tag}
-        </span>
+        <VaultDropReasonTag label={product.reason_tag} />
         <h3 className="line-clamp-2 text-sm font-bold text-foreground">{product.title}</h3>
         {product.description ? (
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{product.description}</p>

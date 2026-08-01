@@ -9,24 +9,11 @@ import {
   formatVaultDropDiscountLabel,
   formatVaultDropPrice,
 } from "@/lib/vault-drop";
-
-function SlantedBadge({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`inline-block -skew-x-12 px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5 ${className}`.trim()}
-    >
-      <span className="inline-block skew-x-12 text-[0.625rem] font-bold uppercase leading-none tracking-wide sm:text-xs">
-        {children}
-      </span>
-    </span>
-  );
-}
+import {
+  VaultDropDiscountBadge,
+  VaultDropReasonTag,
+  VaultDropTitleBadge,
+} from "@/components/vault-drop/VaultDropCardBadges";
 
 function VaultDropImageCarousel({ images }: { images: string[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -87,12 +74,10 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={drop.image_urls} />
         <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-          <SlantedBadge className="bg-primary text-primary-foreground">
-            THE VAULT DROP
-          </SlantedBadge>
-          <SlantedBadge className="bg-amber-500 text-white">
-            {formatVaultDropDiscountLabel(drop.discount_percentage)}
-          </SlantedBadge>
+          <VaultDropTitleBadge label="THE VAULT DROP" />
+          <VaultDropDiscountBadge
+            label={formatVaultDropDiscountLabel(drop.discount_percentage)}
+          />
         </div>
         {expired ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45">
@@ -104,9 +89,7 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <span className="mb-2 inline-flex w-fit rounded-full bg-muted px-2.5 py-0.5 text-[0.6875rem] font-semibold text-muted-foreground">
-          {drop.reason_tag}
-        </span>
+        <VaultDropReasonTag label={drop.reason_tag} />
         <h3 className="line-clamp-2 text-sm font-bold text-foreground sm:text-base">
           {drop.title}
         </h3>
