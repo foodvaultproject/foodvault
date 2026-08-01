@@ -7,6 +7,16 @@
 /** Page title (H1) — 22px, weight 700 */
 export const portalPageTitle = "portal-page-title";
 
+/** Onboarding banner title — explicit sizes for use outside [data-partner-portal] */
+export const onboardingBannerTitle =
+  "text-[22px] font-bold leading-snug tracking-[-0.015em]";
+
+/** Onboarding banner body copy */
+export const onboardingBannerBody = "mt-1.5 text-[0.8125rem] leading-relaxed";
+
+/** Onboarding banner code value */
+export const onboardingBannerCodeValue = "text-lg font-semibold tabular-nums";
+
 /** Section headings (H2) — 18px, weight 650–700 */
 export const portalSectionTitle = "portal-section-title";
 

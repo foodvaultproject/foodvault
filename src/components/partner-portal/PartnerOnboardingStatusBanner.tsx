@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { PartnerOnboardingState } from "@/lib/partner-status";
 import {
-  portalHelper,
-  portalPageTitle,
+  onboardingBannerBody,
+  onboardingBannerCodeValue,
+  onboardingBannerTitle,
   portalCardTitle,
-  portalMetricValue,
 } from "@/lib/partner-portal-classes";
 
 export const PARTNER_ACTIVE_ID_SESSION_KEY = "fv-active-partner-id";
@@ -43,24 +43,6 @@ function TimelineStep({
   );
 }
 
-function ChecklistStep({
-  label,
-  complete,
-}: {
-  label: string;
-  complete: boolean;
-}) {
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold sm:text-sm ${
-        complete ? "bg-white/20 text-white" : "bg-white/10 text-white/80"
-      }`}
-    >
-      {complete ? "✓" : "○"} {label}
-    </span>
-  );
-}
-
 function CodeCopyPanel({
   code,
   label,
@@ -88,7 +70,7 @@ function CodeCopyPanel({
         <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">
           {label}
         </p>
-        <p className={`${portalMetricValue} mt-1 truncate font-mono text-white`}>
+        <p className={`${onboardingBannerCodeValue} mt-1 truncate font-mono text-white`}>
           {code}
         </p>
       </div>
@@ -269,8 +251,10 @@ export function PartnerOnboardingStatusBanner({
               </svg>
             </span>
             <div className="min-w-0">
-              <h1 className={`${portalPageTitle} text-white`}>Your Listing Is Not Live</h1>
-              <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-white/90">
+              <h1 className={`${onboardingBannerTitle} text-white`}>
+                Your Listing Is Not Live
+              </h1>
+              <p className={`${onboardingBannerBody} text-white/90`}>
                 One final step remains before FoodVault members can discover your
                 business. Add your FoodVault member discount code to your own website,
                 {vaultDropCode
@@ -286,22 +270,13 @@ export function PartnerOnboardingStatusBanner({
                   copyAriaLabel="Copy FLASH SALE code"
                 />
               ) : null}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <ChecklistStep label="Application Approved" complete />
-                <ChecklistStep label="Member Code Generated" complete />
-                {vaultDropCode ? (
-                  <ChecklistStep label="FLASH SALE Code Generated" complete />
-                ) : null}
-                <ChecklistStep label="Confirm Member Offer Activated" complete={false} />
-                <ChecklistStep label="Listing Live" complete={false} />
-              </div>
             </div>
           </div>
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
             {previewMode ? (
               <Link
                 href="/partner/listing#offer"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-[0.8125rem] font-semibold text-orange-600 transition-colors hover:bg-white/90"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-orange-600 transition-colors hover:bg-white/90"
               >
                 Complete Setup in Partner Portal
               </Link>

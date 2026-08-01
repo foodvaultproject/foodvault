@@ -4,12 +4,13 @@ import Link from "next/link";
 import { ChecklistIcon, PartnerPortalShell } from "./PartnerPortalShell";
 import { setupChecklist } from "@/data/partner-portal";
 import {
+  onboardingBannerBody,
+  onboardingBannerTitle,
   portalCard,
   portalCardTitle,
   portalHelper,
   portalMetricValue,
   portalPage,
-  portalPageTitle,
   portalSectionTitle,
 } from "@/lib/partner-portal-classes";
 
@@ -63,25 +64,11 @@ export function PartnerDashboard() {
               </svg>
             </span>
             <div className="min-w-0 flex-1">
-              <h1 className={`${portalPageTitle} text-white`}>Your Listing Is Not Live</h1>
-              <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-white/90">
+              <h1 className={`${onboardingBannerTitle} text-white`}>Your Listing Is Not Live</h1>
+              <p className={`${onboardingBannerBody} text-white/90`}>
                 Complete the final steps below before FoodVault members can discover
                 your business for brand discovery and direct-to-consumer sales.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold sm:text-sm">
-                {["Application Approved", "Member Code Generated", "Confirm Member Offer Activated", "Listing Live"].map(
-                  (step, index) => (
-                    <span
-                      key={step}
-                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 ${
-                        index < 2 ? "bg-white/20" : "bg-white/10"
-                      }`}
-                    >
-                      {index < 2 ? "✓" : "○"} {step}
-                    </span>
-                  )
-                )}
-              </div>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <Link
                   href="/partner/review"
