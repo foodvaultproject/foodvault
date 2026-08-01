@@ -66,6 +66,7 @@ import {
 import {
   offerScopeFromLegacyAppliesTo,
   createSelectedProductDraft,
+  isSelectedProductComplete,
   DEFAULT_PARTNER_DISCOUNT_PERCENT,
   resolvePartnerApplicationDiscountValue,
   MIN_PARTNER_GALLERY_IMAGES,
@@ -278,12 +279,19 @@ export function PartnerApplicationPage() {
               offerScopeFromLegacyAppliesTo(draft.offerAppliesTo)
           );
           setSelectedProducts(
-            (draft.selectedProducts ?? []).map((product, index) => ({
-              ...createSelectedProductDraft(product.sortOrder ?? index),
-              ...product,
-              imageFile: null,
-              normalPrice: product.normalPrice ?? "",
-            }))
+            (draft.selectedProducts ?? []).map((product, index) => {
+              const restored = {
+                ...createSelectedProductDraft(product.sortOrder ?? index),
+                ...product,
+                imageFile: null,
+                normalPrice: product.normalPrice ?? "",
+              };
+              return {
+                ...restored,
+                collapsed:
+                  product.collapsed ?? isSelectedProductComplete(restored),
+              };
+            })
           );
           setSupportEmail(draft.supportEmail ?? partnerSession.email);
           setSupportPhone(sanitizePhoneNumber(draft.supportPhone ?? ""));

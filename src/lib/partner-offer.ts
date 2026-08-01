@@ -35,6 +35,7 @@ export type SelectedProduct = {
 /** Editable product row in application / listing forms. */
 export type SelectedProductDraft = {
   id: string;
+  collapsed?: boolean;
   imageUrl: string | null;
   imageFile: File | null;
   imageOriginalUrl?: string | null;
@@ -105,9 +106,13 @@ export function finalizeProductNameInput(
   return (trimmed.charAt(0).toUpperCase() + trimmed.slice(1)).slice(0, maxLength);
 }
 
-export function createSelectedProductDraft(sortOrder: number): SelectedProductDraft {
+export function createSelectedProductDraft(
+  sortOrder: number,
+  overrides: Partial<SelectedProductDraft> = {}
+): SelectedProductDraft {
   return {
     id: crypto.randomUUID(),
+    collapsed: false,
     imageUrl: null,
     imageFile: null,
     name: "",
@@ -117,8 +122,23 @@ export function createSelectedProductDraft(sortOrder: number): SelectedProductDr
     normalPrice: "",
     conditions: "",
     sortOrder,
+    ...overrides,
   };
 }
+
+export function isSelectedProductComplete(product: SelectedProductDraft): boolean {
+  if (!product.imageUrl && !product.imageFile) return false;
+  if (!product.name.trim()) return false;
+  if (product.name.trim().length > MAX_PRODUCT_NAME_LENGTH) return false;
+  if (!product.shortDescription.trim()) return false;
+  if (product.shortDescription.trim().length > MAX_PRODUCT_DESCRIPTION_LENGTH) return false;
+  if (!product.productUrl.trim()) return false;
+  if (!parsePriceValue(product.normalPrice)) return false;
+  return true;
+}
+
+export const SELECTED_PRODUCT_ADD_INCOMPLETE_MESSAGE =
+  "Please complete all fields before adding this product.";
 
 export function parseOfferScope(value: unknown): OfferScope {
   if (value === "selected_products") return "selected_products";
@@ -182,6 +202,7 @@ export function parseSelectedProducts(value: unknown): SelectedProduct[] {
 export function selectedProductToDraft(product: SelectedProduct): SelectedProductDraft {
   return {
     id: product.id,
+    collapsed: true,
     imageUrl: product.imageUrl,
     imageFile: null,
     name: product.name,

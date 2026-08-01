@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GalleryCropEditor } from "@/components/partners/GalleryCropEditor";
 import {
   portalCardTitle,
@@ -20,10 +20,12 @@ import {
   MAX_PRODUCT_DESCRIPTION_LENGTH,
   MAX_PRODUCT_NAME_LENGTH,
   MAX_SELECTED_PRODUCTS,
+  SELECTED_PRODUCT_ADD_INCOMPLETE_MESSAGE,
   calculateMemberPriceLabel,
   createSelectedProductDraft,
   finalizeProductNameInput,
   formatProductNameInput,
+  isSelectedProductComplete,
   sanitizePriceValue,
   type SelectedProductDraft,
 } from "@/lib/partner-offer";
@@ -230,6 +232,64 @@ function ProductFields({
   );
 }
 
+function CollapsedSelectedProduct({
+  product,
+  index,
+  sharedDiscountValue,
+  disabled,
+  onEdit,
+  onDelete,
+}: {
+  product: SelectedProductDraft;
+  index: number;
+  sharedDiscountValue: string;
+  disabled?: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const label = product.name.trim() || `Product ${index + 1}`;
+  const memberPrice = calculateMemberPriceLabel(product.normalPrice, sharedDiscountValue);
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5">
+      <div className="flex min-w-0 items-center gap-3">
+        {product.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.imageUrl}
+            alt=""
+            className="h-10 w-8 shrink-0 rounded object-cover"
+          />
+        ) : null}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">{label}</p>
+          {memberPrice ? (
+            <p className="text-xs text-muted-foreground">Member price {memberPrice}</p>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={onEdit}
+          className="rounded-sm border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={onDelete}
+          className="rounded-sm border border-red-200 bg-background px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ProductEditorCard({
   product,
   index,
@@ -241,7 +301,6 @@ function ProductEditorCard({
   fieldGapClass,
   compact,
   onUpdate,
-  onRemove,
   onUploadImage,
   onEditCrop,
 }: {
@@ -255,7 +314,6 @@ function ProductEditorCard({
   fieldGapClass: string;
   compact?: boolean;
   onUpdate: (next: SelectedProductDraft) => void;
-  onRemove: () => void;
   onUploadImage: () => void;
   onEditCrop: () => void;
 }) {
@@ -265,22 +323,14 @@ function ProductEditorCard({
       data-product-id={product.id}
       data-sort-order={product.sortOrder}
     >
-      <div className="flex items-start justify-between gap-3">
-        <p className={compact ? portalCardTitle : "text-sm font-bold text-foreground"}>
+      {index > 0 ? (
+        <p className={`${compact ? portalCardTitle : "text-sm font-bold text-foreground"} mb-3`}>
           Product {index + 1}
         </p>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={onRemove}
-          className="text-[0.8125rem] font-semibold text-red-600 transition-colors hover:text-red-700 disabled:opacity-60"
-        >
-          Delete
-        </button>
-      </div>
+      ) : null}
 
       {compact ? (
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row">
+        <div className="flex flex-col gap-4 lg:flex-row">
           <div className="shrink-0">
             {!product.imageUrl && !product.imageFile ? (
               <label className={`${labelClass} mb-1.5 block`}>Product Image</label>
@@ -305,7 +355,7 @@ function ProductEditorCard({
           />
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-4">
             <div>
               <label className={labelClass}>Product Image</label>
@@ -353,6 +403,14 @@ export function SelectedProductsEditor({
   const [pendingOriginalFile, setPendingOriginalFile] = useState<File | null>(null);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [reCropMode, setReCropMode] = useState(false);
+  const [showIncompleteNote, setShowIncompleteNote] = useState(false);
+  const [editingExistingProduct, setEditingExistingProduct] = useState(false);
+
+  useEffect(() => {
+    if (!showIncompleteNote) return undefined;
+    const timer = window.setTimeout(() => setShowIncompleteNote(false), 4000);
+    return () => window.clearTimeout(timer);
+  }, [showIncompleteNote]);
 
   function updateProduct(id: string, next: SelectedProductDraft) {
     onChange(products.map((product) => (product.id === id ? next : product)));
@@ -366,9 +424,38 @@ export function SelectedProductsEditor({
     );
   }
 
+  function expandProduct(productId: string) {
+    setEditingExistingProduct(true);
+    onChange(
+      products.map((product) => ({
+        ...product,
+        collapsed: product.id !== productId,
+      }))
+    );
+  }
+
+  function handleConfirmProduct() {
+    const activeProduct = products.find((product) => product.collapsed === false);
+    if (!activeProduct || !isSelectedProductComplete(activeProduct)) {
+      setShowIncompleteNote(true);
+      return;
+    }
+
+    setShowIncompleteNote(false);
+    setEditingExistingProduct(false);
+    onChange(
+      products.map((product) =>
+        product.id === activeProduct.id ? { ...product, collapsed: true } : product
+      )
+    );
+  }
+
   function addProduct() {
     if (products.length >= MAX_SELECTED_PRODUCTS) return;
-    onChange([...products, createSelectedProductDraft(products.length)]);
+    if (products.some((product) => product.collapsed === false)) return;
+
+    setEditingExistingProduct(false);
+    onChange([...products, createSelectedProductDraft(products.length, { collapsed: false })]);
   }
 
   function closeEditor(keepSrc?: string | null) {
@@ -451,6 +538,16 @@ export function SelectedProductsEditor({
     closeEditor(originalUrl);
   }
 
+  const collapsedProducts = products.filter((product) => product.collapsed === true);
+  const activeProduct =
+    products.find((product) => product.collapsed === false) ?? null;
+  const activeIndex = activeProduct
+    ? products.findIndex((product) => product.id === activeProduct.id)
+    : -1;
+  const canAddNewProduct =
+    !activeProduct && products.length < MAX_SELECTED_PRODUCTS;
+  const confirmLabel = editingExistingProduct ? "Save" : "Add";
+
   return (
     <div className="space-y-3">
       <div>
@@ -464,38 +561,81 @@ export function SelectedProductsEditor({
         </p>
       </div>
 
-      {products.map((product, index) => (
-        <ProductEditorCard
-          key={product.id}
-          product={product}
-          index={index}
-          sharedDiscountValue={sharedDiscountValue}
-          disabled={disabled}
-          inputClass={inputClass}
-          labelClass={labelClass}
-          helperClass={helperClass}
-          fieldGapClass={fieldGapClass}
-          compact={compact}
-          onUpdate={(next) => updateProduct(product.id, next)}
-          onRemove={() => removeProduct(product.id)}
-          onUploadImage={() => openFilePicker(product.id)}
-          onEditCrop={() => openCropEditor(product.id)}
-        />
-      ))}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          disabled={disabled || products.length >= MAX_SELECTED_PRODUCTS}
-          onClick={addProduct}
-          className="inline-flex h-9 items-center rounded-sm border border-border bg-background px-3 text-[0.8125rem] font-semibold text-primary transition-colors hover:border-primary/30 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          + Add Product
-        </button>
-        <p className={helperClass}>
-          {products.length} of {MAX_SELECTED_PRODUCTS} products
-        </p>
+      <div className="space-y-2">
+        {collapsedProducts.map((product) => {
+          const index = products.findIndex((entry) => entry.id === product.id);
+          return (
+            <CollapsedSelectedProduct
+              key={product.id}
+              product={product}
+              index={index}
+              sharedDiscountValue={sharedDiscountValue}
+              disabled={disabled}
+              onEdit={() => expandProduct(product.id)}
+              onDelete={() => removeProduct(product.id)}
+            />
+          );
+        })}
       </div>
+
+      {activeProduct ? (
+        <div className="space-y-4">
+          {products.length > 1 ? (
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Product {activeIndex + 1} of {products.length}
+            </p>
+          ) : null}
+          <ProductEditorCard
+            product={activeProduct}
+            index={activeIndex}
+            sharedDiscountValue={sharedDiscountValue}
+            disabled={disabled}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            helperClass={helperClass}
+            fieldGapClass={fieldGapClass}
+            compact={compact}
+            onUpdate={(next) => updateProduct(activeProduct.id, next)}
+            onUploadImage={() => openFilePicker(activeProduct.id)}
+            onEditCrop={() => openCropEditor(activeProduct.id)}
+          />
+          <div className="space-y-2 border-t border-border pt-4">
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={handleConfirmProduct}
+              className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {confirmLabel}
+            </button>
+            {showIncompleteNote ? (
+              <p className="text-xs font-medium text-red-600" role="alert">
+                {SELECTED_PRODUCT_ADD_INCOMPLETE_MESSAGE}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {canAddNewProduct ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={addProduct}
+            className="inline-flex h-9 items-center rounded-sm border border-primary/30 bg-primary/5 px-4 text-[0.8125rem] font-semibold text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {products.length === 0 ? "+ Add Product" : "Add new product"}
+          </button>
+          <p className={helperClass}>
+            {products.length} of {MAX_SELECTED_PRODUCTS} products
+          </p>
+        </div>
+      ) : products.length >= MAX_SELECTED_PRODUCTS && !activeProduct ? (
+        <p className={helperClass}>
+          Maximum of {MAX_SELECTED_PRODUCTS} products reached.
+        </p>
+      ) : null}
 
       <input
         ref={inputRef}
