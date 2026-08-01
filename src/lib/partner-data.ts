@@ -836,7 +836,9 @@ export async function getPartnerListing(
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!error && data) {
+    if (error) {
+      console.error("[partner-listing] vault_drop fetch failed:", error.message);
+    } else if (data) {
       listing.vaultDrop = parseVaultDropStored(
         (data as Record<string, unknown>).vault_drop
       );
