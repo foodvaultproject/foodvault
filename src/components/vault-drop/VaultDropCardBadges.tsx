@@ -10,8 +10,8 @@ export function VaultDropTitleBadge({ label }: { label: string }) {
 
 export function VaultDropDiscountBadge({ label }: { label: string }) {
   return (
-    <span className="inline-block -skew-x-12 bg-amber-500 px-3 py-1.5 shadow-sm sm:px-3.5 sm:py-2">
-      <span className="inline-block skew-x-12 text-sm font-bold italic leading-none text-white sm:text-base">
+    <span className="inline-block -skew-x-12 bg-amber-500 px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5">
+      <span className="inline-block skew-x-12 text-[1.1375rem] font-extrabold italic leading-none text-white sm:text-[1.3rem]">
         {label}
       </span>
     </span>
