@@ -154,6 +154,47 @@ async function fetchOwnVaultDropCode(
   return (data as string | null) ?? null;
 }
 
+/** Ensure partners with FLASH SALE products always have a persisted vault_drop_code. */
+export async function resolvePartnerVaultDropCode(
+  supabase: ReturnType<typeof createClient>,
+  partnerId: string,
+  businessName: string | null
+): Promise<string | null> {
+  const existing = await fetchOwnVaultDropCode(supabase, partnerId);
+  if (existing) return existing;
+
+  const { data, error } = await supabase
+    .from("partners")
+    .select("vault_drop")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  const stored = parseVaultDropStored(
+    (data as Record<string, unknown>).vault_drop
+  );
+  if (!stored?.products.length) return null;
+
+  const code = generateVaultDropCode(
+    businessName ?? "Partner",
+    stored.discount_percentage
+  );
+
+  const { error: updateError } = await supabase
+    .from("partners")
+    .update({ vault_drop_code: code })
+    .eq("id", partnerId);
+
+  if (updateError) {
+    console.error("[partner] vault_drop_code backfill failed:", updateError.message);
+    // Still return the generated code so owners can copy it from the banner.
+    return code;
+  }
+
+  return code;
+}
+
 const PARTNER_RECORD_COLUMNS =
   "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled";
 
@@ -175,7 +216,11 @@ export async function getPartnerRecord(userId: string): Promise<PartnerRecord | 
 
   const record = mapRow(data);
   record.member_code = await fetchOwnMemberCode(supabase, record.id);
-  record.vault_drop_code = await fetchOwnVaultDropCode(supabase, record.id);
+  record.vault_drop_code = await resolvePartnerVaultDropCode(
+    supabase,
+    record.id,
+    record.business_name
+  );
   return record;
 }
 
@@ -575,7 +620,11 @@ export async function confirmMemberOfferLive(
 
   const record = mapRow(data as Record<string, unknown>);
   record.member_code = await fetchOwnMemberCode(supabase, record.id);
-  record.vault_drop_code = await fetchOwnVaultDropCode(supabase, record.id);
+  record.vault_drop_code = await resolvePartnerVaultDropCode(
+    supabase,
+    record.id,
+    record.business_name
+  );
   return record;
 }
 
@@ -997,7 +1046,7 @@ export async function updatePartnerListing(
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (partnerRow && data.vaultDrop) {
+  if (partnerRow && data.vaultDrop?.products.length) {
     const existingVaultDropCode = await fetchOwnVaultDropCode(
       supabase,
       String(partnerRow.id)
@@ -1009,6 +1058,8 @@ export async function updatePartnerListing(
         data.vaultDrop.discount_percentage
       );
     }
+  } else if (partnerRow && !data.vaultDrop) {
+    fullPayload.vault_drop_code = null;
   }
 
   let { error } = await supabase
@@ -1048,6 +1099,15 @@ export async function updatePartnerListing(
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (partnerRow && data.vaultDrop?.products.length) {
+    await resolvePartnerVaultDropCode(
+      supabase,
+      String(partnerRow.id),
+      formatBusinessNameOrNull(partnerRow.business_name as string | null) ??
+        data.companyName
+    );
   }
 }
 

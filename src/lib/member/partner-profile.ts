@@ -2,7 +2,7 @@ import { isSupabaseConfigured } from "@/lib/auth";
 import { getAdminUser } from "@/lib/admin/auth";
 import { getActiveMemberView } from "@/lib/member/active-member";
 import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
-import { formatBusinessName } from "@/lib/business-name";
+import { formatBusinessName, formatBusinessNameOrNull } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import { memberHasActiveAccess } from "@/lib/member/member-record";
@@ -16,6 +16,7 @@ import {
 } from "@/lib/partner-status";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolvePartnerVaultDropCode } from "@/lib/partner-data";
 import { parseLogoCrop, type LogoCropSettings } from "@/lib/partner-logo-crop";
 import {
   getDepartmentsFromGroups,
@@ -492,6 +493,21 @@ export async function getPartnerVaultDropCode(
   }
 
   if (user) {
+    const { data: partnerRow } = await supabase
+      .from("partners")
+      .select("user_id, business_name")
+      .eq("id", partnerId)
+      .maybeSingle();
+
+    if (partnerRow?.user_id === user.id) {
+      const resolved = await resolvePartnerVaultDropCode(
+        supabase as unknown as Parameters<typeof resolvePartnerVaultDropCode>[0],
+        partnerId,
+        formatBusinessNameOrNull(partnerRow.business_name as string | null)
+      );
+      return { code: resolved, state: "visible" };
+    }
+
     const hasAccess = await memberHasActiveAccess(user.id);
     if (hasAccess) {
       const admin = createAdminClient();
