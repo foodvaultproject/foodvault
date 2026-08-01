@@ -99,30 +99,18 @@ export function HomeWhyJoinFeatures({
                   : "flex min-h-[9.5rem] overflow-hidden rounded-xl border border-border bg-white shadow-sm transition-shadow duration-200 hover:shadow-card sm:min-h-[10.5rem]"
               }
             >
-              <div
-                className={
-                  mobileTwoColumn
-                    ? "flex w-[46%] shrink-0 items-stretch justify-center self-stretch bg-[#F5F2FF] p-0.5 sm:w-1/2 sm:p-3"
-                    : "flex w-1/2 shrink-0 items-center justify-center bg-[#F5F2FF] p-2 sm:p-3"
-                }
-              >
+              <div className="relative w-1/2 shrink-0 self-stretch overflow-hidden bg-[#F5F2FF]">
                 <img
                   src={feature.iconSrc}
                   alt=""
                   aria-hidden="true"
-                  width={120}
-                  height={120}
-                  className={
-                    mobileTwoColumn
-                      ? "h-full max-h-full w-full min-h-0 object-contain object-center sm:max-h-28"
-                      : "h-full max-h-24 w-full object-contain sm:max-h-28"
-                  }
+                  className="h-full w-full object-cover object-center"
                 />
               </div>
               <div
                 className={
                   mobileTwoColumn
-                    ? "flex w-[54%] flex-col justify-center bg-white px-1.5 py-2 sm:w-1/2 sm:px-3 sm:py-4"
+                    ? "flex w-1/2 flex-col justify-center bg-white px-1.5 py-2 sm:px-3 sm:py-4"
                     : "flex w-1/2 flex-col justify-center bg-white px-2.5 py-3 sm:px-3 sm:py-4"
                 }
               >
