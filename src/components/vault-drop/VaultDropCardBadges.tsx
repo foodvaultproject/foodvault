@@ -25,7 +25,7 @@ export function VaultDropCountdownBadge({
   }
 
   return (
-    <span className="inline-block -skew-x-12 bg-red-600 px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5">
+    <span className="inline-block w-fit -skew-x-12 bg-red-600 px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5">
       <span className="inline-block skew-x-12">
         {expired || !endTimeIso ? (
           <span className="text-[0.625rem] font-bold uppercase leading-none tracking-wide text-white sm:text-xs">
@@ -45,8 +45,8 @@ export function VaultDropCountdownBadge({
 
 export function VaultDropDiscountBadge({ label }: { label: string }) {
   return (
-    <span className="inline-block -skew-x-12 bg-amber-500 px-2.5 py-1 shadow-sm sm:px-3 sm:py-1.5">
-      <span className="inline-block skew-x-12 text-[1.1375rem] font-extrabold italic leading-none text-white sm:text-[1.3rem]">
+    <span className="inline-block w-fit -skew-x-12 bg-amber-500 px-2 py-1 shadow-sm sm:px-2.5 sm:py-1.5">
+      <span className="inline-block skew-x-12 whitespace-nowrap text-[1.1375rem] font-extrabold italic leading-none text-white sm:text-[1.3rem]">
         {label}
       </span>
     </span>

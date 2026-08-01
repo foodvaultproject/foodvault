@@ -93,7 +93,7 @@ function ProfileVaultDropProductCard({
     >
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={product.image_urls} />
-        <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
+        <div className="absolute left-2 top-2 z-10 flex w-fit flex-col items-start gap-1.5">
           {countdownEndTime ? (
             <VaultDropCountdownBadge
               endTimeIso={countdownEndTime}

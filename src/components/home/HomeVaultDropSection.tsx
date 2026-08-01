@@ -72,7 +72,7 @@ function VaultDropCard({ drop }: { drop: PublicVaultDrop }) {
     >
       <div className="relative aspect-[4/3] bg-muted">
         <VaultDropImageCarousel images={drop.image_urls} />
-        <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
+        <div className="absolute left-2 top-2 z-10 flex w-fit flex-col items-start gap-1.5">
           <VaultDropCountdownBadge
             endTimeIso={drop.countdown_end_time}
             onExpired={() => setExpired(true)}
