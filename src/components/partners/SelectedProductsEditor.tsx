@@ -450,6 +450,25 @@ export function SelectedProductsEditor({
     );
   }
 
+  function handleCancelProduct() {
+    const activeProduct = products.find((product) => product.collapsed === false);
+    if (!activeProduct || editingExistingProduct) return;
+
+    setShowIncompleteNote(false);
+    setEditingExistingProduct(false);
+    closeEditor();
+
+    if (activeProduct.imageUrl?.startsWith("blob:")) {
+      revokeIfBlobUrl(activeProduct.imageUrl);
+    }
+
+    onChange(
+      products
+        .filter((product) => product.id !== activeProduct.id)
+        .map((product, index) => ({ ...product, sortOrder: index }))
+    );
+  }
+
   function addProduct() {
     if (products.length >= MAX_SELECTED_PRODUCTS) return;
     if (products.some((product) => product.collapsed === false)) return;
@@ -600,14 +619,26 @@ export function SelectedProductsEditor({
             onEditCrop={() => openCropEditor(activeProduct.id)}
           />
           <div className="space-y-2 border-t border-border pt-4">
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={handleConfirmProduct}
-              className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-            >
-              {confirmLabel}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={handleConfirmProduct}
+                className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {confirmLabel}
+              </button>
+              {!editingExistingProduct ? (
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={handleCancelProduct}
+                  className="inline-flex items-center justify-center rounded-sm border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              ) : null}
+            </div>
             {showIncompleteNote ? (
               <p className="text-xs font-medium text-red-600" role="alert">
                 {SELECTED_PRODUCT_ADD_INCOMPLETE_MESSAGE}
