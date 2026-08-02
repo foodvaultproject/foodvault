@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
@@ -56,17 +57,12 @@ function browseCategoryHref(
   return query ? `${basePath}?${query}` : basePath;
 }
 
-const SOCIAL_ICONS: Record<SocialPlatform, string> = {
-  instagram:
-    "M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.3-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.2A6.6 6.6 0 1 0 18.6 12 6.6 6.6 0 0 0 12 5.4zm0 10.9A4.3 4.3 0 1 1 16.3 12 4.3 4.3 0 0 1 12 16.3zm6.8-11.2a1.5 1.5 0 1 1-1.5-1.5 1.5 1.5 0 0 1 1.5 1.5z",
-  facebook:
-    "M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z",
-  linkedin:
-    "M4.98 3.5a2.25 2.25 0 1 1-.02 4.5 2.25 2.25 0 0 1 .02-4.5zM3.5 8.75h2.9V21H3.5V8.75zM12 8.75h2.78v1.67h.04c.39-.74 1.34-1.52 2.76-1.52 2.95 0 3.5 1.94 3.5 4.47V21H18.1v-6.88c0-1.64-.03-3.75-2.29-3.75-2.29 0-2.64 1.79-2.64 3.63V21h-2.9V8.75z",
-  tiktok:
-    "M16.6 5.8a4.3 4.3 0 0 1-1-2.8h-3v12.2a2.5 2.5 0 1 1-2.5-2.5c.2 0 .5 0 .7.1V9.7a5.6 5.6 0 0 0-.7 0 5.5 5.5 0 1 0 5.5 5.5V9.3a7.3 7.3 0 0 0 4.2 1.3V7.6a4.3 4.3 0 0 1-3.2-1.8z",
-  youtube:
-    "M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.7-1.7C19.4 5.2 12 5.2 12 5.2s-7.4 0-8.9.4A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.7 1.7c1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4a2.5 2.5 0 0 0 1.7-1.7C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3z",
+const SOCIAL_PROFILE_ICONS: Record<SocialPlatform, string> = {
+  instagram: "/brand profile/instagram-profile.webp",
+  facebook: "/brand profile/facebook-profile.webp",
+  linkedin: "/brand profile/linkedin-profile.webp",
+  tiktok: "/brand profile/tiktok-profile.webp",
+  youtube: "/brand profile/youtube-profile.webp",
 };
 
 function AboutBrandSection({ brandStory }: { brandStory: string }) {
@@ -392,9 +388,9 @@ export function PartnerProfileView({
         {socials.length > 0 ? (
           <div className="mt-4 border-t border-border pt-3">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Follow This Brand
+              Follow us on socials!
             </p>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-3">
               {socials.map((social) => (
                 <a
                   key={social.platform}
@@ -402,16 +398,15 @@ export function PartnerProfileView({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                  className="inline-flex h-[82px] w-[82px] items-center justify-center transition-opacity hover:opacity-80"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d={SOCIAL_ICONS[social.platform]} />
-                  </svg>
+                  <Image
+                    src={SOCIAL_PROFILE_ICONS[social.platform]}
+                    alt=""
+                    width={82}
+                    height={82}
+                    className="h-[82px] w-[82px] object-contain"
+                  />
                 </a>
               ))}
             </div>
