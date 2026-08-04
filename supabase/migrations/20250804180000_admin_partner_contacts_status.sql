@@ -1,6 +1,9 @@
 -- Add listing status to admin partner contacts directory.
+-- Must drop first: PostgreSQL cannot change RETURNS TABLE shape via CREATE OR REPLACE.
 
-create or replace function public.admin_list_partner_contacts(p_search text default null)
+drop function if exists public.admin_list_partner_contacts(text);
+
+create function public.admin_list_partner_contacts(p_search text default null)
 returns table (
   id uuid,
   business_name text,
