@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // Serve images directly (Supabase/public URLs) — bypass Vercel Image Optimization
+    // to avoid transformation quota limits on high-traffic logos, banners, and cards.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
