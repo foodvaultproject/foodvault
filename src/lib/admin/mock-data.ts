@@ -67,6 +67,7 @@ export const mockPartnerContacts: PartnerContactRow[] = [
     contact_name: "Sarah Chen",
     support_email: "hello@greenleaf.co.nz",
     support_phone: "+64210000001",
+    status: "Live",
   },
   {
     id: "pc2",
@@ -74,6 +75,7 @@ export const mockPartnerContacts: PartnerContactRow[] = [
     contact_name: "James Wilson",
     support_email: "orders@artisancrust.co.nz",
     support_phone: null,
+    status: "Pending Activation",
   },
   {
     id: "pc3",
@@ -81,6 +83,7 @@ export const mockPartnerContacts: PartnerContactRow[] = [
     contact_name: "Helena Ruud",
     support_email: "support@nordicfish.co.nz",
     support_phone: "+64275551234",
+    status: "Live",
   },
 ];
 

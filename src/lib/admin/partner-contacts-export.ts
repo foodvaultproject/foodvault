@@ -5,6 +5,7 @@ export const PARTNER_CONTACT_EXPORT_HEADERS = [
   "Contact Name",
   "Customer Support Email",
   "Support Phone",
+  "Status",
 ] as const;
 
 export function csvEscape(value: string | number | null | undefined) {
@@ -21,6 +22,7 @@ export function partnerContactExportRows(contacts: PartnerContactRow[]) {
     row.contact_name ?? "",
     row.support_email ?? "",
     row.support_phone ?? "",
+    row.status ?? "",
   ]);
 }
 

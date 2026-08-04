@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { StatusBadge } from "@/components/admin/AdminUi";
 import type { PartnerContactRow } from "@/lib/admin/types";
 
 export function PartnerContactsClient({
@@ -82,12 +83,15 @@ export function PartnerContactsClient({
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
                 Support Phone
               </th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
             {contacts.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-muted">
+                <td colSpan={5} className="px-4 py-12 text-center text-muted">
                   No partner contacts found
                 </td>
               </tr>
@@ -114,6 +118,13 @@ export function PartnerContactsClient({
                     )}
                   </td>
                   <td className="px-4 py-3 text-foreground">{contact.support_phone ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    {contact.status ? (
+                      <StatusBadge label={contact.status} />
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                 </tr>
               ))
             )}

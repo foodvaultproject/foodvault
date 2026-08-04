@@ -52,12 +52,15 @@ export type PartnerRow = {
   member_code: string | null;
 };
 
+export type PartnerContactStatus = "Live" | "Pending Activation";
+
 export type PartnerContactRow = {
   id: string;
   business_name: string | null;
   contact_name: string | null;
   support_email: string | null;
   support_phone: string | null;
+  status: PartnerContactStatus | null;
 };
 
 export type MemberRow = {
