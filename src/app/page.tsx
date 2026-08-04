@@ -11,6 +11,7 @@ import {
   HomeCategories,
   HomePartnerBanner,
   HomePartnerQuickLinks,
+  HomeGiftsHampersBanner,
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
 import { getHomepageFaqs } from "@/data/homepage";
@@ -173,7 +174,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeVaultDropSection drops={vaultDrops} />
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
-        <HomeCategories onHomepage compactSpacing />
+        <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
@@ -198,7 +199,7 @@ export default async function Home({ searchParams }: HomeProps) {
       />
       <HomeVaultDropSection drops={vaultDrops} />
       <HomeWhyJoinFeatures mobileTwoColumn />
-      <HomeCategories />
+      <HomeGiftsHampersBanner />
       <HomeTrendingSection
         trending={trendingBrands.brands}
         newBrands={newBrands}

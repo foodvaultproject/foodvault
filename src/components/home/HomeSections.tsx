@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 import { testimonials } from "@/data/homepage";
 import {
@@ -137,6 +138,58 @@ export function HomeWhyJoinFeatures({
           ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+const GIFTS_HAMPERS_DEPARTMENT = "Gift Boxes & Hampers";
+const GIFTS_HAMPERS_BANNER_SRC = "/homepage banner 2/banner-2.webp";
+
+function giftsHampersBrowseHref() {
+  return `/browse-brands?department=${encodeURIComponent(GIFTS_HAMPERS_DEPARTMENT)}`;
+}
+
+export function HomeGiftsHampersBanner({
+  keepBrowseOnHomepage = false,
+  compactSpacing = false,
+}: {
+  keepBrowseOnHomepage?: boolean;
+  compactSpacing?: boolean;
+}) {
+  const browseHref = giftsHampersBrowseHref();
+  const href = keepBrowseOnHomepage ? toHomepageBrowseHref(browseHref) : browseHref;
+
+  return (
+    <section
+      className={`w-full ${compactSpacing ? "pt-2" : "pt-4 sm:pt-6"}`}
+    >
+      <Link
+        href={href}
+        scroll={!keepBrowseOnHomepage}
+        className="group relative block w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        aria-label="Browse Gift Boxes and Hampers"
+      >
+        <div className="relative aspect-[32/10] w-full min-h-[9rem] max-h-[22rem] sm:min-h-[10rem] sm:max-h-[26rem]">
+          <Image
+            src={GIFTS_HAMPERS_BANNER_SRC}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-black/35"
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8">
+              <h2 className="mx-auto max-w-5xl text-center text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
+                Thoughtful Gifts &amp; Hampers They&apos;ll Love
+              </h2>
+            </div>
+          </div>
+        </div>
+      </Link>
     </section>
   );
 }
