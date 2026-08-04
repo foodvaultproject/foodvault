@@ -4,6 +4,7 @@ import {
   buildPartnerContactsCsv,
   buildPartnerContactsExcelHtml,
 } from "@/lib/admin/partner-contacts-export";
+import { parsePartnerContactFilters } from "@/lib/admin/partner-contacts-filters";
 import { getPartnerContacts } from "@/lib/admin/queries";
 
 export async function GET(request: Request) {
@@ -14,9 +15,15 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") === "excel" ? "excel" : "csv";
-  const search = searchParams.get("q")?.trim() || undefined;
+  const filters = parsePartnerContactFilters({
+    business: searchParams.get("business") ?? undefined,
+    contact: searchParams.get("contact") ?? undefined,
+    email: searchParams.get("email") ?? undefined,
+    phone: searchParams.get("phone") ?? undefined,
+    status: searchParams.get("status") ?? undefined,
+  });
 
-  const contacts = await getPartnerContacts(search);
+  const contacts = await getPartnerContacts(filters);
 
   if (format === "excel") {
     return new NextResponse(buildPartnerContactsExcelHtml(contacts), {

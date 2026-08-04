@@ -41,6 +41,10 @@ import {
   mockRecentMembers,
   mockSettings,
 } from "@/lib/admin/mock-data";
+import {
+  matchesPartnerContactFilters,
+  type PartnerContactFilters,
+} from "@/lib/admin/partner-contacts-filters";
 
 function formatPartnerApplicationRow(row: PartnerApplicationRow): PartnerApplicationRow {
   return {
@@ -138,24 +142,23 @@ function formatPartnerContactRow(row: PartnerContactRow): PartnerContactRow {
   };
 }
 
-export async function getPartnerContacts(search?: string): Promise<PartnerContactRow[]> {
+export async function getPartnerContacts(
+  filters: PartnerContactFilters = {}
+): Promise<PartnerContactRow[]> {
   if (!isSupabaseConfigured()) {
-    const q = search?.toLowerCase() ?? "";
     return mockPartnerContacts
-      .filter(
-        (row) =>
-          !q ||
-          row.business_name?.toLowerCase().includes(q) ||
-          row.contact_name?.toLowerCase().includes(q) ||
-          row.support_email?.toLowerCase().includes(q) ||
-          row.support_phone?.toLowerCase().includes(q)
-      )
+      .filter((row) => matchesPartnerContactFilters(row, filters))
       .map(formatPartnerContactRow);
   }
 
   const supabase = await createClient();
   const { data } = await supabase.rpc("admin_list_partner_contacts", {
-    p_search: search ?? null,
+    p_search: null,
+    p_business_name: filters.business ?? null,
+    p_contact_name: filters.contact ?? null,
+    p_support_email: filters.email ?? null,
+    p_support_phone: filters.phone ?? null,
+    p_status: filters.status ?? null,
   });
 
   return ((data ?? []) as PartnerContactRow[]).map(formatPartnerContactRow);
