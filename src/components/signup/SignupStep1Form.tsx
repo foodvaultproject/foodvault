@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SignupField, SignupPasswordField, SignupProgress, inputClass } from "@/components/signup/SignupProgress";
-import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import {
   createDevSession,
   isSupabaseConfigured,
@@ -63,6 +67,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<"trial" | "membership" | "google" | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const showPasswordMatchStatus = confirmPassword.length > 0;
@@ -108,28 +113,29 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     }
 
     setLoading(mode);
-    const result = await createMemberAccountAction(formData, mode, turnstileToken);
-    if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
-      savePendingSignup({
-        email: email.trim(),
-        password,
-        account: "member",
-      });
-      router.push(result.checkEmailPath ?? "/auth/check-email");
+    try {
+      const result = await createMemberAccountAction(formData, mode, turnstileToken);
+      if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+        savePendingSignup({
+          email: email.trim(),
+          password,
+          account: "member",
+        });
+        router.push(result.checkEmailPath ?? "/auth/check-email");
+        return;
+      }
+      if ("error" in result && result.error) {
+        setError(result.error);
+        return;
+      }
+      if (!isSupabaseConfigured()) {
+        createDevSession(email.trim(), "member");
+        router.push(mode === "trial" ? "/signup/welcome" : "/signup/membership");
+        router.refresh();
+      }
+    } finally {
       setLoading(null);
-      return;
-    }
-    if ("error" in result && result.error) {
-      setError(result.error);
-      setLoading(null);
-      return;
-    }
-    if (!isSupabaseConfigured()) {
-      createDevSession(email.trim(), "member");
-      router.push(mode === "trial" ? "/signup/welcome" : "/signup/membership");
-      router.refresh();
-      setLoading(null);
-      return;
+      turnstileRef.current?.reset();
     }
   }
 
@@ -288,7 +294,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-            <TurnstileField onTokenChange={setTurnstileToken} />
+            <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
             <button
               type="submit"

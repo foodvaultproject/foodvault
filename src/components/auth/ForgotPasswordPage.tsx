@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
-import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
+import { Suspense, useRef, useState } from "react";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import { LOGIN_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import { resetPassword } from "@/lib/auth/password-reset-actions";
 
@@ -19,6 +23,7 @@ function ForgotPasswordForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -33,19 +38,22 @@ function ForgotPasswordForm() {
 
     setSubmitting(true);
 
-    const result = await resetPassword(email.trim(), {
-      account: isPartner ? "partner" : "member",
-      turnstileToken,
-    });
+    try {
+      const result = await resetPassword(email.trim(), {
+        account: isPartner ? "partner" : "member",
+        turnstileToken,
+      });
 
-    if (result.error) {
-      setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      setMessage("If an account exists for that email, a reset link has been sent.");
+    } finally {
       setSubmitting(false);
-      return;
+      turnstileRef.current?.reset();
     }
-
-    setMessage("If an account exists for that email, a reset link has been sent.");
-    setSubmitting(false);
   };
 
   return (
@@ -74,7 +82,7 @@ function ForgotPasswordForm() {
               />
             </div>
 
-            <TurnstileField onTokenChange={setTurnstileToken} />
+            <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
             {error && (
               <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

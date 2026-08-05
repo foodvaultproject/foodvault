@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import { resendMemberSignupConfirmationAction } from "@/lib/member/signup-actions";
 import { assertLoginAllowedAction } from "@/lib/auth/login-actions";
 import {
@@ -78,6 +82,7 @@ function LoginForm() {
   const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const [confirmationResent, setConfirmationResent] = useState(false);
   const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
+  const resendTurnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const showResendConfirmation =
@@ -146,18 +151,22 @@ function LoginForm() {
 
     setResendingConfirmation(true);
     setConfirmationResent(false);
-    const result = await resendMemberSignupConfirmationAction(
-      email.trim(),
-      resendTurnstileToken
-    );
-    setResendingConfirmation(false);
+    try {
+      const result = await resendMemberSignupConfirmationAction(
+        email.trim(),
+        resendTurnstileToken
+      );
 
-    if ("error" in result && result.error) {
-      setError(result.error);
-      return;
+      if ("error" in result && result.error) {
+        setError(result.error);
+        return;
+      }
+
+      setConfirmationResent(true);
+    } finally {
+      setResendingConfirmation(false);
+      resendTurnstileRef.current?.reset();
     }
-
-    setConfirmationResent(true);
   }
 
   const handleGoogleSignIn = async () => {
@@ -268,7 +277,10 @@ function LoginForm() {
                 <p>{error}</p>
                 {showResendConfirmation ? (
                   <div className="mt-3 space-y-3">
-                    <TurnstileField onTokenChange={setResendTurnstileToken} />
+                    <TurnstileField
+                      ref={resendTurnstileRef}
+                      onTokenChange={setResendTurnstileToken}
+                    />
                     <button
                       type="button"
                       onClick={() => void handleResendConfirmation()}

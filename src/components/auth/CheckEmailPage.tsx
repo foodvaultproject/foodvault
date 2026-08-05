@@ -15,7 +15,7 @@ import {
   resolveVerifiedRedirectPath,
   signupPathForAccount,
 } from "@/lib/auth/resolve-verified-redirect";
-import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
+import { TurnstileField, type TurnstileFieldHandle, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import { getVerificationStatusAction } from "@/lib/auth/verification-status";
 import { createClient } from "@/lib/supabase/client";
@@ -64,6 +64,7 @@ function CheckEmailContent() {
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const pollingActiveRef = useRef(true);
@@ -210,16 +211,20 @@ function CheckEmailContent() {
     setResent(false);
     setActionError(null);
 
-    const result = await resendSignupVerificationAction(email, account, turnstileToken);
-    setResending(false);
+    try {
+      const result = await resendSignupVerificationAction(email, account, turnstileToken);
 
-    if ("error" in result && result.error) {
-      setActionError(result.error);
-      return;
+      if ("error" in result && result.error) {
+        setActionError(result.error);
+        return;
+      }
+
+      setResent(true);
+      setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
+    } finally {
+      setResending(false);
+      turnstileRef.current?.reset();
     }
-
-    setResent(true);
-    setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
   }, [account, captchaRequired, cooldownSeconds, email, turnstileToken]);
 
   const handleChangeEmail = useCallback(() => {
@@ -355,7 +360,7 @@ function CheckEmailContent() {
               {checking ? "Checking…" : "I've Verified My Email"}
             </button>
 
-            <TurnstileField onTokenChange={setTurnstileToken} />
+            <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
             <button
               type="button"

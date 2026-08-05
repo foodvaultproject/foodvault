@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AffiliateGuestGuard } from "@/components/affiliate/AffiliateAuthGuard";
-import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import {
   createAffiliateAccount,
   resolveAffiliatePostLoginPath,
@@ -40,6 +44,7 @@ export function AffiliateRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const passwordChecks = useMemo(() => getPasswordChecks(form.password), [form.password]);
@@ -74,43 +79,47 @@ export function AffiliateRegisterPage() {
     }
 
     setSubmitting(true);
-    const result = await createAffiliateAccount(
-      {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        password: form.password,
-        country: form.country,
-      },
-      turnstileToken
-    );
+    try {
+      const result = await createAffiliateAccount(
+        {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          password: form.password,
+          country: form.country,
+        },
+        turnstileToken
+      );
 
-    if (result.error) {
-      setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      if (result.needsEmailConfirmation) {
+        savePendingSignup({
+          email: form.email.trim(),
+          password: form.password,
+          account: "affiliate",
+        });
+        router.push(result.checkEmailPath ?? "/auth/check-email");
+        return;
+      }
+
+      if (!isSupabaseConfigured()) {
+        createDevSession(form.email.trim(), "affiliate");
+        seedDevAffiliateRecord(`dev-${form.email.trim()}`, {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+        });
+      }
+
+      router.push(resolveAffiliatePostLoginPath());
+    } finally {
       setSubmitting(false);
-      return;
+      turnstileRef.current?.reset();
     }
-
-    if (result.needsEmailConfirmation) {
-      savePendingSignup({
-        email: form.email.trim(),
-        password: form.password,
-        account: "affiliate",
-      });
-      router.push(result.checkEmailPath ?? "/auth/check-email");
-      return;
-    }
-
-    if (!isSupabaseConfigured()) {
-      createDevSession(form.email.trim(), "affiliate");
-      seedDevAffiliateRecord(`dev-${form.email.trim()}`, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-      });
-    }
-
-    router.push(resolveAffiliatePostLoginPath());
   }
 
   return (
@@ -212,7 +221,7 @@ export function AffiliateRegisterPage() {
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-            <TurnstileField onTokenChange={setTurnstileToken} />
+            <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
             <button
               type="submit"

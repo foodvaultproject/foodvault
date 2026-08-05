@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPartnerAccountWithEmail, getPartnerSession, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
 import { createDevSession, getAuthSession, isSupabaseConfigured, PARTNER_LOGIN_PATH, signOut } from "@/lib/auth";
-import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 
@@ -66,6 +70,7 @@ export function PartnerCreateAccountPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
@@ -112,33 +117,37 @@ export function PartnerCreateAccountPage() {
 
     setSubmitting(true);
 
-    const result = await createPartnerAccountWithEmail(
-      email.trim(),
-      password,
-      turnstileToken
-    );
-
-    if (result.error) {
-      setError(result.error);
-      setSubmitting(false);
-      return;
-    }
-
-    if (result.needsEmailConfirmation) {
-      savePendingSignup({
-        email: email.trim(),
+    try {
+      const result = await createPartnerAccountWithEmail(
+        email.trim(),
         password,
-        account: "partner",
-      });
-      router.push(result.checkEmailPath ?? "/auth/check-email");
-      return;
-    }
+        turnstileToken
+      );
 
-    if (!isSupabaseConfigured()) {
-      createDevSession(email.trim(), "partner");
-    }
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    router.push(PARTNER_APPLICATION_PATH);
+      if (result.needsEmailConfirmation) {
+        savePendingSignup({
+          email: email.trim(),
+          password,
+          account: "partner",
+        });
+        router.push(result.checkEmailPath ?? "/auth/check-email");
+        return;
+      }
+
+      if (!isSupabaseConfigured()) {
+        createDevSession(email.trim(), "partner");
+      }
+
+      router.push(PARTNER_APPLICATION_PATH);
+    } finally {
+      setSubmitting(false);
+      turnstileRef.current?.reset();
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -319,7 +328,7 @@ export function PartnerCreateAccountPage() {
                   </p>
                 )}
 
-                <TurnstileField onTokenChange={setTurnstileToken} />
+                <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
                 <button
                   type="submit"
