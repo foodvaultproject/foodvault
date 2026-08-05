@@ -61,7 +61,7 @@ export default async function Home({ searchParams }: HomeProps) {
     getHomepageFeaturedBrands(12),
     getDiscoverPageContent(),
     getMembershipSettings(),
-    getRecentBrandCards(3),
+    getRecentBrandCards(9),
     searchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
     searchPublicBrands({ sort: "featured", limit: 4, offset: 0 }),
     getViewerFavoriteContext(),
@@ -104,6 +104,7 @@ export default async function Home({ searchParams }: HomeProps) {
         />
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeCategories onHomepage compactSpacing />
+        <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}
@@ -140,6 +141,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeVaultDropSection drops={vaultDrops} />
         <HomeCategories onHomepage compactSpacing />
+        <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
           trending={trendingBrands.brands}
           newBrands={newBrands}

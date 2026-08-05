@@ -110,8 +110,8 @@ export function HomeTrendingSection({
             viewAllLabel="View all new brands →"
             hideViewAll={hideViewAll}
           >
-            <div className={`${brandTileGridGapClass} grid-cols-1 md:grid-cols-3`}>
-              {newBrands.slice(0, 3).map((brand) => (
+            <div className={`${brandTileGridGapClass} grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3`}>
+              {newBrands.slice(0, 9).map((brand) => (
                 <NewBrandCard key={brand.id} brand={brand} />
               ))}
             </div>
