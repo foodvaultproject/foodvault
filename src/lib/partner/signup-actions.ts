@@ -1,17 +1,30 @@
 "use server";
 
 import { isSupabaseConfigured } from "@/lib/auth";
+import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import {
   issueAndSendSignupVerification,
   AUTH_CHECK_EMAIL_PATH,
 } from "@/lib/auth/email-verification";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
-export async function createPartnerAccountAction(email: string, password: string) {
+export async function createPartnerAccountAction(
+  email: string,
+  password: string,
+  turnstileToken?: string | null
+) {
   const trimmedEmail = email.trim();
 
   if (!trimmedEmail) {
     return { error: "Email address is required." };
+  }
+
+  const guard = await enforceAuthBotProtection({
+    action: "email_verification",
+    turnstileToken,
+  });
+  if (!guard.ok) {
+    return { error: guard.error };
   }
 
   if (!isSupabaseConfigured()) {

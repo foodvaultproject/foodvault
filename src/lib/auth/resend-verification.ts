@@ -2,6 +2,7 @@
 
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
+import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
 import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
@@ -26,11 +27,20 @@ function defaultNextPathForAccount(accountType: AccountType) {
 
 export async function resendSignupVerificationAction(
   email: string,
-  accountType: AccountType
+  accountType: AccountType,
+  turnstileToken?: string | null
 ) {
   const trimmed = email.trim();
   if (!trimmed) {
     return { error: "Enter your email address first." };
+  }
+
+  const guard = await enforceAuthBotProtection({
+    action: "email_verification",
+    turnstileToken,
+  });
+  if (!guard.ok) {
+    return { error: guard.error };
   }
 
   if (!createAdminClient()) {

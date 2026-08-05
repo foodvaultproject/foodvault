@@ -1,5 +1,6 @@
 import type { AccountType } from "@/lib/auth";
 import { RESET_PASSWORD_PATH } from "@/lib/auth";
+import { reserveAuthEmailSend } from "@/lib/auth/bot-protection/email-dedup";
 import { renderMemberPasswordResetEmail, renderMemberVerifyEmail } from "@/lib/email-templates/render";
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -147,6 +148,11 @@ export async function sendSignupVerificationEmail(params: {
   firstName?: string | null;
   verificationUrl: string;
 }) {
+  const dedup = await reserveAuthEmailSend("signup_verification", params.to);
+  if (dedup.duplicate) {
+    return {};
+  }
+
   const appUrl = getEmailAppUrl();
   const result = await sendPlatformEmailSafe({
     to: params.to,
@@ -252,6 +258,11 @@ export async function sendPasswordResetEmail(params: {
   firstName?: string | null;
   resetUrl: string;
 }) {
+  const dedup = await reserveAuthEmailSend("password_reset", params.to);
+  if (dedup.duplicate) {
+    return {};
+  }
+
   const appUrl = getEmailAppUrl();
   const result = await sendPlatformEmailSafe({
     to: params.to,

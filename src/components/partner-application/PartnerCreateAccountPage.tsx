@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createPartnerAccountWithEmail, getPartnerSession, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
 import { createDevSession, getAuthSession, isSupabaseConfigured, PARTNER_LOGIN_PATH, signOut } from "@/lib/auth";
+import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 
@@ -64,6 +65,8 @@ export function PartnerCreateAccountPage() {
   const [communicationsAccepted, setCommunicationsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
   const passwordValid =
@@ -102,9 +105,18 @@ export function PartnerCreateAccountPage() {
       return;
     }
 
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before continuing.");
+      return;
+    }
+
     setSubmitting(true);
 
-    const result = await createPartnerAccountWithEmail(email.trim(), password);
+    const result = await createPartnerAccountWithEmail(
+      email.trim(),
+      password,
+      turnstileToken
+    );
 
     if (result.error) {
       setError(result.error);
@@ -306,6 +318,8 @@ export function PartnerCreateAccountPage() {
                     {error}
                   </p>
                 )}
+
+                <TurnstileField onTokenChange={setTurnstileToken} />
 
                 <button
                   type="submit"

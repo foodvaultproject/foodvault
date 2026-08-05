@@ -2,18 +2,34 @@
 
 import type { AccountType } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
+import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { issueAndSendPasswordReset } from "@/lib/auth/email-verification";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type ResetPasswordOptions = {
   account?: AccountType;
+  turnstileToken?: string | null;
+  /** Logged-in account settings can skip CAPTCHA but stay rate limited. */
+  skipTurnstile?: boolean;
 };
 
-export async function resetPassword(email: string, options: ResetPasswordOptions = {}) {
+export async function resetPassword(
+  email: string,
+  options: ResetPasswordOptions = {}
+) {
   const trimmed = email.trim();
 
   if (!trimmed) {
     return { error: "Enter your email address first." };
+  }
+
+  const guard = await enforceAuthBotProtection({
+    action: "password_reset",
+    turnstileToken: options.turnstileToken,
+    requireTurnstile: options.skipTurnstile ? false : undefined,
+  });
+  if (!guard.ok) {
+    return { error: guard.error };
   }
 
   if (!isSupabaseConfigured()) {

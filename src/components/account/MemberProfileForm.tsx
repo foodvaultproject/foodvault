@@ -101,7 +101,10 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
     setError(null);
     setMessage(null);
 
-    const result = await resetPassword(profile.email, { account: "member" });
+    const result = await resetPassword(profile.email, {
+      account: "member",
+      skipTurnstile: true,
+    });
     setResettingPassword(false);
 
     if (result.error) {

@@ -16,6 +16,7 @@ import {
   resolvePartnerPostLoginPath,
 } from "@/lib/partner-auth";
 import { finalizeVerifiedSessionAction, needsSignupSetupAction } from "@/lib/auth/finalize-verified-session";
+import { assertLoginAllowedAction } from "@/lib/auth/login-actions";
 
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
@@ -105,6 +106,13 @@ function PartnerLoginForm() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+
+    const allowed = await assertLoginAllowedAction();
+    if ("error" in allowed && allowed.error) {
+      setError(allowed.error);
+      setSubmitting(false);
+      return;
+    }
 
     const result = await signInWithEmail(email.trim(), password, "partner");
 

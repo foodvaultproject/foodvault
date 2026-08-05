@@ -1,6 +1,7 @@
 "use server";
 
 import { isSupabaseConfigured } from "@/lib/auth";
+import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import {
   AUTH_CHECK_EMAIL_PATH,
   issueAndSendSignupVerification,
@@ -8,13 +9,24 @@ import {
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import type { AffiliateRegistrationInput } from "@/lib/affiliate/types";
 
-export async function createAffiliateAccountAction(input: AffiliateRegistrationInput) {
+export async function createAffiliateAccountAction(
+  input: AffiliateRegistrationInput,
+  turnstileToken?: string | null
+) {
   if (!input.firstName.trim() || !input.lastName.trim()) {
     return { error: "First name and last name are required." };
   }
 
   if (!input.email.trim()) {
     return { error: "Email address is required." };
+  }
+
+  const guard = await enforceAuthBotProtection({
+    action: "email_verification",
+    turnstileToken,
+  });
+  if (!guard.ok) {
+    return { error: guard.error };
   }
 
   const email = input.email.trim();

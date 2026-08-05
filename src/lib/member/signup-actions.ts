@@ -10,6 +10,7 @@ import {
   AUTH_CHECK_EMAIL_PATH,
   issueAndSendSignupVerification,
 } from "@/lib/auth/email-verification";
+import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import {
   MEMBER_HOME_PATH,
@@ -42,11 +43,20 @@ function validateSignupForm(data: SignupFormData): string | null {
 
 export async function createMemberAccountAction(
   data: SignupFormData,
-  mode: "trial" | "membership"
+  mode: "trial" | "membership",
+  turnstileToken?: string | null
 ) {
   const validationError = validateSignupForm(data);
   if (validationError) {
     return { error: validationError };
+  }
+
+  const guard = await enforceAuthBotProtection({
+    action: "email_verification",
+    turnstileToken,
+  });
+  if (!guard.ok) {
+    return { error: guard.error };
   }
 
   if (!isSupabaseConfigured()) {
@@ -119,6 +129,9 @@ export async function requireMemberSession() {
   return { id: user.id, email: user.email };
 }
 
-export async function resendMemberSignupConfirmationAction(email: string) {
-  return resendSignupVerificationAction(email, "member");
+export async function resendMemberSignupConfirmationAction(
+  email: string,
+  turnstileToken?: string | null
+) {
+  return resendSignupVerificationAction(email, "member", turnstileToken);
 }

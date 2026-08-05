@@ -15,6 +15,7 @@ import {
   resolveVerifiedRedirectPath,
   signupPathForAccount,
 } from "@/lib/auth/resolve-verified-redirect";
+import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import { getVerificationStatusAction } from "@/lib/auth/verification-status";
 import { createClient } from "@/lib/supabase/client";
@@ -62,6 +63,8 @@ function CheckEmailContent() {
   const [actionError, setActionError] = useState<string | null>(initialError);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   const pollingActiveRef = useRef(true);
   const redirectingRef = useRef(false);
@@ -198,11 +201,16 @@ function CheckEmailContent() {
       return;
     }
 
+    if (captchaRequired && !turnstileToken) {
+      setActionError("Please complete the CAPTCHA check before resending.");
+      return;
+    }
+
     setResending(true);
     setResent(false);
     setActionError(null);
 
-    const result = await resendSignupVerificationAction(email, account);
+    const result = await resendSignupVerificationAction(email, account, turnstileToken);
     setResending(false);
 
     if ("error" in result && result.error) {
@@ -212,7 +220,7 @@ function CheckEmailContent() {
 
     setResent(true);
     setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
-  }, [account, cooldownSeconds, email]);
+  }, [account, captchaRequired, cooldownSeconds, email, turnstileToken]);
 
   const handleChangeEmail = useCallback(() => {
     stopPolling();
@@ -346,6 +354,8 @@ function CheckEmailContent() {
             >
               {checking ? "Checking…" : "I've Verified My Email"}
             </button>
+
+            <TurnstileField onTokenChange={setTurnstileToken} />
 
             <button
               type="button"

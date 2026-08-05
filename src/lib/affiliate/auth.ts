@@ -70,7 +70,8 @@ export async function isAffiliateAccount(userId: string): Promise<boolean> {
 }
 
 export async function createAffiliateAccount(
-  input: AffiliateRegistrationInput
+  input: AffiliateRegistrationInput,
+  turnstileToken?: string | null
 ): Promise<{
   error?: string;
   needsEmailConfirmation?: true;
@@ -81,7 +82,7 @@ export async function createAffiliateAccount(
   const { createAffiliateAccountAction } = await import(
     "@/lib/affiliate/signup-actions"
   );
-  return createAffiliateAccountAction(input);
+  return createAffiliateAccountAction(input, turnstileToken);
 }
 
 export async function signInAffiliateWithEmail(

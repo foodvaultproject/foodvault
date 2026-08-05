@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AffiliateGuestGuard } from "@/components/affiliate/AffiliateAuthGuard";
+import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import {
   createAffiliateAccount,
   resolveAffiliatePostLoginPath,
@@ -38,6 +39,8 @@ export function AffiliateRegisterPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   const passwordChecks = useMemo(() => getPasswordChecks(form.password), [form.password]);
   const passwordValid =
@@ -65,14 +68,22 @@ export function AffiliateRegisterPage() {
       return;
     }
 
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before continuing.");
+      return;
+    }
+
     setSubmitting(true);
-    const result = await createAffiliateAccount({
-      firstName: form.firstName,
-      lastName: form.lastName,
-      email: form.email,
-      password: form.password,
-      country: form.country,
-    });
+    const result = await createAffiliateAccount(
+      {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+        country: form.country,
+      },
+      turnstileToken
+    );
 
     if (result.error) {
       setError(result.error);
@@ -200,6 +211,8 @@ export function AffiliateRegisterPage() {
             </label>
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+            <TurnstileField onTokenChange={setTurnstileToken} />
 
             <button
               type="submit"

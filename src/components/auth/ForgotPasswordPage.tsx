@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import { LOGIN_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import { resetPassword } from "@/lib/auth/password-reset-actions";
 
@@ -14,18 +15,27 @@ function ForgotPasswordForm() {
   const isPartner = searchParams.get("account") === "partner";
   const backLink = isPartner ? PARTNER_LOGIN_PATH : LOGIN_PATH;
   const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const captchaRequired = isTurnstileEnabledClient();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
+
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before continuing.");
+      return;
+    }
+
     setSubmitting(true);
 
     const result = await resetPassword(email.trim(), {
       account: isPartner ? "partner" : "member",
+      turnstileToken,
     });
 
     if (result.error) {
@@ -63,6 +73,8 @@ function ForgotPasswordForm() {
                 className={`mt-2 ${inputClass}`}
               />
             </div>
+
+            <TurnstileField onTokenChange={setTurnstileToken} />
 
             {error && (
               <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

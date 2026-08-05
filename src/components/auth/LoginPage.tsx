@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
+import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import { resendMemberSignupConfirmationAction } from "@/lib/member/signup-actions";
+import { assertLoginAllowedAction } from "@/lib/auth/login-actions";
 import {
   FORGOT_PASSWORD_PATH,
   getAuthSession,
@@ -75,6 +77,8 @@ function LoginForm() {
   const [submitting, setSubmitting] = useState(false);
   const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const [confirmationResent, setConfirmationResent] = useState(false);
+  const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   const showResendConfirmation =
     Boolean(error) && /email not confirmed/i.test(error ?? "");
@@ -110,6 +114,13 @@ function LoginForm() {
     setError(null);
     setSubmitting(true);
 
+    const allowed = await assertLoginAllowedAction();
+    if ("error" in allowed && allowed.error) {
+      setError(allowed.error);
+      setSubmitting(false);
+      return;
+    }
+
     const result = await signInWithEmail(email.trim(), password, "member");
 
     if (result.error) {
@@ -128,9 +139,17 @@ function LoginForm() {
       return;
     }
 
+    if (captchaRequired && !resendTurnstileToken) {
+      setError("Please complete the CAPTCHA check before resending.");
+      return;
+    }
+
     setResendingConfirmation(true);
     setConfirmationResent(false);
-    const result = await resendMemberSignupConfirmationAction(email.trim());
+    const result = await resendMemberSignupConfirmationAction(
+      email.trim(),
+      resendTurnstileToken
+    );
     setResendingConfirmation(false);
 
     if ("error" in result && result.error) {
@@ -248,16 +267,19 @@ function LoginForm() {
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <p>{error}</p>
                 {showResendConfirmation ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleResendConfirmation()}
-                    disabled={resendingConfirmation}
-                    className="mt-3 font-semibold text-primary underline-offset-2 hover:underline disabled:opacity-60"
-                  >
-                    {resendingConfirmation
-                      ? "Sending confirmation email..."
-                      : "Resend confirmation email"}
-                  </button>
+                  <div className="mt-3 space-y-3">
+                    <TurnstileField onTokenChange={setResendTurnstileToken} />
+                    <button
+                      type="button"
+                      onClick={() => void handleResendConfirmation()}
+                      disabled={resendingConfirmation}
+                      className="font-semibold text-primary underline-offset-2 hover:underline disabled:opacity-60"
+                    >
+                      {resendingConfirmation
+                        ? "Sending confirmation email..."
+                        : "Resend confirmation email"}
+                    </button>
+                  </div>
                 ) : null}
                 {confirmationResent ? (
                   <p className="mt-2 text-success">

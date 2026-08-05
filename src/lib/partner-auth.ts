@@ -141,7 +141,8 @@ export async function resolvePartnerPostLoginPath(
 
 export async function createPartnerAccountWithEmail(
   email: string,
-  password: string
+  password: string,
+  turnstileToken?: string | null
 ): Promise<{
   error?: string;
   needsEmailConfirmation?: true;
@@ -152,7 +153,7 @@ export async function createPartnerAccountWithEmail(
   const { createPartnerAccountAction } = await import(
     "@/lib/partner/signup-actions"
   );
-  return createPartnerAccountAction(email, password);
+  return createPartnerAccountAction(email, password, turnstileToken);
 }
 
 export async function signInPartnerWithEmail(

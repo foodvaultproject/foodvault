@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SignupField, SignupPasswordField, SignupProgress, inputClass } from "@/components/signup/SignupProgress";
+import { TurnstileField, isTurnstileEnabledClient } from "@/components/auth/TurnstileField";
 import {
   createDevSession,
   isSupabaseConfigured,
@@ -61,6 +62,8 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<"trial" | "membership" | "google" | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   const showPasswordMatchStatus = confirmPassword.length > 0;
   const passwordsMatch = password.length > 0 && password === confirmPassword;
@@ -98,8 +101,14 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
 
   async function submit(mode: "trial" | "membership") {
     setError(null);
+
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before continuing.");
+      return;
+    }
+
     setLoading(mode);
-    const result = await createMemberAccountAction(formData, mode);
+    const result = await createMemberAccountAction(formData, mode, turnstileToken);
     if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
       savePendingSignup({
         email: email.trim(),
@@ -278,6 +287,8 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
             </label>
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+            <TurnstileField onTokenChange={setTurnstileToken} />
 
             <button
               type="submit"
