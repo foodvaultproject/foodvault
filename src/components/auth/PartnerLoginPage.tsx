@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import {
   FORGOT_PASSWORD_PATH,
   getAuthSession,
@@ -74,6 +79,9 @@ function PartnerLoginForm() {
     messageForAuthError(searchParams.get("error"))
   );
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   useEffect(() => {
     const authError = searchParams.get("error");
@@ -105,28 +113,42 @@ function PartnerLoginForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before signing in.");
+      return;
+    }
+
     setSubmitting(true);
 
-    const allowed = await assertLoginAllowedAction();
-    if ("error" in allowed && allowed.error) {
-      setError(allowed.error);
+    try {
+      const allowed = await assertLoginAllowedAction();
+      if ("error" in allowed && allowed.error) {
+        setError(allowed.error);
+        return;
+      }
+
+      const result = await signInWithEmail(
+        email.trim(),
+        password,
+        "partner",
+        turnstileToken
+      );
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      const session = await getAuthSession();
+      const path = session
+        ? await resolvePartnerPostLoginPath(session.id, nextPath)
+        : resolvePostLoginRedirect("partner", nextPath);
+      router.push(path);
+    } finally {
       setSubmitting(false);
-      return;
+      turnstileRef.current?.reset();
     }
-
-    const result = await signInWithEmail(email.trim(), password, "partner");
-
-    if (result.error) {
-      setError(result.error);
-      setSubmitting(false);
-      return;
-    }
-
-    const session = await getAuthSession();
-    const path = session
-      ? await resolvePartnerPostLoginPath(session.id, nextPath)
-      : resolvePostLoginRedirect("partner", nextPath);
-    router.push(path);
   };
 
   const handleGoogleSignIn = async () => {
@@ -259,6 +281,8 @@ function PartnerLoginForm() {
                   {error}
                 </p>
               )}
+
+              <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
               <button
                 type="submit"

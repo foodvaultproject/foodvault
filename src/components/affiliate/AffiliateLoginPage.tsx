@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AffiliateGuestGuard } from "@/components/affiliate/AffiliateAuthGuard";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import {
   resolveAffiliatePostLoginPath,
   signInAffiliateWithEmail,
@@ -21,6 +26,9 @@ export function AffiliateLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   useEffect(() => {
     getAuthSession().then((session) => {
@@ -33,24 +41,33 @@ export function AffiliateLoginPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before signing in.");
+      return;
+    }
+
     setSubmitting(true);
 
-    const allowed = await assertLoginAllowedAction();
-    if ("error" in allowed && allowed.error) {
-      setError(allowed.error);
-      setSubmitting(false);
-      return;
-    }
+    try {
+      const allowed = await assertLoginAllowedAction();
+      if ("error" in allowed && allowed.error) {
+        setError(allowed.error);
+        return;
+      }
 
-    const result = await signInAffiliateWithEmail(email, password);
-    if (result.error) {
-      setError(result.error);
-      setSubmitting(false);
-      return;
-    }
+      const result = await signInAffiliateWithEmail(email, password, turnstileToken);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    router.push(resolveAffiliatePostLoginPath());
-    router.refresh();
+      router.push(resolveAffiliatePostLoginPath());
+      router.refresh();
+    } finally {
+      setSubmitting(false);
+      turnstileRef.current?.reset();
+    }
   }
 
   return (
@@ -85,6 +102,8 @@ export function AffiliateLoginPage() {
             </div>
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+            <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
 
             <button
               type="submit"

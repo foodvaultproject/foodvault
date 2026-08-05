@@ -83,6 +83,8 @@ function LoginForm() {
   const [confirmationResent, setConfirmationResent] = useState(false);
   const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
   const resendTurnstileRef = useRef<TurnstileFieldHandle>(null);
+  const [loginTurnstileToken, setLoginTurnstileToken] = useState<string | null>(null);
+  const loginTurnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
 
   const showResendConfirmation =
@@ -117,25 +119,39 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (captchaRequired && !loginTurnstileToken) {
+      setError("Please complete the CAPTCHA check before signing in.");
+      return;
+    }
+
     setSubmitting(true);
 
-    const allowed = await assertLoginAllowedAction();
-    if ("error" in allowed && allowed.error) {
-      setError(allowed.error);
+    try {
+      const allowed = await assertLoginAllowedAction();
+      if ("error" in allowed && allowed.error) {
+        setError(allowed.error);
+        return;
+      }
+
+      const result = await signInWithEmail(
+        email.trim(),
+        password,
+        "member",
+        loginTurnstileToken
+      );
+
+      if (result.error) {
+        setError(result.error);
+        setConfirmationResent(false);
+        return;
+      }
+
+      router.push(resolvePostLoginRedirect("member", nextPath));
+    } finally {
       setSubmitting(false);
-      return;
+      loginTurnstileRef.current?.reset();
     }
-
-    const result = await signInWithEmail(email.trim(), password, "member");
-
-    if (result.error) {
-      setError(result.error);
-      setConfirmationResent(false);
-      setSubmitting(false);
-      return;
-    }
-
-    router.push(resolvePostLoginRedirect("member", nextPath));
   };
 
   async function handleResendConfirmation() {
@@ -300,6 +316,8 @@ function LoginForm() {
                 ) : null}
               </div>
             )}
+
+            <TurnstileField ref={loginTurnstileRef} onTokenChange={setLoginTurnstileToken} />
 
             <button
               type="submit"

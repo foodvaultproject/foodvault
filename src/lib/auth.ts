@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { storeOAuthIntentAction } from "@/lib/auth/oauth-intent-actions";
 import {
   markPartnerOAuthSignup,
@@ -117,7 +118,8 @@ const WRONG_ACCOUNT_MESSAGES: Record<AccountType, string> = {
 export async function signInWithEmail(
   email: string,
   password: string,
-  expectedAccountType: AccountType
+  expectedAccountType: AccountType,
+  captchaToken?: string | null
 ): Promise<{ error?: string; accountType?: AccountType }> {
   if (!isSupabaseConfigured()) {
     writeDevSession({
@@ -133,6 +135,7 @@ export async function signInWithEmail(
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+    options: supabaseAuthCaptchaOptions(captchaToken),
   });
 
   if (error) {

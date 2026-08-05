@@ -1,7 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import {
+  TurnstileField,
+  type TurnstileFieldHandle,
+  isTurnstileEnabledClient,
+} from "@/components/auth/TurnstileField";
 import { adminLoginAction } from "@/lib/admin/auth";
 import { ADMIN_DASHBOARD_PATH } from "@/lib/admin/types";
 
@@ -12,19 +17,33 @@ export function AdminLoginForm() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
+  const captchaRequired = isTurnstileEnabledClient();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const result = await adminLoginAction(email, password);
-    if (result.error) {
-      setError(result.error);
-      setLoading(false);
+
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before signing in.");
       return;
     }
-    router.push(ADMIN_DASHBOARD_PATH);
-    router.refresh();
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await adminLoginAction(email, password, turnstileToken);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      router.push(ADMIN_DASHBOARD_PATH);
+      router.refresh();
+    } finally {
+      setLoading(false);
+      turnstileRef.current?.reset();
+    }
   }
 
   return (
@@ -93,6 +112,8 @@ export function AdminLoginForm() {
             />
             Remember this device for 30 days
           </label>
+
+          <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} className="mt-4" />
 
           {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 

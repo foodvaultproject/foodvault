@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/auth";
+import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { createClient } from "@/lib/supabase/server";
 import {
   clearDevAdminCookie,
@@ -58,7 +59,11 @@ export async function redirectIfAdminAuthenticated() {
   }
 }
 
-export async function adminLoginAction(email: string, password: string) {
+export async function adminLoginAction(
+  email: string,
+  password: string,
+  captchaToken?: string | null
+) {
   if (!isSupabaseConfigured()) {
     if (email === DEV_ADMIN_EMAIL && password.length >= 1) {
       await setDevAdminCookie();
@@ -71,6 +76,7 @@ export async function adminLoginAction(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+    options: supabaseAuthCaptchaOptions(captchaToken),
   });
 
   if (error) {

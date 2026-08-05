@@ -87,9 +87,10 @@ export async function createAffiliateAccount(
 
 export async function signInAffiliateWithEmail(
   email: string,
-  password: string
+  password: string,
+  captchaToken?: string | null
 ): Promise<{ error?: string }> {
-  const result = await signInWithEmail(email.trim(), password, "affiliate");
+  const result = await signInWithEmail(email.trim(), password, "affiliate", captchaToken);
   if (result.error) {
     return { error: result.error };
   }
