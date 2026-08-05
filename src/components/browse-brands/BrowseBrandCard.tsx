@@ -131,7 +131,7 @@ export function BrowseBrandCard({
               />
             </div>
 
-            <span className={partnerBrandCardCtaClass}>{ctaLabel}</span>
+            <span className={`${partnerBrandCardCtaClass} pointer-events-none`}>{ctaLabel}</span>
           </div>
         </div>
       </div>

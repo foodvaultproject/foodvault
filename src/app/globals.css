@@ -198,7 +198,7 @@ body {
   }
 
   /* Primary CTA — gradient, lift, button shadow */
-  :is(a, button).fv-btn-primary,
+  :is(a, button, span).fv-btn-primary,
   :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]),
   :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]) {
     border-radius: var(--radius-button);
@@ -211,7 +211,8 @@ body {
       box-shadow 150ms ease;
   }
 
-  :is(a, button).fv-btn-primary:hover,
+  :is(a, button, span).fv-btn-primary:hover,
+  a:hover :is(span).fv-btn-primary,
   :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):hover,
   :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):hover {
     background: var(--primary-gradient-hover) !important;
@@ -220,7 +221,7 @@ body {
     box-shadow: var(--shadow-button-hover);
   }
 
-  :is(a, button).fv-btn-primary:active,
+  :is(a, button, span).fv-btn-primary:active,
   :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):active,
   :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):active {
     transform: translateY(0);
