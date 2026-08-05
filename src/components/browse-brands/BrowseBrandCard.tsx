@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BrandOfferBadge } from "@/components/home/BrandOfferBadge";
@@ -45,10 +46,6 @@ export function BrowseBrandCard({
   const profilePath = partnerProfilePathFromSlug(brand.slug);
   const category = brand.departments[0] ?? brand.department ?? "New Zealand brand";
 
-  function openProfile() {
-    router.push(profilePath);
-  }
-
   async function handleFavorite(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
@@ -74,18 +71,7 @@ export function BrowseBrandCard({
   }
 
   return (
-    <article
-      role="link"
-      tabIndex={0}
-      onClick={openProfile}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openProfile();
-        }
-      }}
-      className={partnerBrandCardShellClass}
-    >
+    <Link href={profilePath} prefetch className={partnerBrandCardShellClass}>
       <div className="relative shrink-0 overflow-hidden">
         <PartnerBanner
           src={brand.bannerImageUrl}
@@ -145,19 +131,10 @@ export function BrowseBrandCard({
               />
             </div>
 
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                openProfile();
-              }}
-              className={partnerBrandCardCtaClass}
-            >
-              {ctaLabel}
-            </button>
+            <span className={partnerBrandCardCtaClass}>{ctaLabel}</span>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

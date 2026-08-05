@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { getRequestSupabaseSession } from "@/lib/auth/request-session";
 import { getAdminUser } from "@/lib/admin/auth";
 import { getActiveMemberView } from "@/lib/member/active-member";
 import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
@@ -33,6 +34,7 @@ import {
   type SelectedProduct,
 } from "@/lib/partner-offer";
 import { parseVaultDropStored, type VaultDropStored } from "@/lib/vault-drop";
+import { cache } from "react";
 
 export type PartnerProfile = {
   id: string;
@@ -135,6 +137,9 @@ const PARTNER_PREVIEW_COLUMNS_BASE =
 
 const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop`;
 
+const PUBLIC_BRAND_PROFILE_SELECT =
+  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop";
+
 async function fetchOwnPartnerPreviewRow(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
@@ -207,10 +212,7 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
 async function getPartnerOwnProfilePreview(
   _slug: string
 ): Promise<PartnerProfile | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestSupabaseSession();
 
   if (!user) {
     return null;
@@ -357,7 +359,7 @@ function buildDevProfile(slug: string): PartnerProfile | null {
   };
 }
 
-export async function getPartnerProfile(
+export const getPartnerProfile = cache(async function getPartnerProfile(
   slug: string
 ): Promise<PartnerProfile | null> {
   if (!isSupabaseConfigured()) {
@@ -378,7 +380,7 @@ export async function getPartnerProfile(
 
   const { data } = await supabase
     .from("v_public_brand_profile")
-    .select("*")
+    .select(PUBLIC_BRAND_PROFILE_SELECT)
     .eq("slug", normalized)
     .limit(1)
     .maybeSingle();
@@ -388,7 +390,7 @@ export async function getPartnerProfile(
   }
 
   return getPartnerOwnProfilePreview(normalized);
-}
+});
 
 export async function isPartnerAffiliateProgramPublic(
   partnerId: string
@@ -416,10 +418,7 @@ export async function getPartnerDiscountCode(
     return { code: "FOODVAULT-DEV-15", state: "visible" };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestSupabaseSession();
 
   const { data: code } = await supabase.rpc(
     "get_partner_discount_code",
@@ -479,10 +478,7 @@ export async function getPartnerVaultDropCode(
     return { code: "FOODVAULT-DEV-FS-35", state: "visible" };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestSupabaseSession();
 
   const { data: code } = await supabase.rpc("get_partner_vault_drop_code", {
     p_partner_id: partnerId,
@@ -581,10 +577,7 @@ export async function getProfileViewerContext(
     };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestSupabaseSession();
 
   if (!user) {
     return {

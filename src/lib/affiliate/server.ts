@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getRequestSupabaseSession } from "@/lib/auth/request-session";
 import { buildReferralUrl } from "@/lib/affiliate/links";
 
 export type BrandAffiliateViewerContext = {
@@ -9,10 +9,7 @@ export type BrandAffiliateViewerContext = {
 export async function getBrandAffiliateViewerContext(
   partnerId: string
 ): Promise<BrandAffiliateViewerContext> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestSupabaseSession();
 
   if (!user) {
     return { isAffiliate: false, referralUrl: null };

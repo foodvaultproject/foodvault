@@ -1,6 +1,6 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { getRequestSupabaseSession } from "@/lib/auth/request-session";
 import { getAdminUser } from "@/lib/admin/auth";
-import { createClient } from "@/lib/supabase/server";
 
 export type ViewerFavoriteContext = {
   canFavorite: boolean;
@@ -12,10 +12,7 @@ export async function getViewerFavoriteContext(): Promise<ViewerFavoriteContext>
     return { canFavorite: false, favoritedPartnerIds: [] };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestSupabaseSession();
 
   if (!user || user.user_metadata?.account_type === "partner") {
     return { canFavorite: false, favoritedPartnerIds: [] };
