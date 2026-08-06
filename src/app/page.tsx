@@ -30,6 +30,7 @@ import {
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
 import { getHomeVaultDrops } from "@/lib/vault-drop-data";
+import { VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT } from "@/lib/homepage/visitor-featured-brand-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const { department, subcategory } = await searchParams;
   const initialDepartment = department ?? "";
   const initialSubcategory = subcategory ?? "";
+  const visitorFeaturedBrandLimit = VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT;
 
   const [
     featured,
@@ -58,7 +60,7 @@ export default async function Home({ searchParams }: HomeProps) {
     partnerBrowseInitial,
     vaultDrops,
   ] = await Promise.all([
-    getHomepageFeaturedBrands(12),
+    getHomepageFeaturedBrands(visitorFeaturedBrandLimit),
     getDiscoverPageContent(),
     getMembershipSettings(),
     getRecentBrandCards(9),
@@ -196,6 +198,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <HomeTrendingDepartmentCardsSection />
       <HomeFeaturedBrands
         brands={featured}
+        maxBrands={visitorFeaturedBrandLimit}
         canFavorite={favoriteContext.canFavorite}
         favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
       />

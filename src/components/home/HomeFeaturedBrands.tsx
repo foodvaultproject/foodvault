@@ -6,18 +6,20 @@ import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 type HomeFeaturedBrandsProps = {
   brands: BrandCard[];
+  maxBrands?: number;
   canFavorite: boolean;
   favoritedPartnerIds: string[];
 };
 
 export function HomeFeaturedBrands({
   brands,
+  maxBrands = 36,
   canFavorite,
   favoritedPartnerIds,
 }: HomeFeaturedBrandsProps) {
   if (brands.length === 0) return null;
 
-  const displayBrands = brands.slice(0, 12);
+  const displayBrands = brands.slice(0, maxBrands);
   const favoritedSet = new Set(favoritedPartnerIds);
 
   return (
