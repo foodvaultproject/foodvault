@@ -13,8 +13,11 @@ import {
   getAuthSession,
   isSupabaseConfigured,
   LOGIN_PATH,
+  MEMBER_DASHBOARD_PATH,
+  PARTNER_DASHBOARD_PATH,
   signOutAndGoHome,
 } from "@/lib/auth";
+import { setActivePortalClient } from "@/lib/auth/active-portal";
 import {
   affiliateNavMenuItems,
   memberNavMenuItems,
@@ -58,22 +61,33 @@ function useNavAuth(): NavAuthState {
       isCurrentUserAdminAction(),
     ]);
 
+    const hasDualRole =
+      session.roles.includes("member") && session.roles.includes("partner");
+
     if (admin) {
       setAuth({ status: "admin", email: session.email });
       return;
     }
 
-    if (partner || session.accountType === "partner") {
-      setAuth({ status: "partner", email: session.email });
+    if (session.accountType === "partner" || (partner && !hasDualRole)) {
+      setAuth({
+        status: "partner",
+        email: session.email,
+        canSwitchToMember: hasDualRole,
+      });
       return;
     }
 
-    if (affiliate || session.accountType === "affiliate") {
+    if (session.accountType === "affiliate" || affiliate) {
       setAuth({ status: "affiliate", email: session.email });
       return;
     }
 
-    setAuth({ status: "member", email: session.email });
+    setAuth({
+      status: "member",
+      email: session.email,
+      canSwitchToPartner: hasDualRole,
+    });
   }, []);
 
   useEffect(() => {
@@ -176,6 +190,14 @@ function AccountDropdown({
     await signOutAndGoHome();
   }
 
+  async function handleSwitchPortal(portal: "member" | "partner") {
+    setOpen(false);
+    setActivePortalClient(portal);
+    window.location.assign(
+      portal === "partner" ? PARTNER_DASHBOARD_PATH : MEMBER_DASHBOARD_PATH
+    );
+  }
+
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -207,6 +229,26 @@ function AccountDropdown({
               {item.label}
             </Link>
           ))}
+          {auth.status === "member" && auth.canSwitchToPartner ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => void handleSwitchPortal("partner")}
+              className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+            >
+              Switch to Partner Dashboard
+            </button>
+          ) : null}
+          {auth.status === "partner" && auth.canSwitchToMember ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => void handleSwitchPortal("member")}
+              className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+            >
+              Switch to Member Dashboard
+            </button>
+          ) : null}
           <div className="my-1 border-t border-border" />
           <button
             type="button"

@@ -1,4 +1,6 @@
 import type { AccountType } from "@/lib/auth";
+import { getAccountTypeFromMetadata } from "@/lib/auth";
+import { hasPartnerAccess } from "@/lib/auth/account-roles";
 import {
   OAUTH_INTENT_COOKIE,
   OAUTH_INTENT_CLIENT_COOKIE,
@@ -12,7 +14,6 @@ import {
   readMetadataString,
   type SessionCompletionContext,
 } from "@/lib/auth/session-completion";
-import { getAccountTypeFromMetadata } from "@/lib/auth";
 
 export function validateOAuthAccountType(
   user: { user_metadata?: Record<string, unknown> },
@@ -20,6 +21,10 @@ export function validateOAuthAccountType(
 ): boolean {
   const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
   const existingType = readMetadataString(metadata, "account_type");
+
+  if (expectedType === "partner" && hasPartnerAccess(metadata)) {
+    return true;
+  }
 
   if (
     existingType &&

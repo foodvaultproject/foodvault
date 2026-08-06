@@ -115,7 +115,7 @@ function toPartnerSession(session: AuthSession): PartnerSession {
 
 export async function getPartnerSession(): Promise<PartnerSession | null> {
   const session = await getAuthSession();
-  if (!session || session.accountType !== "partner") {
+  if (!session || !session.roles.includes("partner")) {
     return null;
   }
 
@@ -146,14 +146,29 @@ export async function createPartnerAccountWithEmail(
 ): Promise<{
   error?: string;
   needsEmailConfirmation?: true;
+  needsExistingAccountLink?: true;
+  requiresGoogle?: boolean;
+  needsGoogleSignIn?: true;
   email?: string;
   checkEmailPath?: string;
   success?: true;
+  redirectPath?: string;
 }> {
   const { createPartnerAccountAction } = await import(
     "@/lib/partner/signup-actions"
   );
   return createPartnerAccountAction(email, password, turnstileToken);
+}
+
+export async function linkPartnerAccountWithPassword(
+  email: string,
+  password: string,
+  turnstileToken?: string | null
+) {
+  const { linkPartnerAccountWithPasswordAction } = await import(
+    "@/lib/partner/signup-actions"
+  );
+  return linkPartnerAccountWithPasswordAction(email, password, turnstileToken);
 }
 
 export async function signInPartnerWithEmail(

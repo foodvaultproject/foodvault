@@ -28,7 +28,7 @@ const inputClass =
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   wrong_account_type:
-    "This email is registered as a FoodVault member account. Please use the member login page instead.",
+    "This Google account is not registered for Partner access. Create a Brand profile or use the member login page.",
   oauth_cancelled:
     "Google sign-in was cancelled. You can try again or log in with your email and password.",
   oauth_failed:
@@ -87,7 +87,7 @@ function PartnerLoginForm() {
     const authError = searchParams.get("error");
 
     getAuthSession().then(async (session) => {
-      if (session?.accountType === "partner") {
+      if (session?.roles.includes("partner")) {
         if (authError === "oauth_setup_failed") {
           setCheckingSession(false);
           return;

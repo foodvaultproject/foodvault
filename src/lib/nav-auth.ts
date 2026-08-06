@@ -8,8 +8,8 @@ import {
 export type NavAuthState =
   | { status: "loading" }
   | { status: "guest" }
-  | { status: "member"; email: string }
-  | { status: "partner"; email: string }
+  | { status: "member"; email: string; canSwitchToPartner?: boolean }
+  | { status: "partner"; email: string; canSwitchToMember?: boolean }
   | { status: "affiliate"; email: string }
   | { status: "admin"; email: string };
 

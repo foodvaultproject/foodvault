@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { AFFILIATE_DASHBOARD_PATH, type AccountType, getAccountTypeFromMetadata } from "@/lib/auth";
+import { buildEnablePartnerMetadata } from "@/lib/auth/account-roles";
 import { sendMemberFreeTrialStartedEmail } from "@/lib/email-templates/dispatch";
 import {
   MEMBER_HOME_PATH,
@@ -151,13 +152,13 @@ export async function completeSignupVerification(
   }
 
   if (accountType === "partner") {
+    const updates = buildEnablePartnerMetadata(metadata);
+    if (!readMetadataString(metadata, "signup_completed_at")) {
+      updates.signup_completed_at = new Date().toISOString();
+    }
+
     await supabase.auth.updateUser({
-      data: {
-        account_type: "partner",
-        partner_account_created: true,
-        onboarding_step: 2,
-        signup_completed_at: new Date().toISOString(),
-      },
+      data: updates,
     });
 
     return { redirectPath: PARTNER_APPLICATION_PATH };

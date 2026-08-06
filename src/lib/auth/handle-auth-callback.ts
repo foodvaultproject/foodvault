@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { AccountType } from "@/lib/auth";
 import { LOGIN_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
+import { setActivePortalCookie } from "@/lib/auth/active-portal";
 import {
   ensureAuthenticatedSession,
   OAUTH_INTENT_COOKIE,
@@ -132,6 +133,7 @@ export async function handleAuthCallback(
     );
 
     clearOAuthIntentCookie(cookieStore);
+    setActivePortalCookie(cookieStore, "partner");
 
     if (setupError) {
       console.error("[auth/callback/partner] Partner OAuth setup failed", {

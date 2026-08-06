@@ -92,7 +92,7 @@ function brandMatchesDepartments(brand: BrandCard, departments: string[]) {
 }
 
 function postgrestFilterValue(value: string): string {
-  if (/[,.()]/.test(value) || value.includes('"')) {
+  if (/[,.()]/.test(value) || value.includes('"') || /\s/.test(value)) {
     return `"${value.replace(/"/g, '""')}"`;
   }
   return value;
@@ -556,6 +556,78 @@ export async function getFeaturedBrands(limit = 8): Promise<BrandCard[]> {
   }
 
   return (data as ViewBrandRow[]).map(mapViewRow);
+}
+
+const TRENDING_THIS_WEEK_BRAND_SLOTS = [
+  { patterns: ["beenz"], slugs: ["beenz-ltd"] },
+  { patterns: ["smilebox", "smile box"], slugs: ["smilebox", "smile-box"] },
+  { patterns: ["good cocktail", "the good cocktail"], slugs: ["the-good-cocktail-co"] },
+  { patterns: ["kaitaia fire"], slugs: ["kaitaia-fire-limited", "kaitaia-fire"] },
+] as const;
+
+export const TRENDING_THIS_WEEK_BUSINESS_NAMES = [
+  "Beenz Ltd",
+  "Smilebox",
+  "The Good Cocktail Co",
+  "Kaitaia Fire Limited",
+] as const;
+
+async function fetchTrendingThisWeekBrandSlot(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  slot: (typeof TRENDING_THIS_WEEK_BRAND_SLOTS)[number],
+  usedIds: Set<string>
+): Promise<BrandCard | null> {
+  for (const slug of slot.slugs) {
+    const { data: slugRow } = await supabase
+      .from("v_public_brand_listings")
+      .select(PUBLIC_BRAND_LISTING_SELECT)
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (slugRow && !usedIds.has(slugRow.id as string)) {
+      return mapViewRow(slugRow as ViewBrandRow);
+    }
+  }
+
+  for (const pattern of slot.patterns) {
+    const { data } = await supabase
+      .from("v_public_brand_listings")
+      .select(PUBLIC_BRAND_LISTING_SELECT)
+      .ilike("business_name", `%${pattern}%`)
+      .limit(5);
+
+    const match = (data as ViewBrandRow[] | null)?.find(
+      (row) => !usedIds.has(row.id)
+    );
+
+    if (match) {
+      return mapViewRow(match);
+    }
+  }
+
+  return null;
+}
+
+export async function getTrendingThisWeekBrands(): Promise<BrandCard[]> {
+  if (!isSupabaseConfigured()) {
+    return buildDevBrands().slice(0, TRENDING_THIS_WEEK_BRAND_SLOTS.length);
+  }
+
+  const supabase = await createClient();
+  const usedIds = new Set<string>();
+  const brands: BrandCard[] = [];
+
+  for (const slot of TRENDING_THIS_WEEK_BRAND_SLOTS) {
+    const brand = await fetchTrendingThisWeekBrandSlot(supabase, slot, usedIds);
+    if (!brand) {
+      continue;
+    }
+
+    usedIds.add(brand.id);
+    brands.push(brand);
+  }
+
+  return brands;
 }
 
 type RpcBrandRow = {

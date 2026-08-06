@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPartnerAccountWithEmail, getPartnerSession, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
-import { createDevSession, getAuthSession, isSupabaseConfigured, PARTNER_LOGIN_PATH, signOut } from "@/lib/auth";
+import { createPartnerAccountWithEmail, linkPartnerAccountWithPassword, PARTNER_APPLICATION_PATH, signInPartnerWithGoogle } from "@/lib/partner-auth";
+import { createDevSession, getAuthSession, isSupabaseConfigured, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import {
   TurnstileField,
   type TurnstileFieldHandle,
@@ -62,6 +62,8 @@ function RequirementItem({
 export function PartnerCreateAccountPage() {
   const router = useRouter();
   const [checkingSession, setCheckingSession] = useState(true);
+  const [linkMode, setLinkMode] = useState(false);
+  const [requiresGoogle, setRequiresGoogle] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -82,8 +84,8 @@ export function PartnerCreateAccountPage() {
   const passwordsMatch = password.length > 0 && password === confirmPassword;
 
   useEffect(() => {
-    getPartnerSession().then((session) => {
-      if (session) {
+    getAuthSession().then((session) => {
+      if (session?.roles.includes("partner")) {
         router.replace(PARTNER_APPLICATION_PATH);
         return;
       }
@@ -91,7 +93,58 @@ export function PartnerCreateAccountPage() {
     });
   }, [router]);
 
+  const handleLinkSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    if (!termsAccepted || !communicationsAccepted) {
+      setError("Please accept both agreements to continue.");
+      return;
+    }
+
+    if (captchaRequired && !turnstileToken) {
+      setError("Please complete the CAPTCHA check before continuing.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const result = await linkPartnerAccountWithPassword(
+        email.trim(),
+        password,
+        turnstileToken
+      );
+
+      if (result.needsGoogleSignIn) {
+        setRequiresGoogle(true);
+        setError(result.error ?? null);
+        return;
+      }
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      router.push(result.redirectPath ?? PARTNER_APPLICATION_PATH);
+    } finally {
+      setSubmitting(false);
+      turnstileRef.current?.reset();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (linkMode) {
+      await handleLinkSubmit(e);
+      return;
+    }
+
     e.preventDefault();
     setError(null);
 
@@ -129,6 +182,14 @@ export function PartnerCreateAccountPage() {
         return;
       }
 
+      if (result.needsExistingAccountLink) {
+        setLinkMode(true);
+        setRequiresGoogle(Boolean(result.requiresGoogle));
+        setPassword("");
+        setConfirmPassword("");
+        return;
+      }
+
       if (result.needsEmailConfirmation) {
         savePendingSignup({
           email: email.trim(),
@@ -152,11 +213,6 @@ export function PartnerCreateAccountPage() {
 
   const handleGoogleSignIn = async () => {
     setError(null);
-
-    const session = await getAuthSession();
-    if (session && session.accountType !== "partner") {
-      await signOut();
-    }
 
     const result = await signInPartnerWithGoogle();
     if (result?.error) {
@@ -195,6 +251,22 @@ export function PartnerCreateAccountPage() {
             </div>
 
             <div className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
+              {linkMode ? (
+                <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+                  {requiresGoogle ? (
+                    <p>
+                      An account with this email already exists. Sign in with Google
+                      to authenticate and activate your Brand profile.
+                    </p>
+                  ) : (
+                    <p>
+                      An account with this email already exists. Enter your password
+                      to authenticate and activate your Brand profile.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -224,11 +296,12 @@ export function PartnerCreateAccountPage() {
               <div className="my-6 flex items-center gap-4">
                 <span className="h-px flex-1 bg-border" />
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Or
+                  {linkMode && requiresGoogle ? "Or continue with Google above" : "Or"}
                 </span>
                 <span className="h-px flex-1 bg-border" />
               </div>
 
+              {linkMode && requiresGoogle ? null : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="businessEmail" className="text-sm font-bold text-foreground">
@@ -242,12 +315,13 @@ export function PartnerCreateAccountPage() {
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    readOnly={linkMode}
                     placeholder="name@business.com"
                     className={`mt-2 ${inputClass}`}
                   />
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className={linkMode ? "" : "grid gap-4 sm:grid-cols-2"}>
                   <div>
                     <label htmlFor="password" className="text-sm font-bold text-foreground">
                       Password <span className="text-primary">*</span>
@@ -257,12 +331,13 @@ export function PartnerCreateAccountPage() {
                       name="password"
                       type="password"
                       required
-                      autoComplete="new-password"
+                      autoComplete={linkMode ? "current-password" : "new-password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className={`mt-2 ${inputClass}`}
                     />
                   </div>
+                  {!linkMode ? (
                   <div>
                     <label htmlFor="confirmPassword" className="text-sm font-bold text-foreground">
                       Confirm Password <span className="text-primary">*</span>
@@ -278,8 +353,10 @@ export function PartnerCreateAccountPage() {
                       className={`mt-2 ${inputClass}`}
                     />
                   </div>
+                  ) : null}
                 </div>
 
+                {!linkMode ? (
                 <div className="rounded-lg border border-border bg-surface p-4">
                   <ul className="grid gap-2 sm:grid-cols-2">
                     <RequirementItem met={passwordChecks.minLength} label="Minimum 8 characters" />
@@ -292,6 +369,7 @@ export function PartnerCreateAccountPage() {
                     <p className="mt-3 text-xs text-red-600">Passwords do not match.</p>
                   )}
                 </div>
+                ) : null}
 
                 <label className="flex items-start gap-3">
                   <input
@@ -335,7 +413,13 @@ export function PartnerCreateAccountPage() {
                   disabled={submitting}
                   className="fv-btn-primary inline-flex w-full items-center justify-center gap-2 rounded-sm px-6 py-4 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Creating account..." : "Continue to Business Application"}
+                  {submitting
+                    ? linkMode
+                      ? "Activating Brand profile..."
+                      : "Creating account..."
+                    : linkMode
+                      ? "Activate Brand Profile"
+                      : "Continue to Business Application"}
                   {!submitting && (
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -343,6 +427,7 @@ export function PartnerCreateAccountPage() {
                   )}
                 </button>
               </form>
+              )}
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 Already have a Partner account?{" "}

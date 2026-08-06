@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PartnerApplicationPage } from "@/components/partner-application/PartnerApplicationPage";
 import {
-  getAccountTypeFromMetadata,
   isSupabaseConfigured,
   PARTNER_DASHBOARD_PATH,
 } from "@/lib/auth";
+import { hasPartnerAccess } from "@/lib/auth/account-roles";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,7 +25,7 @@ export default async function PartnerApplicationRoute() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || getAccountTypeFromMetadata(user.user_metadata) !== "partner") {
+  if (!user || !hasPartnerAccess(user.user_metadata as Record<string, unknown>)) {
     redirect(PARTNER_CREATE_ACCOUNT_PATH);
   }
 

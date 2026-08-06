@@ -16,6 +16,11 @@ import {
   isFreeTrialMemberRow,
 } from "@/lib/member/membership-status";
 import {
+  buildEnablePartnerMetadata,
+  hasPartnerAccess,
+} from "@/lib/auth/account-roles";
+import { enablePartnerProfileOnUser } from "@/lib/auth/enable-partner-profile";
+import {
   parseOAuthDisplayName,
   shouldReplacePlaceholderMemberName,
 } from "@/lib/auth/oauth-display-name";
@@ -167,9 +172,16 @@ export async function prepareAuthUserMetadata(
     }
   }
 
-  const updates: Record<string, unknown> = {
-    account_type: context.expectedAccountType,
-  };
+  const updates: Record<string, unknown> = {};
+
+  if (
+    context.expectedAccountType === "partner" &&
+    getAccountTypeFromMetadata(metadata) === "member"
+  ) {
+    Object.assign(updates, buildEnablePartnerMetadata(metadata));
+  } else {
+    updates.account_type = context.expectedAccountType;
+  }
 
   if (shouldReplacePlaceholderMemberName(metadata)) {
     const { firstName, lastName } = parseOAuthDisplayName(metadata);
@@ -194,7 +206,7 @@ export async function prepareAuthUserMetadata(
     }
   }
 
-  if (context.expectedAccountType === "partner") {
+  if (context.expectedAccountType === "partner" && !updates.partner_account_created) {
     updates.partner_account_created = true;
     if (metadata.onboarding_step === undefined) {
       updates.onboarding_step = 2;
@@ -223,7 +235,7 @@ async function reconcilePartnerOAuthAccount(
   }
 
   const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
-  if (getAccountTypeFromMetadata(metadata) === "partner") {
+  if (hasPartnerAccess(metadata)) {
     return user;
   }
 
@@ -237,27 +249,8 @@ async function reconcilePartnerOAuthAccount(
     return user;
   }
 
-  const { error } = await supabase.auth.updateUser({
-    data: {
-      account_type: "partner",
-      partner_account_created: true,
-      onboarding_step:
-        typeof metadata.onboarding_step === "number" ? metadata.onboarding_step : 2,
-      signup_completed_at:
-        readMetadataString(metadata, "signup_completed_at") ||
-        new Date().toISOString(),
-    },
-  });
-
-  if (error) {
-    return user;
-  }
-
-  const {
-    data: { user: refreshed },
-  } = await supabase.auth.getUser();
-
-  return refreshed ?? user;
+  const enableResult = await enablePartnerProfileOnUser(supabase, user);
+  return enableResult.user;
 }
 
 /** Match email confirm + check-email: finish onboarding, then redirect. */

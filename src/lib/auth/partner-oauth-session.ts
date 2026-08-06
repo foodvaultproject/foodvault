@@ -1,15 +1,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { PARTNER_DASHBOARD_PATH } from "@/lib/auth";
+import { enablePartnerProfileOnUser } from "@/lib/auth/enable-partner-profile";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
-
-function readMetadataString(
-  metadata: Record<string, unknown>,
-  key: string,
-  fallback = ""
-) {
-  const value = metadata[key];
-  return typeof value === "string" ? value.trim() : fallback;
-}
 
 async function resolvePartnerRedirect(
   supabase: SupabaseClient,
@@ -29,35 +21,27 @@ async function resolvePartnerRedirect(
   return partnerRow ? PARTNER_DASHBOARD_PATH : PARTNER_APPLICATION_PATH;
 }
 
-/** Partner Google OAuth must never start a member trial — only set partner metadata. */
+/** Partner Google OAuth — enable partner access without removing member primary type. */
 export async function ensurePartnerOAuthSession(
   supabase: SupabaseClient,
   user: User,
   nextPath?: string | null
 ): Promise<{ redirectPath: string; error?: string }> {
-  const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const enableResult = await enablePartnerProfileOnUser(supabase, user);
 
-  const { error } = await supabase.auth.updateUser({
-    data: {
-      account_type: "partner",
-      partner_account_created: true,
-      onboarding_step:
-        typeof metadata.onboarding_step === "number" ? metadata.onboarding_step : 2,
-      signup_completed_at:
-        readMetadataString(metadata, "signup_completed_at") ||
-        new Date().toISOString(),
-    },
-  });
-
-  if (error) {
+  if (enableResult.error) {
     return {
       redirectPath: PARTNER_APPLICATION_PATH,
-      error: error.message,
+      error: enableResult.error,
     };
   }
 
   return {
-    redirectPath: await resolvePartnerRedirect(supabase, user.id, nextPath),
+    redirectPath: await resolvePartnerRedirect(
+      supabase,
+      enableResult.user.id,
+      nextPath
+    ),
   };
 }
 

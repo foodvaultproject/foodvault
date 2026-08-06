@@ -1,4 +1,11 @@
 import { createClient } from "@/lib/supabase/client";
+import {
+  getAvailableRoles,
+  hasMemberAccess,
+  hasPartnerAccess,
+  resolveActiveAccountType,
+} from "@/lib/auth/account-roles";
+import { readActivePortalClient, setActivePortalClient } from "@/lib/auth/active-portal";
 import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { storeOAuthIntentAction } from "@/lib/auth/oauth-intent-actions";
 import {
@@ -28,6 +35,7 @@ export type AuthSession = {
   id: string;
   email: string;
   accountType: AccountType;
+  roles: AccountType[];
   isDev?: boolean;
 };
 
@@ -58,6 +66,7 @@ export function createDevSession(email: string, accountType: AccountType) {
     id: `dev-${email}`,
     email,
     accountType,
+    roles: [accountType],
     isDev: true,
   });
 }
@@ -99,10 +108,18 @@ export async function getAuthSession(): Promise<AuthSession | null> {
   const user = session?.user;
   if (error || !user?.email || !user.email_confirmed_at) return null;
 
+  const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const roles = getAvailableRoles(metadata);
+  const accountType = resolveActiveAccountType(
+    metadata,
+    readActivePortalClient()
+  );
+
   return {
     id: user.id,
     email: user.email,
-    accountType: getAccountTypeFromMetadata(user.user_metadata),
+    accountType,
+    roles,
   };
 }
 
@@ -110,7 +127,7 @@ const WRONG_ACCOUNT_MESSAGES: Record<AccountType, string> = {
   member:
     "This email is registered as a FoodVault Partner account. Please use Partner Login instead.",
   partner:
-    "This email is registered as a FoodVault member account. Please use the member login page instead.",
+    "This email is not registered for Partner access. Create a Brand profile or use the member login page.",
   affiliate:
     "This email is registered with a different FoodVault account type. Please use the correct login page.",
 };
@@ -126,6 +143,7 @@ export async function signInWithEmail(
       id: `dev-${email}`,
       email,
       accountType: expectedAccountType,
+      roles: [expectedAccountType],
       isDev: true,
     });
     return { accountType: expectedAccountType };
@@ -142,14 +160,37 @@ export async function signInWithEmail(
     return { error: error.message };
   }
 
-  const resolvedType = getAccountTypeFromMetadata(data.user?.user_metadata);
+  const metadata = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+  const primaryType = getAccountTypeFromMetadata(metadata);
 
-  if (resolvedType !== expectedAccountType) {
+  if (expectedAccountType === "partner") {
+    if (!hasPartnerAccess(metadata)) {
+      await supabase.auth.signOut();
+      return { error: WRONG_ACCOUNT_MESSAGES.partner };
+    }
+    setActivePortalClient("partner");
+    return { accountType: "partner" };
+  }
+
+  if (expectedAccountType === "member") {
+    if (primaryType === "partner" && !hasMemberAccess(metadata)) {
+      await supabase.auth.signOut();
+      return { error: WRONG_ACCOUNT_MESSAGES.member };
+    }
+    if (primaryType === "affiliate") {
+      await supabase.auth.signOut();
+      return { error: WRONG_ACCOUNT_MESSAGES.member };
+    }
+    setActivePortalClient("member");
+    return { accountType: "member" };
+  }
+
+  if (primaryType !== expectedAccountType) {
     await supabase.auth.signOut();
     return { error: WRONG_ACCOUNT_MESSAGES[expectedAccountType] };
   }
 
-  return { accountType: resolvedType };
+  return { accountType: primaryType };
 }
 
 export async function signInWithGoogle(options: {

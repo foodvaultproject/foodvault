@@ -227,7 +227,7 @@ export async function getPartnerRecord(userId: string): Promise<PartnerRecord | 
 /** True when the auth user is a partner (metadata) or has a partners row. */
 export async function isPartnerAccount(userId: string): Promise<boolean> {
   const session = await getAuthSession();
-  if (session?.id === userId && session.accountType === "partner") {
+  if (session?.id === userId && session.roles.includes("partner")) {
     return true;
   }
 

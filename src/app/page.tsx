@@ -12,6 +12,7 @@ import {
   HomePartnerBanner,
   HomePartnerQuickLinks,
   HomeGiftsHampersBanner,
+  HomeMeatPoultryBanner,
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
 import { getHomepageFaqs } from "@/data/homepage";
@@ -27,6 +28,7 @@ import {
   getFeaturedBrands,
   getHomepageFeaturedBrands,
   getRecentBrandCards,
+  getTrendingThisWeekBrands,
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
 import { getHomeVaultDrops } from "@/lib/vault-drop-data";
@@ -65,7 +67,7 @@ export default async function Home({ searchParams }: HomeProps) {
     getMembershipSettings(),
     getRecentBrandCards(9),
     searchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
-    searchPublicBrands({ sort: "featured", limit: 4, offset: 0 }),
+    getTrendingThisWeekBrands(),
     getViewerFavoriteContext(),
     getActiveMemberView(),
     getFreeTrialMemberView(),
@@ -107,8 +109,9 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeCategories onHomepage compactSpacing />
         <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
+        <HomeMeatPoultryBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
-          trending={trendingBrands.brands}
+          trending={trendingBrands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
           hideViewAll
@@ -142,10 +145,11 @@ export default async function Home({ searchParams }: HomeProps) {
         />
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeVaultDropSection drops={vaultDrops} />
+        <HomeMeatPoultryBanner keepBrowseOnHomepage compactSpacing />
         <HomeCategories onHomepage compactSpacing />
         <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
-          trending={trendingBrands.brands}
+          trending={trendingBrands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
           hideViewAll
@@ -177,10 +181,11 @@ export default async function Home({ searchParams }: HomeProps) {
         />
         <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
         <HomeVaultDropSection drops={vaultDrops} />
+        <HomeMeatPoultryBanner keepBrowseOnHomepage />
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
         <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
-          trending={trendingBrands.brands}
+          trending={trendingBrands}
           newBrands={newBrands}
           topOffers={topOffers.brands}
           hideViewAll
@@ -203,10 +208,11 @@ export default async function Home({ searchParams }: HomeProps) {
         favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
       />
       <HomeVaultDropSection drops={vaultDrops} />
+      <HomeMeatPoultryBanner />
       <HomeWhyJoinFeatures mobileTwoColumn />
       <HomeGiftsHampersBanner />
       <HomeTrendingSection
-        trending={trendingBrands.brands}
+        trending={trendingBrands}
         newBrands={newBrands}
         topOffers={topOffers.brands}
       />
