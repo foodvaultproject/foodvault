@@ -242,7 +242,7 @@ export function HomeMeatPoultryBanner({
                 Meat &amp; Poultry
               </h2>
               <span className="fv-btn-primary mt-5 inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 group-hover:-translate-y-0.5 sm:px-8 sm:py-3.5 sm:text-base">
-                Shop Offers
+                View Offers
               </span>
             </div>
           </div>
