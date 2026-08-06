@@ -18,6 +18,30 @@ export const metadata: Metadata = {
   },
   description:
     "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
+  openGraph: {
+    type: "website",
+    locale: "en_NZ",
+    url: "/",
+    siteName: "FoodVault",
+    title: "FoodVault — Member pricing on the food you actually buy",
+    description:
+      "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
+    images: [
+      {
+        url: "/opengraph-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "FoodVault — Member pricing on the food you actually buy",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FoodVault — Member pricing on the food you actually buy",
+    description:
+      "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
+    images: ["/opengraph-image.jpg"],
+  },
 };
 
 export default function RootLayout({

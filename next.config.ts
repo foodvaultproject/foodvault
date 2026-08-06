@@ -7,6 +7,19 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "52mb",
     },
   },
+  async headers() {
+    return [
+      {
+        source: "/opengraph-image.jpg",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     // Serve images directly (Supabase/public URLs) — bypass Vercel Image Optimization
     // to avoid transformation quota limits on high-traffic logos, banners, and cards.
