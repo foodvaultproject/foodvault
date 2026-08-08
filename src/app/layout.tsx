@@ -10,6 +10,13 @@ const hankenGrotesk = Hanken_Grotesk({
   display: "swap",
 });
 
+const openGraphImage = {
+  url: "/opengraph-image.jpg",
+  width: 1200,
+  height: 630,
+  alt: "FoodVault",
+} as const;
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://foodvault.co.nz"),
   title: {
@@ -26,21 +33,14 @@ export const metadata: Metadata = {
     title: "FoodVault — Member pricing on the food you actually buy",
     description:
       "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
-    images: [
-      {
-        url: "/opengraph-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "FoodVault — Member pricing on the food you actually buy",
-      },
-    ],
+    images: [openGraphImage],
   },
   twitter: {
     card: "summary_large_image",
     title: "FoodVault — Member pricing on the food you actually buy",
     description:
       "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
-    images: ["/opengraph-image.jpg"],
+    images: [openGraphImage],
   },
 };
 
