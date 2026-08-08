@@ -1,4 +1,4 @@
-export const MAX_BUSINESS_NAME_LENGTH = 25;
+export const MAX_BUSINESS_NAME_LENGTH = 32;
 export const MAX_CONTACT_NAME_LENGTH = 50;
 
 function capitalizeWord(word: string): string {
