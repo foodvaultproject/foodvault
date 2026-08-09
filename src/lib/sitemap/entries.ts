@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/auth";
 import { partnerProfileSlug } from "@/lib/member/favorites-utils";
 import { createClient } from "@/lib/supabase/server";
 
-export const SITEMAP_BASE_URL = "https://foodvault.co.nz";
+export const SITEMAP_BASE_URL = "https://www.foodvault.co.nz";
 
 type StaticSitemapRoute = {
   path: string;
