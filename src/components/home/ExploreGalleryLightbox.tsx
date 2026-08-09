@@ -16,8 +16,6 @@ type ExploreGalleryLightboxProps = {
   favoritedPartnerIds?: string[];
 };
 
-const SWIPE_THRESHOLD = 48;
-
 export function ExploreGalleryLightbox({
   items,
   openIndex,
@@ -29,7 +27,6 @@ export function ExploreGalleryLightbox({
   const mobileCarouselRef = useRef<HTMLDivElement>(null);
   const indexFromScrollRef = useRef(false);
   const scrollRafRef = useRef<number | null>(null);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const currentItem = items[currentIndex];
   const favoritedSet = useMemo(
@@ -57,12 +54,12 @@ export function ExploreGalleryLightbox({
     const carousel = mobileCarouselRef.current;
     if (!carousel) return;
 
-    const width = carousel.clientWidth;
-    if (!width) return;
+    const height = carousel.clientHeight;
+    if (!height) return;
 
     const nextIndex = Math.min(
       items.length - 1,
-      Math.max(0, Math.round(carousel.scrollLeft / width))
+      Math.max(0, Math.round(carousel.scrollTop / height))
     );
 
     setCurrentIndex((index) => {
@@ -82,43 +79,6 @@ export function ExploreGalleryLightbox({
       syncIndexFromScroll();
     });
   }, [syncIndexFromScroll]);
-
-  const handleTouchStart = useCallback((event: React.TouchEvent) => {
-    const touch = event.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-  }, []);
-
-  const handleTouchEnd = useCallback(
-    (event: React.TouchEvent) => {
-      const start = touchStartRef.current;
-      touchStartRef.current = null;
-      if (!start) return;
-
-      const touch = event.changedTouches[0];
-      const deltaX = touch.clientX - start.x;
-      const deltaY = touch.clientY - start.y;
-
-      if (Math.abs(deltaX) < SWIPE_THRESHOLD && Math.abs(deltaY) < SWIPE_THRESHOLD) {
-        return;
-      }
-
-      if (Math.abs(deltaY) >= Math.abs(deltaX)) {
-        if (deltaY < 0) {
-          showNext();
-        } else {
-          showPrev();
-        }
-        return;
-      }
-
-      if (deltaX < 0) {
-        showNext();
-      } else {
-        showPrev();
-      }
-    },
-    [showNext, showPrev]
-  );
 
   useEffect(() => {
     setCurrentIndex(openIndex);
@@ -151,11 +111,11 @@ export function ExploreGalleryLightbox({
     const carousel = mobileCarouselRef.current;
     if (!carousel) return;
 
-    const width = carousel.clientWidth;
-    if (!width) return;
+    const height = carousel.clientHeight;
+    if (!height) return;
 
     carousel.scrollTo({
-      left: currentIndex * width,
+      top: currentIndex * height,
       behavior: "auto",
     });
   }, [currentIndex]);
@@ -178,7 +138,7 @@ export function ExploreGalleryLightbox({
       onClick={close}
     >
       <div
-        className="relative flex w-full max-w-md items-center justify-center"
+        className="relative flex h-[100dvh] w-full max-w-md items-stretch justify-center md:h-auto md:items-center"
         onClick={(event) => event.stopPropagation()}
       >
         {items.length > 1 ? (
@@ -192,17 +152,18 @@ export function ExploreGalleryLightbox({
           </button>
         ) : null}
 
-        <div className="relative w-full">
+        <div className="relative h-full w-full md:h-auto">
           <div
             ref={mobileCarouselRef}
-            className="flex w-full touch-pan-x snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden"
+            className="flex h-full w-full snap-y snap-mandatory flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain touch-pan-y [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden"
             onScroll={handleMobileScroll}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
             aria-label="Explore gallery"
           >
             {items.map((item, index) => (
-              <div key={item.id} className="min-w-full snap-center">
+              <div
+                key={item.id}
+                className="flex min-h-full w-full shrink-0 snap-center snap-always items-center"
+              >
                 <PartnerGalleryImage
                   src={item.imageUrl}
                   alt={`${item.businessName} gallery image`}
