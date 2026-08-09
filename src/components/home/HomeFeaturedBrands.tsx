@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { SECTION_PY_HOME } from "@/components/home/section-spacing";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 type HomeFeaturedBrandsProps = {
@@ -35,7 +36,7 @@ export function HomeFeaturedBrands({
             </p>
           </div>
           <Link
-            href="/browse-brands"
+            href={consumerSearchPath()}
             className="hidden shrink-0 text-xs font-semibold text-primary transition-colors duration-200 hover:text-primary-hover sm:inline-flex"
           >
             View all brands →
@@ -55,7 +56,7 @@ export function HomeFeaturedBrands({
 
         <div className="mt-8 flex justify-center">
           <Link
-            href="/browse-brands"
+            href={consumerSearchPath()}
             className="inline-flex items-center justify-center rounded-sm border border-primary px-6 py-3 text-sm font-medium text-primary transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/5"
           >
             Explore Brands

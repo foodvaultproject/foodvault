@@ -1,5 +1,6 @@
 import { HomeTrendingDepartmentCardLink } from "@/components/home/HomeTrendingDepartmentCardLink";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
+import { buildConsumerSearchHref } from "@/lib/consumer-nav-restructure";
 
 const TRENDING_DEPARTMENT_CARDS = [
   {
@@ -35,7 +36,7 @@ type HomeTrendingDepartmentCardsProps = {
 };
 
 function departmentBrowseHref(department: string) {
-  return `/browse-brands?department=${encodeURIComponent(department)}`;
+  return buildConsumerSearchHref({ department });
 }
 
 export function HomeTrendingDepartmentCardsSection({

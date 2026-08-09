@@ -1,27 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ExploreLightboxFavoriteButton } from "@/components/explore/ExploreLightboxFavoriteButton";
 import { PartnerGalleryImage } from "@/components/partners/PartnerGalleryImage";
+import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import type { HomeExploreGalleryItem } from "@/lib/member/home-explore-gallery";
 
 type ExploreGalleryLightboxProps = {
   items: HomeExploreGalleryItem[];
   openIndex: number;
   onClose: () => void;
+  canFavorite?: boolean;
+  favoritedPartnerIds?: string[];
 };
+
+const SWIPE_THRESHOLD = 48;
 
 export function ExploreGalleryLightbox({
   items,
   openIndex,
   onClose,
+  canFavorite = false,
+  favoritedPartnerIds = [],
 }: ExploreGalleryLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(openIndex);
   const mobileCarouselRef = useRef<HTMLDivElement>(null);
   const indexFromScrollRef = useRef(false);
   const scrollRafRef = useRef<number | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const currentItem = items[currentIndex];
+  const favoritedSet = useMemo(
+    () => new Set(favoritedPartnerIds),
+    [favoritedPartnerIds]
+  );
 
   const close = useCallback(() => onClose(), [onClose]);
   const showPrev = useCallback(
@@ -69,6 +83,43 @@ export function ExploreGalleryLightbox({
     });
   }, [syncIndexFromScroll]);
 
+  const handleTouchStart = useCallback((event: React.TouchEvent) => {
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (event: React.TouchEvent) => {
+      const start = touchStartRef.current;
+      touchStartRef.current = null;
+      if (!start) return;
+
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+
+      if (Math.abs(deltaX) < SWIPE_THRESHOLD && Math.abs(deltaY) < SWIPE_THRESHOLD) {
+        return;
+      }
+
+      if (Math.abs(deltaY) >= Math.abs(deltaX)) {
+        if (deltaY < 0) {
+          showNext();
+        } else {
+          showPrev();
+        }
+        return;
+      }
+
+      if (deltaX < 0) {
+        showNext();
+      } else {
+        showPrev();
+      }
+    },
+    [showNext, showPrev]
+  );
+
   useEffect(() => {
     setCurrentIndex(openIndex);
   }, [openIndex]);
@@ -76,8 +127,8 @@ export function ExploreGalleryLightbox({
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
       if (event.key === "Escape") close();
-      if (event.key === "ArrowLeft") showPrev();
-      if (event.key === "ArrowRight") showNext();
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") showPrev();
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") showNext();
     }
 
     window.addEventListener("keydown", handleKey);
@@ -121,102 +172,122 @@ export function ExploreGalleryLightbox({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 md:bg-black/80 md:p-4"
       role="dialog"
       aria-modal="true"
       onClick={close}
     >
-      <button
-        type="button"
-        onClick={close}
-        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-2xl text-white transition-colors hover:bg-white/20"
-        aria-label="Close gallery"
-      >
-        &times;
-      </button>
-
-      {items.length > 1 ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            showPrev();
-          }}
-          className="absolute left-4 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-2xl text-white transition-colors hover:bg-white/20 md:flex"
-          aria-label="Previous image"
-        >
-          &#8249;
-        </button>
-      ) : null}
-
       <div
-        ref={mobileCarouselRef}
-        className="relative mx-auto flex h-full w-full max-w-md touch-pan-x snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden"
+        className="relative flex w-full max-w-md items-center justify-center"
         onClick={(event) => event.stopPropagation()}
-        onScroll={handleMobileScroll}
-        aria-label="Explore gallery"
       >
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            className="flex h-full min-w-full snap-center items-center justify-center px-1"
+        {items.length > 1 ? (
+          <button
+            type="button"
+            onClick={showPrev}
+            className="absolute -left-2 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-2xl text-white transition-colors hover:bg-white/20 md:-left-14 md:flex"
+            aria-label="Previous image"
           >
+            &#8249;
+          </button>
+        ) : null}
+
+        <div className="relative w-full">
+          <div
+            ref={mobileCarouselRef}
+            className="flex w-full touch-pan-x snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden"
+            onScroll={handleMobileScroll}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            aria-label="Explore gallery"
+          >
+            {items.map((item, index) => (
+              <div key={item.id} className="min-w-full snap-center">
+                <PartnerGalleryImage
+                  src={item.imageUrl}
+                  alt={`${item.businessName} gallery image`}
+                  className="w-full !rounded-none"
+                  sizes="100vw"
+                  priority={Math.abs(index - currentIndex) <= 1}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block">
             <PartnerGalleryImage
-              src={item.imageUrl}
-              alt={`${item.businessName} gallery image`}
-              className="!rounded-none"
+              src={currentItem.imageUrl}
+              alt={`${currentItem.businessName} gallery image`}
+              className="w-full !rounded-none"
               sizes="100vw"
-              priority={Math.abs(index - currentIndex) <= 1}
+              priority
             />
           </div>
-        ))}
+
+          <div className="pointer-events-none absolute inset-0 flex flex-col justify-between">
+            <div className="pointer-events-auto flex items-start justify-between gap-3 p-3 md:p-4">
+              <button
+                type="button"
+                onClick={close}
+                className="flex h-10 w-10 shrink-0 items-center justify-center text-white transition-opacity hover:opacity-80"
+                aria-label="Back to explore gallery"
+              >
+                <ArrowLeft className="h-7 w-7" strokeWidth={2.25} />
+              </button>
+              <span className="max-w-[58%] truncate rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold text-white sm:max-w-[62%] sm:text-xs">
+                {currentItem.memberOfferLabel}
+              </span>
+            </div>
+
+            <div className="pointer-events-auto bg-gradient-to-t from-black/80 via-black/45 to-transparent px-4 pb-[calc(0.85rem+env(safe-area-inset-bottom,0px))] pt-12 md:pb-4">
+              <div className="flex items-end justify-between gap-4">
+                <Link
+                  href={`/brands/${currentItem.partnerSlug}`}
+                  className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90"
+                >
+                  <PartnerLogo
+                    src={currentItem.logoUrl}
+                    originalSrc={currentItem.logoOriginalUrl}
+                    alt=""
+                    businessName={currentItem.businessName}
+                    size="xs"
+                    crop={currentItem.logoCrop}
+                    className="!h-10 !w-10 shrink-0 bg-white/10"
+                  />
+                  <p className="truncate text-sm font-semibold text-white sm:text-base">
+                    {currentItem.businessName}
+                  </p>
+                </Link>
+
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <ExploreLightboxFavoriteButton
+                    partnerId={currentItem.partnerId}
+                    initialFavorited={favoritedSet.has(currentItem.partnerId)}
+                    canFavorite={canFavorite}
+                  />
+                  <Link
+                    href={`/brands/${currentItem.partnerSlug}`}
+                    className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5"
+                  >
+                    View offer
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {items.length > 1 ? (
+          <button
+            type="button"
+            onClick={showNext}
+            className="absolute -right-2 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-2xl text-white transition-colors hover:bg-white/20 md:-right-14 md:flex"
+            aria-label="Next image"
+          >
+            &#8250;
+          </button>
+        ) : null}
       </div>
-
-      <div
-        className="relative mx-auto hidden w-full max-w-md md:block"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <PartnerGalleryImage
-          src={currentItem.imageUrl}
-          alt={`${currentItem.businessName} gallery image`}
-          className="!rounded-none"
-          sizes="100vw"
-          priority
-        />
-      </div>
-
-      {items.length > 1 ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            showNext();
-          }}
-          className="absolute right-4 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-white/10 text-2xl text-white transition-colors hover:bg-white/20 md:flex"
-          aria-label="Next image"
-        >
-          &#8250;
-        </button>
-      ) : null}
-
-      <div
-        className="absolute bottom-16 left-1/2 z-10 flex w-full max-w-md -translate-x-1/2 flex-col items-center gap-2 px-4"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <span className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white">
-          {currentItem.businessName}
-        </span>
-        <Link
-          href={`/brands/${currentItem.partnerSlug}`}
-          className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-5 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5"
-        >
-          View Savings
-        </Link>
-      </div>
-
-      <span className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-sm text-white">
-        {currentIndex + 1} / {items.length}
-      </span>
     </div>
   );
 }

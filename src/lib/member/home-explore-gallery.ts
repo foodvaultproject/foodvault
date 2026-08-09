@@ -5,7 +5,11 @@ import { featuredBrands } from "@/data/homepage";
 import {
   HOME_EXPLORE_IMAGES_PER_BRAND,
 } from "@/lib/homepage/explore-section";
-import { partnerProfileSlug } from "@/lib/member/favorites-utils";
+import {
+  formatPartnerDiscountLabel,
+  partnerProfileSlug,
+} from "@/lib/member/favorites-utils";
+import { parseLogoCrop, type LogoCropSettings } from "@/lib/partner-logo-crop";
 import { createClient } from "@/lib/supabase/server";
 
 export type HomeExploreGalleryItem = {
@@ -15,6 +19,10 @@ export type HomeExploreGalleryItem = {
   partnerSlug: string;
   businessName: string;
   department: string | null;
+  logoUrl: string | null;
+  logoOriginalUrl: string | null;
+  logoCrop: LogoCropSettings | null;
+  memberOfferLabel: string;
 };
 
 const DEV_GALLERY_IMAGES = [
@@ -76,6 +84,13 @@ function buildDevExploreItems(): HomeExploreGalleryItem[] {
         partnerSlug,
         businessName: brand.name,
         department: "Pantry",
+        logoUrl: brand.image,
+        logoOriginalUrl: null,
+        logoCrop: null,
+        memberOfferLabel: formatPartnerDiscountLabel({
+          discount_value: brand.discount.replace(/\s*off\s*$/i, "").trim(),
+          offer_type: "percent",
+        }),
       });
     });
   });
@@ -91,7 +106,9 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("v_public_brand_profile")
-    .select("id, slug, business_name, department, primary_categories, gallery_image_urls");
+    .select(
+      "id, slug, business_name, department, primary_categories, gallery_image_urls, logo_url, logo_original_url, logo_crop, offer_type, discount_value"
+    );
 
   if (error || !data?.length) {
     return buildDevExploreItems();
@@ -116,6 +133,14 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
     });
     const selected = pickRandomImages(urls, HOME_EXPLORE_IMAGES_PER_BRAND);
 
+    const logoUrl = (row.logo_url as string | null) ?? null;
+    const logoOriginalUrl = (row.logo_original_url as string | null) ?? null;
+    const logoCrop = parseLogoCrop(row.logo_crop);
+    const memberOfferLabel = formatPartnerDiscountLabel({
+      discount_value: row.discount_value as string | null,
+      offer_type: row.offer_type as string | null,
+    });
+
     selected.forEach((imageUrl, imageIndex) => {
       items.push({
         id: `${partnerId}-${imageIndex}-${imageUrl}`,
@@ -124,6 +149,10 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
         partnerSlug,
         businessName,
         department,
+        logoUrl,
+        logoOriginalUrl,
+        logoCrop,
+        memberOfferLabel,
       });
     });
   }

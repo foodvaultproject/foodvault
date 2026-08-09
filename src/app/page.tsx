@@ -1,7 +1,4 @@
-import { DiscoverSection } from "@/components/home/DiscoverSection";
-import { HomeExploreSection } from "@/components/home/HomeExploreSection";
-import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";
-import { HomeHero } from "@/components/home/HomeHero";
+import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";import { HomeHero } from "@/components/home/HomeHero";
 import { HomePartnerBrowseBrands } from "@/components/home/HomePartnerBrowseBrands";
 import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendingDepartmentCards";
 import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
@@ -23,7 +20,6 @@ import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
 import { getPartnerHomeView } from "@/lib/partner-home-view";
 import { getMembershipSettings } from "@/lib/member/settings";
 import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
-import { getDiscoverPageContent } from "@/lib/discover/queries";
 import {
   BROWSE_PAGE_SIZE,
   getFeaturedBrands,
@@ -33,9 +29,7 @@ import {
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
 import { getHomeVaultDrops } from "@/lib/vault-drop-data";
-import { isHomeExploreSectionEnabled } from "@/lib/homepage/explore-section";
 import { VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT } from "@/lib/homepage/visitor-featured-brand-limit";
-import { getHomeExploreGalleryItems } from "@/lib/member/home-explore-gallery";
 
 export const dynamic = "force-dynamic";
 
@@ -48,11 +42,9 @@ export default async function Home({ searchParams }: HomeProps) {
   const initialDepartment = department ?? "";
   const initialSubcategory = subcategory ?? "";
   const visitorFeaturedBrandLimit = VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT;
-  const exploreEnabled = isHomeExploreSectionEnabled();
 
   const [
     featured,
-    discover,
     settings,
     newBrands,
     topOffers,
@@ -65,10 +57,8 @@ export default async function Home({ searchParams }: HomeProps) {
     browseFeatured,
     partnerBrowseInitial,
     vaultDrops,
-    exploreItems,
   ] = await Promise.all([
     getHomepageFeaturedBrands(visitorFeaturedBrandLimit),
-    getDiscoverPageContent(),
     getMembershipSettings(),
     getRecentBrandCards(9),
     searchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
@@ -87,7 +77,6 @@ export default async function Home({ searchParams }: HomeProps) {
       offset: 0,
     }),
     getHomeVaultDrops(12),
-    exploreEnabled ? getHomeExploreGalleryItems() : Promise.resolve([]),
   ]);
   // Admins browsing the public homepage must match the visitor experience.
   const isActiveMember = Boolean(activeMember) && !adminUser;
@@ -123,9 +112,6 @@ export default async function Home({ searchParams }: HomeProps) {
           hideViewAll
           compactSpacing
         />
-        {exploreEnabled && exploreItems.length > 0 ? (
-          <HomeExploreSection items={exploreItems} compactSpacing />
-        ) : null}
         <HomePartnerQuickLinks compactSpacing />
         <HomeVaultDropSection drops={vaultDrops} />
       </>
@@ -164,10 +150,6 @@ export default async function Home({ searchParams }: HomeProps) {
           hideViewAll
           compactSpacing
         />
-        {exploreEnabled && exploreItems.length > 0 ? (
-          <HomeExploreSection items={exploreItems} compactSpacing />
-        ) : null}
-        <DiscoverSection articles={discover.homepageCards} compactSpacing />
       </>
     );
   }
@@ -203,10 +185,6 @@ export default async function Home({ searchParams }: HomeProps) {
           hideViewAll
           compactSpacing
         />
-        {exploreEnabled && exploreItems.length > 0 ? (
-          <HomeExploreSection items={exploreItems} />
-        ) : null}
-        <DiscoverSection articles={discover.homepageCards} compactSpacing />
         <HomeFAQ faqs={homepageFaqs} compactSpacing />
       </>
     );
@@ -231,10 +209,6 @@ export default async function Home({ searchParams }: HomeProps) {
         newBrands={newBrands}
         topOffers={topOffers.brands}
       />
-      {exploreEnabled && exploreItems.length > 0 ? (
-        <HomeExploreSection items={exploreItems} />
-      ) : null}
-      <DiscoverSection articles={discover.homepageCards} />
       <HomeFAQ faqs={homepageFaqs} />
       <HomePartnerBanner />
     </>

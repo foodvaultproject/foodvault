@@ -1,37 +1,21 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { BrowseBrandsView } from "@/components/browse-brands/BrowseBrandsView";
-import {
-  CONSUMER_SEARCH_PATH,
-  isConsumerNavRestructureEnabled,
-} from "@/lib/consumer-nav-restructure";
 import { loadBrowseBrandsPageData } from "@/lib/member/browse-brands-page";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Browse Brands",
+  title: "Search Brands",
   description:
-    "Discover participating FoodVault partner brands and unlock member savings across New Zealand.",
+    "Search FoodVault partner brands and unlock member savings across New Zealand.",
 };
 
-type BrowseBrandsPageProps = {
+type SearchPageProps = {
   searchParams: Promise<{ department?: string; subcategory?: string }>;
 };
 
-export default async function BrowseBrandsPage({
-  searchParams,
-}: BrowseBrandsPageProps) {
+export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
-
-  if (isConsumerNavRestructureEnabled()) {
-    const redirectParams = new URLSearchParams();
-    if (params.department) redirectParams.set("department", params.department);
-    if (params.subcategory) redirectParams.set("subcategory", params.subcategory);
-    const query = redirectParams.toString();
-    redirect(query ? `${CONSUMER_SEARCH_PATH}?${query}` : CONSUMER_SEARCH_PATH);
-  }
-
   const data = await loadBrowseBrandsPageData(params);
 
   return (

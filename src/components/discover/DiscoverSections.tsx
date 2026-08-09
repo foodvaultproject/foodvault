@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import {
   DiscoverArticleTile,
@@ -192,7 +193,7 @@ export function DiscoverFinalCTA() {
               Start FREE Trial
             </MemberSignupCtaLink>
             <Link
-              href="/browse-brands"
+              href={consumerSearchPath()}
               className="inline-flex w-full items-center justify-center rounded-lg border-2 border-white px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10 sm:w-auto"
             >
               Browse Brands

@@ -17,17 +17,34 @@ import {
 } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
 import {
+  CONSUMER_BROWSE_PATHS,
+  consumerSearchLabel,
+  consumerSearchPath,
+  isConsumerNavRestructureEnabled,
+  isSearchPath,
+} from "@/lib/consumer-nav-restructure";
+import {
   NAV_MENU_CTA_BLOCK_CLASS,
   NAV_MENU_CTA_CLASS,
   NAV_MENU_PREVIEW_GRADIENT,
 } from "@/lib/nav-menu-preview";
 
-const navLinks = [
-  { href: "/browse-brands", label: "Discover" },
-  { href: "/how-it-works", label: "How It Works" },
-  { href: "/for-brands", label: "For Brands" },
-  { href: "/pricing", label: "Pricing" },
-];
+function getNavLinks() {
+  const links = [
+    { href: "/how-it-works", label: "How It Works" },
+    { href: "/for-brands", label: "For Brands" },
+    { href: "/pricing", label: "Pricing" },
+  ];
+
+  if (!isConsumerNavRestructureEnabled()) {
+    return [
+      { href: consumerSearchPath(), label: consumerSearchLabel() },
+      ...links,
+    ];
+  }
+
+  return links;
+}
 
 // Active Members and Partners get a dashboard-style header: marketing/conversion
 // pages (aimed at converting visitors) are hidden.
@@ -37,11 +54,19 @@ const PORTAL_HIDDEN_HREFS = new Set([
   "/pricing",
 ]);
 
-const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, "/browse-brands"]);
+const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE_PATHS]);
 
-const ACTIVE_MEMBER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, "/browse-brands"]);
+const ACTIVE_MEMBER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE_PATHS]);
 
-const FREE_TRIAL_HIDDEN_HREFS = new Set(["/browse-brands", "/for-brands"]);
+const FREE_TRIAL_HIDDEN_HREFS = new Set([...CONSUMER_BROWSE_PATHS, "/for-brands"]);
+
+function isNavLinkActive(pathname: string, href: string): boolean {
+  if (CONSUMER_BROWSE_PATHS.has(href)) {
+    return isSearchPath(pathname);
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function NavLinks({
   mobile = false,
@@ -56,6 +81,7 @@ export function NavLinks({
   const isActiveMember = useIsActiveMember();
   const isFreeTrial = useIsFreeTrialMember();
 
+  const navLinks = getNavLinks();
   const hiddenHrefs = isPartner
     ? PARTNER_HIDDEN_HREFS
     : isFreeTrial
@@ -70,8 +96,7 @@ export function NavLinks({
   return (
     <>
       {visibleLinks.map((link) => {
-        const isActive =
-          pathname === link.href || pathname.startsWith(`${link.href}/`);
+        const isActive = isNavLinkActive(pathname, link.href);
 
         return (
           <Link

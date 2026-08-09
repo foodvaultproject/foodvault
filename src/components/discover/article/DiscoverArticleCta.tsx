@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { heading2OnDark } from "@/lib/ui-classes";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 
 export function DiscoverArticleCta() {
   return (
@@ -13,7 +14,7 @@ export function DiscoverArticleCta() {
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
           <Link
-            href="/browse-brands"
+            href={consumerSearchPath()}
             className="inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-3 text-sm font-semibold text-primary transition-colors hover:bg-white/90 sm:w-auto"
           >
             Browse Brands

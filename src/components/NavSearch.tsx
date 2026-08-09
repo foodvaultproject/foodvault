@@ -13,8 +13,10 @@ const DEPARTMENT_ALIASES: Record<string, { department: string; subcategory?: str
   collagen: { department: "Health & Body", subcategory: "Vitamins & Supplements" },
 };
 
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
+
 function buildBrowseHref(query: string, isPartner = false): string {
-  const basePath = isPartner ? "/" : "/browse-brands";
+  const basePath = isPartner ? "/" : consumerSearchPath();
   const trimmed = query.trim();
   if (!trimmed) return basePath;
 

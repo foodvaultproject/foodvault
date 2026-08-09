@@ -112,19 +112,19 @@ export function BrandGallery({ images, businessName }: BrandGalleryProps) {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-px sm:grid-cols-4 md:gap-[0.3rem]">
         {images.map((src, index) => (
           <button
             key={`${src}-${index}`}
             type="button"
             onClick={() => setOpenIndex(index)}
-            className="group overflow-hidden rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
+            className="group overflow-hidden text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset"
             aria-label={`View ${businessName} gallery image ${index + 1}`}
           >
             <PartnerGalleryImage
               src={src}
               alt=""
-              className="rounded-lg"
+              className="!rounded-none"
               imageClassName="transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 33vw, 25vw"
             />

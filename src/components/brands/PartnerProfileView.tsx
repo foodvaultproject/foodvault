@@ -23,6 +23,7 @@ import type {
   ProfileViewerContext,
 } from "@/lib/member/partner-profile";
 import type { BrandAffiliateViewerContext } from "@/lib/affiliate/server";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import {
   listPartnerSocialLinks,
   type SocialPlatform,
@@ -49,7 +50,7 @@ function browseCategoryHref(
   subcategory?: string,
   isPartner = false
 ) {
-  const basePath = isPartner ? "/" : "/browse-brands";
+  const basePath = isPartner ? "/" : consumerSearchPath();
   const params = new URLSearchParams();
   if (department) params.set("department", department);
   if (subcategory) params.set("subcategory", subcategory);
@@ -145,7 +146,7 @@ export function PartnerProfileView({
   const browseAllBrandsHref =
     viewer.isPartner || viewer.isActiveMember || viewer.isFreeTrialMember
       ? "/"
-      : "/browse-brands";
+      : consumerSearchPath();
 
   const socials = useMemo(
     () =>

@@ -10,6 +10,8 @@ const PUBLIC_PREFIXES = [
   "/reset-password",
   "/pricing",
   "/browse-brands",
+  "/search",
+  "/explore",
   "/terms",
   "/privacy",
   "/partner-terms",
