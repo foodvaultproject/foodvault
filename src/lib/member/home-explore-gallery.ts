@@ -3,10 +3,6 @@ import { isSupabaseConfigured } from "@/lib/auth";
 import { formatBusinessName } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import {
-  HOME_EXPLORE_IMAGES_PER_BRAND,
-  useFullExploreGalleryOnLocalhost,
-} from "@/lib/homepage/explore-section";
-import {
   formatPartnerDiscountLabel,
   partnerProfileSlug,
 } from "@/lib/member/favorites-utils";
@@ -41,18 +37,8 @@ function shuffleArray<T>(items: T[]): T[] {
   return copy;
 }
 
-function pickRandomImages(urls: string[], count: number): string[] {
-  const unique = [...new Set(urls.filter(Boolean))];
-  return shuffleArray(unique).slice(0, Math.min(count, unique.length));
-}
-
-function selectBrandGalleryImages(urls: string[]): string[] {
-  const unique = [...new Set(urls.filter(Boolean))];
-  if (useFullExploreGalleryOnLocalhost()) {
-    return unique;
-  }
-
-  return pickRandomImages(unique, HOME_EXPLORE_IMAGES_PER_BRAND);
+function getUniqueGalleryUrls(urls: string[]): string[] {
+  return [...new Set(urls.filter(Boolean))];
 }
 
 function resolveExploreDepartment(row: {
@@ -81,7 +67,7 @@ function buildDevExploreItems(): HomeExploreGalleryItem[] {
   featuredBrands.forEach((brand, index) => {
     const partnerId = `dev-partner-${index + 1}`;
     const partnerSlug = partnerProfileSlug(brand.name);
-    const galleryUrls = selectBrandGalleryImages([brand.image, ...DEV_GALLERY_IMAGES]);
+    const galleryUrls = getUniqueGalleryUrls([brand.image, ...DEV_GALLERY_IMAGES]);
 
     galleryUrls.forEach((imageUrl, imageIndex) => {
       items.push({
@@ -138,7 +124,7 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
       department: row.department as string | null,
       primary_categories: row.primary_categories as string[] | null,
     });
-    const selected = selectBrandGalleryImages(urls);
+    const selected = getUniqueGalleryUrls(urls);
 
     const logoUrl = (row.logo_url as string | null) ?? null;
     const logoOriginalUrl = (row.logo_original_url as string | null) ?? null;
