@@ -29,6 +29,10 @@ import {
   searchPublicBrands,
 } from "@/lib/member/browse-brands";
 import { getHomeVaultDrops } from "@/lib/vault-drop-data";
+import {
+  filterLocalhostHomepageBrands,
+  filterLocalhostHomepageSearchResult,
+} from "@/lib/homepage/hidden-brands";
 import { VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT } from "@/lib/homepage/visitor-featured-brand-limit";
 
 export const dynamic = "force-dynamic";
@@ -78,6 +82,14 @@ export default async function Home({ searchParams }: HomeProps) {
     }),
     getHomeVaultDrops(12),
   ]);
+
+  const homepageFeatured = filterLocalhostHomepageBrands(featured);
+  const homepageBrowseFeatured = filterLocalhostHomepageBrands(browseFeatured);
+  const homepagePartnerBrowse = filterLocalhostHomepageSearchResult(partnerBrowseInitial);
+  const homepageNewBrands = filterLocalhostHomepageBrands(newBrands);
+  const homepageTrendingBrands = filterLocalhostHomepageBrands(trendingBrands);
+  const homepageTopOffers = filterLocalhostHomepageBrands(topOffers.brands);
+
   // Admins browsing the public homepage must match the visitor experience.
   const isActiveMember = Boolean(activeMember) && !adminUser;
   const isFreeTrialMember = Boolean(freeTrialMember) && !adminUser;
@@ -90,9 +102,9 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeHero isPartner memberName={partnerName} />
         <HomePartnerBrowseBrands
           key={`browse-${initialDepartment}-${initialSubcategory}`}
-          featured={browseFeatured}
-          initialExplore={partnerBrowseInitial.brands}
-          initialTotal={partnerBrowseInitial.total}
+          featured={homepageBrowseFeatured}
+          initialExplore={homepagePartnerBrowse.brands}
+          initialTotal={homepagePartnerBrowse.total}
           canFavorite={favoriteContext.canFavorite}
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
@@ -106,9 +118,9 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeMeatPoultryBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
-          trending={trendingBrands}
-          newBrands={newBrands}
-          topOffers={topOffers.brands}
+          trending={homepageTrendingBrands}
+          newBrands={homepageNewBrands}
+          topOffers={homepageTopOffers}
           hideViewAll
           compactSpacing
         />
@@ -127,9 +139,9 @@ export default async function Home({ searchParams }: HomeProps) {
         />
         <HomePartnerBrowseBrands
           key={`browse-${initialDepartment}-${initialSubcategory}`}
-          featured={browseFeatured}
-          initialExplore={partnerBrowseInitial.brands}
-          initialTotal={partnerBrowseInitial.total}
+          featured={homepageBrowseFeatured}
+          initialExplore={homepagePartnerBrowse.brands}
+          initialTotal={homepagePartnerBrowse.total}
           canFavorite={favoriteContext.canFavorite}
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
@@ -144,9 +156,9 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeCategories onHomepage compactSpacing />
         <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
-          trending={trendingBrands}
-          newBrands={newBrands}
-          topOffers={topOffers.brands}
+          trending={homepageTrendingBrands}
+          newBrands={homepageNewBrands}
+          topOffers={homepageTopOffers}
           hideViewAll
           compactSpacing
         />
@@ -163,9 +175,9 @@ export default async function Home({ searchParams }: HomeProps) {
         />
         <HomePartnerBrowseBrands
           key={`browse-${initialDepartment}-${initialSubcategory}`}
-          featured={browseFeatured}
-          initialExplore={partnerBrowseInitial.brands}
-          initialTotal={partnerBrowseInitial.total}
+          featured={homepageBrowseFeatured}
+          initialExplore={homepagePartnerBrowse.brands}
+          initialTotal={homepagePartnerBrowse.total}
           canFavorite={favoriteContext.canFavorite}
           favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
           initialDepartment={initialDepartment}
@@ -179,9 +191,9 @@ export default async function Home({ searchParams }: HomeProps) {
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
         <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
         <HomeTrendingSection
-          trending={trendingBrands}
-          newBrands={newBrands}
-          topOffers={topOffers.brands}
+          trending={homepageTrendingBrands}
+          newBrands={homepageNewBrands}
+          topOffers={homepageTopOffers}
           hideViewAll
           compactSpacing
         />
@@ -195,7 +207,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <HomeHero />
       <HomeTrendingDepartmentCardsSection />
       <HomeFeaturedBrands
-        brands={featured}
+        brands={homepageFeatured}
         maxBrands={visitorFeaturedBrandLimit}
         canFavorite={favoriteContext.canFavorite}
         favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
