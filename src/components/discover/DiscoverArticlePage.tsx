@@ -40,7 +40,7 @@ export function DiscoverArticlePage({
           <div className="mt-10 flex flex-col gap-10 sm:mt-12 lg:flex-row lg:items-start lg:gap-10 xl:gap-12">
             <ArticleHeroImage src={article.heroImageUrl} alt={article.title} />
             <div className="min-w-0 flex-1 lg:max-w-[760px]">
-              <ArticleBody body={article.body} />
+              <ArticleBody body={article.body} title={article.title} />
             </div>
           </div>
 

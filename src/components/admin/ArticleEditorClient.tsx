@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { ArticleHeroUploadField } from "@/components/admin/ArticleHeroUploadField";
 import { ArticleMetaTagsField } from "@/components/admin/ArticleMetaTagsField";
+import { ArticleBodyEditor } from "@/components/admin/ArticleBodyEditor";
 import { saveArticleAction } from "@/lib/admin/actions";
 import { DISCOVER_CMS_CATEGORIES, slugifyTitle, type DiscoverArticleRow } from "@/lib/admin/types";
 import { normalizeDiscoverCategory } from "@/lib/discover/categories";
-import { articleHtmlToPlainText } from "@/lib/discover/article-body";
 import { parseMetaTags } from "@/lib/discover/meta-tags";
 
 const inputClass =
@@ -104,13 +104,11 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
         </div>
 
         <div>
-          <label className={labelClass} htmlFor="body">Body</label>
-          <textarea
-            id="body"
-            name="body"
-            rows={10}
-            defaultValue={articleHtmlToPlainText(article?.body ?? "")}
-            className={`${inputClass} font-mono text-xs`}
+          <label className={labelClass}>Body</label>
+          <ArticleBodyEditor
+            initialBody={article?.body ?? ""}
+            articleTitle={title}
+            disabled={pending}
           />
         </div>
 

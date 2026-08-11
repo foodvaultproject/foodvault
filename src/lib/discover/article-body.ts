@@ -1,3 +1,7 @@
+import {
+  normalizeArticleBodyHtml,
+} from "@/lib/discover/article-blocks";
+
 const HTML_BLOCK_TAG_PATTERN =
   /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|section|article|table|thead|tbody|tr|td|th)\b/i;
 
@@ -31,11 +35,16 @@ export function plainTextToArticleHtml(body: string): string {
 }
 
 /** Prepare article body for public rendering. */
-export function formatArticleBodyHtml(body: string | null): string {
+export function formatArticleBodyHtml(
+  body: string | null,
+  articleTitle?: string | null
+): string {
   if (!body?.trim()) return "";
 
   const trimmed = body.trim();
-  if (isArticleBodyHtml(trimmed)) return trimmed;
+  if (isArticleBodyHtml(trimmed)) {
+    return normalizeArticleBodyHtml(trimmed, articleTitle);
+  }
 
   return plainTextToArticleHtml(trimmed);
 }

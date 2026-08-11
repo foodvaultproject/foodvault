@@ -10,6 +10,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
 import { DISCOVER_ARTICLE_AUTHOR } from "@/lib/discover/constants";
+import { normalizeArticleBodyHtml } from "@/lib/discover/article-blocks";
+import { formatArticleBodyContent } from "@/lib/discover/format-article-body";
 import { getBrandReportEvents } from "@/lib/admin/queries";
 import { slugifyTitle } from "@/lib/admin/types";
 import {
@@ -306,7 +308,7 @@ export async function saveArticleAction(formData: FormData, publish = false) {
     slug,
     category: String(formData.get("category") ?? ""),
     summary: String(formData.get("summary") ?? ""),
-    body: String(formData.get("body") ?? ""),
+    body: normalizeArticleBodyHtml(String(formData.get("body") ?? ""), title),
     hero_image_url: heroImageUrl ? String(heroImageUrl) : null,
     meta_title: String(formData.get("meta_title") ?? ""),
     meta_description: String(formData.get("meta_description") ?? ""),
@@ -342,6 +344,30 @@ export async function saveArticleAction(formData: FormData, publish = false) {
   revalidatePath("/discover");
   revalidatePath("/");
   return { success: true, id };
+}
+
+export async function formatArticleBodyAction(input: {
+  content: string;
+  articleTitle?: string | null;
+}) {
+  const admin = await getAdminUser();
+  if (!admin) return { error: "Unauthorized" as const };
+
+  const content = input.content?.trim();
+  if (!content) {
+    return { error: "Add some article content before formatting." as const };
+  }
+
+  const html = formatArticleBodyContent(content, input.articleTitle ?? null);
+  if (!html) {
+    return { error: "Could not infer a heading structure from this content." as const };
+  }
+
+  await logAuditAction("format_article_body", "discover_article", undefined, {
+    content_length: content.length,
+  });
+
+  return { html };
 }
 
 export async function deleteArticleAction(articleId: string) {
