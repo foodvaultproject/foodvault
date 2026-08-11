@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { isSupabaseConfigured } from "@/lib/auth";
+import { revalidatePublicBrandDirectory } from "@/lib/cache/revalidate";
 import {
   sendPartnerApprovalEmail,
   sendPartnerRejectionEmail,
@@ -25,6 +26,22 @@ import {
   updateHomepageSettingsRow,
   updateSystemSettingsRow,
 } from "@/lib/system-settings-db";
+
+async function revalidatePartnerPublicSurfaces(partnerId: string) {
+  if (!isSupabaseConfigured()) {
+    revalidatePublicBrandDirectory();
+    return;
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("partners")
+    .select("slug")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  revalidatePublicBrandDirectory({ slug: data?.slug ?? null });
+}
 
 export async function approvePartnerApplicationAction(partnerId: string) {
   const admin = await getAdminUser();
@@ -59,6 +76,7 @@ export async function approvePartnerApplicationAction(partnerId: string) {
   revalidatePath("/admin/partner-applications");
   revalidatePath("/admin/dashboard");
   revalidatePath("/admin/partners");
+  await revalidatePartnerPublicSurfaces(partnerId);
   return { success: true };
 }
 
@@ -111,6 +129,7 @@ export async function suspendPartnerAction(partnerId: string, suspended: boolean
   if (error) return { error: error.message };
   await logAuditAction(suspended ? "suspend_partner" : "restore_partner", "partner", partnerId);
   revalidatePath("/admin/partners");
+  await revalidatePartnerPublicSurfaces(partnerId);
   return { success: true };
 }
 
@@ -128,6 +147,7 @@ export async function deletePartnerAction(partnerId: string) {
   if (error) return { error: error.message };
   await logAuditAction("delete_partner", "partner", partnerId);
   revalidatePath("/admin/partners");
+  await revalidatePartnerPublicSurfaces(partnerId);
   return { success: true };
 }
 

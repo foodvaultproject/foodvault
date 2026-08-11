@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePublicBrandDirectory } from "@/lib/cache/revalidate";
 import { sendPartnerListingLiveEmailForPartner } from "@/lib/email-templates/dispatch";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,7 +16,7 @@ export async function confirmMemberOfferLiveAction(partnerId: string) {
 
   const { data: before, error: fetchError } = await supabase
     .from("partners")
-    .select("listing_status_v2")
+    .select("listing_status_v2, slug")
     .eq("id", partnerId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -33,6 +34,8 @@ export async function confirmMemberOfferLiveAction(partnerId: string) {
   if (error) {
     return { error: error.message };
   }
+
+  revalidatePublicBrandDirectory({ slug: before.slug });
 
   if (wasNotLive) {
     const emailResult = await sendPartnerListingLiveEmailForPartner(partnerId);

@@ -141,12 +141,20 @@ export async function getCachedSearchPublicBrands(params: BrandSearchParams) {
 }
 
 export async function getCachedPartnerProfile(slug: string) {
+  const normalized = slug.trim().toLowerCase();
+  const profile = await getPartnerProfile(normalized);
+
+  // Never negative-cache missing profiles — new listings go live after deploy.
+  if (!profile) {
+    return null;
+  }
+
   return unstable_cache(
-    async () => getPartnerProfile(slug),
-    ["cached-partner-profile", slug],
+    async () => getPartnerProfile(normalized),
+    ["cached-partner-profile-v2", normalized],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CACHE_TAG.partnerProfile, `partner-profile-${slug}`],
+      tags: [PUBLIC_CACHE_TAG.partnerProfile, `partner-profile-${normalized}`],
     }
   )();
 }
@@ -234,7 +242,7 @@ export const getCachedPublicBrandSlugs = unstable_cache(
       .map((row) => String(row.slug ?? "").trim())
       .filter(Boolean);
   },
-  ["cached-public-brand-slugs"],
+  ["cached-public-brand-slugs-v2"],
   {
     revalidate: PUBLIC_REVALIDATE_SECONDS,
     tags: [PUBLIC_CACHE_TAG.brands, PUBLIC_CACHE_TAG.partnerProfile],
