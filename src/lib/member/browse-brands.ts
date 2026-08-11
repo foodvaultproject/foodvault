@@ -139,6 +139,7 @@ function buildDevBrands(): BrandCard[] {
       discountLabel: brand.discount,
       discountPercent,
       bannerImageUrl: brand.image,
+      galleryImageUrl: brand.image,
       logoUrl: null,
       logoOriginalUrl: null,
       logoCrop: null,
@@ -551,7 +552,8 @@ export async function getRecentBrandCards(limit = 3): Promise<BrandCard[]> {
     return [];
   }
 
-  return (data as ViewBrandRow[]).map(mapViewRow);
+  const brands = (data as ViewBrandRow[]).map(mapViewRow);
+  return enrichBrandCardsWithGalleryImages(brands);
 }
 
 export async function getFeaturedBrands(limit = 8): Promise<BrandCard[]> {
@@ -676,6 +678,49 @@ type RpcBrandRow = {
 
 type ViewBrandRow = Omit<RpcBrandRow, "total_count">;
 
+function firstGalleryImageUrl(urls: string[] | null | undefined): string | null {
+  if (!Array.isArray(urls)) {
+    return null;
+  }
+
+  return urls.find((url) => typeof url === "string" && url.length > 0) ?? null;
+}
+
+async function enrichBrandCardsWithGalleryImages(
+  brands: BrandCard[]
+): Promise<BrandCard[]> {
+  if (brands.length === 0 || !isSupabaseConfigured()) {
+    return brands;
+  }
+
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return brands;
+  }
+
+  const brandIds = brands.map((brand) => brand.id);
+  const { data, error } = await supabase
+    .from("v_public_brand_profile")
+    .select("id, gallery_image_urls")
+    .in("id", brandIds);
+
+  if (error || !data) {
+    return brands;
+  }
+
+  const galleryById = new Map(
+    data.map((row) => [
+      row.id as string,
+      firstGalleryImageUrl(row.gallery_image_urls as string[] | null),
+    ])
+  );
+
+  return brands.map((brand) => ({
+    ...brand,
+    galleryImageUrl: galleryById.get(brand.id) ?? brand.galleryImageUrl,
+  }));
+}
+
 function mapRpcRow(row: RpcBrandRow): BrandCard {
   return mapViewRow(row);
 }
@@ -720,6 +765,7 @@ function mapViewRow(row: ViewBrandRow): BrandCard {
     }),
     discountPercent: row.discount_percent,
     bannerImageUrl: row.banner_image_url,
+    galleryImageUrl: null,
     logoUrl: row.logo_url,
     logoOriginalUrl: row.logo_original_url ?? null,
     logoCrop: parseLogoCrop(row.logo_crop),

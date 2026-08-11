@@ -5,7 +5,7 @@ import {
   TopMemberOfferCard,
   TrendingThisWeekCard,
 } from "@/components/home/HomeTrendingBrandCards";
-import { brandTileGridGapClass } from "@/components/browse-brands/brand-card-layout";
+import { brandTileGridClass, brandTileGridGapClass } from "@/components/browse-brands/brand-card-layout";
 import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -112,8 +112,8 @@ export function HomeTrendingSection({
             viewAllLabel="View all new brands →"
             hideViewAll={hideViewAll}
           >
-            <div className={`${brandTileGridGapClass} grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3`}>
-              {newBrands.slice(0, 9).map((brand) => (
+            <div className={brandTileGridClass}>
+              {newBrands.slice(0, 8).map((brand) => (
                 <NewBrandCard key={brand.id} brand={brand} />
               ))}
             </div>

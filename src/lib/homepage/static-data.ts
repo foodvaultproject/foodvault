@@ -77,7 +77,7 @@ export async function getStaticHomepageData(searchParams: {
     homepageFeatured: filterLocalhostHomepageBrands(featured),
     homepageBrowseFeatured: filterLocalhostHomepageBrands(browseFeatured),
     homepagePartnerBrowse: filterLocalhostHomepageSearchResult(partnerBrowseInitial),
-    homepageNewBrands: filterLocalhostHomepageBrands(newBrands),
+    homepageNewBrands: filterLocalhostHomepageBrands(newBrands).slice(0, 8),
     homepageTrendingBrands: filterLocalhostHomepageBrands(trendingBrands),
     homepageTopOffers: filterLocalhostHomepageBrands(topOffers.brands),
     homepageFaqs: getHomepageFaqs(settings),

@@ -6,6 +6,7 @@ import {
   getBrandDiscountPercent,
 } from "@/components/browse-brands/BrandTileDiscountBadge";
 import { PartnerBanner } from "@/components/partners/PartnerBanner";
+import { PartnerGalleryImage } from "@/components/partners/PartnerGalleryImage";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
@@ -26,6 +27,7 @@ const bannerCardClass =
   "group block overflow-hidden rounded-lg border border-border shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
 const cardBannerSizes = "(max-width: 640px) 100vw, 50vw";
+const newBrandGallerySizes = "(max-width: 1024px) 50vw, 25vw";
 
 const bannerTextOverlayClass =
   "pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/36 to-transparent px-3 pb-3 pt-12 sm:px-4 sm:pb-4";
@@ -148,22 +150,34 @@ function NewBrandCircularLogo({
 }
 
 export function NewBrandCard({ brand }: { brand: BrandCard }) {
+  const imageSrc = brand.galleryImageUrl ?? brand.bannerImageUrl;
+
   return (
     <Link
       href={partnerProfilePathFromSlug(brand.slug)}
       className={bannerCardClass}
       aria-label={brand.businessName}
     >
-      <PartnerBanner
-        src={brand.bannerImageUrl}
-        alt=""
-        sizes={cardBannerSizes}
-        imageClassName="transition-transform duration-300 group-hover:scale-[1.02]"
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
+      <div className="relative">
+        {imageSrc ? (
+          <PartnerGalleryImage
+            src={imageSrc}
+            alt=""
+            sizes={newBrandGallerySizes}
+            className="!rounded-none"
+            imageClassName="transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+        ) : (
+          <div className="relative aspect-[4/5] w-full bg-gradient-to-br from-primary/30 to-primary/5" />
+        )}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/35 to-transparent" />
+        <div className="absolute bottom-2 left-2 z-10 flex max-w-[calc(100%-1rem)] items-center gap-2 sm:bottom-3 sm:left-3 sm:gap-2.5">
           <NewBrandCircularLogo src={brand.logoUrl} businessName={brand.businessName} />
+          <p className="min-w-0 truncate text-sm font-bold text-white drop-shadow-sm sm:text-base">
+            {brand.businessName}
+          </p>
         </div>
-      </PartnerBanner>
+      </div>
     </Link>
   );
 }

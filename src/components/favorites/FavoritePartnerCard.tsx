@@ -29,6 +29,7 @@ function favoritePartnerToBrandCard(partner: FavoritePartner): BrandCard {
       discountLabel: partner.discountLabel,
     }),
     bannerImageUrl: partner.bannerImageUrl,
+    galleryImageUrl: null,
     logoUrl: partner.logoUrl,
     logoOriginalUrl: partner.logoOriginalUrl,
     logoCrop: partner.logoCrop,

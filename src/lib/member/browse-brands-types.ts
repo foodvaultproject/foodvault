@@ -37,6 +37,8 @@ export type BrandCard = {
   discountLabel: string;
   discountPercent: number | null;
   bannerImageUrl: string | null;
+  /** First gallery image for homepage new-brand tiles. */
+  galleryImageUrl: string | null;
   logoUrl: string | null;
   logoOriginalUrl: string | null;
   logoCrop: LogoCropSettings | null;

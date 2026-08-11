@@ -680,6 +680,9 @@ function mapListingRow(row: Record<string, unknown>): BrandCard {
     }),
     discountPercent: (row.discount_percent as number | null) ?? null,
     bannerImageUrl: (row.banner_image_url as string | null) ?? null,
+    galleryImageUrl: Array.isArray(row.gallery_image_urls)
+      ? ((row.gallery_image_urls as string[]).find(Boolean) ?? null)
+      : null,
     logoUrl: (row.logo_url as string | null) ?? null,
     logoOriginalUrl: (row.logo_original_url as string | null) ?? null,
     logoCrop: parseLogoCrop(row.logo_crop),
@@ -708,6 +711,7 @@ export async function getRecommendedBrands(
         discountLabel: brand.discount,
         discountPercent: Number(brand.discount.replace(/[^0-9.]/g, "")) || null,
         bannerImageUrl: brand.image,
+        galleryImageUrl: brand.image,
         logoUrl: null,
         logoOriginalUrl: null,
         logoCrop: null,
