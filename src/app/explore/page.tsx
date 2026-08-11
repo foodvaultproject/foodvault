@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { ExploreSaveFeed } from "@/components/explore/ExploreSaveFeed";
-import { getHomeExploreGalleryItems } from "@/lib/member/home-explore-gallery";
-import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
+import { getCachedHomeExploreGalleryItems } from "@/lib/cache/public-directory";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Explore & Save",
@@ -12,17 +11,14 @@ export const metadata: Metadata = {
 };
 
 export default async function ExplorePage() {
-  const [items, favoriteContext] = await Promise.all([
-    getHomeExploreGalleryItems(),
-    getViewerFavoriteContext(),
-  ]);
+  const items = await getCachedHomeExploreGalleryItems();
 
   return (
     <section className="bg-background">
       <ExploreSaveFeed
         items={items}
-        canFavorite={favoriteContext.canFavorite}
-        favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
+        canFavorite={false}
+        favoritedPartnerIds={[]}
       />
     </section>
   );

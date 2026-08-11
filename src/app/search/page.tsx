@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BrowseBrandsView } from "@/components/browse-brands/BrowseBrandsView";
-import { loadBrowseBrandsPageData } from "@/lib/member/browse-brands-page";
+import { loadBrowseBrandsPageDataStatic } from "@/lib/member/browse-brands-page-static";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Search Brands",
@@ -10,23 +11,20 @@ export const metadata: Metadata = {
     "Search FoodVault partner brands and unlock member savings across New Zealand.",
 };
 
-type SearchPageProps = {
-  searchParams: Promise<{ department?: string; subcategory?: string }>;
-};
-
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const params = await searchParams;
-  const data = await loadBrowseBrandsPageData(params);
+export default async function SearchPage() {
+  const data = await loadBrowseBrandsPageDataStatic({});
 
   return (
-    <BrowseBrandsView
-      featured={data.featured}
-      initialExplore={data.initialExplore}
-      initialTotal={data.initialTotal}
-      canFavorite={data.canFavorite}
-      favoritedPartnerIds={data.favoritedPartnerIds}
-      initialDepartment={data.initialDepartment}
-      initialSubcategory={data.initialSubcategory}
-    />
+    <Suspense>
+      <BrowseBrandsView
+        featured={data.featured}
+        initialExplore={data.initialExplore}
+        initialTotal={data.initialTotal}
+        canFavorite={data.canFavorite}
+        favoritedPartnerIds={data.favoritedPartnerIds}
+        initialDepartment={data.initialDepartment}
+        initialSubcategory={data.initialSubcategory}
+      />
+    </Suspense>
   );
 }

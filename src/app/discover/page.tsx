@@ -7,10 +7,10 @@ import {
   RecipesSection,
   NewsSection,
 } from "@/components/discover/DiscoverSections";
+import { getCachedDiscoverPageContent } from "@/lib/cache/public-directory";
 import { DISCOVER_PAGE_TITLE } from "@/lib/discover/categories";
-import { getDiscoverPageContent } from "@/lib/discover/queries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: DISCOVER_PAGE_TITLE,
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DiscoverPage() {
-  const content = await getDiscoverPageContent();
+  const content = await getCachedDiscoverPageContent();
 
   return (
     <>

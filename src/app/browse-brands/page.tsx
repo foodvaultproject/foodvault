@@ -5,9 +5,9 @@ import {
   CONSUMER_SEARCH_PATH,
   isConsumerNavRestructureEnabled,
 } from "@/lib/consumer-nav-restructure";
-import { loadBrowseBrandsPageData } from "@/lib/member/browse-brands-page";
+import { loadBrowseBrandsPageDataStatic } from "@/lib/member/browse-brands-page-static";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Browse Brands",
@@ -32,7 +32,7 @@ export default async function BrowseBrandsPage({
     redirect(query ? `${CONSUMER_SEARCH_PATH}?${query}` : CONSUMER_SEARCH_PATH);
   }
 
-  const data = await loadBrowseBrandsPageData(params);
+  const data = await loadBrowseBrandsPageDataStatic(params);
 
   return (
     <BrowseBrandsView

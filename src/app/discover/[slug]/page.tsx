@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { DiscoverArticlePage } from "@/components/discover/DiscoverArticlePage";
-import { getDiscoverArticlePageData, getPublishedArticleBySlug } from "@/lib/discover/queries";
+import {
+  getCachedDiscoverArticlePageData,
+  getCachedDiscoverArticleSlugs,
+  getCachedPublishedArticleBySlug,
+} from "@/lib/cache/public-directory";
+import { SITEMAP_BASE_URL } from "@/lib/sitemap/entries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
+export async function generateStaticParams() {
+  const slugs = await getCachedDiscoverArticleSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getPublishedArticleBySlug(slug);
+  const article = await getCachedPublishedArticleBySlug(slug);
 
   if (!article) {
     return { title: "Article Not Found" };
@@ -25,25 +34,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function resolveCanonicalUrl(slug: string, host: string | null) {
-  if (host) {
-    const protocol = host.includes("localhost") ? "http" : "https";
-    return `${protocol}://${host}/discover/${slug}`;
-  }
-  return `/discover/${slug}`;
-}
-
 export default async function DiscoverArticleRoute({ params }: Props) {
   const { slug } = await params;
-  const pageData = await getDiscoverArticlePageData(slug);
+  const pageData = await getCachedDiscoverArticlePageData(slug);
 
   if (!pageData) {
     notFound();
   }
 
-  const headerStore = await headers();
-  const host = headerStore.get("host");
-  const canonicalUrl = resolveCanonicalUrl(slug, host);
+  const canonicalUrl = `${SITEMAP_BASE_URL}/discover/${slug}`;
 
   return (
     <DiscoverArticlePage

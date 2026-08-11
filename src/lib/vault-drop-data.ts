@@ -2,8 +2,7 @@ import { isSupabaseConfigured } from "@/lib/auth";
 import { formatBusinessName } from "@/lib/business-name";
 import { partnerProfileSlug } from "@/lib/member/favorites-utils";
 import type { CodeAccessState } from "@/lib/member/partner-profile";
-import { createClient } from "@/lib/supabase/server";
-import { resolveHomeVaultDropCodesByPartner } from "@/lib/vault-drop-home-codes";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 import {
   getVaultDropCountdownParts,
   parseVaultDropStored,
@@ -89,7 +88,11 @@ export async function getActiveVaultDrops(limit = 12): Promise<PublicVaultDrop[]
     return developmentPreviewVaultDrops().slice(0, limit);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return developmentPreviewVaultDrops().slice(0, limit);
+  }
+
   const { data, error } = await supabase
     .from("partners")
     .select("id, business_name, slug, vault_drop, listing_status_v2")
@@ -120,15 +123,9 @@ export async function getHomeVaultDrops(limit = 12): Promise<HomeVaultDrop[]> {
   const drops = await getActiveVaultDrops(limit);
   if (drops.length === 0) return [];
 
-  const partnerIds = [...new Set(drops.map((drop) => drop.partnerId))];
-  const codeByPartner = await resolveHomeVaultDropCodesByPartner(partnerIds);
-
-  return drops.map((drop) => {
-    const access = codeByPartner.get(drop.partnerId);
-    return {
-      ...drop,
-      flashSaleCode: access?.code ?? null,
-      codeState: access?.state ?? "anon",
-    };
-  });
+  return drops.map((drop) => ({
+    ...drop,
+    flashSaleCode: null,
+    codeState: "anon" as const,
+  }));
 }

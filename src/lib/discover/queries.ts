@@ -11,7 +11,7 @@ import {
 } from "@/lib/discover/categories";
 import { parseMetaTags } from "@/lib/discover/meta-tags";
 import { isSupabaseConfigured } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 
 export const DEFAULT_DISCOVER_HERO =
   "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&h=600&fit=crop";
@@ -118,7 +118,11 @@ async function fetchPublishedRows(): Promise<DiscoverArticleRow[]> {
     return mockArticles.filter((article) => article.status === "PUBLISHED");
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
+
   const { data } = await supabase
     .from("discover_articles")
     .select("*")
@@ -182,7 +186,11 @@ export async function getPublishedArticleBySlug(
     return mapRowToPageData(row);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return null;
+  }
+
   const { data } = await supabase
     .from("discover_articles")
     .select("*")

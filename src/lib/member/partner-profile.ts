@@ -15,8 +15,9 @@ import {
   resolvePartnerOnboardingState,
   type PartnerOnboardingState,
 } from "@/lib/partner-status";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { resolvePartnerVaultDropCode } from "@/lib/partner-data";
 import { parseLogoCrop, type LogoCropSettings } from "@/lib/partner-logo-crop";
 import {
@@ -366,7 +367,11 @@ export const getPartnerProfile = cache(async function getPartnerProfile(
     return buildDevProfile(slug);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return buildDevProfile(slug);
+  }
+
   const normalized = slug.trim().toLowerCase();
 
   const { data: rpcData, error: rpcError } = await supabase.rpc(
@@ -389,7 +394,7 @@ export const getPartnerProfile = cache(async function getPartnerProfile(
     return mapProfileRow(data as ProfileViewRow);
   }
 
-  return getPartnerOwnProfilePreview(normalized);
+  return null;
 });
 
 export async function isPartnerAffiliateProgramPublic(
@@ -399,7 +404,11 @@ export async function isPartnerAffiliateProgramPublic(
     return true;
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return false;
+  }
+
   const { data, error } = await supabase.rpc("partner_affiliate_program_is_public", {
     p_partner_id: partnerId,
   });
@@ -709,7 +718,11 @@ export async function getRecommendedBrands(
       .slice(0, limit);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
+
   const { data, error } = await supabase.rpc("get_recommended_brands", {
     p_partner_id: partnerId,
     p_limit: limit,
@@ -728,7 +741,11 @@ async function getSimilarBrandsLegacy(
   department: string | null,
   limit = 4
 ): Promise<BrandCard[]> {
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
+
   let query = supabase
     .from("v_public_brand_listings")
     .select(

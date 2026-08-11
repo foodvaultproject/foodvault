@@ -1,28 +1,29 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PartnerProfileView } from "@/components/brands/PartnerProfileView";
+import { PartnerProfileClientHydrator } from "@/components/brands/PartnerProfileClientHydrator";
 import {
-  getPartnerDiscountCode,
-  getPartnerProfile,
-  getPartnerVaultDropCode,
-  getProfileViewerContext,
-  getRecommendedBrands,
-  isPartnerAffiliateProgramPublic,
-} from "@/lib/member/partner-profile";
-import { getBrandAffiliateViewerContext } from "@/lib/affiliate/server";
-import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
+  getCachedPartnerProfile,
+  getCachedPublicBrandSlugs,
+  getCachedRecommendedBrands,
+} from "@/lib/cache/public-directory";
+import { isPartnerAffiliateProgramPublic } from "@/lib/member/partner-profile";
 
 type PartnerProfilePageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  const slugs = await getCachedPublicBrandSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({
   params,
 }: PartnerProfilePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const profile = await getPartnerProfile(slug);
+  const profile = await getCachedPartnerProfile(slug);
 
   if (!profile) {
     return { title: "Brand Not Found | FoodVault" };
@@ -40,36 +41,21 @@ export default async function PartnerProfilePage({
   params,
 }: PartnerProfilePageProps) {
   const { slug } = await params;
-  const profile = await getPartnerProfile(slug);
+  const profile = await getCachedPartnerProfile(slug);
 
   if (!profile) {
     notFound();
   }
 
-  const [codeAccess, flashSaleCodeAccess, viewer, recommended, favoriteContext, affiliateContext, affiliatePubliclyVisible] =
-    await Promise.all([
-    getPartnerDiscountCode(profile.id),
-    profile.vaultDrop?.products.length
-      ? getPartnerVaultDropCode(profile.id)
-      : Promise.resolve({ code: null, state: "anon" as const }),
-    getProfileViewerContext(profile.id),
-    getRecommendedBrands(profile.id, profile, 4),
-    getViewerFavoriteContext(),
-    getBrandAffiliateViewerContext(profile.id),
+  const [recommended, affiliatePubliclyVisible] = await Promise.all([
+    getCachedRecommendedBrands(profile.id, slug, 4),
     isPartnerAffiliateProgramPublic(profile.id),
   ]);
 
   return (
-    <PartnerProfileView
+    <PartnerProfileClientHydrator
       profile={profile}
-      code={codeAccess.code}
-      codeState={codeAccess.state}
-      flashSaleCode={flashSaleCodeAccess.code}
-      flashSaleCodeState={flashSaleCodeAccess.state}
-      viewer={viewer}
       recommended={recommended}
-      favoritedPartnerIds={favoriteContext.favoritedPartnerIds}
-      affiliateContext={affiliateContext}
       affiliatePubliclyVisible={affiliatePubliclyVisible}
     />
   );

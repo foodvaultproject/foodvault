@@ -13,6 +13,7 @@ import {
   type BrandSearchResult,
 } from "@/lib/member/browse-brands-types";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 import {
   expandDepartmentSearchValues,
   flattenDietaryLifestyleAttributes,
@@ -222,7 +223,10 @@ export async function searchPublicBrands(
 
   const filters = resolveSearchFilters(params);
   const normalizedParams = { ...params, ...filters };
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return { brands: [], total: 0 };
+  }
 
   const rpcArgs: Record<string, string | number | string[] | null> = {
     p_search: params.search?.trim() || null,
@@ -268,7 +272,10 @@ async function searchPublicBrandsFromView(
 
   const limit = params.limit ?? BROWSE_PAGE_SIZE;
   const offset = params.offset ?? 0;
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return { brands: [], total: 0 };
+  }
 
   let query = supabase
     .from("v_public_brand_listings")
@@ -346,7 +353,10 @@ async function searchPublicBrandsFromPartners(
 
   const limit = params.limit ?? BROWSE_PAGE_SIZE;
   const offset = params.offset ?? 0;
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return { brands: [], total: 0 };
+  }
 
   let query = supabase
     .from("partners")
@@ -465,7 +475,10 @@ export async function getPartnerLogos(limit = 40): Promise<PartnerLogoItem[]> {
     }));
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
   const { data } = await supabase
     .from("v_public_brand_listings")
     .select(
@@ -524,7 +537,10 @@ export async function getRecentBrandCards(limit = 3): Promise<BrandCard[]> {
     return buildDevBrands().slice(0, limit);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
   const { data, error } = await supabase
     .from("v_public_brand_listings")
     .select(PUBLIC_BRAND_LISTING_SELECT)
@@ -543,7 +559,10 @@ export async function getFeaturedBrands(limit = 8): Promise<BrandCard[]> {
     return buildDevBrands().filter((brand) => brand.isFeatured).slice(0, limit);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
   const { data, error } = await supabase
     .from("v_public_brand_listings")
     .select(PUBLIC_BRAND_LISTING_SELECT)
@@ -613,7 +632,10 @@ export async function getTrendingThisWeekBrands(): Promise<BrandCard[]> {
     return buildDevBrands().slice(0, TRENDING_THIS_WEEK_BRAND_SLOTS.length);
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return [];
+  }
   const usedIds = new Set<string>();
   const brands: BrandCard[] = [];
 

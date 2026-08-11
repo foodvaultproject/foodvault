@@ -6,7 +6,9 @@ import {
   HowItWorksSection,
   PartnerBenefitsSection,
 } from "@/components/for-brands/ForBrandsSections";
-import { getPartnerLogos } from "@/lib/member/browse-brands";
+import { getCachedPartnerLogos } from "@/lib/cache/public-directory";
+
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "For Brands",
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ForBrandsPage() {
-  const logos = await getPartnerLogos(40);
+  const logos = await getCachedPartnerLogos(40);
 
   return (
     <>

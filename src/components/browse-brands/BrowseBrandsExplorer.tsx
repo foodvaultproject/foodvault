@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import {
   BrowseFilterTags,
@@ -60,6 +61,8 @@ type BrowseBrandsExplorerProps = {
   compactSpacing?: boolean;
   /** Signed-in partner brand homepage — smaller filter peeping image. */
   partnerHomepage?: boolean;
+  /** Skip reading URL search params (used inside Suspense fallbacks). */
+  disableUrlHydration?: boolean;
 };
 
 export function BrowseBrandsExplorer({
@@ -75,6 +78,7 @@ export function BrowseBrandsExplorer({
   exploreHeadingClassName = "text-2xl font-bold text-foreground",
   compactSpacing = false,
   partnerHomepage = false,
+  disableUrlHydration = false,
 }: BrowseBrandsExplorerProps) {
   const favoritedSet = useMemo(
     () => new Set(favoritedPartnerIds),
@@ -95,6 +99,39 @@ export function BrowseBrandsExplorer({
   const [total, setTotal] = useState(initialTotal);
   const [isPending, startTransition] = useTransition();
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (disableUrlHydration) {
+      return;
+    }
+
+    const department = searchParams.get("department")?.trim() ?? "";
+    const subcategory = searchParams.get("subcategory")?.trim() ?? "";
+
+    if (!department && !subcategory) {
+      return;
+    }
+
+    setDepartments(department ? [department] : []);
+    setSubcategories(subcategory ? [subcategory] : []);
+
+    startTransition(async () => {
+      const result = await searchBrandsAction({
+        search: "",
+        departments: department ? [department] : [],
+        subcategories: subcategory ? [subcategory] : [],
+        dietaryLifestyles: [],
+        minDiscount: null,
+        sort: "featured",
+        limit: BROWSE_PAGE_SIZE,
+        offset: 0,
+      });
+
+      setTotal(result.total);
+      setBrands(result.brands);
+    });
+  }, [disableUrlHydration, searchParams]);
 
   const subcategoryGroups = useMemo(
     () => getSubcategoryFilterGroups(departments),

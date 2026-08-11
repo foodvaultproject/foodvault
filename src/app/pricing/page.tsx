@@ -5,13 +5,13 @@ import {
   PricingDualCTASection,
   PricingHero,
 } from "@/components/pricing/PricingSections";
+import { getCachedMembershipSettings } from "@/lib/cache/public-directory";
 import { formatMembershipPriceMonthly } from "@/lib/member/pricing";
-import { getMembershipSettings } from "@/lib/member/settings";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getMembershipSettings();
+  const settings = await getCachedMembershipSettings();
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
 
   return {
@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PricingPage() {
-  const settings = await getMembershipSettings();
+  const settings = await getCachedMembershipSettings();
 
   return (
     <>

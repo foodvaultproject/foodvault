@@ -6,14 +6,14 @@ import {
   parseSystemSettingsRow,
 } from "@/lib/system-settings";
 import { fetchSystemSettingsRow } from "@/lib/system-settings-db";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 import { createClient } from "@/lib/supabase/server";
 
 export type { MembershipSettings } from "@/lib/member/pricing";
 
 /** Prefer service role on the server so public pages can read pricing settings. */
-async function createSettingsReadClient(): Promise<SupabaseClient> {
-  return createAdminClient() ?? (await createClient());
+function createSettingsReadClient(): SupabaseClient | null {
+  return createPublicReadClient();
 }
 
 const DEV_SETTINGS: MembershipSettings = {
@@ -26,7 +26,11 @@ export async function getMembershipSettings(): Promise<MembershipSettings> {
     return DEV_SETTINGS;
   }
 
-  const supabase = await createSettingsReadClient();
+  const supabase = createSettingsReadClient();
+  if (!supabase) {
+    return DEV_SETTINGS;
+  }
+
   const data = await fetchSystemSettingsRow(supabase);
 
   if (!data) {
@@ -46,7 +50,11 @@ export async function getPlatformSettings() {
     return DEFAULT_SYSTEM_SETTINGS;
   }
 
-  const supabase = await createSettingsReadClient();
+  const supabase = createSettingsReadClient();
+  if (!supabase) {
+    return DEV_SETTINGS;
+  }
+
   const data = await fetchSystemSettingsRow(supabase);
 
   if (!data) {

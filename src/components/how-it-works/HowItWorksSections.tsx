@@ -1,4 +1,4 @@
-import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
+import { HowItWorksHeroSignupCta } from "@/components/how-it-works/HowItWorksHeroSignupCta";
 import { HomeWhyJoinFeatures } from "@/components/home/HomeSections";
 import {
   heading2,
@@ -53,19 +53,17 @@ type HowItWorksPageProps = {
   isActiveMember?: boolean;
 };
 
-export function HowItWorksPageContent({
-  isActiveMember = false,
-}: HowItWorksPageProps) {
+export function HowItWorksPageContent(_props: HowItWorksPageProps = {}) {
   return (
     <>
-      <HowItWorksHero isActiveMember={isActiveMember} />
+      <HowItWorksHero />
       <HowFoodVaultWorksSection />
       <HomeWhyJoinFeatures mobileTwoColumn />
     </>
   );
 }
 
-function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }) {
+function HowItWorksHero() {
   return (
     <section className="relative overflow-hidden border-b border-border bg-background">
       <div
@@ -83,14 +81,7 @@ function HowItWorksHero({ isActiveMember = false }: { isActiveMember?: boolean }
             things you love, discover new favourites, and shop direct while supporting local
             businesses.
           </p>
-          {isActiveMember ? null : (
-            <div className="mt-5">
-              <MemberSignupCtaLink
-                variant="start-free-trial"
-                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-[14px] font-semibold text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
-              />
-            </div>
-          )}
+          <HowItWorksHeroSignupCta />
         </div>
 
         <div className="relative m-0 flex min-h-0 items-end justify-center self-stretch p-0 leading-[0] lg:justify-end">

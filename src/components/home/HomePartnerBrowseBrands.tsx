@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BrowseBrandsExplorer } from "@/components/browse-brands/BrowseBrandsExplorer";
 import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_PARTNER_BROWSE, SECTION_PY_HOME_MEMBER_BROWSE, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -61,20 +62,40 @@ export function HomePartnerBrowseBrands({
       className={`scroll-mt-24 bg-[#f3f4f6] ${sectionPadding}`}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <BrowseBrandsExplorer
-          featured={featured}
-          initialExplore={initialExplore}
-          initialTotal={initialTotal}
-          canFavorite={canFavorite}
-          favoritedPartnerIds={favoritedPartnerIds}
-          initialDepartment={initialDepartment}
-          initialSubcategory={initialSubcategory}
-          exploreHeading={exploreHeading}
-          exploreHeadingClassName={exploreHeadingClassName}
-          embedded
-          compactSpacing={compactSpacing}
-          partnerHomepage={partnerHomepage}
-        />
+        <Suspense
+          fallback={
+            <BrowseBrandsExplorer
+              featured={featured}
+              initialExplore={initialExplore}
+              initialTotal={initialTotal}
+              canFavorite={canFavorite}
+              favoritedPartnerIds={favoritedPartnerIds}
+              initialDepartment={initialDepartment}
+              initialSubcategory={initialSubcategory}
+              exploreHeading={exploreHeading}
+              exploreHeadingClassName={exploreHeadingClassName}
+              embedded
+              compactSpacing={compactSpacing}
+              partnerHomepage={partnerHomepage}
+              disableUrlHydration
+            />
+          }
+        >
+          <BrowseBrandsExplorer
+            featured={featured}
+            initialExplore={initialExplore}
+            initialTotal={initialTotal}
+            canFavorite={canFavorite}
+            favoritedPartnerIds={favoritedPartnerIds}
+            initialDepartment={initialDepartment}
+            initialSubcategory={initialSubcategory}
+            exploreHeading={exploreHeading}
+            exploreHeadingClassName={exploreHeadingClassName}
+            embedded
+            compactSpacing={compactSpacing}
+            partnerHomepage={partnerHomepage}
+          />
+        </Suspense>
       </div>
     </section>
   );

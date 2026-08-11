@@ -7,7 +7,7 @@ import {
   partnerProfileSlug,
 } from "@/lib/member/favorites-utils";
 import { parseLogoCrop, type LogoCropSettings } from "@/lib/partner-logo-crop";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 
 export type HomeExploreGalleryItem = {
   id: string;
@@ -96,7 +96,10 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
     return buildDevExploreItems();
   }
 
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) {
+    return buildDevExploreItems();
+  }
   const { data, error } = await supabase
     .from("v_public_brand_profile")
     .select(

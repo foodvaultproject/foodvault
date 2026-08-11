@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
+import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 
@@ -17,13 +18,10 @@ type PartnerLogoItem = {
 
 type OurPartnersViewProps = {
   partners: PartnerLogoItem[];
-  isActiveMember?: boolean;
 };
 
-export function OurPartnersView({
-  partners,
-  isActiveMember = false,
-}: OurPartnersViewProps) {
+export function OurPartnersView({ partners }: OurPartnersViewProps) {
+  const isActiveMember = useIsActiveMember();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
