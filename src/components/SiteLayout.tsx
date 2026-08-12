@@ -31,7 +31,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       >
         {children}
       </main>
-      <Footer />
+      <Footer mobileBottomNavInset={showConsumerSecondaryNav} />
     </MemberSignupCtaProvider>
   );
 }

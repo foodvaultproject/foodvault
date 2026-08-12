@@ -19,6 +19,10 @@ const HERO_LOGO_IMAGE_CLASS =
 const HERO_AVATAR_IMAGE_CLASS =
   "h-full w-full object-contain object-center scale-[1.06]";
 
+/** Homepage new-brand tiles — fill the circle edge-to-edge. */
+const NEW_BRAND_LOGO_IMAGE_CLASS =
+  "h-full w-full object-cover object-center";
+
 type PartnerLogoSize =
   | "xs"
   | "sm"
@@ -27,7 +31,8 @@ type PartnerLogoSize =
   | "tile"
   | "carousel"
   | "fill"
-  | "hero";
+  | "hero"
+  | "newBrand";
 
 const SIZE_STYLES: Record<
   PartnerLogoSize,
@@ -73,6 +78,12 @@ const SIZE_STYLES: Record<
     fallback: "text-2xl",
     sizes: "(max-width: 1280px) 0vw, 20vw",
     legacyImageClass: HERO_LOGO_IMAGE_CLASS,
+  },
+  newBrand: {
+    box: "aspect-square h-16 w-16 min-h-16 min-w-16 rounded-full sm:h-[4.5rem] sm:w-[4.5rem] sm:min-h-[4.5rem] sm:min-w-[4.5rem]",
+    fallback: "text-xl sm:text-2xl",
+    sizes: "(max-width: 640px) 64px, 72px",
+    legacyImageClass: NEW_BRAND_LOGO_IMAGE_CLASS,
   },
 };
 
@@ -237,7 +248,9 @@ export function PartnerLogo({
     mode === "avatar"
       ? size === "hero"
         ? HERO_AVATAR_IMAGE_CLASS
-        : AVATAR_IMAGE_CLASS
+        : size === "newBrand"
+          ? NEW_BRAND_LOGO_IMAGE_CLASS
+          : AVATAR_IMAGE_CLASS
       : styles.legacyImageClass ?? LEGACY_LOGO_IMAGE_CLASS;
 
   return (

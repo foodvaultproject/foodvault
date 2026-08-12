@@ -48,6 +48,11 @@ const socialLinks = [
     iconSrc: "/footer/instagram.png",
   },
   {
+    href: "https://www.facebook.com/foodvaultnz",
+    label: "Facebook",
+    iconSrc: "/footer/facebook.png",
+  },
+  {
     href: "https://www.linkedin.com/company/foodvault-nz",
     label: "LinkedIn",
     iconSrc: "/footer/linkedin.png",
@@ -88,13 +93,23 @@ function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
   );
 }
 
-function FooterBottomBar({ menuPreview }: { menuPreview: boolean }) {
+function FooterBottomBar({
+  menuPreview,
+  mobileBottomNavInset = false,
+}: {
+  menuPreview: boolean;
+  mobileBottomNavInset?: boolean;
+}) {
   return (
     <div
       className={`flex flex-col items-center justify-between gap-4 border-t text-center sm:flex-row sm:text-left ${
         menuPreview
           ? "mt-6 border-white/15 pt-5"
           : "mt-12 gap-6 border-border pt-8"
+      } ${
+        mobileBottomNavInset
+          ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-0"
+          : ""
       }`}
     >
       <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
@@ -104,11 +119,7 @@ function FooterBottomBar({ menuPreview }: { menuPreview: boolean }) {
             href={social.href}
             target="_blank"
             rel="noopener noreferrer"
-            className={
-              menuPreview
-                ? "inline-flex h-[60px] w-[60px] items-center justify-center transition-opacity hover:opacity-80"
-                : "inline-flex h-[60px] w-[60px] items-center justify-center text-sm text-muted-foreground transition-opacity hover:opacity-80"
-            }
+            className="inline-flex h-12 w-12 items-center justify-center transition-opacity hover:opacity-80 sm:h-[60px] sm:w-[60px]"
             aria-label={social.label}
           >
             <Image
@@ -116,7 +127,7 @@ function FooterBottomBar({ menuPreview }: { menuPreview: boolean }) {
               alt=""
               width={60}
               height={60}
-              className="h-[60px] w-[60px] object-contain"
+              className="h-12 w-12 object-contain sm:h-[60px] sm:w-[60px]"
             />
           </a>
         ))}
@@ -132,7 +143,11 @@ function FooterBottomBar({ menuPreview }: { menuPreview: boolean }) {
   );
 }
 
-export function Footer() {
+export function Footer({
+  mobileBottomNavInset = false,
+}: {
+  mobileBottomNavInset?: boolean;
+}) {
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
 
   return (
@@ -189,7 +204,10 @@ export function Footer() {
           </div>
         )}
 
-        <FooterBottomBar menuPreview={menuPreview} />
+        <FooterBottomBar
+          menuPreview={menuPreview}
+          mobileBottomNavInset={mobileBottomNavInset}
+        />
       </div>
     </footer>
   );

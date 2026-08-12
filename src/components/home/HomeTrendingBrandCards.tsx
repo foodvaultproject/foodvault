@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { ReactNode } from "react";
 import {
   BrandTileDiscountBadge,
@@ -7,6 +6,8 @@ import {
 } from "@/components/browse-brands/BrandTileDiscountBadge";
 import { PartnerBanner } from "@/components/partners/PartnerBanner";
 import { PartnerGalleryImage } from "@/components/partners/PartnerGalleryImage";
+import { PartnerLogo } from "@/components/partners/PartnerLogo";
+import { hasApprovedLogoCrop } from "@/lib/partner-logo-crop";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
@@ -113,39 +114,20 @@ export function TrendingThisWeekCard({ brand }: { brand: BrandCard }) {
 }
 
 const newBrandLogoClass =
-  "relative aspect-square h-16 w-16 min-h-16 min-w-16 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_4px_16px_rgba(15,23,42,0.18)] sm:h-[4.5rem] sm:w-[4.5rem] sm:min-h-[4.5rem] sm:min-w-[4.5rem]";
+  "border-2 border-white bg-white shadow-[0_4px_16px_rgba(15,23,42,0.18)]";
 
-function NewBrandCircularLogo({
-  src,
-  businessName,
-}: {
-  src: string | null;
-  businessName: string;
-}) {
-  const initial = businessName.trim().charAt(0).toUpperCase() || "?";
-
-  if (!src) {
-    return (
-      <div
-        className={`${newBrandLogoClass} flex items-center justify-center bg-primary/15`}
-        aria-hidden="true"
-      >
-        <span className="text-xl font-bold text-primary sm:text-2xl">{initial}</span>
-      </div>
-    );
-  }
-
+function NewBrandCircularLogo({ brand }: { brand: BrandCard }) {
   return (
-    <div className={newBrandLogoClass}>
-      <Image
-        src={src}
-        alt=""
-        fill
-        sizes="(max-width: 640px) 64px, 72px"
-        className="object-contain object-center p-1"
-        unoptimized
-      />
-    </div>
+    <PartnerLogo
+      src={brand.logoUrl}
+      originalSrc={brand.logoOriginalUrl}
+      alt=""
+      businessName={brand.businessName}
+      size="newBrand"
+      crop={brand.logoCrop}
+      isCropped={hasApprovedLogoCrop(brand.logoCrop)}
+      className={newBrandLogoClass}
+    />
   );
 }
 
@@ -172,7 +154,7 @@ export function NewBrandCard({ brand }: { brand: BrandCard }) {
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/35 to-transparent" />
         <div className="absolute bottom-2 left-2 z-10 flex max-w-[calc(100%-1rem)] items-end gap-2 sm:bottom-3 sm:left-3 sm:gap-2.5">
-          <NewBrandCircularLogo src={brand.logoUrl} businessName={brand.businessName} />
+          <NewBrandCircularLogo brand={brand} />
           <p className="min-w-0 flex-1 truncate pb-0.5 text-sm font-bold text-white drop-shadow-sm sm:pb-1 sm:text-base">
             {brand.businessName}
           </p>
