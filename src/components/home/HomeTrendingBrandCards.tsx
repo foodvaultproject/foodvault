@@ -113,7 +113,7 @@ export function TrendingThisWeekCard({ brand }: { brand: BrandCard }) {
 }
 
 const newBrandLogoClass =
-  "relative h-16 w-16 overflow-hidden rounded-full border-2 border-white shadow-[0_4px_16px_rgba(15,23,42,0.18)] sm:h-[4.5rem] sm:w-[4.5rem]";
+  "relative aspect-square h-16 w-16 min-h-16 min-w-16 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_4px_16px_rgba(15,23,42,0.18)] sm:h-[4.5rem] sm:w-[4.5rem] sm:min-h-[4.5rem] sm:min-w-[4.5rem]";
 
 function NewBrandCircularLogo({
   src,
@@ -141,8 +141,8 @@ function NewBrandCircularLogo({
         src={src}
         alt=""
         fill
-        sizes="72px"
-        className="object-cover"
+        sizes="(max-width: 640px) 64px, 72px"
+        className="object-contain object-center p-1"
         unoptimized
       />
     </div>
@@ -171,9 +171,9 @@ export function NewBrandCard({ brand }: { brand: BrandCard }) {
           <div className="relative aspect-[4/5] w-full bg-gradient-to-br from-primary/30 to-primary/5" />
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/35 to-transparent" />
-        <div className="absolute bottom-2 left-2 z-10 flex max-w-[calc(100%-1rem)] items-center gap-2 sm:bottom-3 sm:left-3 sm:gap-2.5">
+        <div className="absolute bottom-2 left-2 z-10 flex max-w-[calc(100%-1rem)] items-end gap-2 sm:bottom-3 sm:left-3 sm:gap-2.5">
           <NewBrandCircularLogo src={brand.logoUrl} businessName={brand.businessName} />
-          <p className="min-w-0 truncate text-sm font-bold text-white drop-shadow-sm sm:text-base">
+          <p className="min-w-0 flex-1 truncate pb-0.5 text-sm font-bold text-white drop-shadow-sm sm:pb-1 sm:text-base">
             {brand.businessName}
           </p>
         </div>
