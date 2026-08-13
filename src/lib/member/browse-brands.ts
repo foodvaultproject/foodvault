@@ -211,6 +211,13 @@ function applyDevFilters(
 export async function searchPublicBrands(
   params: BrandSearchParams
 ): Promise<BrandSearchResult> {
+  const result = await searchPublicBrandsUncached(params);
+  return enrichSearchResult(result);
+}
+
+async function searchPublicBrandsUncached(
+  params: BrandSearchParams
+): Promise<BrandSearchResult> {
   const limit = params.limit ?? BROWSE_PAGE_SIZE;
   const offset = params.offset ?? 0;
 
@@ -527,7 +534,7 @@ export async function getHomepageFeaturedBrands(limit = 6): Promise<BrandCard[]>
       seen.add(brand.id);
     }
   }
-  return merged;
+  return enrichBrandCardsWithGalleryImages(merged);
 }
 
 const PUBLIC_BRAND_LISTING_SELECT =
@@ -576,7 +583,7 @@ export async function getFeaturedBrands(limit = 8): Promise<BrandCard[]> {
     return [];
   }
 
-  return (data as ViewBrandRow[]).map(mapViewRow);
+  return enrichBrandCardsWithGalleryImages((data as ViewBrandRow[]).map(mapViewRow));
 }
 
 const TRENDING_THIS_WEEK_BRAND_SLOTS = [
@@ -684,6 +691,13 @@ function firstGalleryImageUrl(urls: string[] | null | undefined): string | null 
   }
 
   return urls.find((url) => typeof url === "string" && url.length > 0) ?? null;
+}
+
+async function enrichSearchResult(result: BrandSearchResult): Promise<BrandSearchResult> {
+  return {
+    ...result,
+    brands: await enrichBrandCardsWithGalleryImages(result.brands),
+  };
 }
 
 async function enrichBrandCardsWithGalleryImages(

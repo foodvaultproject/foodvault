@@ -22,19 +22,19 @@ export const brandTileGridClass =
 
 /** Homepage-style partner tile shell (Top Brands section). */
 export const partnerBrandCardShellClass =
-  "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-background shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
+  "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-background shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
 export const brandCardShellClass = partnerBrandCardShellClass;
 
-/** Compact tile body — logo overlaps banner; matches homepage Top Brands cards. */
-export const partnerBrandCardBodyClass = "relative flex flex-1 flex-col px-4 pb-4";
+/** Compact tile body — logo overlaps gallery image. */
+export const partnerBrandCardBodyClass = "relative flex flex-1 flex-col px-4 pb-3";
 
 export const brandCardBodyClass = partnerBrandCardBodyClass;
 
 /** Clears the lower half of the 64px logo before text content begins. */
 export const brandCardContentClass = "flex min-h-0 flex-1 flex-col pt-8";
 
-/** sm PartnerLogo is h-16 (4rem); -top-8 places it half on the banner, half on the body. */
+/** sm PartnerLogo is h-16 (4rem); -top-8 places it half on the gallery image, half on the body. */
 export const partnerBrandCardLogoClass =
   "!absolute -top-8 left-4 z-10 ring-4 ring-background";
 

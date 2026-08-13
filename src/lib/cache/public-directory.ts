@@ -88,7 +88,7 @@ export async function getCachedHomeVaultDrops(limit: number) {
 export async function getCachedFeaturedBrands(limit: number) {
   return unstable_cache(
     async () => getFeaturedBrands(limit),
-    ["cached-featured-brands", String(limit)],
+    ["cached-featured-brands-v2", String(limit)],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
       tags: [PUBLIC_CACHE_TAG.brands],
@@ -99,7 +99,7 @@ export async function getCachedFeaturedBrands(limit: number) {
 export async function getCachedHomepageFeaturedBrands(limit: number) {
   return unstable_cache(
     async () => getHomepageFeaturedBrands(limit),
-    ["cached-homepage-featured-brands", String(limit)],
+    ["cached-homepage-featured-brands-v2", String(limit)],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
       tags: [PUBLIC_CACHE_TAG.brands],
