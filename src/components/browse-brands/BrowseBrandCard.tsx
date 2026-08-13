@@ -46,7 +46,7 @@ export function BrowseBrandCard({
   const [loading, setLoading] = useState(false);
   const profilePath = partnerProfilePathFromSlug(brand.slug);
   const category = brand.departments[0] ?? brand.department ?? "New Zealand brand";
-  const imageSrc = brand.galleryImageUrl;
+  const imageSrc = brand.galleryImageUrl ?? brand.bannerImageUrl;
 
   async function handleFavorite(event: React.MouseEvent) {
     event.preventDefault();

@@ -169,7 +169,7 @@ export async function getCachedRecommendedBrands(
 
   return unstable_cache(
     async () => getRecommendedBrands(partnerId, profile, limit),
-    ["cached-recommended-brands", partnerId, String(limit)],
+    ["cached-recommended-brands-v2", partnerId, String(limit)],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
       tags: [PUBLIC_CACHE_TAG.brands, PUBLIC_CACHE_TAG.partnerProfile],

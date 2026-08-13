@@ -700,7 +700,7 @@ async function enrichSearchResult(result: BrandSearchResult): Promise<BrandSearc
   };
 }
 
-async function enrichBrandCardsWithGalleryImages(
+export async function enrichBrandCardsWithGalleryImages(
   brands: BrandCard[]
 ): Promise<BrandCard[]> {
   if (brands.length === 0 || !isSupabaseConfigured()) {

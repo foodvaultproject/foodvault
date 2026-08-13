@@ -6,6 +6,7 @@ import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
 import { formatBusinessName, formatBusinessNameOrNull } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
+import { enrichBrandCardsWithGalleryImages } from "@/lib/member/browse-brands";
 import { memberHasActiveAccess } from "@/lib/member/member-record";
 import {
   formatPartnerDiscountLabel,
@@ -733,10 +734,14 @@ export async function getRecommendedBrands(
   });
 
   if (!error && data?.length) {
-    return (data as Record<string, unknown>[]).map(mapListingRow);
+    return enrichBrandCardsWithGalleryImages(
+      (data as Record<string, unknown>[]).map(mapListingRow)
+    );
   }
 
-  return getSimilarBrandsLegacy(partnerId, profile?.department ?? null, limit);
+  return enrichBrandCardsWithGalleryImages(
+    await getSimilarBrandsLegacy(partnerId, profile?.department ?? null, limit)
+  );
 }
 
 /** @deprecated Prefer getRecommendedBrands RPC. Kept as fallback when migration is not applied. */
