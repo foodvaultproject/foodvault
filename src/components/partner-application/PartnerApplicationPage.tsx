@@ -999,18 +999,6 @@ export function PartnerApplicationPage() {
                   and confirm that the products meet FoodVault&apos;s quality standards.
                 </span>
               </label>
-              <label className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  name="assetConsent"
-                  required
-                  className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                <span className="text-sm leading-relaxed text-muted-foreground">
-                  I consent to FoodVault using my brand assets for promotional
-                  and marketing purposes.
-                </span>
-              </label>
 
               <button
                 type="submit"

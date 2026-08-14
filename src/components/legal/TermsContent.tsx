@@ -86,14 +86,6 @@ const foodVaultDoesNotGuarantee = [
   "partner conduct",
 ];
 
-const partnerAccountResponsibilities = [
-  "maintaining accurate business information",
-  "ensuring discounts and offers are valid",
-  "complying with advertising and consumer laws",
-  "honouring offers displayed on their websites",
-  "ensuring submitted content is accurate",
-];
-
 const acceptableUseProhibitions = [
   "misuse the Platform",
   "attempt unauthorised access",
@@ -397,24 +389,40 @@ export function TermsContent() {
 
       <LegalSection id="partner-accounts" number="13" title="Partner Accounts">
         <p>
-          Businesses may create a Partner account free of charge unless otherwise
-          stated.
-        </p>
-        <p>Partners remain responsible for:</p>
-        <ul className="list-disc space-y-2 pl-5">
-          {partnerAccountResponsibilities.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-        <p>
-          Partners grant FoodVault a non-exclusive licence to use submitted information,
-          logos, images and marketing materials for the purpose of operating, displaying
-          and promoting their Partner profile within the Platform.
+          Partners remain responsible for ensuring that they have the necessary rights
+          and permissions to provide FoodVault with any business information, logos,
+          images, product images, videos, marketing materials or other content submitted
+          to the Platform.
         </p>
         <p>Partners retain ownership of their intellectual property.</p>
         <p>
-          Partners retain ownership of all customer relationships and sales generated
-          through their own websites.
+          By submitting content to FoodVault, Partners grant FoodVault a non-exclusive,
+          royalty-free licence to use, reproduce, display, publish, distribute and share
+          that content for the purpose of operating, displaying and promoting the Partner,
+          the Partner&apos;s products and services, and the FoodVault Platform.
+        </p>
+        <p>
+          This licence includes use of submitted content on the FoodVault website and
+          Platform, social media channels, email communications, advertising, public
+          relations, media coverage and other FoodVault marketing and promotional
+          activities.
+        </p>
+        <p>
+          FoodVault may reasonably resize, crop, format or otherwise adapt submitted
+          content where necessary for different platforms, layouts or promotional formats.
+          FoodVault will not materially alter the underlying content in a way that
+          misrepresents the Partner, its products or services.
+        </p>
+        <p>
+          Partners may continue to use their content and grant similar rights to other
+          parties. Nothing in these Terms transfers ownership of a Partner&apos;s
+          intellectual property to FoodVault.
+        </p>
+        <p>
+          Partners may request that FoodVault stop using submitted content for future
+          promotional activities by contacting FoodVault. This does not require FoodVault
+          to remove content that has already been published, distributed or incorporated
+          into materials before the request is received.
         </p>
       </LegalSection>
 
