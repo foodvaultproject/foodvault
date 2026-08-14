@@ -26,8 +26,7 @@ export function HomeHero({
     <section className="relative flex flex-col overflow-hidden border-b border-white/15 bg-primary">
       <HeroBackground />
       <div className="relative z-10 mx-auto w-full max-w-[1200px]">
-        {variant === "visitor" ? <VisitorHeroBanner showTrialCta /> : null}
-        {variant === "free-trial" ? <VisitorHeroBanner showTrialCta={false} /> : null}
+        {variant === "visitor" || variant === "free-trial" ? <VisitorHeroBanner /> : null}
         {variant === "active-member" ? (
           <SignedInHeroBanner
             title={
@@ -121,7 +120,10 @@ function HeroGrid({ text, visual }: { text: ReactNode; visual: ReactNode }) {
   );
 }
 
-function VisitorHeroBanner({ showTrialCta }: { showTrialCta: boolean }) {
+function VisitorHeroBanner() {
+  const primaryCtaClassName =
+    "inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto";
+
   return (
     <HeroGrid
       text={
@@ -135,12 +137,7 @@ function VisitorHeroBanner({ showTrialCta }: { showTrialCta: boolean }) {
           description={VISITOR_SUPPORTING_COPY}
           actions={
             <>
-              {showTrialCta ? (
-                <MemberSignupCtaLink
-                  variant="start-free-trial"
-                  className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto"
-                />
-              ) : null}
+              <MemberSignupCtaLink variant="start-free-trial" className={primaryCtaClassName} />
               <Link
                 href={consumerSearchPath()}
                 className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"

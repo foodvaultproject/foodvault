@@ -143,10 +143,7 @@ export function PartnerProfileView({
     [viewer.isPartner]
   );
 
-  const browseAllBrandsHref =
-    viewer.isPartner || viewer.isActiveMember || viewer.isFreeTrialMember
-      ? "/"
-      : consumerSearchPath();
+  const browseAllBrandsHref = consumerSearchPath();
 
   const socials = useMemo(
     () =>

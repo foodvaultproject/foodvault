@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { getBrandDiscountPercent } from "@/components/browse-brands/BrandTileDiscountBadge";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { FavoritePartner } from "@/lib/member/favorites-queries";
 
@@ -56,7 +57,7 @@ export function FavoritePartnerCard({ partner, onRemoved }: FavoritePartnerCardP
 export function DiscoverMoreCard() {
   return (
     <Link
-      href="/"
+      href={consumerSearchPath()}
       className="flex min-h-full flex-col items-center justify-center rounded-sm border-2 border-dashed border-border bg-primary/5 p-8 text-center transition-colors hover:border-primary"
     >
       <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl font-light text-primary">
@@ -83,7 +84,7 @@ export function FavoritesEmptyState() {
         Save your favourite brands to quickly find them again.
       </p>
       <Link
-        href="/"
+        href={consumerSearchPath()}
         className="mt-8 fv-btn-primary inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
       >
         Browse Brands

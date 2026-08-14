@@ -3,6 +3,7 @@ import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { MemberDashboardFavorites } from "@/components/account/MemberDashboardFavorites";
 import { MemberTrialBannerCard } from "@/components/account/MemberTrialBannerCard";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { FavoritePartner } from "@/lib/member/favorites-queries";
 import type { MemberTrialBanner } from "@/lib/member/queries";
@@ -14,7 +15,7 @@ import {
 
 const quickActions = [
   {
-    href: "/",
+    href: consumerSearchPath(),
     label: "Browse Brands",
     icon: (
       <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
