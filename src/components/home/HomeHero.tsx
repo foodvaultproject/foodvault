@@ -34,7 +34,7 @@ export function HomeHero({
 
   return (
     <section
-      className={`relative overflow-hidden border-b ${
+      className={`relative flex flex-col overflow-hidden border-b ${
         isVisitorHero
           ? "border-white/15 bg-primary"
           : isActiveMember
@@ -88,10 +88,10 @@ function CompactHeroWelcome({ memberName }: { memberName: string | null }) {
 
 function VisitorHeroBanner() {
   return (
-    <div className="relative z-10 mx-auto max-w-[1200px]">
-      <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:items-stretch">
+    <div className="relative z-10 mx-auto w-full max-w-[1200px]">
+      <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
         <div
-          className={`flex min-w-0 flex-col justify-center px-4 sm:px-6 lg:px-8 ${HOME_HERO_PY_COMPACT}`}
+          className={`flex flex-col justify-center px-4 sm:px-6 lg:px-8 ${HOME_HERO_PY_COMPACT}`}
         >
           <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-white sm:text-[2.75rem] lg:text-[3rem]">
             Discover Kiwi Brands.{" "}
@@ -116,12 +116,12 @@ function VisitorHeroBanner() {
           </div>
         </div>
 
-        <div className="relative m-0 flex min-h-0 items-stretch justify-end self-stretch p-0 leading-[0]">
+        <div className="relative mt-auto flex min-h-0 items-end justify-center self-stretch leading-[0] md:mt-0 md:overflow-visible">
           <img
             src={VISITOR_HERO_ILLUSTRATION}
             alt=""
             aria-hidden="true"
-            className="block h-auto w-full max-w-full object-contain px-4 pb-4 pt-2 sm:px-6 md:h-full md:min-h-0 md:w-auto md:max-h-full md:max-w-full md:px-0 md:pb-0 md:pt-0 md:object-contain md:object-right"
+            className="block h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:h-auto md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
             decoding="async"
           />
         </div>

@@ -45,9 +45,9 @@ async function writeWebpUnderTarget({
 }
 
 await writeWebpUnderTarget({
-  inputName: "kiwi_piggy_hp.png",
+  inputName: "kiwi_piggy_hp1.png",
   outputName: "kiwi_piggy_hp.webp",
-  resize: { height: 960, withoutEnlargement: true },
+  resize: { width: 1400, withoutEnlargement: true },
   label: "Kiwi illustration",
   targetBytes: 180 * 1024,
 });
