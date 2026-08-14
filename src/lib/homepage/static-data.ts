@@ -1,11 +1,8 @@
 import { getHomepageFaqs } from "@/data/homepage";
-import {
-  filterLocalhostHomepageBrands,
-  filterLocalhostHomepageSearchResult,
-} from "@/lib/homepage/hidden-brands";
+import { filterLocalhostHomepageBrands } from "@/lib/homepage/hidden-brands";
+import { getHomeHeroBrandGalleryImages } from "@/lib/homepage/hero-gallery-images";
 import { VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT } from "@/lib/homepage/visitor-featured-brand-limit";
 import {
-  getCachedFeaturedBrands,
   getCachedHomeVaultDrops,
   getCachedHomepageFeaturedBrands,
   getCachedMembershipSettings,
@@ -13,35 +10,23 @@ import {
   getCachedSearchPublicBrands,
   getCachedTrendingThisWeekBrands,
 } from "@/lib/cache/public-directory";
-import { BROWSE_PAGE_SIZE } from "@/lib/member/browse-brands";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { MembershipSettings } from "@/lib/member/settings";
 import type { HomeVaultDrop } from "@/lib/vault-drop-data";
 
 export type StaticHomepageData = {
-  initialDepartment: string;
-  initialSubcategory: string;
   visitorFeaturedBrandLimit: number;
   homepageFeatured: BrandCard[];
-  homepageBrowseFeatured: BrandCard[];
-  homepagePartnerBrowse: {
-    brands: BrandCard[];
-    total: number;
-  };
   homepageNewBrands: BrandCard[];
   homepageTrendingBrands: BrandCard[];
   homepageTopOffers: BrandCard[];
   homepageFaqs: ReturnType<typeof getHomepageFaqs>;
   settings: MembershipSettings;
   vaultDrops: HomeVaultDrop[];
+  heroBrandGalleryImages: string[];
 };
 
-export async function getStaticHomepageData(searchParams: {
-  department?: string;
-  subcategory?: string;
-}): Promise<StaticHomepageData> {
-  const initialDepartment = searchParams.department ?? "";
-  const initialSubcategory = searchParams.subcategory ?? "";
+export async function getStaticHomepageData(): Promise<StaticHomepageData> {
   const visitorFeaturedBrandLimit = VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT;
 
   const [
@@ -50,38 +35,27 @@ export async function getStaticHomepageData(searchParams: {
     newBrands,
     topOffers,
     trendingBrands,
-    browseFeatured,
-    partnerBrowseInitial,
     vaultDrops,
+    heroBrandGalleryImages,
   ] = await Promise.all([
     getCachedHomepageFeaturedBrands(visitorFeaturedBrandLimit),
     getCachedMembershipSettings(),
     getCachedRecentBrandCards(9),
     getCachedSearchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
     getCachedTrendingThisWeekBrands(),
-    getCachedFeaturedBrands(6),
-    getCachedSearchPublicBrands({
-      sort: "featured",
-      department: initialDepartment || null,
-      subcategory: initialSubcategory || null,
-      limit: BROWSE_PAGE_SIZE,
-      offset: 0,
-    }),
     getCachedHomeVaultDrops(12),
+    getHomeHeroBrandGalleryImages(6),
   ]);
 
   return {
-    initialDepartment,
-    initialSubcategory,
     visitorFeaturedBrandLimit,
     homepageFeatured: filterLocalhostHomepageBrands(featured),
-    homepageBrowseFeatured: filterLocalhostHomepageBrands(browseFeatured),
-    homepagePartnerBrowse: filterLocalhostHomepageSearchResult(partnerBrowseInitial),
     homepageNewBrands: filterLocalhostHomepageBrands(newBrands).slice(0, 8),
     homepageTrendingBrands: filterLocalhostHomepageBrands(trendingBrands),
     homepageTopOffers: filterLocalhostHomepageBrands(topOffers.brands),
     homepageFaqs: getHomepageFaqs(settings),
     settings,
     vaultDrops,
+    heroBrandGalleryImages,
   };
 }

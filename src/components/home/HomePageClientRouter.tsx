@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";
 import { HomeHero } from "@/components/home/HomeHero";
-import { HomePartnerBrowseBrands } from "@/components/home/HomePartnerBrowseBrands";
 import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendingDepartmentCards";
 import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
 import { HomeFAQ } from "@/components/home/HomeFAQ";
@@ -20,20 +19,14 @@ import {
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { getAuthSession } from "@/lib/auth";
 import { resolveClientMembershipView } from "@/lib/member/client-membership";
+import { getPartnerListing } from "@/lib/partner-data";
 import type { StaticHomepageData } from "@/lib/homepage/static-data";
 
 type HomeAudience = "loading" | "guest" | "partner" | "active-member" | "free-trial";
 
-function firstWord(value: string | null | undefined): string | null {
-  const trimmed = value?.trim();
-  if (!trimmed) return null;
-  return trimmed.split(/\s+/)[0] ?? null;
-}
-
 export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
   const [audience, setAudience] = useState<HomeAudience>("loading");
-  const [memberName, setMemberName] = useState<string | null>(null);
-  const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [partnerGalleryImages, setPartnerGalleryImages] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +48,9 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
       }
 
       if (session.accountType === "partner") {
+        const listing = await getPartnerListing(session.id);
         if (!cancelled) {
-          setPartnerName(firstWord(session.email));
+          setPartnerGalleryImages((listing?.galleryImageUrls ?? []).filter(Boolean).slice(0, 3));
           setAudience("partner");
         }
         return;
@@ -73,13 +67,11 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
       if (cancelled) return;
 
       if (membership.isActiveMember) {
-        setMemberName(firstWord(session.email));
         setAudience("active-member");
         return;
       }
 
       if (membership.isFreeTrial) {
-        setMemberName(firstWord(session.email));
         setAudience("free-trial");
         return;
       }
@@ -94,12 +86,10 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
     };
   }, []);
 
-  const browseKey = `browse-${data.initialDepartment}-${data.initialSubcategory}`;
-
   if (audience === "loading") {
     return (
       <>
-        <HomeHero />
+        <HomeHero collageImages={data.heroBrandGalleryImages} />
         <HomeTrendingDepartmentCardsSection />
       </>
     );
@@ -109,24 +99,11 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
     return (
       <>
         <PartnerAffiliateSetupBanner variant="compact" />
-        <HomeHero isPartner memberName={partnerName} />
-        <HomePartnerBrowseBrands
-          key={browseKey}
-          featured={data.homepageBrowseFeatured}
-          initialExplore={data.homepagePartnerBrowse.brands}
-          initialTotal={data.homepagePartnerBrowse.total}
-          canFavorite={false}
-          favoritedPartnerIds={[]}
-          initialDepartment={data.initialDepartment}
-          initialSubcategory={data.initialSubcategory}
-          exploreHeading=""
-          compactSpacing
-          partnerHomepage
-        />
-        <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
+        <HomeHero variant="partner" collageImages={partnerGalleryImages} />
+        <HomeTrendingDepartmentCardsSection />
         <HomeCategories onHomepage compactSpacing />
-        <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
-        <HomeMeatPoultryBanner keepBrowseOnHomepage compactSpacing />
+        <HomeGiftsHampersBanner compactSpacing />
+        <HomeMeatPoultryBanner compactSpacing />
         <HomeTrendingSection
           trending={data.homepageTrendingBrands}
           newBrands={data.homepageNewBrands}
@@ -143,25 +120,12 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
   if (audience === "active-member") {
     return (
       <>
-        <HomeHero isActiveMember memberName={memberName} />
-        <HomePartnerBrowseBrands
-          key={browseKey}
-          featured={data.homepageBrowseFeatured}
-          initialExplore={data.homepagePartnerBrowse.brands}
-          initialTotal={data.homepagePartnerBrowse.total}
-          canFavorite={false}
-          favoritedPartnerIds={[]}
-          initialDepartment={data.initialDepartment}
-          initialSubcategory={data.initialSubcategory}
-          exploreHeading=""
-          compactSpacing
-          memberHomepage
-        />
-        <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
+        <HomeHero variant="active-member" collageImages={data.heroBrandGalleryImages} />
+        <HomeTrendingDepartmentCardsSection />
         <HomeVaultDropSection drops={data.vaultDrops} />
-        <HomeMeatPoultryBanner keepBrowseOnHomepage compactSpacing />
+        <HomeMeatPoultryBanner compactSpacing />
         <HomeCategories onHomepage compactSpacing />
-        <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
+        <HomeGiftsHampersBanner compactSpacing />
         <HomeTrendingSection
           trending={data.homepageTrendingBrands}
           newBrands={data.homepageNewBrands}
@@ -176,24 +140,12 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
   if (audience === "free-trial") {
     return (
       <>
-        <HomeHero isFreeTrial memberName={memberName} />
-        <HomePartnerBrowseBrands
-          key={browseKey}
-          featured={data.homepageBrowseFeatured}
-          initialExplore={data.homepagePartnerBrowse.brands}
-          initialTotal={data.homepagePartnerBrowse.total}
-          canFavorite={false}
-          favoritedPartnerIds={[]}
-          initialDepartment={data.initialDepartment}
-          initialSubcategory={data.initialSubcategory}
-          exploreHeading=""
-          memberHomepage
-        />
-        <HomeTrendingDepartmentCardsSection keepBrowseOnHomepage />
+        <HomeHero variant="free-trial" />
+        <HomeTrendingDepartmentCardsSection />
         <HomeVaultDropSection drops={data.vaultDrops} />
-        <HomeMeatPoultryBanner keepBrowseOnHomepage />
+        <HomeMeatPoultryBanner />
         <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
-        <HomeGiftsHampersBanner keepBrowseOnHomepage compactSpacing />
+        <HomeGiftsHampersBanner compactSpacing />
         <HomeTrendingSection
           trending={data.homepageTrendingBrands}
           newBrands={data.homepageNewBrands}
