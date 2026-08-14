@@ -109,13 +109,13 @@ function slugify(value: string) {
 export function generateMemberCode(businessName: string, discountValue?: string) {
   const slug = slugify(businessName || "PARTNER");
   const discount = discountValue?.replace(/\D/g, "") || "10";
-  return `FOODVAULT-${slug}-${discount}`;
+  return `FV-${slug}-${discount}`;
 }
 
 export function generateVaultDropCode(businessName: string, discountPercent: number | string) {
   const slug = slugify(businessName || "PARTNER");
   const discount = String(discountPercent).replace(/\D/g, "") || "30";
-  return `FOODVAULT-${slug}-FS-${discount}`;
+  return `FV-${slug}-FS-${discount}`;
 }
 
 function mapRow(row: Record<string, unknown>): PartnerRecord {
