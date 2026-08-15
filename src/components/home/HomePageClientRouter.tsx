@@ -10,9 +10,9 @@ import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
 import { HomeVaultDropSection } from "@/components/home/HomeVaultDropSection";
 import {
-  HomeCategories,
   HomePartnerBanner,
   HomePartnerQuickLinks,
+  HomeQuickActions,
   HomeGiftsHampersBanner,
   HomeMeatPoultryBanner,
   HomeWhyJoinFeatures,
@@ -65,11 +65,11 @@ function HomeAudienceContent({
   if (audience === "active-member") {
     return (
       <div className={settleClass}>
-        <HomeHero variant="active-member" collageImages={data.heroBrandGalleryImages} />
+        <HomeHero variant="active-member" />
         <HomeTrendingDepartmentCardsSection />
         <HomeVaultDropSection drops={data.vaultDrops} />
         <HomeMeatPoultryBanner compactSpacing />
-        <HomeCategories onHomepage compactSpacing />
+        <HomeQuickActions compactSpacing />
         <HomeGiftsHampersBanner compactSpacing />
         <HomeTrendingSection
           trending={data.homepageTrendingBrands}

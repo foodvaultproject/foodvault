@@ -1,6 +1,5 @@
 import { getHomepageFaqs } from "@/data/homepage";
 import { filterLocalhostHomepageBrands } from "@/lib/homepage/hidden-brands";
-import { getHomeHeroBrandGalleryImages } from "@/lib/homepage/hero-gallery-images";
 import { VISITOR_HOMEPAGE_FEATURED_BRAND_LIMIT } from "@/lib/homepage/visitor-featured-brand-limit";
 import {
   getCachedHomeVaultDrops,
@@ -23,7 +22,6 @@ export type StaticHomepageData = {
   homepageFaqs: ReturnType<typeof getHomepageFaqs>;
   settings: MembershipSettings;
   vaultDrops: HomeVaultDrop[];
-  heroBrandGalleryImages: string[];
 };
 
 export async function getStaticHomepageData(): Promise<StaticHomepageData> {
@@ -36,7 +34,6 @@ export async function getStaticHomepageData(): Promise<StaticHomepageData> {
     topOffers,
     trendingBrands,
     vaultDrops,
-    heroBrandGalleryImages,
   ] = await Promise.all([
     getCachedHomepageFeaturedBrands(visitorFeaturedBrandLimit),
     getCachedMembershipSettings(),
@@ -44,7 +41,6 @@ export async function getStaticHomepageData(): Promise<StaticHomepageData> {
     getCachedSearchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
     getCachedTrendingThisWeekBrands(),
     getCachedHomeVaultDrops(12),
-    getHomeHeroBrandGalleryImages(6),
   ]);
 
   return {
@@ -56,6 +52,5 @@ export async function getStaticHomepageData(): Promise<StaticHomepageData> {
     homepageFaqs: getHomepageFaqs(settings),
     settings,
     vaultDrops,
-    heroBrandGalleryImages,
   };
 }

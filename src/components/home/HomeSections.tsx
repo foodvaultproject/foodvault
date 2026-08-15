@@ -16,6 +16,7 @@ import {
   IconDollarSign,
   IconDrinks,
   IconHealth,
+  IconHeart,
   IconHousehold,
   IconMore,
   IconPersonalCare,
@@ -26,6 +27,12 @@ import {
   IconTrendingUp,
   IconUser,
 } from "@/components/home/home-icons";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
+import {
+  MEMBER_ACCOUNT_PATH,
+  MEMBER_FAVORITES_PATH,
+  MEMBER_MEMBERSHIP_PATH,
+} from "@/lib/member/paths";
 import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
@@ -291,6 +298,63 @@ const partnerQuickLinks: {
     icon: <IconCompass className="h-11 w-11" />,
   },
 ];
+
+const memberQuickActions: {
+  title: string;
+  href: string;
+  icon: ReactNode;
+}[] = [
+  {
+    title: "Browse Brands",
+    href: consumerSearchPath(),
+    icon: <IconShoppingBag className="h-11 w-11" />,
+  },
+  {
+    title: "Membership",
+    href: MEMBER_MEMBERSHIP_PATH,
+    icon: <IconDollarSign className="h-11 w-11" />,
+  },
+  {
+    title: "Favorites",
+    href: MEMBER_FAVORITES_PATH,
+    icon: <IconHeart className="h-11 w-11" />,
+  },
+  {
+    title: "My Account",
+    href: MEMBER_ACCOUNT_PATH,
+    icon: <IconUser className="h-11 w-11" />,
+  },
+];
+
+export function HomeQuickActions({ compactSpacing = false }: { compactSpacing?: boolean }) {
+  return (
+    <section
+      className={`bg-background ${
+        compactSpacing ? SECTION_PY_HOME_PARTNER : SECTION_PY_HOME_REFINE
+      }`}
+    >
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className={compactSpacing ? "mb-2.5" : "mb-5"}>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Quick Actions</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {memberQuickActions.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="group flex flex-col items-center rounded-lg border border-border bg-background px-5 py-6 text-center shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-card"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-primary/10 text-primary">
+                {item.icon}
+              </div>
+              <h3 className="mt-4 text-sm font-bold text-foreground">{item.title}</h3>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function HomePartnerQuickLinks({ compactSpacing = false }: { compactSpacing?: boolean }) {
   return (

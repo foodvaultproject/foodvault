@@ -7,6 +7,10 @@ import { HOME_HERO_PY_COMPACT } from "@/components/home/section-spacing";
 
 const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-background.webp";
 const VISITOR_HERO_ILLUSTRATION = "/home/kiwi_piggy_hp.webp";
+const ACTIVE_MEMBER_HERO_ILLUSTRATION = "/home hero active member/piggy_active_hero.webp";
+
+const HERO_PRIMARY_CTA_CLASS =
+  "inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto";
 
 const VISITOR_SUPPORTING_COPY =
   "Explore Kiwi brands, discover something new and save with exclusive member discounts. Find new favourites and keep more money in your pocket along the way!";
@@ -27,17 +31,7 @@ export function HomeHero({
       <HeroBackground />
       <div className="relative z-10 mx-auto w-full max-w-[1200px]">
         {variant === "visitor" || variant === "free-trial" ? <VisitorHeroBanner /> : null}
-        {variant === "active-member" ? (
-          <SignedInHeroBanner
-            title={
-              <>
-                More to discover. <span className="text-white/95">More to save.</span>
-              </>
-            }
-            description="Your FoodVault membership unlocks exclusive discounts from Kiwi brands. Discover something new, find your next favourite and save along the way."
-            visual={<HomeHeroGalleryCollage images={collageImages} variant="member" />}
-          />
-        ) : null}
+        {variant === "active-member" ? <ActiveMemberHeroBanner /> : null}
         {variant === "partner" ? (
           <SignedInHeroBanner
             title={
@@ -47,10 +41,7 @@ export function HomeHero({
             }
             description="Get your brand discovered by more Kiwis, showcase your products and send customers directly to your website to buy from you."
             cta={
-              <Link
-                href="/partner/listing"
-                className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto"
-              >
+              <Link href="/partner/listing" className={HERO_PRIMARY_CTA_CLASS}>
                 Manage My Listing
               </Link>
             }
@@ -133,10 +124,32 @@ function HeroGrid({
   );
 }
 
-function VisitorHeroBanner() {
-  const primaryCtaClassName =
-    "inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto";
+function HeroIllustration({ src }: { src: string }) {
+  return (
+    <div className="relative mt-auto flex min-h-0 w-full items-end justify-center self-stretch leading-[0] md:overflow-visible md:px-8">
+      <div className="w-full px-4 sm:px-6 md:hidden">
+        <div className="flex min-h-[min(72vw,18rem)] w-full items-end justify-center">
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            className="block h-auto w-full max-h-[min(72vw,18rem)] object-contain object-bottom"
+            decoding="async"
+          />
+        </div>
+      </div>
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className="hidden h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:block md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
+        decoding="async"
+      />
+    </div>
+  );
+}
 
+function VisitorHeroBanner() {
   return (
     <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
       <HeroTextColumn
@@ -149,7 +162,7 @@ function VisitorHeroBanner() {
         description={VISITOR_SUPPORTING_COPY}
         actions={
           <>
-            <MemberSignupCtaLink variant="start-free-trial" className={primaryCtaClassName} />
+            <MemberSignupCtaLink variant="start-free-trial" className={HERO_PRIMARY_CTA_CLASS} />
             <Link
               href={consumerSearchPath()}
               className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
@@ -159,27 +172,28 @@ function VisitorHeroBanner() {
           </>
         }
       />
+      <HeroIllustration src={VISITOR_HERO_ILLUSTRATION} />
+    </div>
+  );
+}
 
-      <div className="relative mt-auto flex min-h-0 w-full items-end justify-center self-stretch leading-[0] md:overflow-visible md:px-8">
-        <div className="w-full px-4 sm:px-6 md:hidden">
-          <div className="flex min-h-[min(72vw,18rem)] w-full items-end justify-center">
-            <img
-              src={VISITOR_HERO_ILLUSTRATION}
-              alt=""
-              aria-hidden="true"
-              className="block h-auto w-full max-h-[min(72vw,18rem)] object-contain object-bottom"
-              decoding="async"
-            />
-          </div>
-        </div>
-        <img
-          src={VISITOR_HERO_ILLUSTRATION}
-          alt=""
-          aria-hidden="true"
-          className="hidden h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:block md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
-          decoding="async"
-        />
-      </div>
+function ActiveMemberHeroBanner() {
+  return (
+    <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
+      <HeroTextColumn
+        title={
+          <>
+            More to discover. <span className="text-white/95">More to save.</span>
+          </>
+        }
+        description="Your FoodVault membership unlocks exclusive discounts from Kiwi brands. Discover something new, find your next favourite and save along the way."
+        actions={
+          <Link href={consumerSearchPath()} className={HERO_PRIMARY_CTA_CLASS}>
+            Start Search
+          </Link>
+        }
+      />
+      <HeroIllustration src={ACTIVE_MEMBER_HERO_ILLUSTRATION} />
     </div>
   );
 }

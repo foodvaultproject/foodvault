@@ -187,3 +187,11 @@ export function IconUser(props: IconProps) {
     </svg>
   );
 }
+
+export function IconHeart(props: IconProps) {
+  return (
+    <svg {...iconDefaults} {...props}>
+      <path d="M12 21s-6-4.5-6-10a4 4 0 017-2.5A4 4 0 0118 11c0 5.5-6 10-6 10z" />
+    </svg>
+  );
+}

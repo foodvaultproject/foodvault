@@ -1,11 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
-import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
+import { useMemo, useState } from "react";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
-import { getAuthSession } from "@/lib/auth";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 
@@ -23,29 +20,8 @@ type OurPartnersViewProps = {
 };
 
 export function OurPartnersView({ partners }: OurPartnersViewProps) {
-  const isActiveMember = useIsActiveMember();
-  const [isPartner, setIsPartner] = useState(false);
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void getAuthSession().then((session) => {
-      if (!cancelled) {
-        setIsPartner(session?.accountType === "partner");
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const browseBrandsHref = isPartner
-    ? consumerSearchPath()
-    : isActiveMember
-      ? toHomepageBrowseHref("/browse-brands")
-      : "/browse-brands";
+  const browseBrandsHref = consumerSearchPath();
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
