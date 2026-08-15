@@ -12,6 +12,7 @@
     "diagnose:stripe": "npx tsx scripts/diagnose-stripe-config.ts",
     "diagnose:signup-auth": "npx tsx scripts/diagnose-signup-auth.ts",
     "optimize:visitor-hero": "node scripts/optimize-visitor-hero-images.mjs",
+    "optimize:active-member-hero": "node scripts/optimize-active-member-hero-images.mjs",
     "optimize:how-it-works-hero": "node scripts/optimize-how-it-works-hero-images.mjs",
     "optimize:storage": "node scripts/optimize-storage.js"
   },
