@@ -101,8 +101,8 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
         <PartnerAffiliateSetupBanner variant="compact" />
         <HomeHero variant="partner" collageImages={partnerGalleryImages} />
         <HomeTrendingDepartmentCardsSection />
-        <HomeCategories onHomepage compactSpacing />
         <HomeGiftsHampersBanner compactSpacing />
+        <HomePartnerQuickLinks compactSpacing />
         <HomeMeatPoultryBanner compactSpacing />
         <HomeTrendingSection
           trending={data.homepageTrendingBrands}
@@ -111,7 +111,6 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
           hideViewAll
           compactSpacing
         />
-        <HomePartnerQuickLinks compactSpacing />
         <HomeVaultDropSection drops={data.vaultDrops} />
       </>
     );

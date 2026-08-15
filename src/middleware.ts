@@ -77,17 +77,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (
-    user &&
-    (pathname === "/search" || pathname === "/browse-brands") &&
-    (user.user_metadata?.account_type === "partner" ||
-      user.user_metadata?.partner_account_created === true)
-  ) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/";
-    return NextResponse.redirect(redirectUrl);
-  }
-
   return supabaseResponse;
 }
 

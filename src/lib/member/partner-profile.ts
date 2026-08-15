@@ -211,9 +211,7 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
   } as ProfileViewRow);
 }
 
-async function getPartnerOwnProfilePreview(
-  _slug: string
-): Promise<PartnerProfile | null> {
+export async function getPartnerOwnProfilePreview(): Promise<PartnerProfile | null> {
   const { supabase, user } = await getRequestSupabaseSession();
 
   if (!user) {

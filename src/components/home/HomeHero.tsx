@@ -55,6 +55,7 @@ export function HomeHero({
               </Link>
             }
             visual={<HomeHeroGalleryCollage images={collageImages} variant="partner" />}
+            compact
           />
         ) : null}
       </div>
@@ -111,9 +112,21 @@ function HeroVisualColumn({ children }: { children: ReactNode }) {
   );
 }
 
-function HeroGrid({ text, visual }: { text: ReactNode; visual: ReactNode }) {
+function HeroGrid({
+  text,
+  visual,
+  compact = false,
+}: {
+  text: ReactNode;
+  visual: ReactNode;
+  compact?: boolean;
+}) {
   return (
-    <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
+    <div
+      className={`grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:items-stretch ${
+        compact ? "md:min-h-[17rem] lg:min-h-[19rem]" : "md:min-h-[28rem] lg:min-h-[32rem]"
+      }`}
+    >
       {text}
       {visual}
     </div>
@@ -168,14 +181,17 @@ function SignedInHeroBanner({
   description,
   visual,
   cta,
+  compact = false,
 }: {
   title: ReactNode;
   description: string;
   visual: ReactNode;
   cta?: ReactNode;
+  compact?: boolean;
 }) {
   return (
     <HeroGrid
+      compact={compact}
       text={<HeroTextColumn title={title} description={description} actions={cta} />}
       visual={<HeroVisualColumn>{visual}</HeroVisualColumn>}
     />

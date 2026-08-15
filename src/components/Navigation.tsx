@@ -381,7 +381,7 @@ export function Navigation() {
         </Link>
 
         <div className="hidden min-w-0 flex-1 items-center justify-end gap-6 xl:flex">
-          {!menuPreview ? <NavSearch isPartner={auth.status === "partner"} /> : null}
+          {!menuPreview ? <NavSearch /> : null}
           <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview} />
         </div>
 

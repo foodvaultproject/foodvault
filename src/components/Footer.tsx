@@ -39,7 +39,7 @@ const footerSections = [
 ];
 
 const FOOTER_DESCRIPTION =
-  "FoodVault is a membership platform connecting consumers with New Zealand food, beverage and household brands. Members pay a monthly subscription to access exclusive discounts and offers, then purchase directly from partner businesses.";
+  "Unlock exclusive member discounts from Kiwi brands all over New Zealand. Save on the things you love, discover new favourites, and shop direct while supporting local businesses.";
 
 const socialLinks = [
   {

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toHomepageBrowseHref } from "@/components/home/HomePartnerBrowseBrands";
 import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
+import { getAuthSession } from "@/lib/auth";
+import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 
 type PartnerLogoItem = {
@@ -22,7 +24,28 @@ type OurPartnersViewProps = {
 
 export function OurPartnersView({ partners }: OurPartnersViewProps) {
   const isActiveMember = useIsActiveMember();
+  const [isPartner, setIsPartner] = useState(false);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getAuthSession().then((session) => {
+      if (!cancelled) {
+        setIsPartner(session?.accountType === "partner");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const browseBrandsHref = isPartner
+    ? consumerSearchPath()
+    : isActiveMember
+      ? toHomepageBrowseHref("/browse-brands")
+      : "/browse-brands";
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -46,11 +69,7 @@ export function OurPartnersView({ partners }: OurPartnersViewProps) {
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href={
-              isActiveMember
-                ? toHomepageBrowseHref("/browse-brands")
-                : "/browse-brands"
-            }
+            href={browseBrandsHref}
             className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
           >
             Browse Brands

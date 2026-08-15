@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { OwnAKiwiBrandCard } from "@/components/partners/OwnAKiwiBrandCard";
 import { PricingMembershipCardCtas } from "@/components/pricing/PricingMembershipCardCtas";
+import { PricingSpendLessCta } from "@/components/pricing/PricingSpendLessCta";
 import {
   formatMembershipPrice,
   type MembershipSettings,
@@ -94,12 +94,7 @@ export function PricingDualCTASection() {
                 brands—all in one place.
               </p>
               <div className="mt-auto pt-6 sm:pt-8">
-                <Link
-                  href="/signup"
-                  className="inline-flex w-full items-center justify-center rounded-lg bg-white px-6 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-white/90 sm:w-auto"
-                >
-                  Start Membership Now
-                </Link>
+                <PricingSpendLessCta />
               </div>
             </div>
           </article>

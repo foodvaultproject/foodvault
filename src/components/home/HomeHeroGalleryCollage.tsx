@@ -13,29 +13,33 @@ const memberPositions = [
 ] as const;
 
 const partnerPositions = [
-  "left-[0%] bottom-[6%] -rotate-3",
-  "left-[28%] top-[8%] rotate-2",
-  "right-[0%] bottom-[0%] rotate-3",
+  "left-[2%] top-[18%] z-10 -rotate-4",
+  "left-[24%] top-[0%] z-20 rotate-2",
+  "right-[0%] top-[14%] z-30 rotate-3",
 ] as const;
 
 function CollageImage({
   src,
   className,
   priority,
+  partner,
 }: {
   src: string;
   className?: string;
   priority?: boolean;
+  partner?: boolean;
 }) {
   return (
     <div
-      className={`absolute w-[44%] max-w-[11rem] overflow-hidden rounded-xl border border-white/20 bg-white/10 shadow-card ${className ?? ""}`}
+      className={`absolute overflow-hidden rounded-xl border border-white/20 bg-white/10 shadow-card ${
+        partner ? "w-[52%] max-w-[10rem]" : "w-[44%] max-w-[11rem]"
+      } ${className ?? ""}`}
     >
       <img
         src={src}
         alt=""
         aria-hidden="true"
-        className="aspect-[4/5] h-full w-full object-cover"
+        className={`h-full w-full object-cover ${partner ? "aspect-[4/5]" : "aspect-[4/5]"}`}
         decoding="async"
         fetchPriority={priority ? "high" : "auto"}
       />
@@ -47,27 +51,37 @@ export function HomeHeroGalleryCollage({
   images,
   variant = "member",
 }: HomeHeroGalleryCollageProps) {
-  const limit = variant === "partner" ? 3 : 6;
+  const isPartner = variant === "partner";
+  const limit = isPartner ? 3 : 6;
   const displayImages = images.filter(Boolean).slice(0, limit);
-  const positions = variant === "partner" ? partnerPositions : memberPositions;
+  const positions = isPartner ? partnerPositions : memberPositions;
 
   if (displayImages.length === 0) {
     return (
-      <div className="relative mx-auto aspect-[4/5] w-full max-w-[20rem] md:max-w-none">
-        <div className="absolute inset-[12%] rounded-2xl bg-white/10" />
+      <div
+        className={`relative mx-auto w-full max-w-[20rem] md:max-w-none ${
+          isPartner ? "aspect-[16/10]" : "aspect-[4/5]"
+        }`}
+      >
+        <div className={`absolute rounded-2xl bg-white/10 ${isPartner ? "inset-[8%]" : "inset-[12%]"}`} />
       </div>
     );
   }
 
   return (
-    <div className="relative mx-auto aspect-[4/5] w-full max-w-[20rem] md:max-w-none">
-      <div className="absolute inset-[10%] rounded-2xl bg-white/10" />
+    <div
+      className={`relative mx-auto w-full max-w-[20rem] md:max-w-none ${
+        isPartner ? "aspect-[16/10]" : "aspect-[4/5]"
+      }`}
+    >
+      <div className={`absolute rounded-2xl bg-white/10 ${isPartner ? "inset-[8%]" : "inset-[10%]"}`} />
       {displayImages.map((image, index) => (
         <CollageImage
           key={`${image}-${index}`}
           src={image}
           className={positions[index] ?? positions[0]}
           priority={index < 2}
+          partner={isPartner}
         />
       ))}
     </div>

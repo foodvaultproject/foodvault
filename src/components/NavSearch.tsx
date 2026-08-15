@@ -15,8 +15,8 @@ const DEPARTMENT_ALIASES: Record<string, { department: string; subcategory?: str
 
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 
-function buildBrowseHref(query: string, isPartner = false): string {
-  const basePath = isPartner ? "/" : consumerSearchPath();
+function buildBrowseHref(query: string): string {
+  const basePath = consumerSearchPath();
   const trimmed = query.trim();
   if (!trimmed) return basePath;
 
@@ -32,13 +32,13 @@ function buildBrowseHref(query: string, isPartner = false): string {
   return basePath;
 }
 
-export function NavSearch({ isPartner = false }: { isPartner?: boolean }) {
+export function NavSearch() {
   const router = useRouter();
   const [query, setQuery] = useState("");
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    router.push(buildBrowseHref(query, isPartner));
+    router.push(buildBrowseHref(query));
   }
 
   return (

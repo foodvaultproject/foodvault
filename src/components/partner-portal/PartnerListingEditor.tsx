@@ -63,10 +63,7 @@ import {
   MAX_BUSINESS_NAME_LENGTH,
   MAX_CONTACT_NAME_LENGTH,
 } from "@/lib/business-name";
-import {
-  partnerProfilePathFromSlug,
-  partnerProfileSlug,
-} from "@/lib/member/favorites-utils";
+import { partnerProfileSlug } from "@/lib/member/favorites-utils";
 import type { LogoCropSettings } from "@/lib/partner-logo-crop";
 import {
   emptyVaultDropFormDraft,
@@ -707,11 +704,6 @@ export function PartnerListingEditor() {
   const labelClass = portalLabel;
   const helperClass = portalHelper;
 
-  const profileHref = partnerProfilePathFromSlug(
-    listing.profileSlug ||
-      partnerProfileSlug(listing.companyName || partner?.business_name || "")
-  );
-
   if (loading || !listingLoaded) {
     return (
       <PartnerPortalShell>
@@ -737,7 +729,7 @@ export function PartnerListingEditor() {
               Update how your brand appears to FoodVault members.
             </p>
           </div>
-          <Link href={profileHref} className={portalBtnOutline}>
+          <Link href="/partner/preview" className={portalBtnOutline}>
             Preview Profile
           </Link>
         </div>

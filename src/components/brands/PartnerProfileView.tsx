@@ -45,12 +45,8 @@ type PartnerProfileViewProps = {
 const SECTION_CARD =
   "rounded-lg border border-border bg-background p-5 shadow-sm";
 
-function browseCategoryHref(
-  department: string | null,
-  subcategory?: string,
-  isPartner = false
-) {
-  const basePath = isPartner ? "/" : consumerSearchPath();
+function browseCategoryHref(department: string | null, subcategory?: string) {
+  const basePath = consumerSearchPath();
   const params = new URLSearchParams();
   if (department) params.set("department", department);
   if (subcategory) params.set("subcategory", subcategory);
@@ -139,8 +135,8 @@ export function PartnerProfileView({
 
   const categoryBrowseHref = useMemo(
     () => (department: string | null, subcategory?: string) =>
-      browseCategoryHref(department, subcategory, viewer.isPartner),
-    [viewer.isPartner]
+      browseCategoryHref(department, subcategory),
+    []
   );
 
   const browseAllBrandsHref = consumerSearchPath();
