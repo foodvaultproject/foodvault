@@ -13,7 +13,7 @@ export function HowItWorksHeroSignupCta() {
   return (
     <div className="mt-5">
       <MemberSignupCtaLink
-        variant="start-free-trial"
+        variant="unlock-discounts"
         className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-[14px] font-semibold text-primary-foreground transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 sm:w-auto"
       />
     </div>

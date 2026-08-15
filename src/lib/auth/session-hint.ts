@@ -4,7 +4,7 @@ export const AUTH_STATE_COOKIE = "fv-auth-state";
 export const MEMBERSHIP_STATE_COOKIE = "fv-membership-state";
 
 export type AuthStateHint = "guest" | "member" | "partner" | "affiliate" | "admin";
-export type MembershipStateHint = "none" | "trial" | "active";
+export type MembershipStateHint = "none" | "active";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
@@ -48,7 +48,7 @@ function parseAuthStateHint(value: string | null): AuthStateHint | null {
 }
 
 function parseMembershipStateHint(value: string | null): MembershipStateHint | null {
-  if (value === "none" || value === "trial" || value === "active") {
+  if (value === "none" || value === "active") {
     return value;
   }
 
@@ -83,17 +83,15 @@ export function authHintFromAccountType(accountType: AccountType): AuthStateHint
 }
 
 export function membershipHintFromView(view: {
-  isFreeTrial: boolean;
   isActiveMember: boolean;
 }): MembershipStateHint {
   if (view.isActiveMember) return "active";
-  if (view.isFreeTrial) return "trial";
   return "none";
 }
 
 export function syncSessionHintsFromSession(
   session: AuthSession | null,
-  membership?: { isFreeTrial: boolean; isActiveMember: boolean }
+  membership?: { isActiveMember: boolean }
 ) {
   if (!session) {
     clearSessionHintsClient();
@@ -119,8 +117,7 @@ export type HomeAudienceHint =
   | "unknown"
   | "guest"
   | "partner"
-  | "active-member"
-  | "free-trial";
+  | "active-member";
 
 export function resolveInitialHomeAudience(): HomeAudienceHint {
   const authHint = readAuthStateHintClient();
@@ -136,7 +133,6 @@ export function resolveInitialHomeAudience(): HomeAudienceHint {
 
   if (authHint === "member") {
     if (membershipHint === "active") return "active-member";
-    if (membershipHint === "trial") return "free-trial";
     return "unknown";
   }
 

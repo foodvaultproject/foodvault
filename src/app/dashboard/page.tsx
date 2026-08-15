@@ -5,7 +5,6 @@ import { MemberDashboard } from "@/components/account/MemberDashboard";
 import { getRecentBrandCards } from "@/lib/member/browse-brands";
 import { requireAuthenticatedMember } from "@/lib/member/auth";
 import { getMemberFavoritePartners } from "@/lib/member/favorites-queries";
-import { getMemberTrialBanner } from "@/lib/member/queries";
 import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import { reconcileMemberSubscription } from "@/lib/payment-service/providers/stripe-member";
@@ -13,13 +12,12 @@ import { reconcileMemberSubscription } from "@/lib/payment-service/providers/str
 export const metadata: Metadata = {
   title: "My Dashboard",
   description:
-    "Your FoodVault member dashboard for trial status, quick actions, and recently added brands.",
+    "Your FoodVault member dashboard for quick actions, favourites, and recently added brands.",
 };
 
 async function DashboardContent() {
   const member = await requireAuthenticatedMember();
   let error: string | null = null;
-  let trialBanner = null;
   let brands: Awaited<ReturnType<typeof getRecentBrandCards>> = [];
   let favorites: Awaited<ReturnType<typeof getMemberFavoritePartners>> = [];
   let canFavorite = false;
@@ -30,14 +28,12 @@ async function DashboardContent() {
       await reconcileMemberSubscription(member.id, member.email);
     }
 
-    const [banner, recentBrands, memberFavorites, favoriteContext] =
+    const [recentBrands, memberFavorites, favoriteContext] =
       await Promise.all([
-        getMemberTrialBanner(member.id),
         getRecentBrandCards(),
         getMemberFavoritePartners(member.id),
         getViewerFavoriteContext(),
       ]);
-    trialBanner = banner;
     brands = recentBrands;
     favorites = memberFavorites;
     canFavorite = favoriteContext.canFavorite;
@@ -51,7 +47,6 @@ async function DashboardContent() {
 
   return (
     <MemberDashboard
-      trialBanner={trialBanner}
       brands={brands}
       favorites={favorites}
       canFavorite={canFavorite}

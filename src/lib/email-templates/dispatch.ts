@@ -3,9 +3,6 @@ import {
   sendPlatformEmailSafe,
 } from "@/lib/email-templates/send";
 import {
-  renderMemberFreeTrialEndedEmail,
-  renderMemberFreeTrialReminderEmail,
-  renderMemberFreeTrialStartedEmail,
   renderMemberMembershipActivatedEmail,
   renderPartnerApplicationApprovedEmail,
   renderPartnerApplicationReceivedEmail,
@@ -17,7 +14,6 @@ import {
   type PartnerActivationReminderNumber,
 } from "@/lib/email-templates/templates/partner/activation-reminder";
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
-import { getMembershipSettings } from "@/lib/member/settings";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -40,54 +36,6 @@ function resolveContactName(metadata: Record<string, unknown> | undefined) {
     typeof metadata.last_name === "string" ? metadata.last_name.trim() : "";
   const combined = `${firstName} ${lastName}`.trim();
   return combined || null;
-}
-
-export async function sendMemberFreeTrialStartedEmail(input: {
-  to: string;
-  firstName?: string | null;
-  trialLengthDays?: number;
-}) {
-  const appUrl = getEmailAppUrl();
-  const settings = await getMembershipSettings();
-
-  return sendPlatformEmailSafe({
-    to: input.to,
-    rendered: renderMemberFreeTrialStartedEmail({
-      appUrl,
-      firstName: input.firstName,
-      trialLengthDays: input.trialLengthDays ?? settings.trialLengthDays,
-    }),
-  });
-}
-
-export async function sendMemberFreeTrialReminderEmail(input: {
-  to: string;
-  firstName?: string | null;
-  daysRemaining: 1 | 3;
-}) {
-  const appUrl = getEmailAppUrl();
-  return sendPlatformEmailSafe({
-    to: input.to,
-    rendered: renderMemberFreeTrialReminderEmail({
-      appUrl,
-      firstName: input.firstName,
-      daysRemaining: input.daysRemaining,
-    }),
-  });
-}
-
-export async function sendMemberFreeTrialEndedEmail(input: {
-  to: string;
-  firstName?: string | null;
-}) {
-  const appUrl = getEmailAppUrl();
-  return sendPlatformEmailSafe({
-    to: input.to,
-    rendered: renderMemberFreeTrialEndedEmail({
-      appUrl,
-      firstName: input.firstName,
-    }),
-  });
 }
 
 export async function sendMemberMembershipActivatedEmail(input: {

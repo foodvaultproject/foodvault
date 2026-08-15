@@ -1,16 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/account/ConfirmModal";
-import { MemberTrialBannerCard } from "@/components/account/MemberTrialBannerCard";
 import { cancelMembershipAction } from "@/lib/member/account-actions";
+import { SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import { formatMemberDateShort } from "@/lib/member/format";
 import {
   formatMembershipPriceMonthly,
   type MembershipSettings,
 } from "@/lib/member/pricing";
-import type { MemberTrialBanner, MembershipRecord } from "@/lib/member/queries";
+import type { MembershipRecord } from "@/lib/member/queries";
 
 const features = [
   {
@@ -67,13 +68,11 @@ const memberStatusSectionClass =
   "rounded-lg border border-primary/30 bg-primary/5 p-4 shadow-sm";
 
 type MemberMembershipViewProps = {
-  trialBanner: MemberTrialBanner | null;
   membership: MembershipRecord | null;
   settings: MembershipSettings;
 };
 
 export function MemberMembershipView({
-  trialBanner,
   membership,
   settings,
 }: MemberMembershipViewProps) {
@@ -95,8 +94,6 @@ export function MemberMembershipView({
     isPaidMember &&
       (membership?.cancelAtPeriodEnd || membership?.cancellationDate)
   );
-  const isTrialing = !isPaidMember && Boolean(trialBanner?.showTrialBanner);
-
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
   const hasPaymentMethod = Boolean(membership?.stripeCustomerId?.trim());
   const maskedPaymentMethod = hasPaymentMethod
@@ -196,11 +193,6 @@ export function MemberMembershipView({
                     : "Your paid membership is active. Manage your billing details below."}
                 </p>
               </section>
-            ) : isTrialing && trialBanner ? (
-              <MemberTrialBannerCard
-                trialBanner={trialBanner}
-                className={`${memberStatusSectionClass} !bg-primary/5 !p-4 sm:!p-4`}
-              />
             ) : (
               <section className={memberStatusSectionClass}>
                 <span className="inline-flex rounded-full bg-surface px-3 py-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -210,8 +202,14 @@ export function MemberMembershipView({
                   FoodVault Member
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  You don&apos;t have an active paid membership right now.
+                  You can browse brands for free. A paid membership is required to reveal and copy promo codes.
                 </p>
+                <Link
+                  href={SIGNUP_MEMBERSHIP_PATH}
+                  className="fv-btn-primary mt-4 inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+                >
+                  Unlock Discounts
+                </Link>
               </section>
             )}
 
@@ -298,9 +296,7 @@ export function MemberMembershipView({
             <section className="mt-4 rounded-lg border border-dashed border-border bg-background p-4 shadow-sm">
               <h2 className="text-[14px] font-bold text-foreground">Billing Details</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {isTrialing
-                  ? "Billing management will be available once your paid membership begins. There's nothing to pay or manage during your free trial."
-                  : "Billing management becomes available once you start a paid membership."}
+                Billing management becomes available once you start a paid membership.
               </p>
             </section>
           )}

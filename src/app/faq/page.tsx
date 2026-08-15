@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: "Help Centre",
-    description: `Find answers about FOODVAULT memberships in New Zealand (${priceLabel}, ${settings.trialLengthDays}-day free trial), partner listings, the Affiliate Program, billing, and how the platform works.`,
+    description: `Find answers about FOODVAULT memberships in New Zealand (${priceLabel}), partner listings, the Affiliate Program, billing, and how the platform works.`,
   };
 }
 

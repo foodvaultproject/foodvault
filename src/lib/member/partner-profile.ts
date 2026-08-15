@@ -2,7 +2,6 @@ import { isSupabaseConfigured } from "@/lib/auth";
 import { getRequestSupabaseSession } from "@/lib/auth/request-session";
 import { getAdminUser } from "@/lib/admin/auth";
 import { getActiveMemberView } from "@/lib/member/active-member";
-import { getFreeTrialMemberView } from "@/lib/member/free-trial-member";
 import { formatBusinessName, formatBusinessNameOrNull } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
@@ -601,7 +600,7 @@ export async function getProfileViewerContext(
     };
   }
 
-  const [{ data: ownPartner }, admin, { isActiveMember }, { isFreeTrialMember }] =
+  const [{ data: ownPartner }, admin, { isActiveMember }] =
     await Promise.all([
       supabase
         .from("partners")
@@ -610,7 +609,6 @@ export async function getProfileViewerContext(
         .maybeSingle(),
       getAdminUser(),
       getActiveMemberView(),
-      getFreeTrialMemberView(),
     ]);
 
   const isPartner = isPartnerUser(user) || Boolean(ownPartner);
@@ -643,7 +641,7 @@ export async function getProfileViewerContext(
     isLoggedIn: true,
     isPartner,
     isActiveMember,
-    isFreeTrialMember,
+    isFreeTrialMember: false,
     isAdmin,
     canFavorite,
     isFavorited,

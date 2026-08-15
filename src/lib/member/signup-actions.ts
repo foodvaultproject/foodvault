@@ -12,10 +12,7 @@ import {
 } from "@/lib/auth/email-verification";
 import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
-import {
-  MEMBER_HOME_PATH,
-  SIGNUP_MEMBERSHIP_PATH,
-} from "@/lib/member/paths";
+import { SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignupFormData = {
@@ -43,7 +40,6 @@ function validateSignupForm(data: SignupFormData): string | null {
 
 export async function createMemberAccountAction(
   data: SignupFormData,
-  mode: "trial" | "membership",
   turnstileToken?: string | null
 ) {
   const validationError = validateSignupForm(data);
@@ -62,7 +58,7 @@ export async function createMemberAccountAction(
   if (!isSupabaseConfigured()) {
     return {
       success: true as const,
-      redirectTo: mode === "trial" ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH,
+      redirectTo: SIGNUP_MEMBERSHIP_PATH,
     };
   }
 
@@ -75,20 +71,19 @@ export async function createMemberAccountAction(
     data.lastName.trim(),
     MAX_CONTACT_NAME_LENGTH
   );
-  const nextPath = mode === "trial" ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH;
 
   const sendResult = await issueAndSendSignupVerification({
     email,
     password: data.password,
     firstName,
-    next: nextPath,
+    next: SIGNUP_MEMBERSHIP_PATH,
     account: "member",
     linkType: "signup",
     userMetadata: {
       account_type: "member",
       first_name: firstName,
       last_name: lastName,
-      signup_mode: mode,
+      signup_mode: "membership",
       country: data.country,
       marketing_opt_in: data.marketingOptIn,
     },

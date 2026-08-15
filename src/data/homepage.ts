@@ -1,6 +1,6 @@
 import { formatCurrency } from "@/lib/locale";
 import type { MembershipSettings } from "@/lib/member/pricing";
-import { formatMembershipPriceMonthly, formatTrialLengthDays } from "@/lib/member/pricing";
+import { formatMembershipPriceMonthly } from "@/lib/member/pricing";
 
 export const categories = [
   { label: "Coffee", emoji: "☕" },
@@ -185,7 +185,6 @@ export const testimonials = [
 ];
 
 export function getHomepageFaqs(settings: MembershipSettings) {
-  const trialLabel = formatTrialLengthDays(settings.trialLengthDays);
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
 
   return [
@@ -197,12 +196,12 @@ export function getHomepageFaqs(settings: MembershipSettings) {
     {
       question: "How do I receive discounts?",
       answer:
-        "Once you become a member, you'll have instant access to every participating brand's exclusive member offer. Simply visit a brand profile, click through to their website, and apply the member code during checkout.",
+        "You can browse every participating brand and see the advertised member discounts for free. A paid membership is required to reveal and copy promo codes. Then visit the brand's website and apply the member code at checkout.",
     },
     {
-      question: "What about free trials and payment?",
+      question: "What about membership and payment?",
       answer:
-        `We offer a ${trialLabel} free trial, giving you plenty of time to explore participating brands and experience the savings before choosing whether to continue with a paid membership at ${priceLabel}.`,
+        `Anyone can browse brands and discounts. Unlocking promo codes requires a paid FoodVault membership at ${priceLabel}, billed securely through Stripe Checkout.`,
     },
   ];
 }

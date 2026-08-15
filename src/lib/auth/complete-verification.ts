@@ -2,22 +2,17 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { AFFILIATE_DASHBOARD_PATH, type AccountType, getAccountTypeFromMetadata } from "@/lib/auth";
 import { buildEnablePartnerMetadata } from "@/lib/auth/account-roles";
-import { sendMemberFreeTrialStartedEmail } from "@/lib/email-templates/dispatch";
 import {
   MEMBER_HOME_PATH,
   MEMBER_DASHBOARD_PATH,
   SIGNUP_MEMBERSHIP_PATH,
 } from "@/lib/member/paths";
-import { startMemberTrial } from "@/lib/member/start-trial";
 import { upsertMemberSignupProfile } from "@/lib/member/upsert-signup-profile";
 import {
   fetchMemberBillingRows,
   pickCanonicalMemberRow,
 } from "@/lib/member/member-record";
-import {
-  isActiveMemberRow,
-  isFreeTrialMemberRow,
-} from "@/lib/member/membership-status";
+import { isActiveMemberRow } from "@/lib/member/membership-status";
 import { resolveMemberNameFromMetadata } from "@/lib/auth/oauth-display-name";
 import {
   PARTNER_APPLICATION_PATH,
@@ -66,18 +61,10 @@ export async function completeSignupVerification(
     if (accountType === "member") {
       const rows = await fetchMemberBillingRows(supabase, user.id);
       const member = pickCanonicalMemberRow(rows);
-      if (
-        member &&
-        (isFreeTrialMemberRow(member) || isActiveMemberRow(member))
-      ) {
-        const signupMode = readMetadataString(metadata, "signup_mode", "trial");
-        return {
-          redirectPath:
-            signupMode === "membership"
-              ? SIGNUP_MEMBERSHIP_PATH
-              : MEMBER_HOME_PATH,
-        };
+      if (member && isActiveMemberRow(member)) {
+        return { redirectPath: MEMBER_HOME_PATH };
       }
+      return { redirectPath: SIGNUP_MEMBERSHIP_PATH };
     } else if (accountType === "partner") {
       return { redirectPath: PARTNER_APPLICATION_PATH };
     } else if (accountType === "affiliate") {
@@ -86,36 +73,11 @@ export async function completeSignupVerification(
   }
 
   if (accountType === "member") {
-    const signupMode = readMetadataString(metadata, "signup_mode", "trial");
     const { firstName, lastName } = resolveMemberNameFromMetadata(metadata);
     const country = readMetadataString(metadata, "country", "New Zealand");
     const marketingOptIn = metadata.marketing_opt_in === true;
 
-    if (signupMode === "membership") {
-      const { error: profileError } = await upsertMemberSignupProfile(supabase, {
-        authUserId: user.id,
-        email: user.email ?? "",
-        firstName,
-        lastName,
-        country,
-        marketingOptIn,
-      });
-
-      if (profileError) {
-        return { redirectPath: SIGNUP_MEMBERSHIP_PATH, error: profileError };
-      }
-
-      await supabase.auth.updateUser({
-        data: {
-          account_type: "member",
-          signup_completed_at: new Date().toISOString(),
-        },
-      });
-
-      return { redirectPath: SIGNUP_MEMBERSHIP_PATH };
-    }
-
-    const { error: trialError } = await startMemberTrial(supabase, {
+    const { error: profileError } = await upsertMemberSignupProfile(supabase, {
       authUserId: user.id,
       email: user.email ?? "",
       firstName,
@@ -124,23 +86,14 @@ export async function completeSignupVerification(
       marketingOptIn,
     });
 
-    if (trialError) {
-      return { redirectPath: MEMBER_HOME_PATH, error: trialError };
+    if (profileError) {
+      return { redirectPath: SIGNUP_MEMBERSHIP_PATH, error: profileError };
     }
-
-    void sendMemberFreeTrialStartedEmail({
-      to: user.email ?? "",
-      firstName,
-    }).catch((emailError) => {
-      console.error("[auth/confirm] Failed to send trial started email", {
-        email: user.email,
-        error: emailError instanceof Error ? emailError.message : emailError,
-      });
-    });
 
     await supabase.auth.updateUser({
       data: {
         account_type: "member",
+        signup_mode: "membership",
         signup_completed_at: new Date().toISOString(),
       },
     });
@@ -148,7 +101,7 @@ export async function completeSignupVerification(
     revalidatePath(MEMBER_HOME_PATH);
     revalidatePath(MEMBER_DASHBOARD_PATH);
 
-    return { redirectPath: MEMBER_HOME_PATH };
+    return { redirectPath: SIGNUP_MEMBERSHIP_PATH };
   }
 
   if (accountType === "partner") {

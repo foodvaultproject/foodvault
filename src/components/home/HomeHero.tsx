@@ -15,7 +15,7 @@ const HERO_PRIMARY_CTA_CLASS =
 const VISITOR_SUPPORTING_COPY =
   "Explore Kiwi brands, discover something new and save with exclusive member discounts. Find new favourites and keep more money in your pocket along the way!";
 
-export type HomeHeroVariant = "visitor" | "free-trial" | "active-member" | "partner";
+export type HomeHeroVariant = "visitor" | "active-member" | "partner";
 
 type HomeHeroProps = {
   variant?: HomeHeroVariant;
@@ -30,7 +30,7 @@ export function HomeHero({
     <section className="relative flex flex-col overflow-hidden border-b border-white/15 bg-primary">
       <HeroBackground />
       <div className="relative z-10 mx-auto w-full max-w-[1200px]">
-        {variant === "visitor" || variant === "free-trial" ? <VisitorHeroBanner /> : null}
+        {variant === "visitor" ? <VisitorHeroBanner /> : null}
         {variant === "active-member" ? <ActiveMemberHeroBanner /> : null}
         {variant === "partner" ? (
           <SignedInHeroBanner
@@ -162,7 +162,7 @@ function VisitorHeroBanner() {
         description={VISITOR_SUPPORTING_COPY}
         actions={
           <>
-            <MemberSignupCtaLink variant="start-free-trial" className={HERO_PRIMARY_CTA_CLASS} />
+            <MemberSignupCtaLink variant="unlock-discounts" className={HERO_PRIMARY_CTA_CLASS} />
             <Link
               href={consumerSearchPath()}
               className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { recordScheduledJobRun } from "@/lib/audit-service";
 import { CRON_EMAIL_BATCH_LIMIT } from "@/lib/cron/constants";
 import { processPartnerActivationReminderEmails } from "@/lib/email-templates/partner-activation-cron";
-import { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
 import { processPendingNotifications } from "@/lib/notification-service/engine";
 import { approveExpiredCommissions } from "@/lib/store-integration/engine";
 
@@ -34,13 +33,6 @@ export async function POST(request: NextRequest) {
       result: { processed },
     });
 
-    const trialEmails = await processMemberTrialEmails(CRON_EMAIL_BATCH_LIMIT);
-    await recordScheduledJobRun({
-      jobName: "process_member_trial_emails",
-      status: "success",
-      result: trialEmails,
-    });
-
     const partnerActivationReminders = await processPartnerActivationReminderEmails(
       CRON_EMAIL_BATCH_LIMIT
     );
@@ -54,7 +46,6 @@ export async function POST(request: NextRequest) {
       ok: true,
       approved,
       processed,
-      trialEmails,
       partnerActivationReminders,
     });
   } catch (error) {

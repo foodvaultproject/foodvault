@@ -187,10 +187,10 @@ export function DiscoverFinalCTA() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <MemberSignupCtaLink
-              variant="start-free-trial-nav"
+              variant="unlock-discounts-nav"
               className="inline-flex w-full items-center justify-center rounded-lg bg-white px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-white/90 sm:w-auto"
             >
-              Start FREE Trial
+              Unlock Discounts
             </MemberSignupCtaLink>
             <Link
               href={consumerSearchPath()}

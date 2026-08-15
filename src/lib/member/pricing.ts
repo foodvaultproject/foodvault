@@ -16,11 +16,3 @@ export function formatMembershipPrice(amount: number) {
 export function formatMembershipPriceMonthly(amount: number) {
   return `${formatMembershipPrice(amount)}/month`;
 }
-
-export function formatTrialLengthDays(days: number) {
-  return days === 1 ? "1-day" : `${days}-day`;
-}
-
-export function formatFreeTrialLabel(days: number) {
-  return `${formatTrialLengthDays(days)} free trial`;
-}

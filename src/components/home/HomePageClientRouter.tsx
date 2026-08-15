@@ -24,7 +24,7 @@ import { resolveClientMembershipView } from "@/lib/member/client-membership";
 import { getPartnerListing } from "@/lib/partner-data";
 import type { StaticHomepageData } from "@/lib/homepage/static-data";
 
-type HomeAudience = "guest" | "partner" | "active-member" | "free-trial";
+type HomeAudience = "guest" | "partner" | "active-member";
 
 function HomeAudienceContent({
   audience,
@@ -78,27 +78,6 @@ function HomeAudienceContent({
           hideViewAll
           compactSpacing
         />
-      </div>
-    );
-  }
-
-  if (audience === "free-trial") {
-    return (
-      <div className={settleClass}>
-        <HomeHero variant="free-trial" />
-        <HomeTrendingDepartmentCardsSection />
-        <HomeVaultDropSection drops={data.vaultDrops} />
-        <HomeMeatPoultryBanner />
-        <HomeWhyJoinFeatures compactSpacing mobileTwoColumn />
-        <HomeGiftsHampersBanner compactSpacing />
-        <HomeTrendingSection
-          trending={data.homepageTrendingBrands}
-          newBrands={data.homepageNewBrands}
-          topOffers={data.homepageTopOffers}
-          hideViewAll
-          compactSpacing
-        />
-        <HomeFAQ faqs={data.homepageFaqs} compactSpacing />
       </div>
     );
   }
@@ -177,12 +156,6 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
 
       if (membership.isActiveMember) {
         setAudience("active-member");
-        setResolved(true);
-        return;
-      }
-
-      if (membership.isFreeTrial) {
-        setAudience("free-trial");
         setResolved(true);
         return;
       }

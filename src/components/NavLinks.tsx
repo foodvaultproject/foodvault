@@ -11,10 +11,7 @@ import {
 } from "@/lib/nav-auth";
 import { FavoritesNavLink } from "@/components/favorites/FavoritesNavLink";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import {
-  useIsActiveMember,
-  useIsFreeTrialMember,
-} from "@/components/member/MemberSignupCtaProvider";
+import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
 import {
   CONSUMER_BROWSE_PATHS,
@@ -58,8 +55,6 @@ const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE
 
 const ACTIVE_MEMBER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE_PATHS]);
 
-const FREE_TRIAL_HIDDEN_HREFS = new Set([...CONSUMER_BROWSE_PATHS, "/for-brands"]);
-
 function isNavLinkActive(pathname: string, href: string): boolean {
   if (CONSUMER_BROWSE_PATHS.has(href)) {
     return isSearchPath(pathname);
@@ -79,16 +74,13 @@ export function NavLinks({
 }) {
   const pathname = usePathname();
   const isActiveMember = useIsActiveMember();
-  const isFreeTrial = useIsFreeTrialMember();
 
   const navLinks = getNavLinks();
   const hiddenHrefs = isPartner
     ? PARTNER_HIDDEN_HREFS
-    : isFreeTrial
-      ? FREE_TRIAL_HIDDEN_HREFS
-      : isActiveMember
-        ? ACTIVE_MEMBER_HIDDEN_HREFS
-        : null;
+    : isActiveMember
+      ? ACTIVE_MEMBER_HIDDEN_HREFS
+      : null;
   const visibleLinks = hiddenHrefs
     ? navLinks.filter((link) => !hiddenHrefs.has(link.href))
     : navLinks;
@@ -144,7 +136,7 @@ function MobileAuthSection({
   menuPreview?: boolean;
   showLogout?: boolean;
 }) {
-  const isFreeTrial = useIsFreeTrialMember();
+  const isActiveMember = useIsActiveMember();
 
   if (auth.status === "loading") {
     return (
@@ -193,7 +185,7 @@ function MobileAuthSection({
           </Link>
         )}
         <MemberSignupCtaLink
-          variant="start-free-trial-nav"
+          variant="unlock-discounts-nav"
           onClick={onNavigate}
           className={
             menuPreview
@@ -201,7 +193,7 @@ function MobileAuthSection({
               : "fv-btn-primary block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
           }
         >
-          Start FREE Trial
+          Unlock Discounts
         </MemberSignupCtaLink>
         {auth.status === "admin" && showLogout ? (
           <button
@@ -241,9 +233,9 @@ function MobileAuthSection({
         menuPreview ? "border-white/15" : "border-border"
       }`}
     >
-      {auth.status === "member" && isFreeTrial ? (
+      {auth.status === "member" && !isActiveMember ? (
         <MemberSignupCtaLink
-          variant="start-free-trial"
+          variant="unlock-discounts"
           onClick={onNavigate}
           className={
             menuPreview

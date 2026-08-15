@@ -12,6 +12,17 @@ export type MemberSignupProfileInput = {
   marketingOptIn?: boolean;
 };
 
+const UNPAID_MEMBER_STATUS = {
+  status: "EXPIRED",
+  subscription_status: "EXPIRED",
+  membership_status: "expired",
+} as const;
+
+function isTrialStatus(status: string | null | undefined) {
+  const normalized = (status ?? "").toLowerCase();
+  return normalized === "trial" || normalized === "trialing";
+}
+
 export async function upsertMemberSignupProfile(
   supabase: SupabaseClient,
   input: MemberSignupProfileInput
@@ -30,13 +41,18 @@ export async function upsertMemberSignupProfile(
   };
 
   const { data: existing } = await memberUserFilter(
-    supabase.from("members").select("id"),
+    supabase.from("members").select("id, membership_status, status"),
     input.authUserId
   ).maybeSingle();
 
   if (existing) {
+    const shouldClearTrial =
+      isTrialStatus(existing.membership_status) || isTrialStatus(existing.status);
     const { error } = await memberUserFilter(
-      supabase.from("members").update(payload),
+      supabase.from("members").update({
+        ...payload,
+        ...(shouldClearTrial ? UNPAID_MEMBER_STATUS : {}),
+      }),
       input.authUserId
     );
     return { error: error?.message ?? null };
@@ -45,9 +61,7 @@ export async function upsertMemberSignupProfile(
   const { error } = await supabase.from("members").insert({
     id: input.authUserId,
     ...payload,
-    status: "TRIAL",
-    subscription_status: "TRIAL",
-    membership_status: "expired",
+    ...UNPAID_MEMBER_STATUS,
     joined_at: new Date().toISOString(),
   });
 
@@ -64,9 +78,7 @@ export async function upsertMemberSignupProfile(
     {
       id: input.authUserId,
       ...payload,
-      status: "TRIAL",
-      subscription_status: "TRIAL",
-      membership_status: "expired",
+      ...UNPAID_MEMBER_STATUS,
       joined_at: new Date().toISOString(),
     },
     { onConflict: "auth_user_id" }

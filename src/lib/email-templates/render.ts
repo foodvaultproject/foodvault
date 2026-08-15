@@ -1,7 +1,4 @@
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
-import { renderMemberFreeTrialEndedEmail } from "@/lib/email-templates/templates/member/free-trial-ended";
-import { renderMemberFreeTrialReminderEmail } from "@/lib/email-templates/templates/member/free-trial-reminder";
-import { renderMemberFreeTrialStartedEmail } from "@/lib/email-templates/templates/member/free-trial-started";
 import { renderMemberMembershipActivatedEmail } from "@/lib/email-templates/templates/member/membership-activated";
 import { renderMemberPasswordResetEmail } from "@/lib/email-templates/templates/member/password-reset";
 import { renderMemberVerifyEmail } from "@/lib/email-templates/templates/member/verify-email";
@@ -16,9 +13,6 @@ import type { RenderedEmail } from "@/lib/email-templates/types";
 export type EmailTemplateId =
   | "member.welcome"
   | "member.verify-email"
-  | "member.free-trial-started"
-  | "member.free-trial-reminder"
-  | "member.free-trial-ended"
   | "member.membership-activated"
   | "member.password-reset"
   | "partner.application-received"
@@ -43,23 +37,6 @@ export function renderEmailTemplate(
         appUrl: String(params.appUrl ?? ""),
         firstName: params.firstName as string | null | undefined,
         verificationUrl: String(params.verificationUrl ?? ""),
-      });
-    case "member.free-trial-started":
-      return renderMemberFreeTrialStartedEmail({
-        appUrl: String(params.appUrl ?? ""),
-        firstName: params.firstName as string | null | undefined,
-        trialLengthDays: Number(params.trialLengthDays ?? 7),
-      });
-    case "member.free-trial-reminder":
-      return renderMemberFreeTrialReminderEmail({
-        appUrl: String(params.appUrl ?? ""),
-        firstName: params.firstName as string | null | undefined,
-        daysRemaining: params.daysRemaining === 1 ? 1 : 3,
-      });
-    case "member.free-trial-ended":
-      return renderMemberFreeTrialEndedEmail({
-        appUrl: String(params.appUrl ?? ""),
-        firstName: params.firstName as string | null | undefined,
       });
     case "member.membership-activated":
       return renderMemberMembershipActivatedEmail({
@@ -133,9 +110,6 @@ export function renderEmailTemplate(
 
 export {
   renderAdminNewBrandApplicationEmail,
-  renderMemberFreeTrialEndedEmail,
-  renderMemberFreeTrialReminderEmail,
-  renderMemberFreeTrialStartedEmail,
   renderMemberMembershipActivatedEmail,
   renderMemberPasswordResetEmail,
   renderMemberVerifyEmail,

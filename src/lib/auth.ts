@@ -20,7 +20,7 @@ import {
 } from "@/lib/auth/oauth-intent-client";
 
 const PARTNER_OAUTH_CALLBACK_PATH = "/auth/callback/partner";
-import { MEMBER_HOME_PATH } from "@/lib/member/paths";
+import { MEMBER_HOME_PATH, SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
 export const LOGIN_PATH = "/login";
@@ -132,7 +132,7 @@ export async function getAuthSession(): Promise<AuthSession | null> {
 
 export function syncAuthSessionHints(
   session: AuthSession | null,
-  membership?: { isFreeTrial: boolean; isActiveMember: boolean }
+  membership?: { isActiveMember: boolean }
 ) {
   syncSessionHintsFromSession(session, membership);
 }
@@ -213,7 +213,7 @@ export async function signInWithEmail(
 export async function signInWithGoogle(options: {
   accountType: AccountType;
   nextPath?: string;
-  signupMode?: "trial" | "membership";
+  signupMode?: "membership";
   marketingOptIn?: boolean;
   flow?: "signup" | "login";
 }) {
@@ -232,7 +232,9 @@ export async function signInWithGoogle(options: {
         : PARTNER_DASHBOARD_PATH
       : options.accountType === "affiliate"
         ? AFFILIATE_DASHBOARD_PATH
-        : MEMBER_HOME_PATH;
+        : flow === "signup"
+          ? SIGNUP_MEMBERSHIP_PATH
+          : MEMBER_HOME_PATH;
   const next = options.nextPath ?? defaultNext;
 
   await storeOAuthIntentAction({

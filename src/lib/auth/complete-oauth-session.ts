@@ -60,12 +60,6 @@ export function parseOAuthCallbackContext(
     nextPath,
   });
 
-  const signupModeParam = searchParams.get("signup_mode");
-  const signupModeFromQuery =
-    signupModeParam === "membership" || signupModeParam === "trial"
-      ? signupModeParam
-      : undefined;
-
   const marketingParam = searchParams.get("marketing_opt_in");
   const marketingOptInFromQuery =
     marketingParam === "1"
@@ -77,7 +71,7 @@ export function parseOAuthCallbackContext(
   return {
     expectedAccountType,
     nextPath,
-    signupMode: signupModeFromQuery ?? cookieIntent?.signupMode,
+    signupMode: "membership",
     marketingOptIn: marketingOptInFromQuery ?? cookieIntent?.marketingOptIn,
   };
 }

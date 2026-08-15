@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { MembershipPageSkeleton } from "@/components/account/AccountSkeletons";
 import { MemberMembershipView } from "@/components/account/MemberMembershipView";
 import { requireAuthenticatedMember } from "@/lib/member/auth";
-import { getMemberTrialBanner, getMembershipRecord } from "@/lib/member/queries";
+import { getMembershipRecord } from "@/lib/member/queries";
 import { getMembershipSettings } from "@/lib/member/settings";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import { reconcileMemberSubscription } from "@/lib/payment-service/providers/stripe-member";
@@ -20,15 +20,13 @@ async function MembershipContent() {
     await reconcileMemberSubscription(member.id, member.email);
   }
 
-  const [trialBanner, membership, settings] = await Promise.all([
-    getMemberTrialBanner(member.id),
+  const [membership, settings] = await Promise.all([
     getMembershipRecord(member.id),
     getMembershipSettings(),
   ]);
 
   return (
     <MemberMembershipView
-      trialBanner={trialBanner}
       membership={membership}
       settings={settings}
     />

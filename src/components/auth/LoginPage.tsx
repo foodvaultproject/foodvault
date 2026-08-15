@@ -330,11 +330,12 @@ function LoginForm() {
 
           <div className="mt-8 border-t border-border pt-8">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              New to FoodVault? Start your free trial and unlock exclusive member
-              pricing from participating food, beverage and household brands.
+              New to FoodVault? Unlock exclusive member pricing from participating
+              food, beverage and household brands. Browse every offer for free, then
+              reveal promo codes when you join.
             </p>
             <MemberSignupCtaLink
-              variant="start-free-trial"
+              variant="unlock-discounts"
               className="mt-4 inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-6 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5"
             />
           </div>

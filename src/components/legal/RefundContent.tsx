@@ -8,7 +8,7 @@ const navItems = [
   { id: "memberships-only", label: "1. Memberships Only" },
   { id: "partner-purchases", label: "2. Partner Purchases" },
   { id: "subscription", label: "3. Membership Subscription" },
-  { id: "free-trial", label: "4. Free Trial" },
+  { id: "member-access", label: "4. Member Access" },
   { id: "cancellation", label: "5. Cancelling Your Membership" },
   { id: "refunds", label: "6. Membership Refund Policy" },
   { id: "failed-payments", label: "7. Failed Payments" },
@@ -188,24 +188,15 @@ export function RefundContent() {
         <p>FoodVault does not store complete payment card details.</p>
       </LegalSection>
 
-      <LegalSection id="free-trial" number="04" title="Free Trial">
-        <p>FoodVault may offer eligible new members a free trial.</p>
+      <LegalSection id="member-access" number="04" title="Member Access">
         <p>
-          The duration and terms of any free trial will be displayed during signup.
+          You can browse all brand discounts on FoodVault without a paid membership.
         </p>
         <p>
-          Unless cancelled before the trial period expires, your membership will
-          automatically convert into a paid subscription and your nominated payment method
-          will be charged.
+          Promo codes and other member benefits are unlocked only after you complete
+          payment for a membership through Stripe Checkout.
         </p>
-        <p>
-          By starting a free trial, you acknowledge and accept this automatic conversion
-          process.
-        </p>
-        <p>
-          Members are responsible for cancelling before the trial expiry date if they do
-          not wish to continue with a paid membership.
-        </p>
+        <p>Access to promo codes begins immediately after successful payment.</p>
       </LegalSection>
 
       <LegalSection id="cancellation" number="05" title="Cancelling Your Membership">

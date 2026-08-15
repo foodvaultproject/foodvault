@@ -1,8 +1,5 @@
 import type { MembershipSettings } from "@/lib/member/pricing";
-import {
-  formatMembershipPriceMonthly,
-  formatTrialLengthDays,
-} from "@/lib/member/pricing";
+import { formatMembershipPriceMonthly } from "@/lib/member/pricing";
 
 export type FAQItem = {
   question: string;
@@ -28,7 +25,7 @@ const memberFaqsBase: FAQItem[] = [
       "Once you're a FoodVault member, you'll have access to exclusive discount codes on every participating brand's profile. Simply copy the code, click through to the brand's website, and apply it at checkout to receive your member discount.",
   },
   {
-    question: "What about free trials and payment?",
+    question: "What about membership and payment?",
     answer: "",
   },
   {
@@ -39,14 +36,13 @@ const memberFaqsBase: FAQItem[] = [
 ];
 
 export function getMemberFaqs(settings: MembershipSettings): FAQItem[] {
-  const trialLabel = formatTrialLengthDays(settings.trialLengthDays);
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
 
   return memberFaqsBase.map((faq) =>
-    faq.question === "What about free trials and payment?"
+    faq.question === "What about membership and payment?"
       ? {
           ...faq,
-          answer: `We offer a ${trialLabel} free trial so you can explore the network and see the potential savings for yourself. After the trial period, membership continues at ${priceLabel}. You can manage your billing, update payment methods, and view invoices at any time through your Member Account settings.`,
+          answer: `You can browse all brand discounts for free. Revealing and copying promo codes requires a paid membership at ${priceLabel}. You can manage your billing, update payment methods, and view invoices at any time through your Member Account settings.`,
         }
       : faq
   );

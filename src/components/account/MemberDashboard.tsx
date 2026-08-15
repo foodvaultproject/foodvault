@@ -2,11 +2,9 @@ import Link from "next/link";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { MemberDashboardFavorites } from "@/components/account/MemberDashboardFavorites";
-import { MemberTrialBannerCard } from "@/components/account/MemberTrialBannerCard";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { FavoritePartner } from "@/lib/member/favorites-queries";
-import type { MemberTrialBanner } from "@/lib/member/queries";
 import {
   MEMBER_ACCOUNT_PATH,
   MEMBER_FAVORITES_PATH,
@@ -53,7 +51,6 @@ const quickActions = [
 ];
 
 type MemberDashboardProps = {
-  trialBanner: MemberTrialBanner | null;
   brands: BrandCard[];
   favorites: FavoritePartner[];
   canFavorite: boolean;
@@ -62,7 +59,6 @@ type MemberDashboardProps = {
 };
 
 export function MemberDashboard({
-  trialBanner,
   brands,
   favorites,
   canFavorite,
@@ -80,10 +76,6 @@ export function MemberDashboard({
           <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </p>
-        ) : null}
-
-        {trialBanner?.showTrialBanner ? (
-          <MemberTrialBannerCard trialBanner={trialBanner} className="mt-5 !p-4 sm:!p-4" />
         ) : null}
 
         <section className="mt-6">

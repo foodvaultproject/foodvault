@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: "Pricing",
-    description: `FoodVault membership is ${priceLabel} with a ${settings.trialLengthDays}-day free trial. Unlock exclusive member pricing from 900+ independent food and beverage brands across New Zealand.`,
+    description: `FoodVault membership is ${priceLabel}. Browse brand discounts for free, then unlock promo codes with a paid membership from 900+ independent food and beverage brands across New Zealand.`,
   };
 }
 
@@ -27,7 +27,7 @@ export default async function PricingPage() {
     <>
       <PricingHero settings={settings} />
       <HomeWhyJoinFeatures mobileTwoColumn />
-      <PricingFAQSection trialLengthDays={settings.trialLengthDays} />
+      <PricingFAQSection />
       <PricingDualCTASection />
     </>
   );

@@ -96,38 +96,6 @@ export async function deleteMemberAccountAction() {
   redirect(LOGIN_PATH);
 }
 
-export async function endTrialEarlyAction() {
-  await requireAuthenticatedMember();
-
-  if (!isSupabaseConfigured()) {
-    return { success: true as const };
-  }
-
-  const supabase = await createClient();
-  const { error: rpcError } = await supabase.rpc("end_member_trial_early");
-
-  if (!rpcError) {
-    return { success: true as const };
-  }
-
-  const member = await requireAuthenticatedMember();
-  const { error } = await memberUserFilter(
-    supabase.from("members").update({
-      membership_status: "expired",
-      status: "EXPIRED",
-      subscription_status: "EXPIRED",
-      trial_ends_at: new Date().toISOString(),
-    }),
-    member.id
-  );
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  return { success: true as const };
-}
-
 export async function cancelMembershipAction() {
   const member = await requireAuthenticatedMember();
 

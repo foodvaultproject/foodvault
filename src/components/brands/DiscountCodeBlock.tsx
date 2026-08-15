@@ -14,7 +14,7 @@ type DiscountCodeBlockProps = {
 const LOCKED_MESSAGE: Record<Exclude<CodeAccessState, "visible">, string> = {
   anon: "Sign in or become a member to unlock this exclusive member discount code.",
   "partner-other":
-    "Member discount codes for other participating brands are only available to Members and Free Trial Members.",
+    "Member discount codes for other participating brands are only available to paid Members.",
   "member-required":
     "Your membership is not active. Reactivate your membership to view member discount codes.",
 };

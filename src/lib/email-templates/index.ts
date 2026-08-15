@@ -14,9 +14,6 @@ export {
   renderEmailTemplate,
   renderMemberWelcomeEmail,
   renderMemberVerifyEmail,
-  renderMemberFreeTrialStartedEmail,
-  renderMemberFreeTrialReminderEmail,
-  renderMemberFreeTrialEndedEmail,
   renderMemberMembershipActivatedEmail,
   renderMemberPasswordResetEmail,
   renderPartnerApplicationReceivedEmail,
@@ -32,9 +29,6 @@ export {
 } from "@/lib/email-templates/send";
 export {
   PARTNER_SUBMISSION_ADMIN_EMAIL,
-  sendMemberFreeTrialStartedEmail,
-  sendMemberFreeTrialReminderEmail,
-  sendMemberFreeTrialEndedEmail,
   sendMemberMembershipActivatedEmail,
   sendPartnerApplicationReceivedEmail,
   sendPartnerApplicationApprovedEmail,
@@ -47,5 +41,4 @@ export {
   sendPartnerRejectionEmail,
   notifyPartnerLifecycleEmails,
 } from "@/lib/email-templates/dispatch";
-export { processMemberTrialEmails } from "@/lib/email-templates/trial-cron";
 export { processPartnerActivationReminderEmails } from "@/lib/email-templates/partner-activation-cron";

@@ -18,47 +18,32 @@ import { resolveClientMembershipView } from "@/lib/member/client-membership";
 import { createClient } from "@/lib/supabase/client";
 
 type MemberSignupCtaContextValue = {
-  isFreeTrial: boolean;
+  isMember: boolean;
   isActiveMember: boolean;
-  trialEndsAt: string | null;
   isLoading: boolean;
 };
 
-function initialMembershipStateFromHint(): Omit<MemberSignupCtaContextValue, "isLoading"> & {
-  isLoading: boolean;
-} {
+function initialMembershipStateFromHint(): MemberSignupCtaContextValue {
   const membershipHint = readMembershipStateHintClient();
 
   if (membershipHint === "active") {
     return {
-      isFreeTrial: false,
+      isMember: true,
       isActiveMember: true,
-      trialEndsAt: null,
-      isLoading: false,
-    };
-  }
-
-  if (membershipHint === "trial") {
-    return {
-      isFreeTrial: true,
-      isActiveMember: false,
-      trialEndsAt: null,
       isLoading: false,
     };
   }
 
   return {
-    isFreeTrial: false,
+    isMember: false,
     isActiveMember: false,
-    trialEndsAt: null,
     isLoading: true,
   };
 }
 
 const MemberSignupCtaContext = createContext<MemberSignupCtaContextValue>({
-  isFreeTrial: false,
+  isMember: false,
   isActiveMember: false,
-  trialEndsAt: null,
   isLoading: true,
 });
 
@@ -75,9 +60,8 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
       if (await isCurrentUserAdminAction()) {
         syncAuthSessionHints(null);
         setState({
-          isFreeTrial: false,
+          isMember: false,
           isActiveMember: false,
-          trialEndsAt: null,
           isLoading: false,
         });
         return;
@@ -87,9 +71,8 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
       if (!session || session.accountType !== "member") {
         syncAuthSessionHints(session);
         setState({
-          isFreeTrial: false,
+          isMember: false,
           isActiveMember: false,
-          trialEndsAt: null,
           isLoading: false,
         });
         return;
@@ -97,7 +80,7 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
 
       let view = await resolveClientMembershipView();
 
-      if (isSupabaseConfigured() && !view.isFreeTrial && !view.isActiveMember) {
+      if (isSupabaseConfigured() && !view.isActiveMember) {
         const repaired = await repairMemberSessionAction();
         if (repaired) {
           view = await resolveClientMembershipView();
@@ -105,12 +88,15 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
       }
 
       syncAuthSessionHints(session, view);
-      setState({ ...view, isLoading: false });
+      setState({
+        isMember: true,
+        isActiveMember: view.isActiveMember,
+        isLoading: false,
+      });
     } catch {
       setState({
-        isFreeTrial: false,
+        isMember: false,
         isActiveMember: false,
-        trialEndsAt: null,
         isLoading: false,
       });
     }
@@ -148,14 +134,6 @@ export function useMemberSignupCtaContext(): MemberSignupCtaContextValue {
   return useContext(MemberSignupCtaContext);
 }
 
-export function useIsFreeTrialMember(): boolean {
-  return useMemberSignupCtaContext().isFreeTrial;
-}
-
 export function useIsActiveMember(): boolean {
   return useMemberSignupCtaContext().isActiveMember;
-}
-
-export function useTrialEndsAt(): string | null {
-  return useMemberSignupCtaContext().trialEndsAt;
 }

@@ -57,7 +57,7 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
             ))}
           </ul>
 
-          <PricingMembershipCardCtas trialLengthDays={settings.trialLengthDays} />
+          <PricingMembershipCardCtas />
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:mt-10 sm:flex-row sm:gap-8">

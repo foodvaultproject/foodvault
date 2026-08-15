@@ -31,7 +31,6 @@ const accountInformation = [
 
 const membershipInformation = [
   "Membership status",
-  "Trial status",
   "Subscription dates",
   "Renewal dates",
   "Cancellation information",
@@ -85,7 +84,7 @@ const usePurposes = [
   "Create and manage accounts",
   "Provide membership access",
   "Process subscription payments",
-  "Manage free trials",
+  "Manage paid memberships",
   "Provide customer support",
   "Respond to enquiries",
   "Operate partner and affiliate accounts",
@@ -186,7 +185,7 @@ export function PrivacyContent() {
                 FoodVault is committed to protecting your privacy and handling personal
                 information responsibly in accordance with the Privacy Act 2020 (New
                 Zealand) and applicable privacy requirements. By creating an account,
-                starting a free trial, purchasing a membership, creating a partner account,
+                purchasing a membership, creating a partner account,
                 joining our affiliate programme, or otherwise using the Platform, you
                 acknowledge this Privacy Policy.
               </p>

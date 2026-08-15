@@ -11,10 +11,7 @@ import {
   fetchMemberBillingRows,
   pickCanonicalMemberRow,
 } from "@/lib/member/member-record";
-import {
-  isActiveMemberRow,
-  isFreeTrialMemberRow,
-} from "@/lib/member/membership-status";
+import { isActiveMemberRow } from "@/lib/member/membership-status";
 import {
   buildEnablePartnerMetadata,
   hasPartnerAccess,
@@ -43,7 +40,7 @@ export async function memberProfileExists(
   return pickCanonicalMemberRow(rows) !== null;
 }
 
-/** Member row exists with trial or paid access — matches UI state checks. */
+/** Member row exists with paid access — matches UI state checks. */
 export async function hasMemberAccessProfile(
   supabase: SupabaseClient,
   userId: string
@@ -53,7 +50,7 @@ export async function hasMemberAccessProfile(
     return false;
   }
 
-  return isFreeTrialMemberRow(row) || isActiveMemberRow(row);
+  return isActiveMemberRow(row);
 }
 
 /** True when onboarding metadata and required profile rows exist. */
@@ -69,7 +66,7 @@ export async function isSignupSetupComplete(
   if (accountType === "member") {
     return (
       Boolean(signupCompletedAt) &&
-      (await hasMemberAccessProfile(supabase, user.id))
+      (await memberProfileExists(supabase, user.id))
     );
   }
 
@@ -97,7 +94,7 @@ export async function isSignupSetupComplete(
 export type SessionCompletionContext = {
   expectedAccountType: AccountType;
   nextPath?: string | null;
-  signupMode?: "trial" | "membership";
+  signupMode?: "membership";
   marketingOptIn?: boolean;
 };
 
@@ -193,7 +190,7 @@ export async function prepareAuthUserMetadata(
 
   if (context.expectedAccountType === "member") {
     if (!readMetadataString(metadata, "signup_mode")) {
-      updates.signup_mode = context.signupMode ?? "trial";
+      updates.signup_mode = context.signupMode ?? "membership";
     }
     if (!readMetadataString(metadata, "country")) {
       updates.country = "New Zealand";
@@ -300,10 +297,9 @@ export async function ensureAuthenticatedSession(
 }
 
 function resolveMemberSignupMode(
-  metadata: Record<string, unknown> | undefined
-): "trial" | "membership" {
-  const signupMode = readMetadataString(metadata ?? {}, "signup_mode", "trial");
-  return signupMode === "membership" ? "membership" : "trial";
+  _metadata: Record<string, unknown> | undefined
+): "membership" {
+  return "membership";
 }
 
 /** Self-heal authenticated members missing trial/profile rows (common after OAuth). */

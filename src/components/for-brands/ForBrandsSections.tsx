@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PARTNER_CREATE_ACCOUNT_PATH } from "@/lib/partner-auth";
+import { PARTNER_CREATE_ACCOUNT_PATH, PARTNER_LOGIN_PATH } from "@/lib/partner-auth";
 import { heading1, heading2, heading3 } from "@/lib/ui-classes";
 
 const heroBenefits = [
@@ -84,12 +84,18 @@ export function ForBrandsHero() {
               You keep every sale and stay in control. The best part? It&apos;s completely free!
             </p>
 
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href={PARTNER_CREATE_ACCOUNT_PATH}
                 className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
               >
                 Become a Partner
+              </Link>
+              <Link
+                href={PARTNER_LOGIN_PATH}
+                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
+              >
+                Log In
               </Link>
             </div>
           </div>

@@ -1,88 +1,6 @@
 import Link from "next/link";
 
-export type WelcomePlan = "trial" | "paid";
-
-// Discover/browse now lives on the homepage for member states, so the
-// welcome CTA links home rather than to the standalone browse page.
 const EXPLORE_BRANDS_PATH = "/";
-
-type WelcomeContent = {
-  heroSupport: string;
-  benefitsTitle: string;
-  benefits: string[];
-  benefitsNote: string;
-  bannerBadge: string;
-  bannerTitle: string;
-  bannerBody: string;
-  bottomHeading: string;
-};
-
-function getContent(plan: WelcomePlan, trialLengthDays: number): WelcomeContent {
-  if (plan === "paid") {
-    return {
-      heroSupport:
-        "Your FoodVault Membership is now active. You now have unlimited access to exclusive member pricing from participating New Zealand brands.",
-      benefitsTitle: "Your Membership Includes",
-      benefits: [
-        "Unlimited access to member pricing",
-        "Exclusive partner offers",
-        "Unlimited brand browsing",
-        "Ongoing access while your membership remains active",
-      ],
-      benefitsNote:
-        "Shop directly with participating brands using your exclusive FoodVault member discount codes.",
-      bannerBadge: "★",
-      bannerTitle: "You're officially a FoodVault Member",
-      bannerBody:
-        "Thank you for supporting FoodVault and the growing community of Kiwi brands. Your membership helps us continue adding new partner brands and negotiating more exclusive offers for members.",
-      bottomHeading: "Start Saving Today",
-    };
-  }
-
-  return {
-    heroSupport:
-      "Your free trial is now active. Start exploring New Zealand brands, unlock exclusive member pricing, and discover new ways to save.",
-    benefitsTitle: "Your Free Trial Includes",
-    benefits: [
-      "Full access to partner brands",
-      "All member discount codes",
-      "Unlimited brand browsing",
-      "Shop directly with participating brands",
-    ],
-    benefitsNote:
-      "FoodVault never sells products directly. When you're ready to purchase, you'll visit the partner's own website and use your exclusive member discount code at checkout.",
-    bannerBadge: "★",
-    bannerTitle: `Your ${trialLengthDays}-day trial has started`,
-    bannerBody:
-      "Enjoy full access during your trial. We'll send you reminders before your trial ends so you have plenty of time to decide whether FoodVault is right for you.",
-    bottomHeading: "Ready to start saving?",
-  };
-}
-
-function getGettingStarted(plan: WelcomePlan) {
-  return [
-    {
-      icon: "🔍",
-      title: "Browse Partner Brands",
-      description:
-        "Explore participating New Zealand food, beverage and household brands.",
-    },
-    {
-      icon: "💰",
-      title: "Unlock Member Pricing",
-      description:
-        plan === "paid"
-          ? "Every partner listing includes exclusive member-only discount codes available with your membership."
-          : "Every partner listing includes exclusive member-only discount codes available throughout your trial.",
-    },
-    {
-      icon: "🛒",
-      title: "Shop Directly",
-      description:
-        "Purchase directly from each partner's own website using your FoodVault member code.",
-    },
-  ];
-}
 
 function ExploreBrandsButton({ className }: { className?: string }) {
   return (
@@ -98,41 +16,35 @@ function ExploreBrandsButton({ className }: { className?: string }) {
   );
 }
 
-export function WelcomeScreen({
-  plan,
-  trialLengthDays,
-}: {
-  plan: WelcomePlan;
-  trialLengthDays: number;
-}) {
-  const content = getContent(plan, trialLengthDays);
-  const gettingStarted = getGettingStarted(plan);
-
+export function WelcomeScreen() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
-      {/* Hero */}
       <div className="overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-surface-lavender via-white to-page p-8 text-center shadow-sm sm:p-12">
         <span className="inline-flex items-center gap-2 rounded-full bg-success-light px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-success">
-          {plan === "paid" ? "Membership Active" : "Free Trial Active"}
+          Membership Active
         </span>
         <h1 className="mt-5 text-[2.25rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.75rem]">
           🎉 Welcome to <span className="text-primary">FoodVault!</span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          {content.heroSupport}
+          Your FoodVault Membership is now active. You now have unlimited access to exclusive member pricing from participating New Zealand brands.
         </p>
         <div className="mt-8 flex justify-center">
           <ExploreBrandsButton className="w-full sm:w-auto" />
         </div>
       </div>
 
-      {/* Benefits card */}
       <div className="mt-8 rounded-lg border border-border bg-background p-6 text-left shadow-sm sm:p-8">
         <h2 className="text-xl font-bold tracking-tight text-foreground">
-          {content.benefitsTitle}
+          Your Membership Includes
         </h2>
         <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-          {content.benefits.map((benefit) => (
+          {[
+            "Unlimited access to member pricing",
+            "Exclusive partner offers",
+            "Unlimited brand browsing",
+            "Ongoing access while your membership remains active",
+          ].map((benefit) => (
             <li key={benefit} className="flex items-start gap-3">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success text-xs font-bold text-white">
                 ✓
@@ -142,17 +54,35 @@ export function WelcomeScreen({
           ))}
         </ul>
         <p className="mt-5 rounded-lg border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-          {content.benefitsNote}
+          Shop directly with participating brands using your exclusive FoodVault member discount codes.
         </p>
       </div>
 
-      {/* Getting started */}
       <div className="mt-8">
         <h2 className="text-center text-xl font-bold tracking-tight text-foreground">
           Getting Started
         </h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          {gettingStarted.map((card) => (
+          {[
+            {
+              icon: "🔍",
+              title: "Browse Partner Brands",
+              description:
+                "Explore participating New Zealand food, beverage and household brands.",
+            },
+            {
+              icon: "💰",
+              title: "Unlock Member Pricing",
+              description:
+                "Every partner listing includes exclusive member-only discount codes available with your membership.",
+            },
+            {
+              icon: "🛒",
+              title: "Shop Directly",
+              description:
+                "Purchase directly from each partner's own website using your FoodVault member code.",
+            },
+          ].map((card) => (
             <div
               key={card.title}
               className="rounded-lg border border-border bg-background p-6 text-left shadow-sm"
@@ -169,23 +99,21 @@ export function WelcomeScreen({
         </div>
       </div>
 
-      {/* Status banner */}
       <div className="mt-8 flex items-start gap-4 rounded-lg border border-primary/20 bg-primary/5 p-6 text-left sm:p-8">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-lg text-primary-foreground">
-          {content.bannerBadge}
+          ★
         </span>
         <div>
-          <h3 className="text-base font-bold text-foreground">{content.bannerTitle}</h3>
+          <h3 className="text-base font-bold text-foreground">You&apos;re officially a FoodVault Member</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {content.bannerBody}
+            Thank you for supporting FoodVault and the growing community of Kiwi brands. Your membership helps us continue adding new partner brands and negotiating more exclusive offers for members.
           </p>
         </div>
       </div>
 
-      {/* Bottom CTA */}
       <div className="mt-8 rounded-lg border border-border bg-background p-8 text-center shadow-sm">
         <h2 className="text-xl font-bold tracking-tight text-foreground">
-          {content.bottomHeading}
+          Start Saving Today
         </h2>
         <div className="mt-5 flex justify-center">
           <ExploreBrandsButton className="w-full sm:w-auto" />

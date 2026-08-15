@@ -28,8 +28,8 @@ const MEMBER_BILLING_COLUMNS =
   "id, auth_user_id, membership_status, status, trial_started_at, trial_ends_at, joined_at, renewal_date, stripe_customer_id, stripe_subscription_id, deleted_at";
 
 function activeMembershipRank(status: string | null | undefined) {
-  if (status === "active") return 3;
-  if (status === "trialing" || status === "trial") return 2;
+  const normalized = (status ?? "").toLowerCase();
+  if (normalized === "active") return 3;
   return 1;
 }
 
@@ -176,8 +176,8 @@ export async function updateMemberRowsForUser(
       email,
       ...payload,
       membership_status: "expired",
-      status: "TRIAL",
-      subscription_status: "TRIAL",
+      status: "EXPIRED",
+      subscription_status: "EXPIRED",
       joined_at: new Date().toISOString(),
     });
 
@@ -208,7 +208,11 @@ function membershipRowGrantsAccess(row: {
   cancellation_date?: string | null;
 }) {
   const status = (row.status ?? "").toLowerCase();
-  if (status === "active" || status === "trialing" || status === "trial") {
+  if (status === "trialing" || status === "trial") {
+    return false;
+  }
+
+  if (status === "active") {
     return true;
   }
 
@@ -242,15 +246,6 @@ export async function memberHasActiveAccess(userId: string): Promise<boolean> {
   const admin = createAdminClient();
   if (!admin) {
     return false;
-  }
-
-  // Prefer the SQL source of truth when the migration is applied.
-  const { data: rpcAccess, error: rpcError } = await admin.rpc(
-    "member_has_active_access",
-    { p_uid: userId }
-  );
-  if (!rpcError && typeof rpcAccess === "boolean") {
-    return rpcAccess;
   }
 
   const { data: membership } = await admin

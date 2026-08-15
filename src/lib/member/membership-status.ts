@@ -13,20 +13,9 @@ export function isCancelledStatus(status: string | null | undefined): boolean {
   return normalized === "cancelled" || normalized === "canceled";
 }
 
-export function isFreeTrialMemberRow(row: MemberRow | null | undefined): boolean {
-  if (!row) {
-    return false;
-  }
-
-  if (memberRowHasPaidSubscription(row)) {
-    return false;
-  }
-
-  if (memberRowHasPaidPeriodRemaining(row)) {
-    return false;
-  }
-
-  return isTrialingStatus(row.membership_status ?? row.status);
+/** Trial rows no longer grant member access or trial UX. */
+export function isFreeTrialMemberRow(_row: MemberRow | null | undefined): boolean {
+  return false;
 }
 
 /**
@@ -34,6 +23,8 @@ export function isFreeTrialMemberRow(row: MemberRow | null | undefined): boolean
  * - linked Stripe subscription (including cancel_at_period_end)
  * - active status
  * - cancelled status while renewal_date (period end) is still in the future
+ *
+ * Trial / trialing / TRIAL never qualify.
  */
 export function isActiveMemberRow(row: MemberRow | null | undefined): boolean {
   if (!row) {
@@ -45,6 +36,10 @@ export function isActiveMemberRow(row: MemberRow | null | undefined): boolean {
   }
 
   const status = row.membership_status ?? row.status;
+  if (isTrialingStatus(status)) {
+    return false;
+  }
+
   if (status === "active" || status === "ACTIVE") {
     return true;
   }

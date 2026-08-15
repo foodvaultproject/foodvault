@@ -10,7 +10,7 @@ const navItems = [
   { id: "accounts", label: "Accounts" },
   { id: "membership", label: "Membership" },
   { id: "membership-fees", label: "Membership Fees" },
-  { id: "free-trial", label: "Free Trial" },
+  { id: "member-access", label: "Member Access" },
   { id: "price-changes", label: "Price Changes" },
   { id: "cancellation", label: "Cancellation" },
   { id: "refund-policy", label: "Refund Policy" },
@@ -152,9 +152,9 @@ export function TermsContent() {
                 A New Zealand registered company.
               </p>
               <p>
-                By creating an account, starting a free trial, purchasing a membership,
-                creating a partner account, joining the affiliate programme, accessing the
-                Platform, or otherwise using our services, you agree to these Terms.
+                By creating an account, purchasing a membership, creating a partner
+                account, joining the affiliate programme, accessing the Platform, or
+                otherwise using our services, you agree to these Terms.
               </p>
               <p>
                 If you do not agree with these Terms, you must not use the Platform.
@@ -263,24 +263,17 @@ export function TermsContent() {
         <p>FoodVault does not store complete payment card details.</p>
       </LegalSection>
 
-      <LegalSection id="free-trial" number="06" title="Free Trial">
-        <p>Eligible new members may receive a free trial.</p>
-        <p>The duration of any trial will be displayed during signup.</p>
+      <LegalSection id="member-access" number="06" title="Member Access">
         <p>
-          By starting a free trial, you acknowledge that your membership will
-          automatically convert into a paid monthly subscription at the end of the trial
-          period unless cancelled before the trial expiry date.
+          Anyone may browse participating brands and view advertised member discounts
+          without paying.
         </p>
         <p>
-          Your nominated payment method will be charged when the trial ends.
+          Revealing and copying promo codes, and using other member benefits, requires
+          an active paid membership purchased through Stripe Checkout.
         </p>
         <p>
-          Only one introductory free trial may be permitted per person unless otherwise
-          stated.
-        </p>
-        <p>
-          FoodVault reserves the right to withdraw, modify or limit trial offers at any
-          time.
+          Membership access begins immediately after successful payment confirmation.
         </p>
       </LegalSection>
 

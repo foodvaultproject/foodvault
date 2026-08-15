@@ -1,19 +1,12 @@
 import type { ReactNode } from "react";
-import { formatTrialLengthDays } from "@/lib/member/pricing";
 
-type Benefit =
-  | { title: string; icon: ReactNode; description: string }
-  | {
-      title: string;
-      icon: ReactNode;
-      getDescription: (trialLengthDays: number) => string;
-    };
+type Benefit = { title: string; icon: ReactNode; description: string };
 
 const benefits: Benefit[] = [
   {
     title: "Save on Your First Order",
     description:
-      "Unlock member pricing immediately. Most members save on their very first shop direct purchase.",
+      "Unlock member pricing immediately after you join. Most members save on their very first shop-direct purchase.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -32,8 +25,8 @@ const benefits: Benefit[] = [
   },
   {
     title: "Cancel Anytime",
-    getDescription: (trialLengthDays: number) =>
-      `No lock-in contracts. Start with a ${formatTrialLengthDays(trialLengthDays)} free trial and cancel whenever you want — no questions asked.`,
+    description:
+      "No lock-in contracts. Browse brands for free, join when you're ready, and cancel whenever you want — no questions asked.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -42,20 +35,16 @@ const benefits: Benefit[] = [
   },
 ];
 
-export function WhyFreeTrialSection({
-  trialLengthDays,
-}: {
-  trialLengthDays: number;
-}) {
+export function WhyFreeTrialSection() {
   return (
     <section className="bg-surface py-10 sm:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Why Start a Free Trial?
+            Why Join FoodVault?
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Try FoodVault risk-free and see how much you can save every month.
+            Browse every brand for free, then unlock promo codes with a paid membership.
           </p>
         </div>
 
@@ -70,9 +59,7 @@ export function WhyFreeTrialSection({
               </div>
               <h3 className="mt-6 text-lg font-bold text-foreground">{item.title}</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {"getDescription" in item
-                  ? item.getDescription(trialLengthDays)
-                  : item.description}
+                {item.description}
               </p>
             </div>
           ))}

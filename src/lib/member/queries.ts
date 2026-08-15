@@ -50,8 +50,8 @@ const DEV_TRIAL: MemberTrialBanner = {
 };
 
 const DEV_MEMBERSHIP: MembershipRecord = {
-  status: "trialing",
-  renewalDate: new Date(Date.now() + 10 * 86400000).toISOString(),
+  status: "expired",
+  renewalDate: null,
   stripeCustomerId: null,
   stripeSubscriptionId: null,
 };
@@ -73,21 +73,20 @@ function normalizeMembershipStatus(
     return "active";
   }
 
-  const normalized = (rawStatus ?? "trialing").toLowerCase();
-  if (normalized === "trial") {
-    return "trialing";
+  const normalized = (rawStatus ?? "expired").toLowerCase();
+  if (normalized === "trial" || normalized === "trialing") {
+    return "expired";
   }
 
   if (
     normalized === "active" ||
-    normalized === "trialing" ||
     normalized === "cancelled" ||
     normalized === "expired"
   ) {
     return normalized;
   }
 
-  return "trialing";
+  return "expired";
 }
 
 function isPaidMembership(membership: MembershipRecord | null | undefined) {

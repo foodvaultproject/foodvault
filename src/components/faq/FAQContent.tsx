@@ -145,7 +145,7 @@ export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
               Members
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Questions about memberships, free trials, billing and using FOODVAULT in New Zealand.
+              Questions about memberships, billing and using FOODVAULT in New Zealand.
             </p>
           </FAQCategoryCard>
 

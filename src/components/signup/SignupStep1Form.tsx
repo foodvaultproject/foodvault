@@ -16,7 +16,7 @@ import {
   signInWithGoogle,
 } from "@/lib/auth";
 import { createMemberAccountAction } from "@/lib/member/signup-actions";
-import { MEMBER_HOME_PATH } from "@/lib/member/paths";
+import { SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import {
   finalizeBusinessNameInput,
   formatBusinessNameInput,
@@ -24,7 +24,6 @@ import {
 } from "@/lib/business-name";
 import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import {
-  formatFreeTrialLabel,
   formatMembershipPriceMonthly,
   type MembershipSettings,
 } from "@/lib/member/pricing";
@@ -54,7 +53,6 @@ function GoogleIcon() {
 }
 
 export function SignupStep1Form({ settings }: { settings: MembershipSettings }) {
-  const trialLabel = formatFreeTrialLabel(settings.trialLengthDays);
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
@@ -65,7 +63,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
   const [confirmPassword, setConfirmPassword] = useState("");
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<"trial" | "membership" | "google" | null>(null);
+  const [loading, setLoading] = useState<"membership" | "google" | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
@@ -94,9 +92,9 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     const result = await signInWithGoogle({
       accountType: "member",
       flow: "signup",
-      signupMode: "trial",
+      signupMode: "membership",
       marketingOptIn,
-      nextPath: MEMBER_HOME_PATH,
+      nextPath: SIGNUP_MEMBERSHIP_PATH,
     });
     if (result.error) {
       setError(result.error);
@@ -104,7 +102,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
     }
   }
 
-  async function submit(mode: "trial" | "membership") {
+  async function submit() {
     setError(null);
 
     if (captchaRequired && !turnstileToken) {
@@ -112,9 +110,9 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
       return;
     }
 
-    setLoading(mode);
+    setLoading("membership");
     try {
-      const result = await createMemberAccountAction(formData, mode, turnstileToken);
+      const result = await createMemberAccountAction(formData, turnstileToken);
       if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
         savePendingSignup({
           email: email.trim(),
@@ -130,7 +128,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
       }
       if (!isSupabaseConfigured()) {
         createDevSession(email.trim(), "member");
-        router.push(mode === "trial" ? "/signup/welcome" : "/signup/membership");
+        router.push("/signup/membership");
         router.refresh();
       }
     } finally {
@@ -157,8 +155,8 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
         <div className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Create Your Account</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start a {trialLabel}, or join for {priceLabel}. Secure your access to
-            exclusive vaulted food savings.
+            Join for {priceLabel} and unlock exclusive vaulted food savings from
+            participating Kiwi brands.
           </p>
 
           <button
@@ -189,7 +187,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              void submit("trial");
+              void submit();
             }}
           >
             <div className="grid gap-4 sm:grid-cols-2">
@@ -301,23 +299,7 @@ export function SignupStep1Form({ settings }: { settings: MembershipSettings }) 
               disabled={loading !== null}
               className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
             >
-              {loading === "trial" ? "Creating account..." : `Start ${formatFreeTrialLabel(settings.trialLengthDays)}`}
-            </button>
-
-            <div className="relative py-2 text-center">
-              <span className="bg-background px-3 text-xs font-semibold uppercase text-muted-foreground">
-                Or
-              </span>
-              <div className="absolute inset-x-0 top-1/2 -z-10 h-px bg-border" />
-            </div>
-
-            <button
-              type="button"
-              disabled={loading !== null}
-              onClick={() => void submit("membership")}
-              className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-4 py-3.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 disabled:opacity-60"
-            >
-              {loading === "membership" ? "Creating account..." : "Continue to Membership"}
+              {loading === "membership" ? "Creating account..." : "Start Saving Now"}
             </button>
           </form>
 

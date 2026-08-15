@@ -8,7 +8,7 @@ import {
 } from "@/components/faq/FAQAccordion";
 import { heading2 } from "@/lib/ui-classes";
 
-const baseFaqs = [
+const faqs = [
   {
     question: "How does a FoodVault membership help me save?",
     answer:
@@ -25,23 +25,14 @@ const baseFaqs = [
       "FoodVault is not a marketplace or checkout platform. You browse member offers on FoodVault, then shop directly on each brand's own website. They handle payment, shipping, and customer service.",
   },
   {
-    question: "Is the free trial really free?",
-    answer: (trialLengthDays: number) =>
-      `Yes. Start a ${trialLengthDays}-day free trial with no payment card required. Explore member pricing across all partner brands and cancel before your trial ends if it's not for you.`,
+    question: "Can I browse discounts without paying?",
+    answer:
+      "Yes. Anyone can browse brands and see advertised member discounts. A paid membership is required to reveal and copy promo codes.",
   },
 ] as const;
 
-type PricingFAQSectionProps = {
-  trialLengthDays: number;
-};
-
-export function PricingFAQSection({ trialLengthDays }: PricingFAQSectionProps) {
+export function PricingFAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const faqs = baseFaqs.map((faq) => ({
-    question: faq.question,
-    answer: typeof faq.answer === "function" ? faq.answer(trialLengthDays) : faq.answer,
-  }));
 
   return (
     <section className="bg-surface-lavender py-10 sm:py-14">

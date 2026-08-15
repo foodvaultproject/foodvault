@@ -19,8 +19,11 @@ export function MemberSignupCtaLink({
   className,
   ...props
 }: MemberSignupCtaLinkProps) {
-  const { isFreeTrial, isLoading } = useMemberSignupCtaContext();
-  const { label, href } = resolveMemberSignupCta(variant, isFreeTrial);
+  const { isActiveMember, isMember, isLoading } = useMemberSignupCtaContext();
+  const { label, href } = resolveMemberSignupCta(variant, {
+    isActiveMember,
+    isMember,
+  });
 
   if (isLoading) {
     return (
@@ -33,7 +36,7 @@ export function MemberSignupCtaLink({
 
   return (
     <Link href={href} className={className} prefetch {...props}>
-      {isFreeTrial ? label : (children ?? label)}
+      {isActiveMember ? label : (children ?? label)}
     </Link>
   );
 }

@@ -19,7 +19,7 @@ export function HeroSection() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:gap-4">
             <MemberSignupCtaLink
-              variant="start-free-trial"
+              variant="unlock-discounts"
               className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
             />
             <Link

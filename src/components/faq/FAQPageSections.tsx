@@ -1,13 +1,11 @@
 import Link from "next/link";
 import {
-  formatFreeTrialLabel,
   formatMembershipPriceMonthly,
   type MembershipSettings,
 } from "@/lib/member/pricing";
 
 export function FAQHero({ settings }: { settings: MembershipSettings }) {
   const priceLabel = formatMembershipPriceMonthly(settings.membershipPriceMonthly);
-  const trialLabel = formatFreeTrialLabel(settings.trialLengthDays);
 
   return (
     <section className="bg-gradient-to-b from-surface-lavender via-background to-background pb-4 pt-7 sm:pb-5 sm:pt-10 md:pt-12">
@@ -16,7 +14,7 @@ export function FAQHero({ settings }: { settings: MembershipSettings }) {
           Help Centre
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-          Find answers about FOODVAULT memberships in New Zealand ({priceLabel}, {trialLabel}),
+          Find answers about FOODVAULT memberships in New Zealand ({priceLabel}),
           partner listings, the Affiliate Program, and how the platform works.
         </p>
       </div>

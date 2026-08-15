@@ -78,10 +78,8 @@ export async function resendSignupVerificationAction(
   const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
   const firstName =
     typeof metadata.first_name === "string" ? metadata.first_name : null;
-  const signupMode =
-    typeof metadata.signup_mode === "string" ? metadata.signup_mode : "trial";
   const nextPath =
-    accountType === "member" && signupMode === "membership"
+    accountType === "member"
       ? SIGNUP_MEMBERSHIP_PATH
       : defaultNextPathForAccount(accountType);
 

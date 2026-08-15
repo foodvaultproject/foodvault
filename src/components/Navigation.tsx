@@ -5,10 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MobileMenu } from "@/components/NavLinks";
 import { NavLinks } from "@/components/NavLinks";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
-import {
-  useIsFreeTrialMember,
-  useTrialEndsAt,
-} from "@/components/member/MemberSignupCtaProvider";
+import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import {
   getAuthSession,
   isSupabaseConfigured,
@@ -39,10 +36,6 @@ import {
   NAV_MENU_PREVIEW_ENABLED,
   NAV_MENU_PREVIEW_GRADIENT,
 } from "@/lib/nav-menu-preview";
-import {
-  FreeTrialCountdownBar,
-} from "@/components/member/FreeTrialCountdownBar";
-import { getTrialCountdownParts } from "@/lib/member/trial-countdown";
 
 export type { NavAuthState } from "@/lib/nav-auth";
 
@@ -304,7 +297,7 @@ function DesktopAuthActions({
   auth: NavAuthState;
   menuPreview?: boolean;
 }) {
-  const isFreeTrial = useIsFreeTrialMember();
+  const isActiveMember = useIsActiveMember();
 
   if (auth.status === "loading") {
     return (
@@ -344,15 +337,14 @@ function DesktopAuthActions({
           </Link>
         )}
         <MemberSignupCtaLink
-          variant="start-free-trial-nav"
+          variant="unlock-discounts-nav"
           className={
             menuPreview
               ? NAV_MENU_CTA_CLASS
               : "fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
           }
         >
-          <span className="hidden sm:inline">Start FREE Trial</span>
-          <span className="sm:hidden">Free Trial</span>
+          Unlock Discounts
         </MemberSignupCtaLink>
       </>
     );
@@ -360,9 +352,9 @@ function DesktopAuthActions({
 
   return (
     <div className="hidden items-center gap-3 xl:flex">
-      {auth.status === "member" && isFreeTrial ? (
+      {auth.status === "member" && !isActiveMember ? (
         <MemberSignupCtaLink
-          variant="start-free-trial"
+          variant="unlock-discounts"
           className={
             menuPreview
               ? NAV_MENU_CTA_CLASS
@@ -380,14 +372,6 @@ export function Navigation() {
   const auth = useNavAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
-  const isFreeTrial = useIsFreeTrialMember();
-  const trialEndsAt = useTrialEndsAt();
-  const showCountdownBar =
-    auth.status === "member" &&
-    isFreeTrial &&
-    Boolean(trialEndsAt) &&
-    !getTrialCountdownParts(trialEndsAt).expired;
-
   return (
     <header
       className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
@@ -428,7 +412,6 @@ export function Navigation() {
           />
         </div>
       </nav>
-      {showCountdownBar && !mobileMenuOpen ? <FreeTrialCountdownBar /> : null}
     </header>
   );
 }

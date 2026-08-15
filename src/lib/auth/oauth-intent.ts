@@ -6,7 +6,7 @@ export const OAUTH_INTENT_CLIENT_COOKIE = "fv-oauth-intent-client";
 export type OAuthIntent = {
   accountType: AccountType;
   nextPath?: string;
-  signupMode?: "trial" | "membership";
+  signupMode?: "membership";
   marketingOptIn?: boolean;
   flow: "signup" | "login";
 };
