@@ -106,7 +106,7 @@ function HeroTextColumn({
 
 function HeroVisualColumn({ children }: { children: ReactNode }) {
   return (
-    <div className="relative mt-auto flex min-h-0 items-end justify-center self-stretch px-4 pb-4 sm:px-6 md:mt-0 md:overflow-visible md:px-8 md:pb-0">
+    <div className="relative mt-auto flex min-h-0 items-end justify-center self-stretch leading-[0] px-4 pb-4 sm:px-6 md:mt-0 md:overflow-visible md:px-8 md:pb-0">
       {children}
     </div>
   );
@@ -138,41 +138,49 @@ function VisitorHeroBanner() {
     "inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto";
 
   return (
-    <HeroGrid
-      text={
-        <HeroTextColumn
-          title={
-            <>
-              Discover Kiwi Brands.{" "}
-              <span className="text-white/95">Enjoy Member Savings.</span>
-            </>
-          }
-          description={VISITOR_SUPPORTING_COPY}
-          actions={
-            <>
-              <MemberSignupCtaLink variant="start-free-trial" className={primaryCtaClassName} />
-              <Link
-                href={consumerSearchPath()}
-                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
-              >
-                Explore Brands
-              </Link>
-            </>
-          }
+    <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
+      <HeroTextColumn
+        title={
+          <>
+            Discover Kiwi Brands.{" "}
+            <span className="text-white/95">Enjoy Member Savings.</span>
+          </>
+        }
+        description={VISITOR_SUPPORTING_COPY}
+        actions={
+          <>
+            <MemberSignupCtaLink variant="start-free-trial" className={primaryCtaClassName} />
+            <Link
+              href={consumerSearchPath()}
+              className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
+            >
+              Explore Brands
+            </Link>
+          </>
+        }
+      />
+
+      <div className="relative mt-auto flex min-h-0 w-full items-end justify-center self-stretch leading-[0] md:overflow-visible md:px-8">
+        <div className="w-full px-4 sm:px-6 md:hidden">
+          <div className="flex min-h-[min(72vw,18rem)] w-full items-end justify-center">
+            <img
+              src={VISITOR_HERO_ILLUSTRATION}
+              alt=""
+              aria-hidden="true"
+              className="block h-auto w-full max-h-[min(72vw,18rem)] object-contain object-bottom"
+              decoding="async"
+            />
+          </div>
+        </div>
+        <img
+          src={VISITOR_HERO_ILLUSTRATION}
+          alt=""
+          aria-hidden="true"
+          className="hidden h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:block md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
+          decoding="async"
         />
-      }
-      visual={
-        <HeroVisualColumn>
-          <img
-            src={VISITOR_HERO_ILLUSTRATION}
-            alt=""
-            aria-hidden="true"
-            className="block h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:h-auto md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
-            decoding="async"
-          />
-        </HeroVisualColumn>
-      }
-    />
+      </div>
+    </div>
   );
 }
 
