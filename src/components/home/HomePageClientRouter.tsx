@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { HomeFeaturedBrands } from "@/components/home/HomeFeaturedBrands";
 import { HomeHero } from "@/components/home/HomeHero";
+import { HomePageSkeleton } from "@/components/home/HomePageSkeleton";
 import { HomeTrendingDepartmentCardsSection } from "@/components/home/HomeTrendingDepartmentCards";
 import { PartnerAffiliateSetupBanner } from "@/components/partner-portal/PartnerAffiliateSetupBanner";
 import { HomeFAQ } from "@/components/home/HomeFAQ";
@@ -17,87 +18,32 @@ import {
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
-import { getAuthSession } from "@/lib/auth";
+import { getAuthSession, syncAuthSessionHints } from "@/lib/auth";
+import { resolveInitialHomeAudience } from "@/lib/auth/session-hint";
 import { resolveClientMembershipView } from "@/lib/member/client-membership";
 import { getPartnerListing } from "@/lib/partner-data";
 import type { StaticHomepageData } from "@/lib/homepage/static-data";
 
-type HomeAudience = "loading" | "guest" | "partner" | "active-member" | "free-trial";
+type HomeAudience = "guest" | "partner" | "active-member" | "free-trial";
 
-export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
-  const [audience, setAudience] = useState<HomeAudience>("loading");
-  const [partnerGalleryImages, setPartnerGalleryImages] = useState<string[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function resolveAudience() {
-      if (await isCurrentUserAdminAction()) {
-        if (!cancelled) {
-          setAudience("guest");
-        }
-        return;
-      }
-
-      const session = await getAuthSession();
-      if (!session) {
-        if (!cancelled) {
-          setAudience("guest");
-        }
-        return;
-      }
-
-      if (session.accountType === "partner") {
-        const listing = await getPartnerListing(session.id);
-        if (!cancelled) {
-          setPartnerGalleryImages((listing?.galleryImageUrls ?? []).filter(Boolean).slice(0, 3));
-          setAudience("partner");
-        }
-        return;
-      }
-
-      if (session.accountType !== "member") {
-        if (!cancelled) {
-          setAudience("guest");
-        }
-        return;
-      }
-
-      const membership = await resolveClientMembershipView();
-      if (cancelled) return;
-
-      if (membership.isActiveMember) {
-        setAudience("active-member");
-        return;
-      }
-
-      if (membership.isFreeTrial) {
-        setAudience("free-trial");
-        return;
-      }
-
-      setAudience("guest");
-    }
-
-    void resolveAudience();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (audience === "loading") {
-    return (
-      <>
-        <HomeHero collageImages={data.heroBrandGalleryImages} />
-        <HomeTrendingDepartmentCardsSection />
-      </>
-    );
-  }
+function HomeAudienceContent({
+  audience,
+  data,
+  partnerGalleryImages,
+  isSettling,
+}: {
+  audience: HomeAudience;
+  data: StaticHomepageData;
+  partnerGalleryImages: string[];
+  isSettling: boolean;
+}) {
+  const settleClass = isSettling
+    ? "opacity-100 transition-opacity duration-200 ease-out"
+    : "opacity-100";
 
   if (audience === "partner") {
     return (
-      <>
+      <div className={settleClass}>
         <PartnerAffiliateSetupBanner variant="compact" />
         <HomeHero variant="partner" collageImages={partnerGalleryImages} />
         <HomeTrendingDepartmentCardsSection />
@@ -112,13 +58,13 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
           compactSpacing
         />
         <HomeVaultDropSection drops={data.vaultDrops} />
-      </>
+      </div>
     );
   }
 
   if (audience === "active-member") {
     return (
-      <>
+      <div className={settleClass}>
         <HomeHero variant="active-member" collageImages={data.heroBrandGalleryImages} />
         <HomeTrendingDepartmentCardsSection />
         <HomeVaultDropSection drops={data.vaultDrops} />
@@ -132,13 +78,13 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
           hideViewAll
           compactSpacing
         />
-      </>
+      </div>
     );
   }
 
   if (audience === "free-trial") {
     return (
-      <>
+      <div className={settleClass}>
         <HomeHero variant="free-trial" />
         <HomeTrendingDepartmentCardsSection />
         <HomeVaultDropSection drops={data.vaultDrops} />
@@ -153,12 +99,12 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
           compactSpacing
         />
         <HomeFAQ faqs={data.homepageFaqs} compactSpacing />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className={settleClass}>
       <HomeHero />
       <HomeTrendingDepartmentCardsSection />
       <HomeFeaturedBrands
@@ -178,6 +124,92 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
       />
       <HomeFAQ faqs={data.homepageFaqs} />
       <HomePartnerBanner />
-    </>
+    </div>
+  );
+}
+
+export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
+  const initialHint = resolveInitialHomeAudience();
+  const [audience, setAudience] = useState<HomeAudience | "unknown">(initialHint);
+  const [resolved, setResolved] = useState(initialHint !== "unknown");
+  const [partnerGalleryImages, setPartnerGalleryImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolveAudience() {
+      const [admin, session] = await Promise.all([
+        isCurrentUserAdminAction(),
+        getAuthSession(),
+      ]);
+
+      if (cancelled) return;
+
+      if (admin || !session) {
+        syncAuthSessionHints(null);
+        setAudience("guest");
+        setResolved(true);
+        return;
+      }
+
+      if (session.accountType === "partner") {
+        const listing = await getPartnerListing(session.id);
+        if (cancelled) return;
+
+        syncAuthSessionHints(session);
+        setPartnerGalleryImages((listing?.galleryImageUrls ?? []).filter(Boolean).slice(0, 3));
+        setAudience("partner");
+        setResolved(true);
+        return;
+      }
+
+      if (session.accountType !== "member") {
+        syncAuthSessionHints(session);
+        setAudience("guest");
+        setResolved(true);
+        return;
+      }
+
+      const membership = await resolveClientMembershipView();
+      if (cancelled) return;
+
+      syncAuthSessionHints(session, membership);
+
+      if (membership.isActiveMember) {
+        setAudience("active-member");
+        setResolved(true);
+        return;
+      }
+
+      if (membership.isFreeTrial) {
+        setAudience("free-trial");
+        setResolved(true);
+        return;
+      }
+
+      setAudience("guest");
+      setResolved(true);
+    }
+
+    void resolveAudience();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (audience === "unknown") {
+    return <HomePageSkeleton />;
+  }
+
+  return (
+    <div className={resolved ? "opacity-100 transition-opacity duration-200" : "opacity-0"}>
+      <HomeAudienceContent
+        audience={audience}
+        data={data}
+        partnerGalleryImages={partnerGalleryImages}
+        isSettling={resolved}
+      />
+    </div>
   );
 }

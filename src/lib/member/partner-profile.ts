@@ -601,20 +601,21 @@ export async function getProfileViewerContext(
     };
   }
 
-  const { data: ownPartner } = await supabase
-    .from("partners")
-    .select("id, application_status_v2, listing_status_v2")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: ownPartner }, admin, { isActiveMember }, { isFreeTrialMember }] =
+    await Promise.all([
+      supabase
+        .from("partners")
+        .select("id, application_status_v2, listing_status_v2")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      getAdminUser(),
+      getActiveMemberView(),
+      getFreeTrialMemberView(),
+    ]);
 
   const isPartner = isPartnerUser(user) || Boolean(ownPartner);
-  const admin = await getAdminUser();
   const isAdmin = Boolean(admin);
   const canFavorite = !isPartner && !isAdmin;
-  const [{ isActiveMember }, { isFreeTrialMember }] = await Promise.all([
-    getActiveMemberView(),
-    getFreeTrialMemberView(),
-  ]);
 
   let isFavorited = false;
   if (canFavorite) {

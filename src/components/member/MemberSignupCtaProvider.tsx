@@ -11,8 +11,9 @@ import {
   type ReactNode,
 } from "react";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
-import { isSupabaseConfigured, getAuthSession } from "@/lib/auth";
+import { isSupabaseConfigured, getAuthSession, syncAuthSessionHints } from "@/lib/auth";
 import { repairMemberSessionAction } from "@/lib/auth/finalize-verified-session";
+import { readMembershipStateHintClient } from "@/lib/auth/session-hint";
 import { resolveClientMembershipView } from "@/lib/member/client-membership";
 import { createClient } from "@/lib/supabase/client";
 
@@ -23,6 +24,37 @@ type MemberSignupCtaContextValue = {
   isLoading: boolean;
 };
 
+function initialMembershipStateFromHint(): Omit<MemberSignupCtaContextValue, "isLoading"> & {
+  isLoading: boolean;
+} {
+  const membershipHint = readMembershipStateHintClient();
+
+  if (membershipHint === "active") {
+    return {
+      isFreeTrial: false,
+      isActiveMember: true,
+      trialEndsAt: null,
+      isLoading: false,
+    };
+  }
+
+  if (membershipHint === "trial") {
+    return {
+      isFreeTrial: true,
+      isActiveMember: false,
+      trialEndsAt: null,
+      isLoading: false,
+    };
+  }
+
+  return {
+    isFreeTrial: false,
+    isActiveMember: false,
+    trialEndsAt: null,
+    isLoading: true,
+  };
+}
+
 const MemberSignupCtaContext = createContext<MemberSignupCtaContextValue>({
   isFreeTrial: false,
   isActiveMember: false,
@@ -32,19 +64,16 @@ const MemberSignupCtaContext = createContext<MemberSignupCtaContextValue>({
 
 export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [state, setState] = useState<MemberSignupCtaContextValue>({
-    isFreeTrial: false,
-    isActiveMember: false,
-    trialEndsAt: null,
-    isLoading: true,
-  });
+  const [state, setState] = useState<MemberSignupCtaContextValue>(
+    initialMembershipStateFromHint
+  );
 
   const refresh = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true }));
 
     try {
-      // Admins browsing the public site must match visitor membership chrome.
       if (await isCurrentUserAdminAction()) {
+        syncAuthSessionHints(null);
         setState({
           isFreeTrial: false,
           isActiveMember: false,
@@ -56,6 +85,7 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
 
       const session = await getAuthSession();
       if (!session || session.accountType !== "member") {
+        syncAuthSessionHints(session);
         setState({
           isFreeTrial: false,
           isActiveMember: false,
@@ -74,6 +104,7 @@ export function MemberSignupCtaProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      syncAuthSessionHints(session, view);
       setState({ ...view, isLoading: false });
     } catch {
       setState({

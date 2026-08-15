@@ -6,6 +6,12 @@ import {
   resolveActiveAccountType,
 } from "@/lib/auth/account-roles";
 import { readActivePortalClient, setActivePortalClient } from "@/lib/auth/active-portal";
+import {
+  authHintFromAccountType,
+  clearSessionHintsClient,
+  setSessionHintsClient,
+  syncSessionHintsFromSession,
+} from "@/lib/auth/session-hint";
 import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { storeOAuthIntentAction } from "@/lib/auth/oauth-intent-actions";
 import {
@@ -59,6 +65,7 @@ function readDevSession(): AuthSession | null {
 
 function writeDevSession(session: AuthSession) {
   sessionStorage.setItem(DEV_SESSION_KEY, JSON.stringify(session));
+  syncSessionHintsFromSession(session);
 }
 
 export function createDevSession(email: string, accountType: AccountType) {
@@ -123,6 +130,13 @@ export async function getAuthSession(): Promise<AuthSession | null> {
   };
 }
 
+export function syncAuthSessionHints(
+  session: AuthSession | null,
+  membership?: { isFreeTrial: boolean; isActiveMember: boolean }
+) {
+  syncSessionHintsFromSession(session, membership);
+}
+
 const WRONG_ACCOUNT_MESSAGES: Record<AccountType, string> = {
   member:
     "This email is registered as a FoodVault Partner account. Please use Partner Login instead.",
@@ -169,6 +183,7 @@ export async function signInWithEmail(
       return { error: WRONG_ACCOUNT_MESSAGES.partner };
     }
     setActivePortalClient("partner");
+    setSessionHintsClient({ auth: "partner" });
     return { accountType: "partner" };
   }
 
@@ -182,6 +197,7 @@ export async function signInWithEmail(
       return { error: WRONG_ACCOUNT_MESSAGES.member };
     }
     setActivePortalClient("member");
+    setSessionHintsClient({ auth: "member" });
     return { accountType: "member" };
   }
 
@@ -190,6 +206,7 @@ export async function signInWithEmail(
     return { error: WRONG_ACCOUNT_MESSAGES[expectedAccountType] };
   }
 
+  setSessionHintsClient({ auth: authHintFromAccountType(primaryType) });
   return { accountType: primaryType };
 }
 
@@ -275,8 +292,13 @@ export async function signOut() {
 
   if (!isSupabaseConfigured()) {
     sessionStorage.removeItem(DEV_SESSION_KEY);
+    clearSessionHintsClient();
+    setSessionHintsClient({ auth: "guest", membership: "none" });
     return;
   }
+
+  clearSessionHintsClient();
+  setSessionHintsClient({ auth: "guest", membership: "none" });
 
   const supabase = createClient();
   await supabase.auth.signOut();

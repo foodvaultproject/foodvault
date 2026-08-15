@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { PartnerCategoriesEditor } from "@/components/partner/PartnerCategorySelector";
 import {
   emptyCategoryGroup,
@@ -265,7 +265,7 @@ export function PartnerListingEditor() {
     usePartnerOnboarding();
   const [listing, setListing] = useState<EditorListing>(emptyListing);
   const [listingLoaded, setListingLoaded] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [isSavePending, startSaveTransition] = useTransition();
   const [uploading, setUploading] = useState<PartnerAssetKind | null>(null);
   const [status, setStatus] = useState<{
     type: "success" | "error";
@@ -577,7 +577,7 @@ export function PartnerListingEditor() {
       return;
     }
 
-    setSaving(true);
+    startSaveTransition(async () => {
     setStatus(null);
 
     const offerTitle =
@@ -594,7 +594,6 @@ export function PartnerListingEditor() {
         listing.offerValue
       );
     } catch (error) {
-      setSaving(false);
       setStatus({
         type: "error",
         message: error instanceof Error ? error.message : "Product upload failed.",
@@ -606,7 +605,6 @@ export function PartnerListingEditor() {
     try {
       vaultDropStored = await uploadVaultDropDraft(partner.user_id, listing.vaultDrop);
     } catch (error) {
-      setSaving(false);
       setStatus({
         type: "error",
         message: error instanceof Error ? error.message : "FLASH SALE upload failed.",
@@ -686,9 +684,8 @@ export function PartnerListingEditor() {
         type: "error",
         message: error instanceof Error ? error.message : "Unable to save listing.",
       });
-    } finally {
-      setSaving(false);
     }
+    });
   }
 
   const fieldProps = {
@@ -989,7 +986,7 @@ export function PartnerListingEditor() {
             <VaultDropFields
               value={listing.vaultDrop}
               onChange={(vaultDrop) => setListing((prev) => ({ ...prev, vaultDrop }))}
-              disabled={!isListingEditable || saving}
+              disabled={!isListingEditable || isSavePending}
               inputClass={isListingEditable ? fieldProps.className : portalInputDisabled}
               labelClass={labelClass}
               helperClass={helperClass}
@@ -1115,10 +1112,10 @@ export function PartnerListingEditor() {
           <button
             type="button"
             onClick={handleSave}
-            disabled={onboardingState === "APPLICATION_UNDER_REVIEW" || saving}
+            disabled={onboardingState === "APPLICATION_UNDER_REVIEW" || isSavePending}
             className={`${portalBtnPrimary} sm:ml-auto`}
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {isSavePending ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

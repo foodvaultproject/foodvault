@@ -6,6 +6,7 @@ import { ConsumerSecondaryNav } from "@/components/consumer/ConsumerSecondaryNav
 import { Footer } from "@/components/Footer";
 import { MemberSignupCtaProvider } from "@/components/member/MemberSignupCtaProvider";
 import { Navigation } from "@/components/Navigation";
+import { NavigationPrefetch } from "@/components/navigation/NavigationPrefetch";
 import { shouldShowConsumerSecondaryNav } from "@/lib/consumer-nav-restructure";
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <MemberSignupCtaProvider>
       <AuthSessionRefresh />
+      <NavigationPrefetch />
       <Navigation />
       {showConsumerSecondaryNav ? <ConsumerSecondaryNav /> : null}
       <main

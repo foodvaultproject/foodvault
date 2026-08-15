@@ -16,13 +16,23 @@ type MemberSignupCtaLinkProps = Omit<ComponentProps<typeof Link>, "href"> & {
 export function MemberSignupCtaLink({
   variant,
   children,
+  className,
   ...props
 }: MemberSignupCtaLinkProps) {
-  const { isFreeTrial } = useMemberSignupCtaContext();
+  const { isFreeTrial, isLoading } = useMemberSignupCtaContext();
   const { label, href } = resolveMemberSignupCta(variant, isFreeTrial);
 
+  if (isLoading) {
+    return (
+      <span
+        className={`inline-block animate-pulse rounded-sm bg-white/25 ${className ?? ""}`}
+        aria-hidden="true"
+      />
+    );
+  }
+
   return (
-    <Link href={href} {...props}>
+    <Link href={href} className={className} prefetch {...props}>
       {isFreeTrial ? label : (children ?? label)}
     </Link>
   );

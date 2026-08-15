@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { PartnerCategoriesEditor } from "@/components/partner/PartnerCategorySelector";
 import {
   categoryGroupsFromLegacy,
@@ -234,7 +234,7 @@ export function PartnerApplicationPage() {
     defaultAffiliateProgramConfig()
   );
   const [vaultDrop, setVaultDrop] = useState<VaultDropFormDraft>(emptyVaultDropFormDraft());
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitPending, startSubmitTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -448,11 +448,10 @@ export function PartnerApplicationPage() {
     setSocialErrors((current) => patchSocialFieldError(current, field, value));
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!session) return;
 
-    setSubmitting(true);
     setSubmitError(null);
 
     const galleryItems = galleryDraftItems.filter(
@@ -468,7 +467,6 @@ export function PartnerApplicationPage() {
     });
     if (!brandDetailsValidation.ok) {
       setSubmitError(brandDetailsValidation.message);
-      setSubmitting(false);
       return;
     }
 
@@ -480,7 +478,6 @@ export function PartnerApplicationPage() {
     );
     if (!offerValidation.ok) {
       setSubmitError(offerValidation.message);
-      setSubmitting(false);
       return;
     }
 
@@ -488,7 +485,6 @@ export function PartnerApplicationPage() {
     if (hasSocialFieldErrors(nextSocialErrors)) {
       setSocialErrors(nextSocialErrors);
       setSubmitError("Please fix the social media fields highlighted below.");
-      setSubmitting(false);
       return;
     }
 
@@ -496,7 +492,6 @@ export function PartnerApplicationPage() {
     if (nextCategoryError) {
       setCategoryError(nextCategoryError);
       setSubmitError(nextCategoryError);
-      setSubmitting(false);
       return;
     }
 
@@ -505,7 +500,6 @@ export function PartnerApplicationPage() {
       : validateAffiliateProgram(affiliateProgram);
     if (!affiliateValidation.ok) {
       setSubmitError(affiliateValidation.message);
-      setSubmitting(false);
       return;
     }
 
@@ -515,10 +509,10 @@ export function PartnerApplicationPage() {
     });
     if (!vaultDropValidation.ok) {
       setSubmitError(vaultDropValidation.message);
-      setSubmitting(false);
       return;
     }
 
+    startSubmitTransition(async () => {
     try {
       const record = await submitPartnerApplication(
         session.id,
@@ -574,8 +568,8 @@ export function PartnerApplicationPage() {
       setSubmitError(
         error instanceof Error ? error.message : "Unable to submit your application."
       );
-      setSubmitting(false);
     }
+    });
   };
 
   if (checkingSession) {
@@ -776,7 +770,7 @@ export function PartnerApplicationPage() {
                 items={galleryDraftItems}
                 minItems={MIN_PARTNER_GALLERY_IMAGES}
                 maxItems={MAX_PRODUCT_GALLERY_IMAGES}
-                disabled={submitting}
+                disabled={isSubmitPending}
                 onChange={setGalleryDraftItems}
               />
             </section>
@@ -800,7 +794,7 @@ export function PartnerApplicationPage() {
                   setCategoryError(validateCategoryGroups(groups));
                 }}
                 error={categoryError}
-                disabled={submitting}
+                disabled={isSubmitPending}
               />
             </section>
 
@@ -863,7 +857,7 @@ export function PartnerApplicationPage() {
                 <VaultDropFields
                   value={vaultDrop}
                   onChange={setVaultDrop}
-                  disabled={submitting}
+                  disabled={isSubmitPending}
                   inputClass={inputClass}
                   labelClass={labelClass}
                   idPrefix="application-vault-drop"
@@ -885,7 +879,7 @@ export function PartnerApplicationPage() {
                 <AffiliateProgramFields
                   value={affiliateProgram}
                   onChange={setAffiliateProgram}
-                  disabled={submitting}
+                  disabled={isSubmitPending}
                   inputClass={inputClass}
                   labelClass={labelClass}
                   idPrefix="application-affiliate"
@@ -1002,10 +996,10 @@ export function PartnerApplicationPage() {
 
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={isSubmitPending}
                 className="fv-btn-primary inline-flex w-full items-center justify-center gap-2 rounded-sm px-6 py-2 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {submitting ? "Submitting..." : "Submit Application"}
+                {isSubmitPending ? "Submitting..." : "Submit Application"}
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>

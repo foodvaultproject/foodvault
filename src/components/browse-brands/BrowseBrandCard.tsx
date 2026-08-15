@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { BrandTileDiscountBadge } from "@/components/browse-brands/BrandTileDiscountBadge";
 import {
   brandCardContentClass,
@@ -43,33 +43,40 @@ export function BrowseBrandCard({
 }: BrowseBrandCardProps) {
   const router = useRouter();
   const [favorited, setFavorited] = useState(initialFavorited);
-  const [loading, setLoading] = useState(false);
+  const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
+    favorited,
+    (_current, nextValue: boolean) => nextValue
+  );
+  const [isPending, startTransition] = useTransition();
   const profilePath = partnerProfilePathFromSlug(brand.slug);
   const category = brand.departments[0] ?? brand.department ?? "New Zealand brand";
   const imageSrc = brand.galleryImageUrl ?? brand.bannerImageUrl;
 
-  async function handleFavorite(event: React.MouseEvent) {
+  function handleFavorite(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
-    if (loading) return;
+    if (isPending) return;
 
     if (!canFavorite) {
-      const session = await getAuthSession();
-      router.push(session ? "/pricing" : "/signup");
+      void getAuthSession().then((session) => {
+        router.push(session ? "/pricing" : "/signup");
+      });
       return;
     }
 
-    setLoading(true);
-    const result = await toggleFavoritePartnerAction(brand.id, favorited);
-    setLoading(false);
+    startTransition(async () => {
+      const nextFavorited = !optimisticFavorited;
+      setOptimisticFavorited(nextFavorited);
 
-    if (!("error" in result) || !result.error) {
-      const nextFavorited = !favorited;
+      const result = await toggleFavoritePartnerAction(brand.id, optimisticFavorited);
+      if ("error" in result && result.error) {
+        return;
+      }
+
       setFavorited(nextFavorited);
       onFavoriteChange?.(brand.id, nextFavorited);
-      router.refresh();
-    }
+    });
   }
 
   return (
@@ -104,16 +111,16 @@ export function BrowseBrandCard({
           <button
             type="button"
             onClick={handleFavorite}
-            disabled={loading}
+            disabled={isPending}
             aria-label={
-              favorited
+              optimisticFavorited
                 ? `Remove ${brand.businessName} from favorites`
                 : `Save ${brand.businessName} to favorites`
             }
-            aria-pressed={favorited}
-            className={favorited ? favoriteOnImageActiveClass : favoriteOnImageClass}
+            aria-pressed={optimisticFavorited}
+            className={optimisticFavorited ? favoriteOnImageActiveClass : favoriteOnImageClass}
           >
-            <FavoriteHeartIcon favorited={favorited} size="sm" />
+            <FavoriteHeartIcon favorited={optimisticFavorited} size="sm" />
           </button>
         ) : null}
       </div>
@@ -130,14 +137,9 @@ export function BrowseBrandCard({
           crop={brand.logoCrop}
           className={brandCardLogoClass}
         />
-        <div className={`${brandCardContentClass} pb-1`}>
-          <h3 className="line-clamp-1 text-sm font-bold text-foreground">
-            {brand.businessName}
-          </h3>
-          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{category}</p>
-          <p className="mt-2 text-xs font-semibold text-primary/75 transition-colors group-hover:text-primary">
-            See offer →
-          </p>
+        <div className={brandCardContentClass}>
+          <p className="truncate text-sm font-semibold text-foreground">{brand.businessName}</p>
+          <p className="truncate text-xs text-muted-foreground">{category}</p>
         </div>
       </div>
     </Link>

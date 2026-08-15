@@ -16,8 +16,10 @@ import {
   MEMBER_DASHBOARD_PATH,
   PARTNER_DASHBOARD_PATH,
   signOutAndGoHome,
+  syncAuthSessionHints,
 } from "@/lib/auth";
 import { setActivePortalClient } from "@/lib/auth/active-portal";
+import { readAuthStateHintClient } from "@/lib/auth/session-hint";
 import {
   affiliateNavMenuItems,
   memberNavMenuItems,
@@ -44,13 +46,40 @@ import { getTrialCountdownParts } from "@/lib/member/trial-countdown";
 
 export type { NavAuthState } from "@/lib/nav-auth";
 
+function readInitialNavAuth(): NavAuthState {
+  const hint = readAuthStateHintClient();
+
+  if (hint === "member") {
+    return { status: "member", email: "" };
+  }
+
+  if (hint === "partner") {
+    return { status: "partner", email: "" };
+  }
+
+  if (hint === "affiliate") {
+    return { status: "affiliate", email: "" };
+  }
+
+  if (hint === "admin") {
+    return { status: "admin", email: "" };
+  }
+
+  if (hint === "guest") {
+    return { status: "guest" };
+  }
+
+  return { status: "loading" };
+}
+
 function useNavAuth(): NavAuthState {
-  const [auth, setAuth] = useState<NavAuthState>({ status: "loading" });
+  const [auth, setAuth] = useState<NavAuthState>(readInitialNavAuth);
 
   const resolveAuth = useCallback(async () => {
     const session = await getAuthSession();
 
     if (!session) {
+      syncAuthSessionHints(null);
       setAuth({ status: "guest" });
       return;
     }
@@ -65,11 +94,13 @@ function useNavAuth(): NavAuthState {
       session.roles.includes("member") && session.roles.includes("partner");
 
     if (admin) {
+      syncAuthSessionHints(session);
       setAuth({ status: "admin", email: session.email });
       return;
     }
 
     if (session.accountType === "partner" || (partner && !hasDualRole)) {
+      syncAuthSessionHints(session);
       setAuth({
         status: "partner",
         email: session.email,
@@ -79,10 +110,12 @@ function useNavAuth(): NavAuthState {
     }
 
     if (session.accountType === "affiliate" || affiliate) {
+      syncAuthSessionHints(session);
       setAuth({ status: "affiliate", email: session.email });
       return;
     }
 
+    syncAuthSessionHints(session);
     setAuth({
       status: "member",
       email: session.email,

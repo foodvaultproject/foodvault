@@ -78,6 +78,7 @@ export function ConsumerSecondaryNav() {
                 <Link
                   key={href}
                   href={href}
+                  prefetch
                   onClick={(event) => handleNavClick(event, href)}
                   aria-current={active ? "page" : undefined}
                   className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition-colors sm:px-4 sm:text-sm ${navItemClass(active, false)}`}
@@ -104,6 +105,7 @@ export function ConsumerSecondaryNav() {
               <Link
                 key={href}
                 href={href}
+                prefetch
                 onClick={(event) => handleNavClick(event, href)}
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 text-[10px] transition-colors ${navItemClass(active, true)}`}
