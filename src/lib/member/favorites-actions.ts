@@ -5,6 +5,11 @@ import { isSupabaseConfigured } from "@/lib/auth";
 import { MEMBER_DASHBOARD_PATH, MEMBER_FAVORITES_PATH } from "@/lib/member/paths";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuthenticatedMember } from "@/lib/member/auth";
+import { getViewerFavoriteContext } from "@/lib/member/viewer-favorites";
+
+export async function getViewerFavoriteContextAction() {
+  return getViewerFavoriteContext();
+}
 
 export async function addFavoritePartnerAction(partnerId: string) {
   const member = await requireAuthenticatedMember();

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { BrandTileDiscountBadge } from "@/components/browse-brands/BrandTileDiscountBadge";
 import {
   brandCardContentClass,
@@ -43,6 +43,9 @@ export function BrowseBrandCard({
 }: BrowseBrandCardProps) {
   const router = useRouter();
   const [favorited, setFavorited] = useState(initialFavorited);
+  useEffect(() => {
+    setFavorited(initialFavorited);
+  }, [initialFavorited]);
   const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
     favorited,
     (_current, nextValue: boolean) => nextValue
@@ -60,11 +63,22 @@ export function BrowseBrandCard({
 
     if (!canFavorite) {
       void getAuthSession().then((session) => {
-        router.push(session ? "/pricing" : "/signup");
+        if (!session) {
+          router.push("/signup");
+          return;
+        }
+        if (session.accountType !== "member") {
+          return;
+        }
+        toggleFavorite();
       });
       return;
     }
 
+    toggleFavorite();
+  }
+
+  function toggleFavorite() {
     startTransition(async () => {
       const nextFavorited = !optimisticFavorited;
       setOptimisticFavorited(nextFavorited);

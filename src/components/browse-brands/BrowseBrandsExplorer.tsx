@@ -24,6 +24,7 @@ import {
   type BrandSortOption,
 } from "@/lib/member/browse-brands-types";
 import { searchBrandsAction } from "@/lib/member/browse-brands-actions";
+import { getViewerFavoriteContextAction } from "@/lib/member/favorites-actions";
 
 const sortOptions: { value: BrandSortOption; label: string }[] = [
   { value: "featured", label: "Featured" },
@@ -80,10 +81,24 @@ export function BrowseBrandsExplorer({
   partnerHomepage = false,
   disableUrlHydration = false,
 }: BrowseBrandsExplorerProps) {
-  const favoritedSet = useMemo(
-    () => new Set(favoritedPartnerIds),
-    [favoritedPartnerIds]
-  );
+  const [favoriteEnabled, setFavoriteEnabled] = useState(canFavorite);
+  const [favoritedIds, setFavoritedIds] = useState(favoritedPartnerIds);
+  const favoritedSet = useMemo(() => new Set(favoritedIds), [favoritedIds]);
+
+  useEffect(() => {
+    if (canFavorite) return;
+
+    let cancelled = false;
+    void getViewerFavoriteContextAction().then((context) => {
+      if (cancelled) return;
+      setFavoriteEnabled(context.canFavorite);
+      setFavoritedIds(context.favoritedPartnerIds);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canFavorite]);
 
   const [departments, setDepartments] = useState<string[]>(
     initialDepartment ? [initialDepartment] : []
@@ -365,7 +380,7 @@ export function BrowseBrandsExplorer({
               <BrowseBrandCard
                 key={`featured-${brand.id}`}
                 brand={brand}
-                canFavorite={canFavorite}
+                canFavorite={favoriteEnabled}
                 initialFavorited={favoritedSet.has(brand.id)}
               />
             ))}
@@ -393,7 +408,7 @@ export function BrowseBrandsExplorer({
                 <BrowseBrandCard
                   key={brand.id}
                   brand={brand}
-                  canFavorite={canFavorite}
+                  canFavorite={favoriteEnabled}
                   initialFavorited={favoritedSet.has(brand.id)}
                 />
               ))}
