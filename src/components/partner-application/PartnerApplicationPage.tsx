@@ -84,11 +84,16 @@ import {
 } from "@/lib/partner-affiliate";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 import { ListingModelGatekeeper } from "@/components/hospitality/ListingModelGatekeeper";
-import { HospitalityApplicationFields } from "@/components/hospitality/HospitalityApplicationFields";
+import {
+  HospitalityOfferFields,
+  HospitalityVenueFields,
+} from "@/components/hospitality/HospitalityApplicationFields";
 import {
   MAX_HOSPITALITY_GALLERY_IMAGES,
+  MAX_HOSPITALITY_OFFER_IMAGES,
   MIN_HOSPITALITY_GALLERY_IMAGES,
 } from "@/lib/hospitality/constants";
+import { capitalizeSentences } from "@/lib/hospitality/text";
 import {
   emptyHospitalityApplicationDetails,
   formatHospitalityAddress,
@@ -246,6 +251,9 @@ export function PartnerApplicationPage() {
   const [galleryDraftItems, setGalleryDraftItems] = useState<PartnerGalleryDraftItem[]>(
     () => Array.from({ length: MIN_PARTNER_GALLERY_IMAGES }, () => null)
   );
+  const [offerGalleryDraftItems, setOfferGalleryDraftItems] = useState<
+    PartnerGalleryDraftItem[]
+  >(() => [null]);
   const [affiliateProgram, setAffiliateProgram] = useState<AffiliateProgramConfig>(
     defaultAffiliateProgramConfig()
   );
@@ -284,6 +292,8 @@ export function PartnerApplicationPage() {
             setHospitalityDetails({
               ...emptyHospitalityApplicationDetails(),
               ...draft.hospitality,
+              offerTitle: capitalizeSentences(draft.hospitality.offerTitle ?? ""),
+              offerTerms: capitalizeSentences(draft.hospitality.offerTerms ?? ""),
               location: {
                 ...emptyHospitalityApplicationDetails().location,
                 ...draft.hospitality.location,
@@ -292,8 +302,16 @@ export function PartnerApplicationPage() {
           }
           setBusinessName(formatBusinessNameInput(draft.businessName ?? ""));
           setWebsiteUrl(draft.websiteUrl ?? "");
-          setShortDescription(draft.shortDescription ?? "");
-          setBrandStory(draft.brandStory ?? "");
+          setShortDescription(
+            draft.listingModel === "hospitality_venue"
+              ? capitalizeSentences(draft.shortDescription ?? "")
+              : (draft.shortDescription ?? "")
+          );
+          setBrandStory(
+            draft.listingModel === "hospitality_venue"
+              ? capitalizeSentences(draft.brandStory ?? "")
+              : (draft.brandStory ?? "")
+          );
           setDiscountValue(
             resolvePartnerApplicationDiscountValue(
               draft.discountValue,
@@ -492,6 +510,9 @@ export function PartnerApplicationPage() {
     const galleryItems = galleryDraftItems.filter(
       (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
     );
+    const offerGalleryItems = offerGalleryDraftItems.filter(
+      (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
+    );
     const isHospitality = listingModel === "hospitality_venue";
 
     const brandDetailsValidation = validatePartnerBrandDetails({
@@ -499,9 +520,7 @@ export function PartnerApplicationPage() {
       logoUrl: logoUpload?.croppedFile ? logoUpload.previewUrl : null,
       shortDescription,
       brandStory,
-      galleryImageCount: isHospitality
-        ? Math.max(galleryItems.length, MIN_PARTNER_GALLERY_IMAGES)
-        : galleryItems.length,
+      galleryImageCount: galleryItems.length,
     });
     if (!brandDetailsValidation.ok) {
       setSubmitError(brandDetailsValidation.message);
@@ -511,6 +530,7 @@ export function PartnerApplicationPage() {
     if (isHospitality) {
       const hospitalityValidation = validateHospitalityApplication(hospitalityDetails, {
         galleryImageCount: galleryItems.length,
+        offerImageCount: offerGalleryItems.length,
       });
       if (!hospitalityValidation.ok) {
         setSubmitError(hospitalityValidation.message);
@@ -571,7 +591,7 @@ export function PartnerApplicationPage() {
             ? formatHospitalityAddress(hospitalityDetails.location)
             : "New Zealand",
           businessName: finalizeBusinessNameInput(businessName),
-          websiteUrl: isHospitality ? "" : websiteUrl,
+          websiteUrl: isHospitality ? websiteUrl.trim() : websiteUrl,
           shortDescription,
           brandStory,
           categoryGroups,
@@ -617,10 +637,12 @@ export function PartnerApplicationPage() {
           logoFile: logoUpload?.croppedFile ?? null,
           logoOriginalFile: logoUpload?.originalFile ?? null,
           logoCrop: logoUpload?.crop ?? null,
-          galleryItems: galleryItems.slice(
-            0,
-            isHospitality ? MAX_HOSPITALITY_GALLERY_IMAGES : MAX_PRODUCT_GALLERY_IMAGES
-          ),
+          galleryItems: isHospitality
+            ? [...galleryItems, ...offerGalleryItems].slice(
+                0,
+                MAX_HOSPITALITY_GALLERY_IMAGES + MAX_HOSPITALITY_OFFER_IMAGES
+              )
+            : galleryItems.slice(0, MAX_PRODUCT_GALLERY_IMAGES),
         }
       );
       await notifyAdminPartnerListingSubmittedAction(record.id);
@@ -728,25 +750,29 @@ export function PartnerApplicationPage() {
                     className={`mt-1 ${inputClass}`}
                   />
                 </div>
-                {isHospitalityForm ? null : (
                 <div>
                   <label htmlFor="websiteUrl" className={labelClass}>
-                    Website URL
+                    {isHospitalityForm ? "Website (Optional)" : "Website URL"}
                   </label>
                   <input
                     id="websiteUrl"
                     name="websiteUrl"
                     type="url"
-                    required
+                    required={!isHospitalityForm}
                     value={websiteUrl}
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                     placeholder="https://yourbrand.com"
                     className={`mt-1 ${inputClass}`}
                   />
                 </div>
-                )}
               </div>
-              {isHospitalityForm ? null : (
+              {isHospitalityForm ? (
+                <HospitalityVenueFields
+                  value={hospitalityDetails}
+                  onChange={setHospitalityDetails}
+                  disabled={isSubmitPending}
+                />
+              ) : (
               <div className="mt-2">
                 <label htmlFor="location" className={labelClass}>
                   Main Operating Location
@@ -769,7 +795,7 @@ export function PartnerApplicationPage() {
 
             <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
-                title="Brand Details"
+                title={isHospitalityForm ? "Details" : "Brand Details"}
                 description={
                   <>
                     <p>Show members what makes your brand special.</p>
@@ -813,7 +839,13 @@ export function PartnerApplicationPage() {
                   required
                   maxLength={MAX_PARTNER_SHORT_DESCRIPTION_LENGTH}
                   value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
+                  onChange={(e) =>
+                    setShortDescription(
+                      isHospitalityForm
+                        ? capitalizeSentences(e.target.value)
+                        : e.target.value
+                    )
+                  }
                   placeholder="Freshly baked bread delivered to your door"
                   className={`mt-2 ${inputClass}`}
                 />
@@ -828,7 +860,13 @@ export function PartnerApplicationPage() {
                   required
                   rows={5}
                   value={brandStory}
-                  onChange={(e) => setBrandStory(e.target.value)}
+                  onChange={(e) =>
+                    setBrandStory(
+                      isHospitalityForm
+                        ? capitalizeSentences(e.target.value)
+                        : e.target.value
+                    )
+                  }
                   placeholder="Tell members about your brand, values, and what makes your products special..."
                   className={`mt-1 resize-y ${inputClass}`}
                 />
@@ -837,7 +875,7 @@ export function PartnerApplicationPage() {
 
             <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
-                title="Products & Brand Images"
+                title={isHospitalityForm ? "Products & Gallery" : "Products & Brand Images"}
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
@@ -846,7 +884,7 @@ export function PartnerApplicationPage() {
               />
               <p className="mt-3 text-sm text-muted-foreground">
                 {isHospitalityForm
-                  ? `Upload up to ${MAX_HOSPITALITY_GALLERY_IMAGES} photos of your interior, signature dishes, or menu highlights.`
+                  ? `Upload at least ${MIN_HOSPITALITY_GALLERY_IMAGES} photos of your interior, signature dishes, or menu highlights (maximum ${MAX_HOSPITALITY_GALLERY_IMAGES}).`
                   : `Upload at least ${MIN_PARTNER_GALLERY_IMAGES} high-quality images of your products or brand (maximum ${MAX_PRODUCT_GALLERY_IMAGES}). Images are cropped to a 4:5 portrait format, like Instagram.`}
               </p>
               <PartnerGalleryDraftGrid
@@ -871,25 +909,40 @@ export function PartnerApplicationPage() {
             {isHospitalityForm ? (
             <section className="rounded-lg border border-success/20 bg-success-light/40 p-3 sm:p-4">
               <SectionHeader
-                title="Venue, Hours & Member Offer"
+                title="Member Offer"
                 description={
                   <p>
-                    Add your physical location, opening hours, and the in-person offer members
-                    can redeem at your venue.
+                    Describe the in-person offer members can redeem at your venue, and add photos
+                    of that offer.
                   </p>
                 }
                 icon={
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
                   </svg>
                 }
               />
               <div className="mt-3">
-                <HospitalityApplicationFields
+                <HospitalityOfferFields
                   value={hospitalityDetails}
                   onChange={setHospitalityDetails}
                   disabled={isSubmitPending}
+                />
+              </div>
+              <div className="mt-5">
+                <p className={labelClass}>Offer photos</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add up to {MAX_HOSPITALITY_OFFER_IMAGES} photos of the member offer described
+                  above.
+                </p>
+                <PartnerGalleryDraftGrid
+                  variant="compact"
+                  className="mt-2"
+                  items={offerGalleryDraftItems}
+                  minItems={0}
+                  maxItems={MAX_HOSPITALITY_OFFER_IMAGES}
+                  disabled={isSubmitPending}
+                  onChange={setOfferGalleryDraftItems}
                 />
               </div>
             </section>

@@ -6,6 +6,7 @@ import {
   HOSPITALITY_REDEMPTION_CAP_LABEL,
   HOSPITALITY_VENUE_TYPE_LABELS,
 } from "@/lib/hospitality/constants";
+import { capitalizeSentences } from "@/lib/hospitality/text";
 import {
   HOSPITALITY_OFFER_CATEGORIES,
   HOSPITALITY_VENUE_TYPES,
@@ -17,33 +18,37 @@ const inputClass =
 
 const labelClass = "text-sm font-bold text-foreground";
 
-type HospitalityApplicationFieldsProps = {
+type HospitalityFieldsProps = {
   value: HospitalityApplicationDetails;
   onChange: (value: HospitalityApplicationDetails) => void;
   disabled?: boolean;
 };
 
-export function HospitalityApplicationFields({
+function patchDetails(
+  value: HospitalityApplicationDetails,
+  onChange: (value: HospitalityApplicationDetails) => void,
+  partial: Partial<HospitalityApplicationDetails>
+) {
+  onChange({ ...value, ...partial });
+}
+
+export function HospitalityVenueFields({
   value,
   onChange,
   disabled = false,
-}: HospitalityApplicationFieldsProps) {
-  function patch(partial: Partial<HospitalityApplicationDetails>) {
-    onChange({ ...value, ...partial });
-  }
-
+}: HospitalityFieldsProps) {
   return (
-    <div className="space-y-5">
+    <div className="mt-4 space-y-4">
       <div>
         <label htmlFor="hospitality-venue-type" className={labelClass}>
-          Venue type
+          Venue Type
         </label>
         <select
           id="hospitality-venue-type"
           value={value.venueType}
           disabled={disabled}
           onChange={(event) =>
-            patch({
+            patchDetails(value, onChange, {
               venueType: event.target.value as HospitalityApplicationDetails["venueType"],
             })
           }
@@ -60,51 +65,65 @@ export function HospitalityApplicationFields({
 
       <AddressAutocomplete
         value={value.location}
-        onChange={(location) => patch({ location })}
+        onChange={(location) => patchDetails(value, onChange, { location })}
         disabled={disabled}
       />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor="hospitality-hours" className={labelClass}>
-            Opening hours
+            Opening Hours
           </label>
           <input
             id="hospitality-hours"
             value={value.openingHours}
             disabled={disabled}
-            onChange={(event) => patch({ openingHours: event.target.value })}
+            onChange={(event) =>
+              patchDetails(value, onChange, { openingHours: event.target.value })
+            }
             placeholder="e.g. Mon–Fri 7:00am–3:00pm"
             className={`mt-1 ${inputClass}`}
           />
         </div>
         <div>
           <label htmlFor="hospitality-phone" className={labelClass}>
-            Venue phone
+            Venue Phone (Optional)
           </label>
           <input
             id="hospitality-phone"
             type="tel"
             value={value.phone}
             disabled={disabled}
-            onChange={(event) => patch({ phone: event.target.value })}
+            onChange={(event) =>
+              patchDetails(value, onChange, { phone: event.target.value })
+            }
             placeholder="e.g. 04 555 0121"
             className={`mt-1 ${inputClass}`}
           />
         </div>
       </div>
+    </div>
+  );
+}
 
+export function HospitalityOfferFields({
+  value,
+  onChange,
+  disabled = false,
+}: HospitalityFieldsProps) {
+  return (
+    <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor="hospitality-offer-category" className={labelClass}>
-            Offer category
+            Offer Category
           </label>
           <select
             id="hospitality-offer-category"
             value={value.offerCategory}
             disabled={disabled}
             onChange={(event) =>
-              patch({
+              patchDetails(value, onChange, {
                 offerCategory: event.target
                   .value as HospitalityApplicationDetails["offerCategory"],
               })
@@ -121,7 +140,7 @@ export function HospitalityApplicationFields({
         </div>
         <div>
           <label htmlFor="hospitality-redemption-cap" className={labelClass}>
-            Redemption cap
+            Redemption Cap
           </label>
           <select
             id="hospitality-redemption-cap"
@@ -136,28 +155,36 @@ export function HospitalityApplicationFields({
 
       <div>
         <label htmlFor="hospitality-offer-title" className={labelClass}>
-          Offer title
+          Offer Title
         </label>
         <input
           id="hospitality-offer-title"
           value={value.offerTitle}
           disabled={disabled}
-          onChange={(event) => patch({ offerTitle: event.target.value })}
-          placeholder='e.g. "15% Off Total Bill"'
+          onChange={(event) =>
+            patchDetails(value, onChange, {
+              offerTitle: capitalizeSentences(event.target.value),
+            })
+          }
+          placeholder='e.g. "15% Off total bill"'
           className={`mt-1 ${inputClass}`}
         />
       </div>
 
       <div>
         <label htmlFor="hospitality-offer-terms" className={labelClass}>
-          Terms &amp; conditions
+          Terms &amp; Conditions
         </label>
         <textarea
           id="hospitality-offer-terms"
           rows={4}
           value={value.offerTerms}
           disabled={disabled}
-          onChange={(event) => patch({ offerTerms: event.target.value })}
+          onChange={(event) =>
+            patchDetails(value, onChange, {
+              offerTerms: capitalizeSentences(event.target.value),
+            })
+          }
           placeholder="e.g. Dine-in only, excludes alcohol."
           className={`mt-1 resize-y ${inputClass}`}
         />

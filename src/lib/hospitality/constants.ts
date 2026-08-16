@@ -53,8 +53,9 @@ export const HOSPITALITY_OFFER_CATEGORY_LABELS: Record<
 
 export const HOSPITALITY_REDEMPTION_CAP_LABEL = "Once per visit / transaction";
 
-export const MAX_HOSPITALITY_GALLERY_IMAGES = 5;
-export const MIN_HOSPITALITY_GALLERY_IMAGES = 1;
+export const MAX_HOSPITALITY_GALLERY_IMAGES = 10;
+export const MIN_HOSPITALITY_GALLERY_IMAGES = 3;
+export const MAX_HOSPITALITY_OFFER_IMAGES = 5;
 
 export const NOMINATIM_COUNTRY_CODES = "nz";
 

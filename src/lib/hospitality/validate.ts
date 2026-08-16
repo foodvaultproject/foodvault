@@ -1,4 +1,8 @@
-import { MAX_HOSPITALITY_GALLERY_IMAGES } from "@/lib/hospitality/constants";
+import {
+  MAX_HOSPITALITY_GALLERY_IMAGES,
+  MAX_HOSPITALITY_OFFER_IMAGES,
+  MIN_HOSPITALITY_GALLERY_IMAGES,
+} from "@/lib/hospitality/constants";
 import {
   formatHospitalityAddress,
   type HospitalityApplicationDetails,
@@ -6,7 +10,7 @@ import {
 
 export function validateHospitalityApplication(
   details: HospitalityApplicationDetails,
-  options: { galleryImageCount: number }
+  options: { galleryImageCount: number; offerImageCount?: number }
 ): { ok: true } | { ok: false; message: string } {
   if (!details.venueType) {
     return { ok: false, message: "Please choose a venue type." };
@@ -30,10 +34,6 @@ export function validateHospitalityApplication(
     return { ok: false, message: "Please add your opening hours." };
   }
 
-  if (!details.phone.trim()) {
-    return { ok: false, message: "Please add a phone number for your venue." };
-  }
-
   if (!details.offerCategory) {
     return { ok: false, message: "Please choose an offer category." };
   }
@@ -46,17 +46,24 @@ export function validateHospitalityApplication(
     return { ok: false, message: "Please add offer terms and conditions." };
   }
 
-  if (options.galleryImageCount < 1) {
+  if (options.galleryImageCount < MIN_HOSPITALITY_GALLERY_IMAGES) {
     return {
       ok: false,
-      message: "Please upload at least one photo of your venue.",
+      message: `Please upload at least ${MIN_HOSPITALITY_GALLERY_IMAGES} gallery photos.`,
     };
   }
 
   if (options.galleryImageCount > MAX_HOSPITALITY_GALLERY_IMAGES) {
     return {
       ok: false,
-      message: `Please upload no more than ${MAX_HOSPITALITY_GALLERY_IMAGES} photos.`,
+      message: `Please upload no more than ${MAX_HOSPITALITY_GALLERY_IMAGES} gallery photos.`,
+    };
+  }
+
+  if ((options.offerImageCount ?? 0) > MAX_HOSPITALITY_OFFER_IMAGES) {
+    return {
+      ok: false,
+      message: `Please upload no more than ${MAX_HOSPITALITY_OFFER_IMAGES} offer photos.`,
     };
   }
 

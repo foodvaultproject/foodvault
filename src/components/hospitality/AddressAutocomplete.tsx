@@ -80,7 +80,7 @@ export function AddressAutocomplete({
     <div className="space-y-3">
       <div className="relative">
         <label htmlFor={`${listId}-search`} className={labelClass}>
-          Venue address
+          Venue Address
         </label>
         <input
           id={`${listId}-search`}
