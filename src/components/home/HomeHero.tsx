@@ -77,13 +77,15 @@ function HeroTextColumn({
   title,
   description,
   actions,
+  paddingClass = HOME_HERO_PY_COMPACT,
 }: {
   title: ReactNode;
   description: string;
   actions?: ReactNode;
+  paddingClass?: string;
 }) {
   return (
-    <div className={`flex flex-col justify-center px-4 sm:px-6 lg:px-8 ${HOME_HERO_PY_COMPACT}`}>
+    <div className={`flex flex-col justify-center px-4 sm:px-6 lg:px-8 ${paddingClass}`}>
       <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-white sm:text-[2.75rem] lg:text-[3rem]">
         {title}
       </h1>
@@ -124,16 +126,32 @@ function HeroGrid({
   );
 }
 
-function HeroIllustration({ src }: { src: string }) {
+function HeroIllustration({
+  src,
+  compact = false,
+}: {
+  src: string;
+  compact?: boolean;
+}) {
   return (
     <div className="relative mt-auto flex min-h-0 w-full items-end justify-center self-stretch leading-[0] md:overflow-visible md:px-8">
       <div className="w-full px-4 sm:px-6 md:hidden">
-        <div className="flex min-h-[min(72vw,18rem)] w-full items-end justify-center">
+        <div
+          className={
+            compact
+              ? "flex min-h-[min(50.4vw,12.6rem)] w-full items-end justify-center"
+              : "flex min-h-[min(72vw,18rem)] w-full items-end justify-center"
+          }
+        >
           <img
             src={src}
             alt=""
             aria-hidden="true"
-            className="block h-auto w-full max-h-[min(72vw,18rem)] object-contain object-bottom"
+            className={
+              compact
+                ? "block h-auto w-full max-h-[min(50.4vw,12.6rem)] object-contain object-bottom"
+                : "block h-auto w-full max-h-[min(72vw,18rem)] object-contain object-bottom"
+            }
             decoding="async"
           />
         </div>
@@ -142,7 +160,11 @@ function HeroIllustration({ src }: { src: string }) {
         src={src}
         alt=""
         aria-hidden="true"
-        className="hidden h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:block md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
+        className={
+          compact
+            ? "hidden h-auto w-full max-w-[min(100%,28rem)] object-contain object-bottom md:block md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[0.91] md:-translate-x-2"
+            : "hidden h-auto w-full max-w-[min(100%,40rem)] object-contain object-bottom md:block md:max-h-full md:w-auto md:max-w-full md:origin-bottom md:scale-[1.3] md:-translate-x-2"
+        }
         decoding="async"
       />
     </div>
@@ -179,8 +201,9 @@ function VisitorHeroBanner() {
 
 function ActiveMemberHeroBanner() {
   return (
-    <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
+    <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[19.6rem] md:items-stretch lg:min-h-[22.4rem]">
       <HeroTextColumn
+        paddingClass="py-[1.05rem] sm:py-[1.4rem] lg:py-[1.75rem]"
         title={
           <>
             More to discover. <span className="text-white/95">More to save.</span>
@@ -193,7 +216,7 @@ function ActiveMemberHeroBanner() {
           </Link>
         }
       />
-      <HeroIllustration src={ACTIVE_MEMBER_HERO_ILLUSTRATION} />
+      <HeroIllustration src={ACTIVE_MEMBER_HERO_ILLUSTRATION} compact />
     </div>
   );
 }

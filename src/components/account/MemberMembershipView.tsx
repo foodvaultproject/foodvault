@@ -13,32 +13,6 @@ import {
 } from "@/lib/member/pricing";
 import type { MembershipRecord } from "@/lib/member/queries";
 
-const features = [
-  {
-    title: "Unlimited access to member offers",
-    description:
-      "Browse every participating FoodVault partner and unlock member-only pricing.",
-    icon: "🏷️",
-  },
-  {
-    title: "Discover new brands",
-    description:
-      "Search by category for food, beverage, and household brands across New Zealand.",
-    icon: "🔍",
-  },
-  {
-    title: "Save your favourites",
-    description: "Quick access to the brands you love most.",
-    icon: "❤️",
-  },
-  {
-    title: "Direct from participating brands",
-    description:
-      "FoodVault connects you to brands. Purchases and payments happen directly with them.",
-    icon: "🏪",
-  },
-];
-
 const faqs = [
   {
     question: "Can I cancel anytime?",
@@ -65,7 +39,7 @@ const faqs = [
 type Feedback = { type: "error" | "success" | "info"; text: string };
 
 const memberStatusSectionClass =
-  "rounded-lg border border-primary/30 bg-primary/5 p-4 shadow-sm";
+  "rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 shadow-sm";
 
 type MemberMembershipViewProps = {
   membership: MembershipRecord | null;
@@ -178,16 +152,18 @@ export function MemberMembershipView({
             </p>
           ) : null}
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <div className="mt-5">
             {isPaidMember ? (
               <section className={memberStatusSectionClass}>
-                <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
-                  {cancelScheduled ? "Cancelling" : "Active Member"}
-                </span>
-                <p className="mt-3 text-xl font-bold text-foreground">
-                  FoodVault Member
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    {cancelScheduled ? "Cancelling" : "Active Member"}
+                  </span>
+                  <p className="text-base font-bold text-foreground">
+                    FoodVault Member
+                  </p>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
                   {cancelScheduled
                     ? `Your membership stays active until ${formatMemberDateShort(membership?.renewalDate ?? membership?.cancellationDate)}. You won't be charged again.`
                     : "Your paid membership is active. Manage your billing details below."}
@@ -195,44 +171,25 @@ export function MemberMembershipView({
               </section>
             ) : (
               <section className={memberStatusSectionClass}>
-                <span className="inline-flex rounded-full bg-surface px-3 py-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  Membership Inactive
-                </span>
-                <p className="mt-3 text-xl font-bold text-foreground">
-                  FoodVault Member
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex rounded-full bg-surface px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                    Membership Inactive
+                  </span>
+                  <p className="text-base font-bold text-foreground">
+                    FoodVault Member
+                  </p>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
                   You can browse brands for free. A paid membership is required to reveal and copy promo codes.
                 </p>
                 <Link
                   href={SIGNUP_MEMBERSHIP_PATH}
-                  className="fv-btn-primary mt-4 inline-flex items-center justify-center rounded-sm px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+                  className="fv-btn-primary mt-2 inline-flex items-center justify-center rounded-sm px-4 py-1.5 text-xs font-semibold text-primary-foreground"
                 >
                   Unlock Discounts
                 </Link>
               </section>
             )}
-
-            <section className="rounded-lg border border-border bg-background p-4 shadow-sm">
-              <h2 className="text-[14px] font-bold text-foreground">
-                Membership Includes
-              </h2>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {features.map((feature) => (
-                  <div key={feature.title} className="rounded-lg bg-surface p-3">
-                    <span className="text-lg" aria-hidden="true">
-                      {feature.icon}
-                    </span>
-                    <h3 className="mt-2 text-[12px] font-bold text-foreground">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
 
           {isPaidMember ? (
