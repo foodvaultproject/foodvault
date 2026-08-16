@@ -34,8 +34,11 @@ function favoritePartnerToBrandCard(partner: FavoritePartner): BrandCard {
     logoUrl: partner.logoUrl,
     logoOriginalUrl: partner.logoOriginalUrl,
     logoCrop: partner.logoCrop,
-    location: partner.location,
+    location: partner.locationLabel ?? partner.location,
     isFeatured: false,
+    listingModel: partner.listingModel ?? "online_brand",
+    venueType: partner.venueType,
+    locationLabel: partner.locationLabel ?? partner.location,
   };
 }
 

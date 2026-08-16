@@ -1,14 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DiscoverMoreCard,
   FavoritePartnerCard,
   FavoritesEmptyState,
 } from "@/components/favorites/FavoritePartnerCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
+import { listLocalHospitalityFavorites } from "@/lib/hospitality/local-favorites";
+import { isHospitalityListing } from "@/lib/hospitality/types";
 import { parseDiscountSortValue } from "@/lib/member/favorites-utils";
 import type { FavoritePartner } from "@/lib/member/favorites-queries";
+
+type FavoriteTab = "all" | "online" | "local";
+
+const favoriteTabs: { value: FavoriteTab; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "online", label: "Online Brands" },
+  { value: "local", label: "Local Venues" },
+];
 
 const sortOptions = [
   { value: "recently-saved", label: "Recently Saved" },
@@ -28,10 +38,27 @@ export function MemberFavoritesView({ initialFavorites }: MemberFavoritesViewPro
   const [favorites, setFavorites] = useState(initialFavorites);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortValue>("recently-saved");
+  const [tab, setTab] = useState<FavoriteTab>("all");
+
+  useEffect(() => {
+    const localVenues = listLocalHospitalityFavorites();
+    if (localVenues.length === 0) return;
+    setFavorites((current) => {
+      const existing = new Set(current.map((item) => item.partnerId));
+      const extras = localVenues.filter((item) => !existing.has(item.partnerId));
+      return extras.length > 0 ? [...extras, ...current] : current;
+    });
+  }, []);
 
   const filteredFavorites = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     let items = favorites;
+
+    if (tab === "online") {
+      items = items.filter((partner) => !isHospitalityListing(partner.listingModel));
+    } else if (tab === "local") {
+      items = items.filter((partner) => isHospitalityListing(partner.listingModel));
+    }
 
     if (query) {
       items = items.filter(
@@ -77,7 +104,7 @@ export function MemberFavoritesView({ initialFavorites }: MemberFavoritesViewPro
     }
 
     return sorted;
-  }, [favorites, searchQuery, sortBy]);
+  }, [favorites, searchQuery, sortBy, tab]);
 
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
@@ -94,6 +121,31 @@ export function MemberFavoritesView({ initialFavorites }: MemberFavoritesViewPro
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Quickly access your saved food and beverage businesses.
           </p>
+          <div
+            role="tablist"
+            aria-label="Favorite type"
+            className="mt-5 inline-flex rounded-md border border-border bg-background p-1 shadow-sm"
+          >
+            {favoriteTabs.map((option) => {
+              const selected = tab === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setTab(option.value)}
+                  className={`rounded-sm px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    selected
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </header>
 
         {favorites.length > 0 ? (

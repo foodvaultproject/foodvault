@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { getAuthSession } from "@/lib/auth";
 import { FavoriteHeartIcon } from "@/components/favorites/FavoriteHeartIcon";
+import {
+  isLocalHospitalityFavorited,
+  shouldUseLocalHospitalityFavorite,
+  toggleLocalHospitalityFavorite,
+} from "@/lib/hospitality/local-favorites";
 import { toggleFavoritePartnerAction } from "@/lib/member/favorites-actions";
 
 type FavoriteToggleButtonProps = {
@@ -16,7 +21,11 @@ export function FavoriteToggleButton({
   initialFavorited,
 }: FavoriteToggleButtonProps) {
   const router = useRouter();
-  const [favorited, setFavorited] = useState(initialFavorited);
+  const [favorited, setFavorited] = useState(() =>
+    shouldUseLocalHospitalityFavorite(partnerId)
+      ? isLocalHospitalityFavorited(partnerId)
+      : initialFavorited
+  );
   const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
     favorited,
     (_current, nextValue: boolean) => nextValue
@@ -33,6 +42,12 @@ export function FavoriteToggleButton({
     startTransition(async () => {
       const nextValue = !optimisticFavorited;
       setOptimisticFavorited(nextValue);
+
+      if (shouldUseLocalHospitalityFavorite(partnerId)) {
+        toggleLocalHospitalityFavorite(partnerId);
+        setFavorited(nextValue);
+        return;
+      }
 
       const result = await toggleFavoritePartnerAction(partnerId, optimisticFavorited);
       if ("error" in result && result.error) {
@@ -63,7 +78,11 @@ export function FavoriteToggleIcon({
   initialFavorited,
 }: FavoriteToggleButtonProps) {
   const router = useRouter();
-  const [favorited, setFavorited] = useState(initialFavorited);
+  const [favorited, setFavorited] = useState(() =>
+    shouldUseLocalHospitalityFavorite(partnerId)
+      ? isLocalHospitalityFavorited(partnerId)
+      : initialFavorited
+  );
   const [optimisticFavorited, setOptimisticFavorited] = useOptimistic(
     favorited,
     (_current, nextValue: boolean) => nextValue
@@ -83,6 +102,12 @@ export function FavoriteToggleIcon({
     startTransition(async () => {
       const nextValue = !optimisticFavorited;
       setOptimisticFavorited(nextValue);
+
+      if (shouldUseLocalHospitalityFavorite(partnerId)) {
+        toggleLocalHospitalityFavorite(partnerId);
+        setFavorited(nextValue);
+        return;
+      }
 
       const result = await toggleFavoritePartnerAction(partnerId, optimisticFavorited);
       if ("error" in result && result.error) {

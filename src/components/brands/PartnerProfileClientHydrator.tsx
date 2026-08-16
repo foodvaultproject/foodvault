@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { PartnerProfileView } from "@/components/brands/PartnerProfileView";
+import { HospitalityProfileView } from "@/components/hospitality/HospitalityProfileView";
+import { isHospitalityListing } from "@/lib/hospitality/types";
 import type { BrandAffiliateViewerContext } from "@/lib/affiliate/server";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import { loadPartnerProfileViewerData } from "@/lib/member/partner-profile-viewer-actions";
@@ -70,6 +72,17 @@ export function PartnerProfileClientHydrator({
       cancelled = true;
     };
   }, [profile.id, profile.vaultDrop?.products.length]);
+
+  if (isHospitalityListing(profile.listingModel)) {
+    return (
+      <HospitalityProfileView
+        profile={profile}
+        viewer={viewer}
+        recommended={recommended}
+        favoritedPartnerIds={favoritedPartnerIds}
+      />
+    );
+  }
 
   return (
     <PartnerProfileView

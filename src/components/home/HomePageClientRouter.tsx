@@ -17,6 +17,7 @@ import {
   HomeMeatPoultryBanner,
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
+import { HomeDineLocalSection } from "@/components/hospitality/HomeDineLocalSection";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { getAuthSession, syncAuthSessionHints } from "@/lib/auth";
 import { resolveInitialHomeAudience } from "@/lib/auth/session-hint";
@@ -57,6 +58,7 @@ function HomeAudienceContent({
           hideViewAll
           compactSpacing
         />
+        <HomeDineLocalSection compactSpacing />
         <HomeVaultDropSection drops={data.vaultDrops} />
       </div>
     );
@@ -78,6 +80,7 @@ function HomeAudienceContent({
           hideViewAll
           compactSpacing
         />
+        <HomeDineLocalSection compactSpacing />
       </div>
     );
   }
@@ -101,6 +104,7 @@ function HomeAudienceContent({
         newBrands={data.homepageNewBrands}
         topOffers={data.homepageTopOffers}
       />
+      <HomeDineLocalSection />
       <HomeFAQ faqs={data.homepageFaqs} />
       <HomePartnerBanner />
     </div>

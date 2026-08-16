@@ -1,3 +1,4 @@
+import type { HospitalityVenueType, ListingModel } from "@/lib/hospitality/types";
 import type { LogoCropSettings } from "@/lib/partner-logo-crop";
 
 export type BrandSortOption =
@@ -44,6 +45,9 @@ export type BrandCard = {
   logoCrop: LogoCropSettings | null;
   location: string | null;
   isFeatured: boolean;
+  listingModel?: ListingModel;
+  venueType?: HospitalityVenueType;
+  locationLabel?: string | null;
 };
 
 export type BrandSearchResult = {

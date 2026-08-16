@@ -1,6 +1,7 @@
 "use server";
 
 import { getBrandAffiliateViewerContext } from "@/lib/affiliate/server";
+import { isHospitalityPreviewId } from "@/lib/hospitality/types";
 import {
   getPartnerDiscountCode,
   getPartnerVaultDropCode,
@@ -12,6 +13,23 @@ export async function loadPartnerProfileViewerData(
   partnerId: string,
   hasVaultDropProducts: boolean
 ) {
+  if (isHospitalityPreviewId(partnerId)) {
+    const [viewer, favoriteContext] = await Promise.all([
+      getProfileViewerContext(partnerId),
+      getViewerFavoriteContext(),
+    ]);
+
+    return {
+      code: null,
+      codeState: "anon" as const,
+      flashSaleCode: null,
+      flashSaleCodeState: "anon" as const,
+      viewer,
+      favoritedPartnerIds: favoriteContext.favoritedPartnerIds,
+      affiliateContext: { isAffiliate: false, referralUrl: null },
+    };
+  }
+
   const [
     codeAccess,
     flashSaleCodeAccess,

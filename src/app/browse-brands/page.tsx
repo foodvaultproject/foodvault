@@ -16,7 +16,14 @@ export const metadata: Metadata = {
 };
 
 type BrowseBrandsPageProps = {
-  searchParams: Promise<{ department?: string; subcategory?: string }>;
+  searchParams: Promise<{
+    department?: string;
+    subcategory?: string;
+    mode?: string;
+    region?: string;
+    city?: string;
+    venueType?: string;
+  }>;
 };
 
 export default async function BrowseBrandsPage({
@@ -28,6 +35,10 @@ export default async function BrowseBrandsPage({
     const redirectParams = new URLSearchParams();
     if (params.department) redirectParams.set("department", params.department);
     if (params.subcategory) redirectParams.set("subcategory", params.subcategory);
+    if (params.mode) redirectParams.set("mode", params.mode);
+    if (params.region) redirectParams.set("region", params.region);
+    if (params.city) redirectParams.set("city", params.city);
+    if (params.venueType) redirectParams.set("venueType", params.venueType);
     const query = redirectParams.toString();
     redirect(query ? `${CONSUMER_SEARCH_PATH}?${query}` : CONSUMER_SEARCH_PATH);
   }

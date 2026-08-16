@@ -83,6 +83,19 @@ import {
   type AffiliateProgramConfig,
 } from "@/lib/partner-affiliate";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
+import { ListingModelGatekeeper } from "@/components/hospitality/ListingModelGatekeeper";
+import { HospitalityApplicationFields } from "@/components/hospitality/HospitalityApplicationFields";
+import {
+  MAX_HOSPITALITY_GALLERY_IMAGES,
+  MIN_HOSPITALITY_GALLERY_IMAGES,
+} from "@/lib/hospitality/constants";
+import {
+  emptyHospitalityApplicationDetails,
+  formatHospitalityAddress,
+  type HospitalityApplicationDetails,
+  type ListingModel,
+} from "@/lib/hospitality/types";
+import { validateHospitalityApplication } from "@/lib/hospitality/validate";
 
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
@@ -204,6 +217,9 @@ export function PartnerApplicationPage() {
   const router = useRouter();
   const [session, setSession] = useState<PartnerSession | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [listingModel, setListingModel] = useState<ListingModel | null>(null);
+  const [hospitalityDetails, setHospitalityDetails] =
+    useState<HospitalityApplicationDetails>(emptyHospitalityApplicationDetails);
   const [businessName, setBusinessName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -263,6 +279,17 @@ export function PartnerApplicationPage() {
 
         const draft = loadPartnerApplicationDraft(partnerSession.id);
         if (draft) {
+          setListingModel(draft.listingModel ?? null);
+          if (draft.hospitality) {
+            setHospitalityDetails({
+              ...emptyHospitalityApplicationDetails(),
+              ...draft.hospitality,
+              location: {
+                ...emptyHospitalityApplicationDetails().location,
+                ...draft.hospitality.location,
+              },
+            });
+          }
           setBusinessName(formatBusinessNameInput(draft.businessName ?? ""));
           setWebsiteUrl(draft.websiteUrl ?? "");
           setShortDescription(draft.shortDescription ?? "");
@@ -353,6 +380,12 @@ export function PartnerApplicationPage() {
     if (!session) return;
 
     savePartnerApplicationDraft(session.id, {
+      listingModel: listingModel ?? undefined,
+      hospitality: hospitalityDetails,
+      location:
+        listingModel === "hospitality_venue"
+          ? formatHospitalityAddress(hospitalityDetails.location)
+          : "New Zealand",
       businessName,
       websiteUrl,
       shortDescription,
@@ -397,6 +430,8 @@ export function PartnerApplicationPage() {
     });
   }, [
     session,
+    listingModel,
+    hospitalityDetails,
     businessName,
     websiteUrl,
     shortDescription,
@@ -457,28 +492,65 @@ export function PartnerApplicationPage() {
     const galleryItems = galleryDraftItems.filter(
       (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
     );
+    const isHospitality = listingModel === "hospitality_venue";
 
     const brandDetailsValidation = validatePartnerBrandDetails({
       bannerImageUrl: bannerUpload?.croppedFile ? bannerUpload.previewUrl : null,
       logoUrl: logoUpload?.croppedFile ? logoUpload.previewUrl : null,
       shortDescription,
       brandStory,
-      galleryImageCount: galleryItems.length,
+      galleryImageCount: isHospitality
+        ? Math.max(galleryItems.length, MIN_PARTNER_GALLERY_IMAGES)
+        : galleryItems.length,
     });
     if (!brandDetailsValidation.ok) {
       setSubmitError(brandDetailsValidation.message);
       return;
     }
 
-    const offerValidation = validateOfferForm(
-      offerScope,
-      discountValue,
-      selectedProducts,
-      { requireProducts: offerScope === "selected_products" }
-    );
-    if (!offerValidation.ok) {
-      setSubmitError(offerValidation.message);
-      return;
+    if (isHospitality) {
+      const hospitalityValidation = validateHospitalityApplication(hospitalityDetails, {
+        galleryImageCount: galleryItems.length,
+      });
+      if (!hospitalityValidation.ok) {
+        setSubmitError(hospitalityValidation.message);
+        return;
+      }
+    } else {
+      const offerValidation = validateOfferForm(
+        offerScope,
+        discountValue,
+        selectedProducts,
+        { requireProducts: offerScope === "selected_products" }
+      );
+      if (!offerValidation.ok) {
+        setSubmitError(offerValidation.message);
+        return;
+      }
+
+      const nextCategoryError = validateCategoryGroups(categoryGroups);
+      if (nextCategoryError) {
+        setCategoryError(nextCategoryError);
+        setSubmitError(nextCategoryError);
+        return;
+      }
+
+      const affiliateValidation = AFFILIATE_PROGRAM_COMING_SOON
+        ? ({ ok: true } as const)
+        : validateAffiliateProgram(affiliateProgram);
+      if (!affiliateValidation.ok) {
+        setSubmitError(affiliateValidation.message);
+        return;
+      }
+
+      const preparedVaultDrop = prepareVaultDropDraftForSubmit(vaultDrop);
+      const vaultDropValidation = validateVaultDropForm(preparedVaultDrop, {
+        requireComplete: preparedVaultDrop.enabled,
+      });
+      if (!vaultDropValidation.ok) {
+        setSubmitError(vaultDropValidation.message);
+        return;
+      }
     }
 
     const nextSocialErrors = validatePartnerSocialLinks(socialValues);
@@ -488,48 +560,35 @@ export function PartnerApplicationPage() {
       return;
     }
 
-    const nextCategoryError = validateCategoryGroups(categoryGroups);
-    if (nextCategoryError) {
-      setCategoryError(nextCategoryError);
-      setSubmitError(nextCategoryError);
-      return;
-    }
-
-    const affiliateValidation = AFFILIATE_PROGRAM_COMING_SOON
-      ? ({ ok: true } as const)
-      : validateAffiliateProgram(affiliateProgram);
-    if (!affiliateValidation.ok) {
-      setSubmitError(affiliateValidation.message);
-      return;
-    }
-
-    const preparedVaultDrop = prepareVaultDropDraftForSubmit(vaultDrop);
-    const vaultDropValidation = validateVaultDropForm(preparedVaultDrop, {
-      requireComplete: preparedVaultDrop.enabled,
-    });
-    if (!vaultDropValidation.ok) {
-      setSubmitError(vaultDropValidation.message);
-      return;
-    }
-
     startSubmitTransition(async () => {
     try {
       const record = await submitPartnerApplication(
         session.id,
         {
+          listingModel: listingModel ?? "online_brand",
+          hospitality: hospitalityDetails,
+          location: isHospitality
+            ? formatHospitalityAddress(hospitalityDetails.location)
+            : "New Zealand",
           businessName: finalizeBusinessNameInput(businessName),
-          websiteUrl,
+          websiteUrl: isHospitality ? "" : websiteUrl,
           shortDescription,
           brandStory,
           categoryGroups,
           dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(categoryGroups),
-          offerType: DEFAULT_OFFER_TYPE,
-          discountValue,
-          offerExclusions,
+          offerType: isHospitality
+            ? hospitalityDetails.offerTitle || hospitalityDetails.offerCategory
+            : DEFAULT_OFFER_TYPE,
+          discountValue: isHospitality
+            ? hospitalityDetails.offerTitle.replace(/\D/g, "") || "10"
+            : discountValue,
+          offerExclusions: isHospitality
+            ? hospitalityDetails.offerTerms
+            : offerExclusions,
           offerScope,
-          selectedProducts,
+          selectedProducts: isHospitality ? [] : selectedProducts,
           supportEmail,
-          supportPhone,
+          supportPhone: isHospitality ? hospitalityDetails.phone : supportPhone,
           contactName: finalizeBusinessNameInput(contactName, MAX_CONTACT_NAME_LENGTH),
           instagram,
           facebook,
@@ -558,7 +617,10 @@ export function PartnerApplicationPage() {
           logoFile: logoUpload?.croppedFile ?? null,
           logoOriginalFile: logoUpload?.originalFile ?? null,
           logoCrop: logoUpload?.crop ?? null,
-          galleryItems: galleryItems.slice(0, MAX_PRODUCT_GALLERY_IMAGES),
+          galleryItems: galleryItems.slice(
+            0,
+            isHospitality ? MAX_HOSPITALITY_GALLERY_IMAGES : MAX_PRODUCT_GALLERY_IMAGES
+          ),
         }
       );
       await notifyAdminPartnerListingSubmittedAction(record.id);
@@ -597,6 +659,17 @@ export function PartnerApplicationPage() {
     );
   }
 
+  if (!listingModel) {
+    return (
+      <>
+        <PartnerOnboardingProgress currentStep={2} />
+        <ListingModelGatekeeper onSelect={setListingModel} />
+      </>
+    );
+  }
+
+  const isHospitalityForm = listingModel === "hospitality_venue";
+
   return (
     <>
       <PartnerOnboardingProgress currentStep={2} />
@@ -608,11 +681,19 @@ export function PartnerApplicationPage() {
               Let&apos;s get started!
             </h1>
             <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-              We&apos;re excited to see what your brand has to offer! Complete the application
-              below with as much detail as possible. Once approved, your brand will be live on
-              FoodVault, where Kiwi members can discover you, visit your website, and access your
-              exclusive member offer.
+              {isHospitalityForm
+                ? "Complete your venue application so Kiwi members can find you, visit in person, and redeem your member offer at the counter."
+                : "We're excited to see what your brand has to offer! Complete the application below with as much detail as possible. Once approved, your brand will be live on FoodVault, where Kiwi members can discover you, visit your website, and access your exclusive member offer."}
             </p>
+            <button
+              type="button"
+              onClick={() => setListingModel(null)}
+              className="mt-3 text-sm font-semibold text-primary hover:underline"
+            >
+              {isHospitalityForm
+                ? "Change listing type (currently Hospitality Venue)"
+                : "Change listing type (currently Online Kiwi Brand)"}
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-5">
@@ -647,6 +728,7 @@ export function PartnerApplicationPage() {
                     className={`mt-1 ${inputClass}`}
                   />
                 </div>
+                {isHospitalityForm ? null : (
                 <div>
                   <label htmlFor="websiteUrl" className={labelClass}>
                     Website URL
@@ -662,7 +744,9 @@ export function PartnerApplicationPage() {
                     className={`mt-1 ${inputClass}`}
                   />
                 </div>
+                )}
               </div>
+              {isHospitalityForm ? null : (
               <div className="mt-2">
                 <label htmlFor="location" className={labelClass}>
                   Main Operating Location
@@ -680,6 +764,7 @@ export function PartnerApplicationPage() {
                   FoodVault is currently exclusive to New Zealand business only.
                 </p>
               </div>
+              )}
             </section>
 
             <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
@@ -760,21 +845,55 @@ export function PartnerApplicationPage() {
                 }
               />
               <p className="mt-3 text-sm text-muted-foreground">
-                Upload at least {MIN_PARTNER_GALLERY_IMAGES} high-quality images of your
-                products or brand (maximum {MAX_PRODUCT_GALLERY_IMAGES}). Images are
-                cropped to a 4:5 portrait format, like Instagram.
+                {isHospitalityForm
+                  ? `Upload up to ${MAX_HOSPITALITY_GALLERY_IMAGES} photos of your interior, signature dishes, or menu highlights.`
+                  : `Upload at least ${MIN_PARTNER_GALLERY_IMAGES} high-quality images of your products or brand (maximum ${MAX_PRODUCT_GALLERY_IMAGES}). Images are cropped to a 4:5 portrait format, like Instagram.`}
               </p>
               <PartnerGalleryDraftGrid
                 variant="compact"
                 className="mt-2"
                 items={galleryDraftItems}
-                minItems={MIN_PARTNER_GALLERY_IMAGES}
-                maxItems={MAX_PRODUCT_GALLERY_IMAGES}
+                minItems={
+                  isHospitalityForm
+                    ? MIN_HOSPITALITY_GALLERY_IMAGES
+                    : MIN_PARTNER_GALLERY_IMAGES
+                }
+                maxItems={
+                  isHospitalityForm
+                    ? MAX_HOSPITALITY_GALLERY_IMAGES
+                    : MAX_PRODUCT_GALLERY_IMAGES
+                }
                 disabled={isSubmitPending}
                 onChange={setGalleryDraftItems}
               />
             </section>
 
+            {isHospitalityForm ? (
+            <section className="rounded-lg border border-success/20 bg-success-light/40 p-3 sm:p-4">
+              <SectionHeader
+                title="Venue, Hours & Member Offer"
+                description={
+                  <p>
+                    Add your physical location, opening hours, and the in-person offer members
+                    can redeem at your venue.
+                  </p>
+                }
+                icon={
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                  </svg>
+                }
+              />
+              <div className="mt-3">
+                <HospitalityApplicationFields
+                  value={hospitalityDetails}
+                  onChange={setHospitalityDetails}
+                  disabled={isSubmitPending}
+                />
+              </div>
+            </section>
+            ) : (
             <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Categories"
@@ -797,7 +916,9 @@ export function PartnerApplicationPage() {
                 disabled={isSubmitPending}
               />
             </section>
+            )}
 
+            {isHospitalityForm ? null : (
             <section className="rounded-lg border border-success/20 bg-success-light/40 p-3 sm:p-4">
               <SectionHeader
                 title="Member Exclusive Offer"
@@ -837,7 +958,9 @@ export function PartnerApplicationPage() {
                 />
               </div>
             </section>
+            )}
 
+            {isHospitalityForm ? null : (
             <section id="flash-sale" className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 shadow-sm scroll-mt-20 sm:p-4">
               <SectionHeader
                 title="FLASH SALE (Optional)"
@@ -865,7 +988,9 @@ export function PartnerApplicationPage() {
                 />
               </div>
             </section>
+            )}
 
+            {isHospitalityForm ? null : (
             <section className="rounded-lg border border-border bg-background p-3 opacity-95 shadow-sm sm:p-4">
               <SectionHeader
                 title="Affiliate Program (Coming Soon)"
@@ -886,6 +1011,7 @@ export function PartnerApplicationPage() {
                 />
               </div>
             </section>
+            )}
 
             <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader

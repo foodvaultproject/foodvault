@@ -62,14 +62,19 @@ export function shouldShowConsumerSecondaryNav(pathname: string): boolean {
 export function buildConsumerSearchHref(query?: {
   department?: string;
   subcategory?: string;
+  mode?: "online" | "local";
+  region?: string;
+  city?: string;
+  venueType?: string;
 }): string {
   const base = consumerSearchPath();
-  if (!query?.department && !query?.subcategory) {
-    return base;
-  }
-
   const params = new URLSearchParams();
-  if (query.department) params.set("department", query.department);
-  if (query.subcategory) params.set("subcategory", query.subcategory);
-  return `${base}?${params.toString()}`;
+  if (query?.department) params.set("department", query.department);
+  if (query?.subcategory) params.set("subcategory", query.subcategory);
+  if (query?.mode) params.set("mode", query.mode);
+  if (query?.region) params.set("region", query.region);
+  if (query?.city) params.set("city", query.city);
+  if (query?.venueType) params.set("venueType", query.venueType);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
 }

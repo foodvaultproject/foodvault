@@ -36,6 +36,15 @@ import {
 } from "@/lib/partner-offer";
 import { parseVaultDropStored, type VaultDropStored } from "@/lib/vault-drop";
 import { cache } from "react";
+import {
+  getHospitalityDemoVenueBySlug,
+  hospitalityVenueToProfile,
+} from "@/lib/hospitality/demo-venues";
+import {
+  isHospitalityPreviewId,
+  type HospitalityDetails,
+  type ListingModel,
+} from "@/lib/hospitality/types";
 
 export type PartnerProfile = {
   id: string;
@@ -75,6 +84,8 @@ export type PartnerProfile = {
   affiliateProgramDescription: string | null;
   affiliateTerms: string | null;
   vaultDrop: VaultDropStored | null;
+  listingModel?: ListingModel;
+  hospitality?: HospitalityDetails | null;
 };
 
 export type CodeAccessState =
@@ -296,6 +307,8 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     affiliateProgramDescription: row.affiliate_program_description,
     affiliateTerms: row.affiliate_terms,
     vaultDrop: parseVaultDropStored(row.vault_drop),
+    listingModel: "online_brand",
+    hospitality: null,
   };
 }
 
@@ -355,12 +368,19 @@ function buildDevProfile(slug: string): PartnerProfile | null {
     affiliateProgramDescription: null,
     affiliateTerms: null,
     vaultDrop: null,
+    listingModel: "online_brand",
+    hospitality: null,
   };
 }
 
 export const getPartnerProfile = cache(async function getPartnerProfile(
   slug: string
 ): Promise<PartnerProfile | null> {
+  const hospitalityVenue = getHospitalityDemoVenueBySlug(slug);
+  if (hospitalityVenue) {
+    return hospitalityVenueToProfile(hospitalityVenue);
+  }
+
   if (!isSupabaseConfigured()) {
     return buildDevProfile(slug);
   }
@@ -616,7 +636,7 @@ export async function getProfileViewerContext(
   const canFavorite = !isPartner && !isAdmin;
 
   let isFavorited = false;
-  if (canFavorite) {
+  if (canFavorite && !isHospitalityPreviewId(partnerId)) {
     const { data } = await supabase
       .from("member_favorites")
       .select("partner_id")

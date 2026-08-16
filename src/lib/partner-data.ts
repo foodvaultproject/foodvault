@@ -394,7 +394,7 @@ export async function submitPartnerApplication(
     linkedin: normalizeSocialValueForStorage(draft.linkedin),
     tiktok: normalizeSocialValueForStorage(draft.tiktok),
     youtube: normalizeSocialValueForStorage(draft.youtube),
-    location: "New Zealand",
+    location: draft.location?.trim() || "New Zealand",
   };
 
   if (!isSupabaseConfigured()) {

@@ -17,6 +17,9 @@ export const PARTNER_APPLICATION_SUBMITTED_PATH = "/partner-application/submitte
 const DRAFT_PREFIX = "foodvault-partner-application-draft";
 
 export type PartnerApplicationDraft = {
+  listingModel?: import("@/lib/hospitality/types").ListingModel;
+  hospitality?: import("@/lib/hospitality/types").HospitalityApplicationDetails;
+  location?: string;
   businessName?: string;
   websiteUrl?: string;
   shortDescription?: string;

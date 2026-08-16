@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import { formatBusinessName } from "@/lib/business-name";
+import type { HospitalityVenueType, ListingModel } from "@/lib/hospitality/types";
 import {
   formatPartnerDiscountLabel,
   partnerProfileSlug,
@@ -25,6 +26,9 @@ export type FavoritePartner = {
   updatedAt: string;
   partnerCreatedAt: string;
   keywords: string;
+  listingModel?: ListingModel;
+  venueType?: HospitalityVenueType;
+  locationLabel?: string | null;
 };
 
 const DEV_FAVORITES: FavoritePartner[] = [
@@ -48,6 +52,7 @@ const DEV_FAVORITES: FavoritePartner[] = [
     updatedAt: new Date().toISOString(),
     partnerCreatedAt: new Date(Date.now() - 86400000 * 30).toISOString(),
     keywords: "coffee beverage roasters",
+    listingModel: "online_brand",
   },
   {
     favoriteId: "dev-2",
@@ -69,6 +74,30 @@ const DEV_FAVORITES: FavoritePartner[] = [
     updatedAt: new Date().toISOString(),
     partnerCreatedAt: new Date(Date.now() - 86400000 * 14).toISOString(),
     keywords: "organic health pantry",
+    listingModel: "online_brand",
+  },
+  {
+    favoriteId: "dev-hosp-1",
+    partnerId: "hosp-harbourlight-cafe",
+    savedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    businessName: "Harbourlight Cafe",
+    slug: "harbourlight-cafe",
+    primaryCategory: "Cafe",
+    shortDescription:
+      "Waterfront brunch, specialty coffee, and house-baked sweets.",
+    location: "Wellington Central",
+    discountLabel: "15% Off Total Bill",
+    bannerImageUrl: "/trending-homepage/bakery-hp.webp",
+    logoUrl: null,
+    logoOriginalUrl: null,
+    logoCrop: null,
+    websiteUrl: null,
+    updatedAt: new Date().toISOString(),
+    partnerCreatedAt: new Date(Date.now() - 86400000 * 20).toISOString(),
+    keywords: "cafe wellington harbourlight hospitality",
+    listingModel: "hospitality_venue",
+    venueType: "cafe",
+    locationLabel: "Wellington Central",
   },
 ];
 
@@ -141,9 +170,10 @@ export async function getMemberFavoritePartners(
         updatedAt: partner.updated_at ?? partner.created_at,
         partnerCreatedAt: partner.created_at,
         keywords: `${businessName} ${partner.primary_category ?? ""} ${partner.short_description ?? ""} ${subcategories}`.toLowerCase(),
+        listingModel: "online_brand" as ListingModel,
       } satisfies FavoritePartner;
     })
-    .filter((item): item is FavoritePartner => item !== null);
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 export async function isPartnerFavorited(

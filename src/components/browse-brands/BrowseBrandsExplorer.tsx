@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import {
   BrowseFilterTags,
@@ -12,12 +12,27 @@ import {
   browseFilterSelectClass,
 } from "@/components/browse-brands/BrowseMultiSelectFilter";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
+import { DiscoveryModeToggle } from "@/components/hospitality/DiscoveryModeToggle";
 import {
   DIETARY_LIFESTYLE_ATTRIBUTES,
   flattenSubcategoryFilterGroups,
   getSubcategoryFilterGroups,
   PRIMARY_DEPARTMENTS,
 } from "@/data/partner-categories";
+import {
+  HOSPITALITY_VENUE_TYPE_LABELS,
+  NZ_REGIONS,
+} from "@/lib/hospitality/constants";
+import {
+  filterHospitalityDemoVenues,
+  hospitalityVenueToBrandCard,
+  listHospitalityCityOptions,
+} from "@/lib/hospitality/demo-venues";
+import {
+  HOSPITALITY_VENUE_TYPES,
+  type DiscoveryMode,
+  type HospitalityVenueType,
+} from "@/lib/hospitality/types";
 import {
   BROWSE_PAGE_SIZE,
   type BrandCard,
@@ -81,9 +96,15 @@ export function BrowseBrandsExplorer({
   partnerHomepage = false,
   disableUrlHydration = false,
 }: BrowseBrandsExplorerProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [favoriteEnabled, setFavoriteEnabled] = useState(canFavorite);
   const [favoritedIds, setFavoritedIds] = useState(favoritedPartnerIds);
   const favoritedSet = useMemo(() => new Set(favoritedIds), [favoritedIds]);
+  const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>("online");
+  const [localRegion, setLocalRegion] = useState("");
+  const [localCity, setLocalCity] = useState("");
+  const [localVenueType, setLocalVenueType] = useState<HospitalityVenueType | "">("");
 
   useEffect(() => {
     if (canFavorite) return;
@@ -121,8 +142,26 @@ export function BrowseBrandsExplorer({
       return;
     }
 
+    const mode = searchParams.get("mode")?.trim() === "local" ? "local" : "online";
+    const region = searchParams.get("region")?.trim() ?? "";
+    const city = searchParams.get("city")?.trim() ?? "";
+    const venueTypeParam = searchParams.get("venueType")?.trim() ?? "";
+    const venueType = HOSPITALITY_VENUE_TYPES.includes(
+      venueTypeParam as HospitalityVenueType
+    )
+      ? (venueTypeParam as HospitalityVenueType)
+      : "";
     const department = searchParams.get("department")?.trim() ?? "";
     const subcategory = searchParams.get("subcategory")?.trim() ?? "";
+
+    setDiscoveryMode(mode);
+    setLocalRegion(region);
+    setLocalCity(city);
+    setLocalVenueType(venueType);
+
+    if (mode === "local") {
+      return;
+    }
 
     if (!department && !subcategory) {
       return;
@@ -214,8 +253,34 @@ export function BrowseBrandsExplorer({
     setDietaryLifestyles((current) => current.filter((value) => value !== tag.value));
   }
 
+  const localCityOptions = useMemo(
+    () => listHospitalityCityOptions(localRegion || undefined),
+    [localRegion]
+  );
+
+  const localVenues = useMemo(() => {
+    const filtered = filterHospitalityDemoVenues({
+      region: localRegion || undefined,
+      city: localCity || undefined,
+      venueType: localVenueType || undefined,
+    }).map(hospitalityVenueToBrandCard);
+
+    const sorted = [...filtered];
+    if (sort === "alphabetical") {
+      sorted.sort((a, b) => a.businessName.localeCompare(b.businessName));
+    } else if (sort === "highest-discount") {
+      sorted.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
+    }
+    return sorted;
+  }, [localRegion, localCity, localVenueType, sort]);
+
+  const visibleBrands = discoveryMode === "local" ? localVenues : brands;
+  const visibleFeatured = discoveryMode === "local" ? [] : featured;
+
   const runSearch = useCallback(
     (offset: number, append: boolean) => {
+      if (discoveryMode === "local") return;
+
       startTransition(async () => {
         const result = await searchBrandsAction({
           search: "",
@@ -234,15 +299,40 @@ export function BrowseBrandsExplorer({
         );
       });
     },
-    [departments, subcategories, dietaryLifestyles, minDiscount, sort]
+    [discoveryMode, departments, subcategories, dietaryLifestyles, minDiscount, sort]
   );
+
+  function syncDiscoveryUrl(mode: DiscoveryMode) {
+    if (disableUrlHydration) return;
+    const params = new URLSearchParams();
+    if (mode === "local") {
+      params.set("mode", "local");
+      if (localRegion) params.set("region", localRegion);
+      if (localCity) params.set("city", localCity);
+      if (localVenueType) params.set("venueType", localVenueType);
+    } else if (departments[0]) {
+      params.set("department", departments[0]);
+      if (subcategories[0]) params.set("subcategory", subcategories[0]);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
+
+  function handleDiscoveryModeChange(mode: DiscoveryMode) {
+    setDiscoveryMode(mode);
+    syncDiscoveryUrl(mode);
+  }
 
   function handleSearchSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (discoveryMode === "local") {
+      syncDiscoveryUrl("local");
+      return;
+    }
     runSearch(0, false);
   }
 
-  const hasMore = brands.length < total;
+  const hasMore = discoveryMode === "online" && brands.length < total;
 
   useEffect(() => {
     if (!hasMore || isPending) return;
@@ -292,91 +382,188 @@ export function BrowseBrandsExplorer({
           className={filterPeepingClassName}
         />
         <form onSubmit={handleSearchSubmit} className={filterFormClassName}>
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
-            <div className="grid grid-cols-2 gap-3 lg:contents">
-              <BrowseMultiSelectFilter
-                label="Department"
-                placeholder="All Departments"
-                options={PRIMARY_DEPARTMENTS}
-                selected={departments}
-                onChange={setDepartments}
-              />
+          <div className="mb-4">
+            <DiscoveryModeToggle
+              value={discoveryMode}
+              onChange={handleDiscoveryModeChange}
+            />
+          </div>
 
-              <BrowseMultiSelectFilter
-                label="Subcategory"
-                placeholder="All Subcategories"
-                options={subcategoryOptions}
-                optionGroups={subcategoryGroups}
-                selected={subcategories}
-                onChange={setSubcategories}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 lg:contents">
-              <BrowseMultiSelectFilter
-                label="Diet & Lifestyle"
-                placeholder="All Attributes"
-                options={DIETARY_LIFESTYLE_ATTRIBUTES}
-                selected={dietaryLifestyles}
-                onChange={setDietaryLifestyles}
-              />
+          {discoveryMode === "local" ? (
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
+              <label className="block min-w-0 flex-1">
+                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  Region
+                </span>
+                <select
+                  value={localRegion}
+                  onChange={(event) => {
+                    setLocalRegion(event.target.value);
+                    setLocalCity("");
+                  }}
+                  className={browseFilterSelectClass}
+                >
+                  <option value="">All regions</option>
+                  <option value="other">Other regions</option>
+                  {NZ_REGIONS.map((region) => (
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               <label className="block min-w-0 flex-1">
                 <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  Member Discount
+                  City / Suburb
                 </span>
                 <select
-                  value={minDiscount}
-                  onChange={(event) => setMinDiscount(Number(event.target.value))}
+                  value={localCity}
+                  onChange={(event) => setLocalCity(event.target.value)}
                   className={browseFilterSelectClass}
                 >
-                  {discountOptions.map((option) => (
+                  <option value="">All cities &amp; suburbs</option>
+                  {localCityOptions.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block min-w-0 flex-1">
+                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  Venue type
+                </span>
+                <select
+                  value={localVenueType}
+                  onChange={(event) =>
+                    setLocalVenueType(event.target.value as HospitalityVenueType | "")
+                  }
+                  className={browseFilterSelectClass}
+                >
+                  <option value="">All venue types</option>
+                  {HOSPITALITY_VENUE_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {HOSPITALITY_VENUE_TYPE_LABELS[type]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block min-w-0 flex-1">
+                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  Sort By
+                </span>
+                <select
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as BrandSortOption)}
+                  className={browseFilterSelectClass}
+                >
+                  {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </select>
               </label>
-            </div>
 
-            <label className="block min-w-0 flex-1">
-              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                Sort By
-              </span>
-              <select
-                value={sort}
-                onChange={(event) => setSort(event.target.value as BrandSortOption)}
-                className={browseFilterSelectClass}
+              <button
+                type="submit"
+                className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 lg:w-auto"
               >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                Search
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
+              <div className="grid grid-cols-2 gap-3 lg:contents">
+                <BrowseMultiSelectFilter
+                  label="Department"
+                  placeholder="All Departments"
+                  options={PRIMARY_DEPARTMENTS}
+                  selected={departments}
+                  onChange={setDepartments}
+                />
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
-            >
-              {isPending ? "Searching..." : "Search"}
-            </button>
-          </div>
+                <BrowseMultiSelectFilter
+                  label="Subcategory"
+                  placeholder="All Subcategories"
+                  options={subcategoryOptions}
+                  optionGroups={subcategoryGroups}
+                  selected={subcategories}
+                  onChange={setSubcategories}
+                />
+              </div>
 
-          <BrowseFilterTags tags={activeFilterTags} onRemove={removeFilterTag} />
+              <div className="grid grid-cols-2 gap-3 lg:contents">
+                <BrowseMultiSelectFilter
+                  label="Diet & Lifestyle"
+                  placeholder="All Attributes"
+                  options={DIETARY_LIFESTYLE_ATTRIBUTES}
+                  selected={dietaryLifestyles}
+                  onChange={setDietaryLifestyles}
+                />
+
+                <label className="block min-w-0 flex-1">
+                  <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                    Member Discount
+                  </span>
+                  <select
+                    value={minDiscount}
+                    onChange={(event) => setMinDiscount(Number(event.target.value))}
+                    className={browseFilterSelectClass}
+                  >
+                    {discountOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <label className="block min-w-0 flex-1">
+                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                  Sort By
+                </span>
+                <select
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as BrandSortOption)}
+                  className={browseFilterSelectClass}
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="fv-btn-primary inline-flex w-full shrink-0 items-center justify-center rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60 lg:w-auto"
+              >
+                {isPending ? "Searching..." : "Search"}
+              </button>
+            </div>
+          )}
+
+          {discoveryMode === "online" ? (
+            <BrowseFilterTags tags={activeFilterTags} onRemove={removeFilterTag} />
+          ) : null}
         </form>
       </div>
 
-      {featured.length > 0 ? (
+      {visibleFeatured.length > 0 ? (
         <section className={blockGap}>
           <h2 className="text-2xl font-bold text-foreground">Featured Brands</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Discover a selection of participating brands chosen by FoodVault.
           </p>
           <div className={`${gridGap} ${brandTileGridClass}`}>
-            {featured.map((brand) => (
+            {visibleFeatured.map((brand) => (
               <BrowseBrandCard
                 key={`featured-${brand.id}`}
                 brand={brand}
@@ -391,20 +578,26 @@ export function BrowseBrandsExplorer({
       <section className={blockGap}>
         {exploreHeading ? (
           <h2 className={exploreHeadingClassName}>{exploreHeading}</h2>
+        ) : discoveryMode === "local" ? (
+          <h2 className="text-2xl font-bold text-foreground">Local venues</h2>
         ) : null}
-        {brands.length === 0 ? (
+        {visibleBrands.length === 0 ? (
           <div className={`${gridGap} rounded-lg border border-border bg-background p-10 text-center`}>
             <p className="text-lg font-semibold text-foreground">
-              No brands match your filters
+              {discoveryMode === "local"
+                ? "No venues match your filters"
+                : "No brands match your filters"}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Try adjusting your department, diet &amp; lifestyle, or discount filters.
+              {discoveryMode === "local"
+                ? "Try another region, city, or venue type."
+                : "Try adjusting your department, diet & lifestyle, or discount filters."}
             </p>
           </div>
         ) : (
           <>
-            <div className={`${exploreHeading ? gridGap : "mt-0"} ${brandTileGridClass}`}>
-              {brands.map((brand) => (
+            <div className={`${exploreHeading || discoveryMode === "local" ? gridGap : "mt-0"} ${brandTileGridClass}`}>
+              {visibleBrands.map((brand) => (
                 <BrowseBrandCard
                   key={brand.id}
                   brand={brand}
