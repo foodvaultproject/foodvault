@@ -79,6 +79,7 @@ export type PartnerRecord = {
   business_name: string | null;
   website_url: string | null;
   affiliate_enabled: boolean;
+  listingModel?: ListingModel;
 };
 
 const DEV_PARTNER_PREFIX = "foodvault-partner-record";
@@ -135,6 +136,9 @@ function mapRow(row: Record<string, unknown>): PartnerRecord {
     business_name: formatBusinessNameOrNull(row.business_name as string | null),
     website_url: (row.website_url as string | null) ?? null,
     affiliate_enabled: Boolean(row.affiliate_enabled),
+    listingModel: parseListingModel(
+      typeof row.listing_model === "string" ? row.listing_model : null
+    ),
   };
 }
 
@@ -202,6 +206,9 @@ export async function resolvePartnerVaultDropCode(
 }
 
 const PARTNER_RECORD_COLUMNS =
+  "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled, listing_model";
+
+const PARTNER_RECORD_COLUMNS_LEGACY =
   "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled";
 
 export async function getPartnerRecord(userId: string): Promise<PartnerRecord | null> {
@@ -210,11 +217,21 @@ export async function getPartnerRecord(userId: string): Promise<PartnerRecord | 
   }
 
   const supabase = createClient();
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("partners")
     .select(PARTNER_RECORD_COLUMNS)
     .eq("user_id", userId)
     .maybeSingle();
+
+  if (error) {
+    const retry = await supabase
+      .from("partners")
+      .select(PARTNER_RECORD_COLUMNS_LEGACY)
+      .eq("user_id", userId)
+      .maybeSingle();
+    data = retry.data as typeof data;
+    error = retry.error;
+  }
 
   if (error || !data) {
     return null;

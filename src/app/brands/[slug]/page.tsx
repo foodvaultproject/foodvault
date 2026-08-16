@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PartnerProfileClientHydrator } from "@/components/brands/PartnerProfileClientHydrator";
-import {
-  getCachedPartnerProfile,
-  getCachedPublicBrandSlugs,
-  getCachedRecommendedBrands,
-} from "@/lib/cache/public-directory";
-import { listHospitalityDemoVenues } from "@/lib/hospitality/demo-venues";
+import { getCachedPartnerProfile, getCachedPublicBrandSlugs, getCachedRecommendedBrands } from "@/lib/cache/public-directory";
 import { isHospitalityListing } from "@/lib/hospitality/types";
 import {
   getRecommendedHospitalityVenues,
@@ -23,8 +18,7 @@ export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const slugs = await getCachedPublicBrandSlugs();
-  const hospitalitySlugs = listHospitalityDemoVenues().map((venue) => venue.slug);
-  return [...new Set([...slugs, ...hospitalitySlugs])].map((slug) => ({ slug }));
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({

@@ -36,6 +36,7 @@ import {
 } from "@/lib/partner-offer";
 import { parseVaultDropStored, type VaultDropStored } from "@/lib/vault-drop";
 import { cache } from "react";
+import { searchHospitalityVenues } from "@/lib/hospitality/search";
 import {
   getHospitalityDemoVenueBySlug,
   hospitalityVenueToBrandCard,
@@ -47,11 +48,9 @@ import {
   hospitalityDetailsFromPartnerRow,
   isHospitalityPartnerRow,
   parseListingModel,
-  parseVenueType,
   type PartnerHospitalityRow,
 } from "@/lib/hospitality/from-partner-row";
 import {
-  formatHospitalityLocationLabel,
   isHospitalityPreviewId,
   type HospitalityDetails,
   type ListingModel,
@@ -488,11 +487,11 @@ export const getPartnerProfile = cache(async function getPartnerProfile(
   } else {
     const devProfile = buildDevProfile(slug);
     if (devProfile) return devProfile;
-  }
 
-  const hospitalityVenue = getHospitalityDemoVenueBySlug(slug);
-  if (hospitalityVenue) {
-    return hospitalityVenueToProfile(hospitalityVenue);
+    const hospitalityVenue = getHospitalityDemoVenueBySlug(slug);
+    if (hospitalityVenue) {
+      return hospitalityVenueToProfile(hospitalityVenue);
+    }
   }
 
   return isSupabaseConfigured() ? null : buildDevProfile(slug);
@@ -502,74 +501,20 @@ export async function getRecommendedHospitalityVenues(
   partnerId: string,
   limit = 4
 ): Promise<BrandCard[]> {
-  const demoCards = listHospitalityDemoVenues()
-    .filter((venue) => venue.id !== partnerId)
-    .slice(0, limit)
-    .map(hospitalityVenueToBrandCard);
-
   if (!isSupabaseConfigured()) {
-    return demoCards;
+    return listHospitalityDemoVenues()
+      .filter((venue) => venue.id !== partnerId)
+      .slice(0, limit)
+      .map(hospitalityVenueToBrandCard);
   }
 
-  const supabase = createPublicReadClient();
-  if (!supabase) return demoCards;
-
-  const { data, error } = await supabase
-    .from("v_public_brand_profile")
-    .select(
-      "id, slug, business_name, short_description, offer_type, discount_value, discount_percent, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, listing_model, venue_type, suburb, city, location"
-    )
-    .eq("listing_model", "hospitality_venue")
-    .neq("id", partnerId)
-    .limit(limit);
-
-  if (error || !data?.length) {
-    return demoCards;
-  }
-
-  const fromDb: BrandCard[] = data.map((row) => {
-    const venueType = parseVenueType(row.venue_type as string | null);
-    const locationLabel = formatHospitalityLocationLabel({
-      suburb: (row.suburb as string | null) ?? "",
-      city: (row.city as string | null) ?? "",
-    });
-    const businessName = formatBusinessName(row.business_name as string);
-
-    return {
-      id: row.id as string,
-      businessName,
-      slug: (row.slug as string | null) || partnerProfileSlug(businessName),
-      shortDescription: (row.short_description as string | null) ?? null,
-      department: hospitalityDepartmentLabel(venueType),
-      departments: [hospitalityDepartmentLabel(venueType)],
-      subcategories: [],
-      dietaryLifestyleAttributes: [],
-      offerType: (row.offer_type as string | null) ?? null,
-      discountLabel: formatPartnerDiscountLabel({
-        discount_value: row.discount_value as string | null,
-        offer_type: row.offer_type as string | null,
-      }),
-      discountPercent: (row.discount_percent as number | null) ?? null,
-      bannerImageUrl: (row.banner_image_url as string | null) ?? null,
-      galleryImageUrl: Array.isArray(row.gallery_image_urls)
-        ? ((row.gallery_image_urls as string[]).find(Boolean) ?? null)
-        : null,
-      logoUrl: (row.logo_url as string | null) ?? null,
-      logoOriginalUrl: (row.logo_original_url as string | null) ?? null,
-      logoCrop: parseLogoCrop(row.logo_crop),
-      location: locationLabel || ((row.location as string | null) ?? null),
-      isFeatured: false,
-      listingModel: "hospitality_venue",
-      venueType,
-      locationLabel,
-    };
+  const result = await searchHospitalityVenues({
+    sort: "newest",
+    limit: limit + 1,
+    offset: 0,
   });
 
-  const seen = new Set(fromDb.map((brand) => brand.id));
-  return [...fromDb, ...demoCards.filter((brand) => !seen.has(brand.id))].slice(
-    0,
-    limit
-  );
+  return result.brands.filter((brand) => brand.id !== partnerId).slice(0, limit);
 }
 
 export async function isPartnerAffiliateProgramPublic(

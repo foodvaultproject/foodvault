@@ -21,28 +21,6 @@ export function dismissListingLiveBanner(partnerId: string) {
   localStorage.setItem(listingLiveBannerDismissKey(partnerId), "1");
 }
 
-function TimelineStep({
-  label,
-  status,
-}: {
-  label: string;
-  status: "complete" | "current" | "upcoming";
-}) {
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold sm:text-sm ${
-        status === "complete"
-          ? "bg-white/20 text-white"
-          : status === "current"
-            ? "bg-white text-primary"
-            : "bg-white/10 text-white/80"
-      }`}
-    >
-      {status === "complete" ? "✓" : status === "current" ? "●" : "○"} {label}
-    </span>
-  );
-}
-
 function CodeCopyPanel({
   code,
   label,
@@ -121,6 +99,7 @@ type PartnerOnboardingStatusBannerProps = {
   partnerId?: string | null;
   className?: string;
   previewMode?: boolean;
+  hospitality?: boolean;
   onActivate?: () => void;
   confirmingActivation?: boolean;
 };
@@ -220,20 +199,6 @@ export function PartnerOnboardingStatusBanner({
               published until your application has been approved. We will notify you
               by email once your application has been reviewed.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
-              <TimelineStep label="Application Submitted" status="complete" />
-              <TimelineStep label="Under Review" status="current" />
-              <TimelineStep label="Approved" status="upcoming" />
-              <TimelineStep label="Activate Member Offer" status="upcoming" />
-              <TimelineStep label="Listing Live" status="upcoming" />
-            </div>
-            <button
-              type="button"
-              disabled
-              className="mt-4 inline-flex cursor-not-allowed items-center justify-center rounded-lg bg-white/20 px-4 py-2 text-[0.8125rem] font-semibold text-white/80"
-            >
-              Application Being Reviewed
-            </button>
           </div>
         </div>
       </div>

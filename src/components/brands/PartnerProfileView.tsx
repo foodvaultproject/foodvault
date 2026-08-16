@@ -430,6 +430,7 @@ export function PartnerProfileView({
             memberCode={code}
             vaultDropCode={flashSaleCode}
             previewMode
+            hospitality={profile.listingModel === "hospitality_venue"}
             className="mb-4"
           />
         ) : null}

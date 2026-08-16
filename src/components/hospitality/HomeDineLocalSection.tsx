@@ -1,16 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { HOSPITALITY_HOME_REGION_CHIPS } from "@/lib/hospitality/constants";
-import {
-  filterHospitalityDemoVenues,
-  hospitalityVenueToBrandCard,
-  listHospitalityDemoVenues,
-} from "@/lib/hospitality/demo-venues";
+import { listFeaturedHospitalityVenuesAction } from "@/lib/hospitality/search-actions";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 type HomeDineLocalSectionProps = {
   canFavorite?: boolean;
@@ -30,10 +28,18 @@ export function HomeDineLocalSection({
   favoritedPartnerIds = [],
   compactSpacing = false,
 }: HomeDineLocalSectionProps) {
-  const venues = listHospitalityDemoVenues()
-    .slice(0, 4)
-    .map(hospitalityVenueToBrandCard);
+  const [venues, setVenues] = useState<BrandCard[]>([]);
   const favoritedSet = new Set(favoritedPartnerIds);
+
+  useEffect(() => {
+    let cancelled = false;
+    void listFeaturedHospitalityVenuesAction(4).then((next) => {
+      if (!cancelled) setVenues(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className={`bg-background ${compactSpacing ? "py-8 sm:py-10" : SECTION_PY_HOME_REFINE}`}>
@@ -67,26 +73,19 @@ export function HomeDineLocalSection({
           ))}
         </div>
 
-        <div className={`mt-5 ${brandTileGridClass}`}>
-          {venues.map((brand) => (
-            <BrowseBrandCard
-              key={brand.id}
-              brand={brand}
-              canFavorite={canFavorite}
-              initialFavorited={favoritedSet.has(brand.id)}
-            />
-          ))}
-        </div>
+        {venues.length > 0 ? (
+          <div className={`mt-5 ${brandTileGridClass}`}>
+            {venues.map((brand) => (
+              <BrowseBrandCard
+                key={brand.id}
+                brand={brand}
+                canFavorite={canFavorite}
+                initialFavorited={favoritedSet.has(brand.id)}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );
-}
-
-export function countHospitalityVenuesForChip(
-  chip: (typeof HOSPITALITY_HOME_REGION_CHIPS)[number]
-) {
-  return filterHospitalityDemoVenues({
-    region: "region" in chip ? chip.region : undefined,
-    city: "city" in chip ? chip.city : undefined,
-  }).length;
 }

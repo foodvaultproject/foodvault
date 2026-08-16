@@ -72,6 +72,7 @@ export function PartnerOnboardingBanner() {
         memberCode={partner?.member_code}
         vaultDropCode={partner?.vault_drop_code}
         partnerId={partner?.id}
+        hospitality={partner?.listingModel === "hospitality_venue"}
         onActivate={openActivationDialog}
         confirmingActivation={confirmingActivation}
       />

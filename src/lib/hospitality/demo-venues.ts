@@ -310,6 +310,13 @@ export function listHospitalityDemoVenues() {
   return DEMO_VENUES;
 }
 
+export function isHospitalityDemoListing(idOrSlug: string) {
+  const normalized = idOrSlug.trim().toLowerCase();
+  return DEMO_VENUES.some(
+    (venue) => venue.id === normalized || venue.slug === normalized
+  );
+}
+
 export function getHospitalityDemoVenueBySlug(slug: string) {
   const normalized = slug.trim().toLowerCase();
   return DEMO_VENUES.find((venue) => venue.slug === normalized) ?? null;

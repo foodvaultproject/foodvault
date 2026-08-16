@@ -27,7 +27,7 @@ export type NzRegion = (typeof NZ_REGIONS)[number];
 export const HOSPITALITY_HOME_REGION_CHIPS = [
   { id: "auckland", label: "Auckland", region: "Auckland" },
   { id: "wellington", label: "Wellington", region: "Wellington" },
-  { id: "christchurch", label: "Christchurch", city: "Christchurch" },
+  { id: "christchurch", label: "Christchurch", region: "Canterbury", city: "Christchurch" },
   { id: "other", label: "Other Regions", region: "other" },
 ] as const;
 

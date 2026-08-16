@@ -278,6 +278,7 @@ function listingFromPartnerRecord(partner: PartnerRecord): EditorListing {
     websiteUrl: partner.website_url ?? "",
     memberCode: partner.member_code ?? "",
     vaultDropCode: partner.vault_drop_code ?? "",
+    listingModel: partner.listingModel ?? "online_brand",
     profileSlug: partnerProfileSlug(partner.business_name ?? ""),
   };
 }

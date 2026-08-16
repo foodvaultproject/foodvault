@@ -13,6 +13,7 @@ import {
 } from "@/components/browse-brands/BrowseMultiSelectFilter";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { DiscoveryModeToggle } from "@/components/hospitality/DiscoveryModeToggle";
+import { SuggestFilterInput } from "@/components/hospitality/SuggestFilterInput";
 import {
   DIETARY_LIFESTYLE_ATTRIBUTES,
   flattenSubcategoryFilterGroups,
@@ -22,12 +23,12 @@ import {
 import {
   HOSPITALITY_VENUE_TYPE_LABELS,
   NZ_REGIONS,
+  normalizeNzRegion,
 } from "@/lib/hospitality/constants";
 import {
-  filterHospitalityDemoVenues,
-  hospitalityVenueToBrandCard,
-  listHospitalityCityOptions,
-} from "@/lib/hospitality/demo-venues";
+  listHospitalityLocalityOptionsAction,
+  searchHospitalityVenuesAction,
+} from "@/lib/hospitality/search-actions";
 import {
   HOSPITALITY_VENUE_TYPES,
   type DiscoveryMode,
@@ -57,6 +58,7 @@ const discountOptions = [
   { value: 25, label: "25% or more" },
 ];
 
+const LOCAL_REGION_OPTIONS = [...NZ_REGIONS, "Other regions"];
 const FILTER_PEEPING_IMAGE = "/filter/peeping.png";
 
 type BrowseBrandsExplorerProps = {
@@ -105,6 +107,9 @@ export function BrowseBrandsExplorer({
   const [localRegion, setLocalRegion] = useState("");
   const [localCity, setLocalCity] = useState("");
   const [localVenueType, setLocalVenueType] = useState<HospitalityVenueType | "">("");
+  const [localBrands, setLocalBrands] = useState<BrandCard[]>([]);
+  const [localTotal, setLocalTotal] = useState(0);
+  const [localCityOptions, setLocalCityOptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (canFavorite) return;
@@ -253,35 +258,38 @@ export function BrowseBrandsExplorer({
     setDietaryLifestyles((current) => current.filter((value) => value !== tag.value));
   }
 
-  const localCityOptions = useMemo(
-    () => listHospitalityCityOptions(localRegion || undefined),
-    [localRegion]
-  );
+  useEffect(() => {
+    let cancelled = false;
+    void listHospitalityLocalityOptionsAction(localRegion || null).then((options) => {
+      if (!cancelled) setLocalCityOptions(options);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [localRegion]);
 
-  const localVenues = useMemo(() => {
-    const filtered = filterHospitalityDemoVenues({
-      region: localRegion || undefined,
-      city: localCity || undefined,
-      venueType: localVenueType || undefined,
-    }).map(hospitalityVenueToBrandCard);
-
-    const sorted = [...filtered];
-    if (sort === "alphabetical") {
-      sorted.sort((a, b) => a.businessName.localeCompare(b.businessName));
-    } else if (sort === "highest-discount") {
-      sorted.sort((a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0));
-    }
-    return sorted;
-  }, [localRegion, localCity, localVenueType, sort]);
-
-  const visibleBrands = discoveryMode === "local" ? localVenues : brands;
+  const visibleBrands = discoveryMode === "local" ? localBrands : brands;
   const visibleFeatured = discoveryMode === "local" ? [] : featured;
 
   const runSearch = useCallback(
     (offset: number, append: boolean) => {
-      if (discoveryMode === "local") return;
-
       startTransition(async () => {
+        if (discoveryMode === "local") {
+          const result = await searchHospitalityVenuesAction({
+            region: localRegion || null,
+            city: localCity || null,
+            venueType: localVenueType || null,
+            sort,
+            limit: BROWSE_PAGE_SIZE,
+            offset,
+          });
+          setLocalTotal(result.total);
+          setLocalBrands((current) =>
+            append ? [...current, ...result.brands] : result.brands
+          );
+          return;
+        }
+
         const result = await searchBrandsAction({
           search: "",
           departments,
@@ -299,7 +307,17 @@ export function BrowseBrandsExplorer({
         );
       });
     },
-    [discoveryMode, departments, subcategories, dietaryLifestyles, minDiscount, sort]
+    [
+      discoveryMode,
+      localRegion,
+      localCity,
+      localVenueType,
+      departments,
+      subcategories,
+      dietaryLifestyles,
+      minDiscount,
+      sort,
+    ]
   );
 
   function syncDiscoveryUrl(mode: DiscoveryMode) {
@@ -323,16 +341,40 @@ export function BrowseBrandsExplorer({
     syncDiscoveryUrl(mode);
   }
 
+  function handleRegionChange(nextRegion: string) {
+    const trimmed = nextRegion.trim();
+    if (!trimmed) {
+      setLocalRegion("");
+      setLocalCity("");
+      return;
+    }
+
+    if (trimmed.toLowerCase() === "other regions" || trimmed.toLowerCase() === "other") {
+      setLocalRegion("other");
+      setLocalCity("");
+      return;
+    }
+
+    setLocalRegion(normalizeNzRegion(trimmed) || trimmed);
+    setLocalCity("");
+  }
+
   function handleSearchSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (discoveryMode === "local") {
       syncDiscoveryUrl("local");
-      return;
     }
     runSearch(0, false);
   }
 
-  const hasMore = discoveryMode === "online" && brands.length < total;
+  const hasMore =
+    discoveryMode === "local" ? localBrands.length < localTotal : brands.length < total;
+  const loadedCount = discoveryMode === "local" ? localBrands.length : brands.length;
+
+  useEffect(() => {
+    if (discoveryMode !== "local") return;
+    runSearch(0, false);
+  }, [discoveryMode, localRegion, localCity, localVenueType, sort, runSearch]);
 
   useEffect(() => {
     if (!hasMore || isPending) return;
@@ -343,7 +385,7 @@ export function BrowseBrandsExplorer({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          runSearch(brands.length, true);
+          runSearch(loadedCount, true);
         }
       },
       { rootMargin: "400px" }
@@ -351,7 +393,7 @@ export function BrowseBrandsExplorer({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [brands.length, hasMore, isPending, runSearch]);
+  }, [loadedCount, hasMore, isPending, runSearch]);
 
   const formTopMargin = embedded
     ? ""
@@ -391,45 +433,26 @@ export function BrowseBrandsExplorer({
 
           {discoveryMode === "local" ? (
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-2">
-              <label className="block min-w-0 flex-1">
-                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  Region
-                </span>
-                <select
-                  value={localRegion}
-                  onChange={(event) => {
-                    setLocalRegion(event.target.value);
-                    setLocalCity("");
-                  }}
-                  className={browseFilterSelectClass}
-                >
-                  <option value="">All regions</option>
-                  <option value="other">Other regions</option>
-                  {NZ_REGIONS.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SuggestFilterInput
+                label="Region"
+                value={localRegion === "other" ? "Other regions" : localRegion}
+                onChange={handleRegionChange}
+                options={LOCAL_REGION_OPTIONS}
+                placeholder="Start typing a region"
+              />
 
-              <label className="block min-w-0 flex-1">
-                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  City / Suburb
-                </span>
-                <select
-                  value={localCity}
-                  onChange={(event) => setLocalCity(event.target.value)}
-                  className={browseFilterSelectClass}
-                >
-                  <option value="">All cities &amp; suburbs</option>
-                  {localCityOptions.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SuggestFilterInput
+                label="City / Suburb"
+                value={localCity}
+                onChange={setLocalCity}
+                options={localCityOptions}
+                placeholder={
+                  localRegion
+                    ? "Start typing a city or suburb"
+                    : "Select a region first"
+                }
+                disabled={!localRegion}
+              />
 
               <label className="block min-w-0 flex-1">
                 <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
@@ -614,7 +637,11 @@ export function BrowseBrandsExplorer({
                 aria-live="polite"
               >
                 {isPending ? (
-                  <p className="text-sm text-muted-foreground">Loading more brands...</p>
+                  <p className="text-sm text-muted-foreground">
+                    {discoveryMode === "local"
+                      ? "Loading more venues..."
+                      : "Loading more brands..."}
+                  </p>
                 ) : null}
               </div>
             ) : null}
