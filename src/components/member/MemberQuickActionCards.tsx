@@ -34,7 +34,7 @@ const memberQuickActions = [
 
 export function MemberQuickActionCards() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {memberQuickActions.map((item) => (
         <Link
           key={item.title}
@@ -48,7 +48,7 @@ export function MemberQuickActionCards() {
             className="absolute inset-0 h-full w-full object-cover object-center"
             decoding="async"
           />
-          <span className="absolute inset-y-0 left-0 flex items-center px-3 sm:px-4">
+          <span className="absolute inset-0 flex items-center justify-center px-3 text-center sm:px-4">
             <span className="text-sm font-bold leading-tight text-white drop-shadow-sm sm:text-base">
               {item.title}
             </span>
