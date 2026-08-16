@@ -1,6 +1,6 @@
 "use server";
 
-import { getAuthSession } from "@/lib/auth";
+import { getRequestSupabaseSession } from "@/lib/auth/request-session";
 import { getActiveMemberView } from "@/lib/member/active-member";
 import { getMemberProfile } from "@/lib/member/queries";
 
@@ -9,6 +9,7 @@ export type MembershipPassViewer = {
   isActiveMember: boolean;
   fullName: string;
   initials: string;
+  avatarUrl: string | null;
 };
 
 function initialsFromName(fullName: string) {
@@ -18,31 +19,43 @@ function initialsFromName(fullName: string) {
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
+function avatarFromMetadata(metadata: Record<string, unknown> | undefined) {
+  const avatarUrl = metadata?.avatar_url;
+  const picture = metadata?.picture;
+  if (typeof avatarUrl === "string" && avatarUrl.trim()) return avatarUrl.trim();
+  if (typeof picture === "string" && picture.trim()) return picture.trim();
+  return null;
+}
+
 export async function getMembershipPassViewerAction(): Promise<MembershipPassViewer> {
-  const session = await getAuthSession();
-  if (!session || session.accountType === "partner") {
+  const { user } = await getRequestSupabaseSession();
+  const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  const accountType = metadata.account_type;
+
+  if (!user || accountType === "partner") {
     return {
-      isLoggedIn: Boolean(session),
+      isLoggedIn: Boolean(user),
       isActiveMember: false,
       fullName: "",
       initials: "M",
+      avatarUrl: null,
     };
   }
 
   const [profile, membership] = await Promise.all([
-    getMemberProfile(session.id),
+    getMemberProfile(user.id),
     getActiveMemberView(),
   ]);
 
-  const fullName = [profile?.firstName, profile?.lastName]
-    .filter(Boolean)
-    .join(" ")
-    .trim() || "FoodVault Member";
+  const fullName =
+    [profile?.firstName, profile?.lastName].filter(Boolean).join(" ").trim() ||
+    "FoodVault Member";
 
   return {
     isLoggedIn: true,
     isActiveMember: membership.isActiveMember,
     fullName,
     initials: initialsFromName(fullName),
+    avatarUrl: avatarFromMetadata(metadata),
   };
 }

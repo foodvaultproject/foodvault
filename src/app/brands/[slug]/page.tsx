@@ -6,12 +6,12 @@ import {
   getCachedPublicBrandSlugs,
   getCachedRecommendedBrands,
 } from "@/lib/cache/public-directory";
-import {
-  hospitalityVenueToBrandCard,
-  listHospitalityDemoVenues,
-} from "@/lib/hospitality/demo-venues";
+import { listHospitalityDemoVenues } from "@/lib/hospitality/demo-venues";
 import { isHospitalityListing } from "@/lib/hospitality/types";
-import { isPartnerAffiliateProgramPublic } from "@/lib/member/partner-profile";
+import {
+  getRecommendedHospitalityVenues,
+  isPartnerAffiliateProgramPublic,
+} from "@/lib/member/partner-profile";
 
 type PartnerProfilePageProps = {
   params: Promise<{ slug: string }>;
@@ -57,12 +57,7 @@ export default async function PartnerProfilePage({
 
   const [recommended, affiliatePubliclyVisible] = await Promise.all([
     isHospitalityListing(profile.listingModel)
-      ? Promise.resolve(
-          listHospitalityDemoVenues()
-            .filter((venue) => venue.id !== profile.id)
-            .slice(0, 4)
-            .map(hospitalityVenueToBrandCard)
-        )
+      ? getRecommendedHospitalityVenues(profile.id, 4)
       : getCachedRecommendedBrands(profile.id, slug, 4),
     isHospitalityListing(profile.listingModel)
       ? Promise.resolve(false)

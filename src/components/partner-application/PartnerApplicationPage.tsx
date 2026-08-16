@@ -83,6 +83,7 @@ import {
   type AffiliateProgramConfig,
 } from "@/lib/partner-affiliate";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
+import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { ListingModelGatekeeper } from "@/components/hospitality/ListingModelGatekeeper";
 import {
   HospitalityOfferFields,
@@ -501,6 +502,18 @@ export function PartnerApplicationPage() {
     setSocialErrors((current) => patchSocialFieldError(current, field, value));
   }
 
+  function handleSelectVenueAddress(
+    formattedAddress: string,
+    details?: HospitalityApplicationDetails["location"]
+  ) {
+    setHospitalityDetails((current) => ({
+      ...current,
+      location: details
+        ? { ...details, displayName: formattedAddress }
+        : { ...current.location, displayName: formattedAddress },
+    }));
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!session) return;
@@ -531,6 +544,7 @@ export function PartnerApplicationPage() {
       const hospitalityValidation = validateHospitalityApplication(hospitalityDetails, {
         galleryImageCount: galleryItems.length,
         offerImageCount: offerGalleryItems.length,
+        businessName,
       });
       if (!hospitalityValidation.ok) {
         setSubmitError(hospitalityValidation.message);
@@ -732,7 +746,7 @@ export function PartnerApplicationPage() {
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div>
                   <label htmlFor="businessName" className={labelClass}>
-                    Business Name
+                    Business Name {isHospitalityForm ? <span className="text-primary">*</span> : null}
                   </label>
                   <input
                     id="businessName"
@@ -771,6 +785,15 @@ export function PartnerApplicationPage() {
                   value={hospitalityDetails}
                   onChange={setHospitalityDetails}
                   disabled={isSubmitPending}
+                  addressField={
+                    <AddressAutocomplete
+                      value={formatHospitalityAddress(hospitalityDetails.location)}
+                      onSelectAddress={handleSelectVenueAddress}
+                      disabled={isSubmitPending}
+                      label="Venue Address"
+                      required
+                    />
+                  }
                 />
               ) : (
               <div className="mt-2">

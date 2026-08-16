@@ -63,16 +63,16 @@ export async function GET(request: Request) {
   lastRequestAt = Date.now();
 
   const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format", searchParams.get("format") || "json");
   url.searchParams.set("q", query);
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("addressdetails", "1");
-  url.searchParams.set("countrycodes", "nz");
-  url.searchParams.set("limit", "6");
+  url.searchParams.set("countrycodes", searchParams.get("countrycodes") || "nz");
+  url.searchParams.set("addressdetails", searchParams.get("addressdetails") || "1");
+  url.searchParams.set("limit", searchParams.get("limit") || "5");
 
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "FoodVault/1.0 (hospitality-address-lookup)",
+      "User-Agent": "FoodVault-App",
     },
     cache: "no-store",
   });
@@ -85,7 +85,8 @@ export async function GET(request: Request) {
   }
 
   const payload = (await response.json()) as NominatimResult[];
-  const results = Array.isArray(payload) ? payload.map(mapNominatimResult) : [];
+  const hits = Array.isArray(payload) ? payload : [];
+  const results = hits.map(mapNominatimResult);
 
-  return NextResponse.json({ results });
+  return NextResponse.json({ hits, results });
 }

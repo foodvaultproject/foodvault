@@ -38,9 +38,20 @@ import { parseVaultDropStored, type VaultDropStored } from "@/lib/vault-drop";
 import { cache } from "react";
 import {
   getHospitalityDemoVenueBySlug,
+  hospitalityVenueToBrandCard,
   hospitalityVenueToProfile,
+  listHospitalityDemoVenues,
 } from "@/lib/hospitality/demo-venues";
 import {
+  hospitalityDepartmentLabel,
+  hospitalityDetailsFromPartnerRow,
+  isHospitalityPartnerRow,
+  parseListingModel,
+  parseVenueType,
+  type PartnerHospitalityRow,
+} from "@/lib/hospitality/from-partner-row";
+import {
+  formatHospitalityLocationLabel,
   isHospitalityPreviewId,
   type HospitalityDetails,
   type ListingModel,
@@ -142,15 +153,24 @@ type ProfileViewRow = {
   affiliate_program_description: string | null;
   affiliate_terms: string | null;
   vault_drop?: unknown;
+  listing_model?: string | null;
+  venue_type?: string | null;
+  suburb?: string | null;
+  city?: string | null;
+  region?: string | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  opening_hours?: string | null;
+  support_phone?: string | null;
 };
 
 const PARTNER_PREVIEW_COLUMNS_BASE =
-  "id, slug, business_name, short_description, brand_story, website_url, location, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, offer_exclusions, banner_image_url, logo_url, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, featured_until";
+  "id, slug, business_name, short_description, brand_story, website_url, location, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, offer_exclusions, banner_image_url, logo_url, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, featured_until, support_phone";
 
-const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop`;
+const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours`;
 
 const PUBLIC_BRAND_PROFILE_SELECT =
-  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop";
+  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, support_phone";
 
 async function fetchOwnPartnerPreviewRow(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -218,6 +238,15 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
     affiliate_program_description: row.affiliate_program_description,
     affiliate_terms: row.affiliate_terms,
     vault_drop: row.vault_drop,
+    listing_model: row.listing_model,
+    venue_type: row.venue_type,
+    suburb: row.suburb,
+    city: row.city,
+    region: row.region,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    opening_hours: row.opening_hours,
+    support_phone: row.support_phone,
   } as ProfileViewRow);
 }
 
@@ -261,6 +290,27 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
       ? rawDepartments
       : getDepartmentsFromGroups(categoryGroups)
   );
+  const hospitalityRow: PartnerHospitalityRow = {
+    listing_model: row.listing_model,
+    venue_type: row.venue_type,
+    location: row.location,
+    suburb: row.suburb,
+    city: row.city,
+    region: row.region,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    opening_hours: row.opening_hours,
+    support_phone: row.support_phone,
+    offer_type: row.offer_type,
+    offer_exclusions: row.offer_exclusions,
+  };
+  const isHospitality = isHospitalityPartnerRow(hospitalityRow);
+  const hospitality: HospitalityDetails | null = isHospitality
+    ? hospitalityDetailsFromPartnerRow(hospitalityRow)
+    : null;
+  const venueTypeLabel = hospitality
+    ? hospitalityDepartmentLabel(hospitality.venueType)
+    : null;
 
   return {
     id: row.id,
@@ -271,8 +321,11 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     websiteUrl: row.website_url,
     country: row.location ?? "New Zealand",
     department:
-      resolvePrimaryDepartment(row.department ?? "") ?? departments[0] ?? null,
-    departments,
+      venueTypeLabel ??
+      resolvePrimaryDepartment(row.department ?? "") ??
+      departments[0] ??
+      null,
+    departments: venueTypeLabel ? [venueTypeLabel] : departments,
     subcategories: Array.isArray(row.subcategories) ? row.subcategories : [],
     categoryGroups,
     offerType: row.offer_type,
@@ -307,8 +360,10 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     affiliateProgramDescription: row.affiliate_program_description,
     affiliateTerms: row.affiliate_terms,
     vaultDrop: parseVaultDropStored(row.vault_drop),
-    listingModel: "online_brand",
-    hospitality: null,
+    listingModel: isHospitality
+      ? "hospitality_venue"
+      : parseListingModel(row.listing_model),
+    hospitality,
   };
 }
 
@@ -376,44 +431,117 @@ function buildDevProfile(slug: string): PartnerProfile | null {
 export const getPartnerProfile = cache(async function getPartnerProfile(
   slug: string
 ): Promise<PartnerProfile | null> {
+  const normalized = slug.trim().toLowerCase();
+
+  if (isSupabaseConfigured()) {
+    const supabase = createPublicReadClient();
+    if (supabase) {
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_public_brand_profile_by_slug",
+        { p_slug: normalized }
+      );
+
+      if (!rpcError && rpcData) {
+        return mapProfileRow(rpcData as ProfileViewRow);
+      }
+
+      const { data } = await supabase
+        .from("v_public_brand_profile")
+        .select(PUBLIC_BRAND_PROFILE_SELECT)
+        .eq("slug", normalized)
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        return mapProfileRow(data as ProfileViewRow);
+      }
+    }
+  } else {
+    const devProfile = buildDevProfile(slug);
+    if (devProfile) return devProfile;
+  }
+
   const hospitalityVenue = getHospitalityDemoVenueBySlug(slug);
   if (hospitalityVenue) {
     return hospitalityVenueToProfile(hospitalityVenue);
   }
 
+  return isSupabaseConfigured() ? null : buildDevProfile(slug);
+});
+
+export async function getRecommendedHospitalityVenues(
+  partnerId: string,
+  limit = 4
+): Promise<BrandCard[]> {
+  const demoCards = listHospitalityDemoVenues()
+    .filter((venue) => venue.id !== partnerId)
+    .slice(0, limit)
+    .map(hospitalityVenueToBrandCard);
+
   if (!isSupabaseConfigured()) {
-    return buildDevProfile(slug);
+    return demoCards;
   }
 
   const supabase = createPublicReadClient();
-  if (!supabase) {
-    return buildDevProfile(slug);
-  }
+  if (!supabase) return demoCards;
 
-  const normalized = slug.trim().toLowerCase();
-
-  const { data: rpcData, error: rpcError } = await supabase.rpc(
-    "get_public_brand_profile_by_slug",
-    { p_slug: normalized }
-  );
-
-  if (!rpcError && rpcData) {
-    return mapProfileRow(rpcData as ProfileViewRow);
-  }
-
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("v_public_brand_profile")
-    .select(PUBLIC_BRAND_PROFILE_SELECT)
-    .eq("slug", normalized)
-    .limit(1)
-    .maybeSingle();
+    .select(
+      "id, slug, business_name, short_description, offer_type, discount_value, discount_percent, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, listing_model, venue_type, suburb, city, location"
+    )
+    .eq("listing_model", "hospitality_venue")
+    .neq("id", partnerId)
+    .limit(limit);
 
-  if (data) {
-    return mapProfileRow(data as ProfileViewRow);
+  if (error || !data?.length) {
+    return demoCards;
   }
 
-  return null;
-});
+  const fromDb: BrandCard[] = data.map((row) => {
+    const venueType = parseVenueType(row.venue_type as string | null);
+    const locationLabel = formatHospitalityLocationLabel({
+      suburb: (row.suburb as string | null) ?? "",
+      city: (row.city as string | null) ?? "",
+    });
+    const businessName = formatBusinessName(row.business_name as string);
+
+    return {
+      id: row.id as string,
+      businessName,
+      slug: (row.slug as string | null) || partnerProfileSlug(businessName),
+      shortDescription: (row.short_description as string | null) ?? null,
+      department: hospitalityDepartmentLabel(venueType),
+      departments: [hospitalityDepartmentLabel(venueType)],
+      subcategories: [],
+      dietaryLifestyleAttributes: [],
+      offerType: (row.offer_type as string | null) ?? null,
+      discountLabel: formatPartnerDiscountLabel({
+        discount_value: row.discount_value as string | null,
+        offer_type: row.offer_type as string | null,
+      }),
+      discountPercent: (row.discount_percent as number | null) ?? null,
+      bannerImageUrl: (row.banner_image_url as string | null) ?? null,
+      galleryImageUrl: Array.isArray(row.gallery_image_urls)
+        ? ((row.gallery_image_urls as string[]).find(Boolean) ?? null)
+        : null,
+      logoUrl: (row.logo_url as string | null) ?? null,
+      logoOriginalUrl: (row.logo_original_url as string | null) ?? null,
+      logoCrop: parseLogoCrop(row.logo_crop),
+      location: locationLabel || ((row.location as string | null) ?? null),
+      isFeatured: false,
+      listingModel: "hospitality_venue",
+      venueType,
+      locationLabel,
+    };
+  });
+
+  const seen = new Set(fromDb.map((brand) => brand.id));
+  return [...fromDb, ...demoCards.filter((brand) => !seen.has(brand.id))].slice(
+    0,
+    limit
+  );
+}
 
 export async function isPartnerAffiliateProgramPublic(
   partnerId: string

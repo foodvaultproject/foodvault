@@ -5,15 +5,19 @@ import { useMemo, useState } from "react";
 import { BrandGallery } from "@/components/brands/BrandGallery";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
-import { FavoriteToggleButton } from "@/components/favorites/FavoriteToggleButton";
-import { MembershipVerificationModal } from "@/components/hospitality/MembershipVerificationModal";
+import { FavoriteToggleIcon } from "@/components/favorites/FavoriteToggleButton";
+import { VerificationModal } from "@/components/verification/VerificationModal";
 import { PartnerBanner } from "@/components/partners/PartnerBanner";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
-import { HOSPITALITY_REDEMPTION_CAP_LABEL } from "@/lib/hospitality/constants";
 import {
-  hospitalityDirectionsHref,
-  hospitalityOpenStreetMapHref,
-} from "@/lib/hospitality/maps";
+  HOSPITALITY_REDEMPTION_CAP_LABEL,
+  MAX_HOSPITALITY_PROFILE_GALLERY_IMAGES,
+} from "@/lib/hospitality/constants";
+import {
+  formatWeeklyScheduleLines,
+  parseWeeklySchedule,
+} from "@/lib/hospitality/hours";
+import { hospitalityDirectionsHref } from "@/lib/hospitality/maps";
 import {
   getMembershipPassViewerAction,
   type MembershipPassViewer,
@@ -57,7 +61,11 @@ export function HospitalityProfileView({
   const locationLabel = formatHospitalityLocationLabel(hospitality.location);
   const address = formatHospitalityAddress(hospitality.location);
   const directionsHref = hospitalityDirectionsHref(hospitality.location);
-  const mapHref = hospitalityOpenStreetMapHref(hospitality.location);
+  const galleryImages = profile.galleryImageUrls.slice(
+    0,
+    MAX_HOSPITALITY_PROFILE_GALLERY_IMAGES
+  );
+  const offerTitle = hospitality.offerTitle || profile.discountLabel;
 
   async function handleShowMembership() {
     setPassError(null);
@@ -111,27 +119,37 @@ export function HospitalityProfileView({
                   />
 
                   <div className="min-w-0 flex-1 pt-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-lg font-bold text-foreground">
-                        {profile.businessName}
-                      </h1>
-                      {profile.department ? (
-                        <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                          {profile.department}
-                        </span>
-                      ) : null}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h1 className="text-lg font-bold text-foreground">
+                            {profile.businessName}
+                          </h1>
+                          {profile.department ? (
+                            <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                              {profile.department}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      {viewer.isLoggedIn && !viewer.canFavorite ? null : (
+                        <FavoriteToggleIcon
+                          partnerId={profile.id}
+                          initialFavorited={viewer.isFavorited}
+                        />
+                      )}
                     </div>
+
+                    {profile.shortDescription ? (
+                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                        {profile.shortDescription}
+                      </p>
+                    ) : null}
 
                     {locationLabel ? (
                       <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                         <MapPinIcon />
                         {locationLabel}
-                      </p>
-                    ) : null}
-
-                    {profile.shortDescription ? (
-                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                        {profile.shortDescription}
                       </p>
                     ) : null}
 
@@ -153,19 +171,6 @@ export function HospitalityProfileView({
                         Get Directions
                         <span aria-hidden="true">&#8599;</span>
                       </a>
-                      {viewer.canFavorite ? (
-                        <FavoriteToggleButton
-                          partnerId={profile.id}
-                          initialFavorited={viewer.isFavorited}
-                        />
-                      ) : !viewer.isLoggedIn ? (
-                        <Link
-                          href="/signup"
-                          className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface"
-                        >
-                          Save to Favorites
-                        </Link>
-                      ) : null}
                     </div>
                     {passError ? (
                       <p className="mt-2 text-xs text-red-600">{passError}</p>
@@ -186,18 +191,17 @@ export function HospitalityProfileView({
                   Member offer
                 </p>
                 <p className="mt-1 text-lg font-extrabold leading-tight text-primary">
-                  {hospitality.offerTitle || profile.discountLabel}
+                  {offerTitle}
                 </p>
+                <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  {HOSPITALITY_REDEMPTION_CAP_LABEL}
+                </span>
                 {hospitality.offerTerms ? (
-                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="font-semibold uppercase tracking-wide">Terms: </span>
+                  <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="font-semibold uppercase tracking-wide">T&amp;Cs: </span>
                     {hospitality.offerTerms}
                   </p>
                 ) : null}
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  <span className="font-semibold uppercase tracking-wide">Redemption: </span>
-                  {HOSPITALITY_REDEMPTION_CAP_LABEL}
-                </p>
               </div>
             </div>
           </div>
@@ -216,45 +220,58 @@ export function HospitalityProfileView({
           <section id="info" className={SECTION_CARD}>
             <h2 className="text-sm font-semibold text-foreground">Venue details</h2>
             <dl className="mt-3 grid gap-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Address
-                </dt>
-                <dd className="mt-1 text-xs text-foreground">{address}</dd>
-                <a
-                  href={mapHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex text-xs font-semibold text-primary hover:underline"
-                >
-                  View on OpenStreetMap
-                </a>
-              </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Opening hours
-                </dt>
-                <dd className="mt-1 text-xs text-foreground">{hospitality.openingHours}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Phone
-                </dt>
-                <dd className="mt-1 text-xs text-foreground">
-                  <a href={`tel:${hospitality.phone}`} className="hover:text-primary">
-                    {hospitality.phone}
-                  </a>
-                </dd>
-              </div>
+              {address ? (
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Address
+                  </dt>
+                  <dd className="mt-1 text-xs text-foreground">{address}</dd>
+                </div>
+              ) : null}
+              {hospitality.openingHours ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Opening hours
+                  </dt>
+                  <dd className="mt-1 text-xs text-foreground">
+                    {hospitality.openingHours.trim().startsWith("{") ? (
+                      <ul className="grid gap-1 sm:grid-cols-2">
+                        {formatWeeklyScheduleLines(
+                          parseWeeklySchedule(hospitality.openingHours)
+                        ).map((row) => (
+                          <li key={row.day} className="flex justify-between gap-3">
+                            <span className="font-semibold">{row.label}</span>
+                            <span className="text-muted-foreground">{row.hours}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      hospitality.openingHours
+                    )}
+                  </dd>
+                </div>
+              ) : null}
+              {hospitality.phone ? (
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Phone
+                  </dt>
+                  <dd className="mt-1 text-xs text-foreground">
+                    <a href={`tel:${hospitality.phone}`} className="hover:text-primary">
+                      {hospitality.phone}
+                    </a>
+                  </dd>
+                </div>
+              ) : null}
             </dl>
           </section>
 
-          {profile.galleryImageUrls.length > 0 ? (
+          {galleryImages.length > 0 ? (
             <section id="gallery" className={SECTION_CARD}>
               <h2 className="text-sm font-semibold text-foreground">Gallery</h2>
               <div className="mt-3">
                 <BrandGallery
-                  images={profile.galleryImageUrls}
+                  images={galleryImages}
                   businessName={profile.businessName}
                 />
               </div>
@@ -302,11 +319,11 @@ export function HospitalityProfileView({
         </section>
       ) : null}
 
-      <MembershipVerificationModal
+      <VerificationModal
         open={passOpen}
         onClose={() => setPassOpen(false)}
         venueName={profile.businessName}
-        offerTitle={hospitality.offerTitle || profile.discountLabel}
+        offerTitle={offerTitle}
         viewer={passViewer}
       />
     </div>

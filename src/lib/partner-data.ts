@@ -62,6 +62,7 @@ import {
   type AffiliateCookieDurationDays,
   type AffiliateProgramConfig,
 } from "@/lib/partner-affiliate";
+import { serializeOpeningHoursForStorage } from "@/lib/hospitality/hours";
 
 export type PartnerRecord = {
   id: string;
@@ -318,6 +319,42 @@ async function resolveVaultDropForSubmit(
   return uploadVaultDropDraft(userId, prepared);
 }
 
+function nullableTrim(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? "";
+  return trimmed || null;
+}
+
+function finiteOrNull(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function structuredLocationPayload(draft: PartnerApplicationDraft) {
+  if (draft.listingModel !== "hospitality_venue") {
+    return {
+      listing_model: "online_brand" as const,
+      venue_type: null,
+      opening_hours: null,
+      suburb: null,
+      city: null,
+      region: null,
+      latitude: null,
+      longitude: null,
+    };
+  }
+
+  const location = draft.hospitality?.location;
+  return {
+    listing_model: "hospitality_venue" as const,
+    venue_type: nullableTrim(draft.hospitality?.venueType),
+    opening_hours: serializeOpeningHoursForStorage(draft.hospitality?.openingHours),
+    suburb: nullableTrim(location?.suburb),
+    city: nullableTrim(location?.city),
+    region: nullableTrim(location?.region),
+    latitude: finiteOrNull(location?.lat),
+    longitude: finiteOrNull(location?.lng),
+  };
+}
+
 export async function submitPartnerApplication(
   userId: string,
   draft: PartnerApplicationDraft,
@@ -368,6 +405,7 @@ export async function submitPartnerApplication(
       ? Number(affiliateConfig.commissionPercent.replace(/\D/g, ""))
       : null;
   const offerExclusions = normalizeOfferExclusionsForStorage(draft.offerExclusions);
+  const structuredLocation = structuredLocationPayload(draft);
 
   const payload = {
     user_id: userId,
@@ -395,6 +433,7 @@ export async function submitPartnerApplication(
     tiktok: normalizeSocialValueForStorage(draft.tiktok),
     youtube: normalizeSocialValueForStorage(draft.youtube),
     location: draft.location?.trim() || "New Zealand",
+    ...structuredLocation,
   };
 
   if (!isSupabaseConfigured()) {
@@ -546,6 +585,8 @@ export async function submitPartnerApplication(
               categoryFields.dietary_lifestyle_attributes,
             offer_exclusions: offerExclusions,
             youtube: normalizeSocialValueForStorage(draft.youtube),
+            location: payload.location,
+            ...structuredLocation,
             ...affiliatePayload,
           })
           .eq("user_id", userId);
@@ -573,6 +614,9 @@ export async function submitPartnerApplication(
       contact_name: formatBusinessNameOrNull(draft.contactName),
       vault_drop: vaultDropStored,
       ...(vaultDropCode ? { vault_drop_code: vaultDropCode } : {}),
+      // RPC hardcodes location = 'New Zealand'; persist the selected physical address.
+      location: payload.location,
+      ...structuredLocation,
       ...affiliatePayload,
     })
     .eq("user_id", userId);

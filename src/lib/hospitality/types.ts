@@ -1,3 +1,8 @@
+import {
+  emptyWeeklySchedule,
+  serializeWeeklySchedule,
+} from "@/lib/hospitality/hours";
+
 export const LISTING_MODELS = ["online_brand", "hospitality_venue"] as const;
 export type ListingModel = (typeof LISTING_MODELS)[number];
 
@@ -82,7 +87,7 @@ export function emptyHospitalityApplicationDetails(): HospitalityApplicationDeta
   return {
     venueType: "",
     location: emptyHospitalityLocation(),
-    openingHours: "",
+    openingHours: serializeWeeklySchedule(emptyWeeklySchedule()),
     phone: "",
     offerCategory: "",
     offerTitle: "",
@@ -97,7 +102,7 @@ export function formatHospitalityLocationLabel(
   const suburb = location.suburb.trim();
   const city = location.city.trim();
   if (suburb && city && suburb.toLowerCase() !== city.toLowerCase()) {
-    return `${suburb}`;
+    return `${suburb}, ${city}`;
   }
   return suburb || city || "";
 }

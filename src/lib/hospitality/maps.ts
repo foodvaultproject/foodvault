@@ -5,7 +5,7 @@ import {
 
 export function hospitalityDirectionsHref(location: HospitalityLocation) {
   if (location.lat != null && location.lng != null) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`;
+    return `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`;
   }
 
   const query = encodeURIComponent(formatHospitalityAddress(location));

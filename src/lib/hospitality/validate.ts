@@ -3,6 +3,7 @@ import {
   MAX_HOSPITALITY_OFFER_IMAGES,
   MIN_HOSPITALITY_GALLERY_IMAGES,
 } from "@/lib/hospitality/constants";
+import { isCompleteWeeklySchedule, parseWeeklySchedule } from "@/lib/hospitality/hours";
 import {
   formatHospitalityAddress,
   type HospitalityApplicationDetails,
@@ -10,8 +11,16 @@ import {
 
 export function validateHospitalityApplication(
   details: HospitalityApplicationDetails,
-  options: { galleryImageCount: number; offerImageCount?: number }
+  options: {
+    galleryImageCount: number;
+    offerImageCount?: number;
+    businessName?: string;
+  }
 ): { ok: true } | { ok: false; message: string } {
+  if (!options.businessName?.trim()) {
+    return { ok: false, message: "Please add your business name." };
+  }
+
   if (!details.venueType) {
     return { ok: false, message: "Please choose a venue type." };
   }
@@ -30,8 +39,11 @@ export function validateHospitalityApplication(
     };
   }
 
-  if (!details.openingHours.trim()) {
-    return { ok: false, message: "Please add your opening hours." };
+  if (!isCompleteWeeklySchedule(parseWeeklySchedule(details.openingHours))) {
+    return {
+      ok: false,
+      message: "Please set opening hours for at least one day, including start and end times.",
+    };
   }
 
   if (!details.offerCategory) {
@@ -44,6 +56,10 @@ export function validateHospitalityApplication(
 
   if (!details.offerTerms.trim()) {
     return { ok: false, message: "Please add offer terms and conditions." };
+  }
+
+  if (!details.redemptionCap) {
+    return { ok: false, message: "Please choose a redemption cap." };
   }
 
   if (options.galleryImageCount < MIN_HOSPITALITY_GALLERY_IMAGES) {
