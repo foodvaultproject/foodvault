@@ -21,6 +21,7 @@ export type PartnerHospitalityRow = {
   support_phone?: string | null;
   offer_type?: string | null;
   offer_exclusions?: string | null;
+  offer_applies_to?: string | null;
 };
 
 function asTrimmed(value: string | null | undefined) {
@@ -45,7 +46,7 @@ export function parseVenueType(value: string | null | undefined): HospitalityVen
     : "cafe";
 }
 
-function parseOfferCategory(value: string | null | undefined): HospitalityOfferCategory {
+export function parseOfferCategory(value: string | null | undefined): HospitalityOfferCategory {
   return HOSPITALITY_OFFER_CATEGORIES.includes(value as HospitalityOfferCategory)
     ? (value as HospitalityOfferCategory)
     : "percentage_off";
@@ -81,7 +82,7 @@ export function hospitalityDetailsFromPartnerRow(
     },
     openingHours: asTrimmed(row.opening_hours),
     phone: asTrimmed(row.support_phone),
-    offerCategory: parseOfferCategory(row.offer_type),
+    offerCategory: parseOfferCategory(row.offer_applies_to ?? row.offer_type),
     offerTitle: asTrimmed(row.offer_type),
     offerTerms: asTrimmed(row.offer_exclusions),
     redemptionCap: "once_per_visit",

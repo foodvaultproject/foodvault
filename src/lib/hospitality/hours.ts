@@ -198,3 +198,67 @@ export function formatOpeningHoursForDisplay(raw: string | null | undefined) {
 
   return trimmed;
 }
+
+const NZ_TIME_ZONE = "Pacific/Auckland";
+
+function previousWeekday(day: Weekday): Weekday {
+  const index = WEEKDAYS.indexOf(day);
+  return WEEKDAYS[(index + 6) % 7];
+}
+
+function timeToMinutes(value: string) {
+  const [hourRaw, minuteRaw] = value.split(":");
+  const hour = Number(hourRaw) === 24 ? 0 : Number(hourRaw);
+  return hour * 60 + Number(minuteRaw);
+}
+
+function getNzLocalTimeParts(now = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-NZ", {
+    timeZone: NZ_TIME_ZONE,
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(now).map((part) => [part.type, part.value])
+  );
+  const weekday = (parts.weekday ?? "Monday").toLowerCase() as Weekday;
+  const hour = Number(parts.hour) === 24 ? 0 : Number(parts.hour);
+  const minute = Number(parts.minute);
+  return {
+    weekday: WEEKDAYS.includes(weekday) ? weekday : "monday",
+    minutes: hour * 60 + minute,
+  };
+}
+
+function isHoursOpenAt(hours: DayHours, minutes: number) {
+  if (!hours.isOpen) return false;
+  if (hours.is24Hours) return true;
+  const open = timeToMinutes(hours.openTime);
+  const close = timeToMinutes(hours.closeTime);
+  if (close <= open) {
+    return minutes >= open;
+  }
+  return minutes >= open && minutes < close;
+}
+
+export function isVenueOpenNow(schedule: WeeklySchedule, now = new Date()) {
+  const { weekday, minutes } = getNzLocalTimeParts(now);
+  if (isHoursOpenAt(schedule[weekday], minutes)) return true;
+
+  const yesterday = schedule[previousWeekday(weekday)];
+  if (!yesterday.isOpen || yesterday.is24Hours) return false;
+  const open = timeToMinutes(yesterday.openTime);
+  const close = timeToMinutes(yesterday.closeTime);
+  return close < open && minutes < close;
+}
+
+export function getVenueOpenState(
+  raw: string | null | undefined,
+  now = new Date()
+): "open" | "closed" | null {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed.startsWith("{")) return null;
+  return isVenueOpenNow(parseWeeklySchedule(trimmed), now) ? "open" : "closed";
+}

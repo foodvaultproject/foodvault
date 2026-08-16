@@ -377,6 +377,7 @@ export function hospitalityVenueToProfile(venue: HospitalityDemoVenue): PartnerP
     logoOriginalUrl: venue.logoUrl,
     logoCrop: null,
     galleryImageUrls: venue.galleryImageUrls,
+    offerImageUrls: [],
     instagram: null,
     facebook: null,
     linkedin: null,

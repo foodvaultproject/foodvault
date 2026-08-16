@@ -73,6 +73,13 @@ export type PartnerApplicationAssets = {
     recropOnly?: boolean;
     existingOriginalUrl?: string | null;
   }[];
+  offerGalleryItems?: {
+    croppedFile: File;
+    originalFile?: File | null;
+    crop: import("@/lib/partner-gallery-crop").GalleryCropSettings;
+    recropOnly?: boolean;
+    existingOriginalUrl?: string | null;
+  }[];
   /** @deprecated Use galleryItems with crop metadata instead. */
   galleryFiles?: File[];
 };

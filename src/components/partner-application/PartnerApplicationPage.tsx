@@ -651,12 +651,13 @@ export function PartnerApplicationPage() {
           logoFile: logoUpload?.croppedFile ?? null,
           logoOriginalFile: logoUpload?.originalFile ?? null,
           logoCrop: logoUpload?.crop ?? null,
-          galleryItems: isHospitality
-            ? [...galleryItems, ...offerGalleryItems].slice(
-                0,
-                MAX_HOSPITALITY_GALLERY_IMAGES + MAX_HOSPITALITY_OFFER_IMAGES
-              )
-            : galleryItems.slice(0, MAX_PRODUCT_GALLERY_IMAGES),
+          galleryItems: galleryItems.slice(
+            0,
+            isHospitality ? MAX_HOSPITALITY_GALLERY_IMAGES : MAX_PRODUCT_GALLERY_IMAGES
+          ),
+          offerGalleryItems: isHospitality
+            ? offerGalleryItems.slice(0, MAX_HOSPITALITY_OFFER_IMAGES)
+            : undefined,
         }
       );
       await notifyAdminPartnerListingSubmittedAction(record.id);

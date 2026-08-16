@@ -87,6 +87,28 @@ import {
 import { PartnerPortalShell } from "./PartnerPortalShell";
 import { PartnerAffiliateSetupBanner } from "./PartnerAffiliateSetupBanner";
 import { usePartnerOnboarding } from "./PartnerOnboardingProvider";
+import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
+import {
+  HospitalityOfferFields,
+  HospitalityVenueFields,
+} from "@/components/hospitality/HospitalityApplicationFields";
+import {
+  MAX_HOSPITALITY_GALLERY_IMAGES,
+  MAX_HOSPITALITY_OFFER_IMAGES,
+  MIN_HOSPITALITY_GALLERY_IMAGES,
+} from "@/lib/hospitality/constants";
+import {
+  parseListingModel,
+} from "@/lib/hospitality/from-partner-row";
+import {
+  emptyHospitalityApplicationDetails,
+  formatHospitalityAddress,
+  HOSPITALITY_OFFER_CATEGORIES,
+  HOSPITALITY_VENUE_TYPES,
+  type HospitalityApplicationDetails,
+  type ListingModel,
+} from "@/lib/hospitality/types";
+import { validateHospitalityApplication } from "@/lib/hospitality/validate";
 import {
   portalBtnOutline,
   portalBtnPrimary,
@@ -139,6 +161,9 @@ type EditorListing = {
   logoOriginalUrl: string | null;
   logoCrop: LogoCropSettings | null;
   galleryItems: PartnerGalleryItem[];
+  offerGalleryItems: PartnerGalleryItem[];
+  listingModel: ListingModel;
+  hospitality: HospitalityApplicationDetails;
   profileSlug: string;
   affiliateEnabled: boolean;
   affiliateCommissionPercent: string;
@@ -179,6 +204,9 @@ const emptyListing: EditorListing = {
   logoOriginalUrl: null,
   logoCrop: null,
   galleryItems: [],
+  offerGalleryItems: [],
+  listingModel: "online_brand",
+  hospitality: emptyHospitalityApplicationDetails(),
   profileSlug: "",
   affiliateEnabled: false,
   affiliateCommissionPercent: "",
@@ -189,12 +217,58 @@ const emptyListing: EditorListing = {
   vaultDrop: emptyVaultDropFormDraft(),
 };
 
-function galleryItemsFromData(data: PartnerListingData): PartnerGalleryItem[] {
-  return (data.galleryImageUrls ?? []).map((displayUrl, index) => ({
+function galleryItemsFromUrls(
+  displayUrls: string[] | undefined,
+  originalUrls: string[] | undefined,
+  crops: PartnerListingData["galleryImageCrops"] | undefined
+): PartnerGalleryItem[] {
+  return (displayUrls ?? []).map((displayUrl, index) => ({
     displayUrl,
-    originalUrl: data.galleryOriginalUrls[index] ?? displayUrl,
-    crop: data.galleryImageCrops[index] ?? null,
+    originalUrl: originalUrls?.[index] ?? displayUrl,
+    crop: crops?.[index] ?? null,
   }));
+}
+
+function galleryItemsFromData(data: PartnerListingData): PartnerGalleryItem[] {
+  return galleryItemsFromUrls(
+    data.galleryImageUrls,
+    data.galleryOriginalUrls,
+    data.galleryImageCrops
+  );
+}
+
+function hospitalityFromListingData(data: PartnerListingData): HospitalityApplicationDetails {
+  const venueType = HOSPITALITY_VENUE_TYPES.includes(
+    data.venueType as (typeof HOSPITALITY_VENUE_TYPES)[number]
+  )
+    ? (data.venueType as HospitalityApplicationDetails["venueType"])
+    : "";
+
+  return {
+    venueType,
+    location: {
+      street: "",
+      suburb: data.suburb,
+      city: data.city,
+      region: data.region,
+      lat: data.latitude,
+      lng: data.longitude,
+      displayName: data.location,
+    },
+    openingHours: data.openingHours || emptyHospitalityApplicationDetails().openingHours,
+    phone: data.supportPhone,
+    offerCategory: HOSPITALITY_OFFER_CATEGORIES.includes(
+      data.hospitalityOfferCategory as (typeof HOSPITALITY_OFFER_CATEGORIES)[number]
+    )
+      ? (data.hospitalityOfferCategory as HospitalityApplicationDetails["offerCategory"])
+      : "",
+    offerTitle:
+      data.listingModel === "hospitality_venue"
+        ? data.offerType || data.offerTitle
+        : "",
+    offerTerms: data.offerExclusions,
+    redemptionCap: "once_per_visit",
+  };
 }
 
 function listingFromPartnerRecord(partner: PartnerRecord): EditorListing {
@@ -248,6 +322,13 @@ function listingFromData(data: PartnerListingData, partner: PartnerRecord): Edit
     logoOriginalUrl: data.logoOriginalUrl,
     logoCrop: data.logoCrop,
     galleryItems: galleryItemsFromData(data),
+    offerGalleryItems: galleryItemsFromUrls(
+      data.offerImageUrls,
+      data.offerOriginalUrls,
+      data.offerImageCrops
+    ),
+    listingModel: parseListingModel(data.listingModel),
+    hospitality: hospitalityFromListingData(data),
     profileSlug:
       data.slug || partnerProfileSlug(data.companyName || partner.business_name || ""),
     affiliateEnabled: AFFILIATE_PROGRAM_COMING_SOON ? false : data.affiliateEnabled,
@@ -514,6 +595,7 @@ export function PartnerListingEditor() {
 
   async function handleSave() {
     if (!partner || onboardingState === "APPLICATION_UNDER_REVIEW") return;
+    const isHospitality = listing.listingModel === "hospitality_venue";
 
     const brandDetailsValidation = validatePartnerBrandDetails({
       bannerImageUrl: listing.bannerImageUrl,
@@ -527,22 +609,34 @@ export function PartnerListingEditor() {
       return;
     }
 
-    const validation = validateOfferForm(
-      listing.offerScope,
-      listing.offerValue,
-      listing.selectedProductDrafts,
-      { requireProducts: listing.offerScope === "selected_products" }
-    );
-    if (!validation.ok) {
-      setStatus({ type: "error", message: validation.message });
-      return;
-    }
+    if (isHospitality) {
+      const hospitalityValidation = validateHospitalityApplication(listing.hospitality, {
+        galleryImageCount: listing.galleryItems.length,
+        offerImageCount: listing.offerGalleryItems.length,
+        businessName: listing.companyName,
+      });
+      if (!hospitalityValidation.ok) {
+        setStatus({ type: "error", message: hospitalityValidation.message });
+        return;
+      }
+    } else {
+      const validation = validateOfferForm(
+        listing.offerScope,
+        listing.offerValue,
+        listing.selectedProductDrafts,
+        { requireProducts: listing.offerScope === "selected_products" }
+      );
+      if (!validation.ok) {
+        setStatus({ type: "error", message: validation.message });
+        return;
+      }
 
-    const nextCategoryError = validateCategoryGroups(listing.categoryGroups);
-    if (nextCategoryError) {
-      setCategoryError(nextCategoryError);
-      setStatus({ type: "error", message: nextCategoryError });
-      return;
+      const nextCategoryError = validateCategoryGroups(listing.categoryGroups);
+      if (nextCategoryError) {
+        setCategoryError(nextCategoryError);
+        setStatus({ type: "error", message: nextCategoryError });
+        return;
+      }
     }
 
     const nextSocialErrors = validatePartnerSocialLinks(socialValues);
@@ -555,23 +649,26 @@ export function PartnerListingEditor() {
       return;
     }
 
-    const affiliateValidation = AFFILIATE_PROGRAM_COMING_SOON
-      ? ({ ok: true } as const)
-      : validateAffiliateProgram({
-          enabled: listing.affiliateEnabled,
-          commissionPercent: listing.affiliateCommissionPercent,
-          cookieDurationDays: listing.affiliateCookieDurationDays,
-          programDescription: listing.affiliateProgramDescription,
-          affiliateTerms: listing.affiliateTerms,
-        });
+    const affiliateValidation =
+      AFFILIATE_PROGRAM_COMING_SOON || isHospitality
+        ? ({ ok: true } as const)
+        : validateAffiliateProgram({
+            enabled: listing.affiliateEnabled,
+            commissionPercent: listing.affiliateCommissionPercent,
+            cookieDurationDays: listing.affiliateCookieDurationDays,
+            programDescription: listing.affiliateProgramDescription,
+            affiliateTerms: listing.affiliateTerms,
+          });
     if (!affiliateValidation.ok) {
       setStatus({ type: "error", message: affiliateValidation.message });
       return;
     }
 
-    const vaultDropValidation = validateVaultDropForm(listing.vaultDrop, {
-      requireComplete: listing.vaultDrop.enabled,
-    });
+    const vaultDropValidation = isHospitality
+      ? ({ ok: true } as const)
+      : validateVaultDropForm(listing.vaultDrop, {
+          requireComplete: listing.vaultDrop.enabled,
+        });
     if (!vaultDropValidation.ok) {
       setStatus({ type: "error", message: vaultDropValidation.message });
       return;
@@ -580,36 +677,41 @@ export function PartnerListingEditor() {
     startSaveTransition(async () => {
     setStatus(null);
 
-    const offerTitle =
-      listing.offerScope === "entire_store"
+    const offerTitle = isHospitality
+      ? listing.hospitality.offerTitle
+      : listing.offerScope === "entire_store"
         ? buildOfferTitle(listing.offerValue)
         : "";
     const companyName = finalizeBusinessNameInput(listing.companyName);
 
     let selectedProducts = [] as import("@/lib/partner-offer").SelectedProduct[];
-    try {
-      selectedProducts = await uploadSelectedProductDrafts(
-        partner.user_id,
-        listing.selectedProductDrafts,
-        listing.offerValue
-      );
-    } catch (error) {
-      setStatus({
-        type: "error",
-        message: error instanceof Error ? error.message : "Product upload failed.",
-      });
-      return;
+    if (!isHospitality) {
+      try {
+        selectedProducts = await uploadSelectedProductDrafts(
+          partner.user_id,
+          listing.selectedProductDrafts,
+          listing.offerValue
+        );
+      } catch (error) {
+        setStatus({
+          type: "error",
+          message: error instanceof Error ? error.message : "Product upload failed.",
+        });
+        return;
+      }
     }
 
     let vaultDropStored = null;
-    try {
-      vaultDropStored = await uploadVaultDropDraft(partner.user_id, listing.vaultDrop);
-    } catch (error) {
-      setStatus({
-        type: "error",
-        message: error instanceof Error ? error.message : "FLASH SALE upload failed.",
-      });
-      return;
+    if (!isHospitality) {
+      try {
+        vaultDropStored = await uploadVaultDropDraft(partner.user_id, listing.vaultDrop);
+      } catch (error) {
+        setStatus({
+          type: "error",
+          message: error instanceof Error ? error.message : "FLASH SALE upload failed.",
+        });
+        return;
+      }
     }
 
     const payload: PartnerListingData = {
@@ -623,14 +725,18 @@ export function PartnerListingEditor() {
       dietaryLifestyleAttributes: flattenDietaryLifestyleAttributes(
         listing.categoryGroups
       ),
-      offerType: "Percentage Discount",
+      offerType: isHospitality
+        ? listing.hospitality.offerTitle || listing.hospitality.offerCategory
+        : "Percentage Discount",
       offerValue: listing.offerValue,
       offerTitle,
       offerScope: listing.offerScope,
-      offerExclusions: listing.offerExclusions,
+      offerExclusions: isHospitality
+        ? listing.hospitality.offerTerms
+        : listing.offerExclusions,
       selectedProducts,
       supportEmail: listing.supportEmail,
-      supportPhone: listing.supportPhone,
+      supportPhone: isHospitality ? listing.hospitality.phone : listing.supportPhone,
       contactName: finalizeBusinessNameInput(listing.contactName, MAX_CONTACT_NAME_LENGTH),
       instagram: listing.instagram,
       facebook: listing.facebook,
@@ -663,6 +769,25 @@ export function PartnerListingEditor() {
       affiliateCreatedAt: listing.affiliateCreatedAt,
       affiliateUpdatedAt: null,
       vaultDrop: vaultDropStored,
+      listingModel: listing.listingModel,
+      venueType: listing.hospitality.venueType,
+      suburb: listing.hospitality.location.suburb,
+      city: listing.hospitality.location.city,
+      region: listing.hospitality.location.region,
+      latitude: listing.hospitality.location.lat,
+      longitude: listing.hospitality.location.lng,
+      location: isHospitality
+        ? formatHospitalityAddress(listing.hospitality.location)
+        : listing.hospitality.location.displayName,
+      openingHours: listing.hospitality.openingHours,
+      hospitalityOfferCategory: listing.hospitality.offerCategory,
+      offerImageUrls: listing.offerGalleryItems.map((item) => item.displayUrl),
+      offerOriginalUrls: listing.offerGalleryItems.map(
+        (item) => item.originalUrl ?? item.displayUrl
+      ),
+      offerImageCrops: listing.offerGalleryItems.map(
+        (item) => item.crop ?? { zoom: 1, x: 0, y: 0 }
+      ),
     };
 
     try {
@@ -688,6 +813,7 @@ export function PartnerListingEditor() {
     });
   }
 
+  const isHospitality = listing.listingModel === "hospitality_venue";
   const fieldProps = {
     disabled: !isListingEditable,
     className: `${inputClass}${!isListingEditable ? ` ${portalInputDisabled}` : ""}`,
@@ -718,12 +844,14 @@ export function PartnerListingEditor() {
   return (
     <PartnerPortalShell>
       <div className={portalPage}>
-        <PartnerAffiliateSetupBanner className="mb-5" />
+        {isHospitality ? null : <PartnerAffiliateSetupBanner className="mb-5" />}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className={portalPageTitle}>Manage Your Listing</h1>
             <p className={portalPageSubtitle}>
-              Update how your brand appears to FoodVault members.
+              {isHospitality
+                ? "Update how your venue appears to FoodVault members."
+                : "Update how your brand appears to FoodVault members."}
             </p>
           </div>
           <Link href="/partner/preview" className={portalBtnOutline}>
@@ -731,6 +859,7 @@ export function PartnerListingEditor() {
           </Link>
         </div>
 
+        {isHospitality ? null : (
         <section className="mt-6 rounded-lg border-2 border-primary/25 bg-primary/5 px-5 py-4 shadow-sm">
           <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">
             Member Discount Code
@@ -743,6 +872,7 @@ export function PartnerListingEditor() {
             changed.
           </p>
         </section>
+        )}
 
         <fieldset disabled={!isListingEditable} className={`mt-6 ${portalSectionStack} disabled:opacity-90`}>
           <div className={`min-w-0 ${portalSectionStack}`}>
@@ -762,7 +892,9 @@ export function PartnerListingEditor() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Website URL</label>
+                  <label className={labelClass}>
+                    {isHospitality ? "Website (Optional)" : "Website URL"}
+                  </label>
                   <input
                     value={listing.websiteUrl}
                     onChange={(e) => update("websiteUrl", e.target.value)}
@@ -771,10 +903,41 @@ export function PartnerListingEditor() {
                   />
                 </div>
               </div>
+              {isHospitality ? (
+                <HospitalityVenueFields
+                  value={listing.hospitality}
+                  onChange={(hospitality) =>
+                    setListing((prev) => ({ ...prev, hospitality }))
+                  }
+                  disabled={!isListingEditable}
+                  addressField={
+                    <AddressAutocomplete
+                      value={formatHospitalityAddress(listing.hospitality.location)}
+                      onSelectAddress={(formattedAddress, details) => {
+                        if (!isListingEditable) return;
+                        setListing((prev) => ({
+                          ...prev,
+                          hospitality: {
+                            ...prev.hospitality,
+                            location: details
+                              ? { ...details, displayName: formattedAddress }
+                              : { ...prev.hospitality.location, displayName: formattedAddress },
+                          },
+                        }));
+                      }}
+                      disabled={!isListingEditable}
+                      label="Venue Address"
+                      required
+                    />
+                  }
+                />
+              ) : null}
             </section>
 
             <section className={portalCard}>
-              <h2 className={portalSectionTitle}>Brand Images</h2>
+              <h2 className={portalSectionTitle}>
+                {isHospitality ? "Details" : "Brand Images"}
+              </h2>
               <div className={`${portalHelper} mt-1 space-y-2`}>
                 <p>Show members what makes your brand special.</p>
                 <p>
@@ -819,18 +982,22 @@ export function PartnerListingEditor() {
             </section>
 
             <section className={portalCard}>
-              <h2 className={portalSectionTitle}>Products & Brand Images</h2>
+              <h2 className={portalSectionTitle}>
+                {isHospitality ? "Products & Gallery" : "Products & Brand Images"}
+              </h2>
               <p className={`${portalHelper} mt-1`}>
-                Upload at least {MIN_PARTNER_GALLERY_IMAGES} high-quality images of your
-                products or brand (maximum 30). Images are cropped to a 4:5 portrait format,
-                like Instagram.
+                {isHospitality
+                  ? `Upload at least ${MIN_HOSPITALITY_GALLERY_IMAGES} photos of your interior, signature dishes, or menu highlights (maximum ${MAX_HOSPITALITY_GALLERY_IMAGES}).`
+                  : `Upload at least ${MIN_PARTNER_GALLERY_IMAGES} high-quality images of your products or brand (maximum 30). Images are cropped to a 4:5 portrait format, like Instagram.`}
               </p>
               <PartnerGalleryUploadGrid
                 variant="compact"
                 className={portalCardContent}
                 items={listing.galleryItems}
-                minItems={MIN_PARTNER_GALLERY_IMAGES}
-                maxItems={30}
+                minItems={
+                  isHospitality ? MIN_HOSPITALITY_GALLERY_IMAGES : MIN_PARTNER_GALLERY_IMAGES
+                }
+                maxItems={isHospitality ? MAX_HOSPITALITY_GALLERY_IMAGES : 30}
                 disabled={!isListingEditable}
                 uploading={uploading === "gallery" || uploading === "gallery-original"}
                 onChange={(items) => setListing((prev) => ({ ...prev, galleryItems: items }))}
@@ -890,6 +1057,7 @@ export function PartnerListingEditor() {
               </div>
             </section>
 
+            {isHospitality ? null : (
             <section className={portalCard}>
               <h2 className={portalSectionTitle}>Categories</h2>
               <p className={`${portalHelper} mt-1`}>
@@ -916,6 +1084,7 @@ export function PartnerListingEditor() {
                 compact
               />
             </section>
+            )}
           </div>
         </fieldset>
 
@@ -929,18 +1098,79 @@ export function PartnerListingEditor() {
             </span>
           </div>
           <div className={`${portalHelper} mt-1 space-y-2`}>
-            <p className="font-semibold text-foreground">Your Exclusive Member Offer</p>
-            <p>
-              How you use FoodVault is completely up to you. Offer one discount across your
-              whole website or create different deals on selected products. You can change your
-              offers whenever you like, so you&apos;re always in control.
-            </p>
-            <p>
-              FoodVault members are here because they&apos;re actively looking for great deals,
-              so a strong member offer gives them another reason to choose your brand.
-            </p>
+            {isHospitality ? (
+              <p>
+                Describe the in-person offer members can redeem at your venue, and add photos
+                of that offer.
+              </p>
+            ) : (
+              <>
+                <p className="font-semibold text-foreground">Your Exclusive Member Offer</p>
+                <p>
+                  How you use FoodVault is completely up to you. Offer one discount across your
+                  whole website or create different deals on selected products. You can change your
+                  offers whenever you like, so you&apos;re always in control.
+                </p>
+                <p>
+                  FoodVault members are here because they&apos;re actively looking for great deals,
+                  so a strong member offer gives them another reason to choose your brand.
+                </p>
+              </>
+            )}
           </div>
           <div className={portalCardContent}>
+            {isHospitality ? (
+              <>
+                <HospitalityOfferFields
+                  value={listing.hospitality}
+                  onChange={(hospitality) =>
+                    setListing((prev) => ({ ...prev, hospitality }))
+                  }
+                  disabled={offerFieldProps.disabled}
+                />
+                <div className="mt-5">
+                  <p className={labelClass}>Offer photos</p>
+                  <p className={`${portalHelper} mt-1`}>
+                    Add up to {MAX_HOSPITALITY_OFFER_IMAGES} photos of the member offer described
+                    above. These appear in Whats on offer on your profile, separate from Gallery.
+                  </p>
+                  <PartnerGalleryUploadGrid
+                    variant="compact"
+                    className="mt-2"
+                    items={listing.offerGalleryItems}
+                    minItems={0}
+                    maxItems={MAX_HOSPITALITY_OFFER_IMAGES}
+                    disabled={!isListingEditable}
+                    uploading={uploading === "gallery" || uploading === "gallery-original"}
+                    onChange={(items) =>
+                      setListing((prev) => ({ ...prev, offerGalleryItems: items }))
+                    }
+                    onUploadItem={async (value) => {
+                      if (!partner || !isListingEditable) {
+                        throw new Error("Unable to upload offer image.");
+                      }
+                      setUploading("gallery");
+                      setStatus(null);
+                      try {
+                        return await handleGalleryUpload(
+                          value,
+                          value.existingOriginalUrl ?? null
+                        );
+                      } catch (error) {
+                        setStatus({
+                          type: "error",
+                          message:
+                            error instanceof Error ? error.message : "Offer photo upload failed.",
+                        });
+                        throw error;
+                      } finally {
+                        setUploading(null);
+                      }
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
             <MemberExclusiveOfferFields
               offerScope={listing.offerScope}
               onOfferScopeChange={(offerScope) =>
@@ -963,10 +1193,11 @@ export function PartnerListingEditor() {
               compact
               discountHelperText="Updates the discount shown on your public brand profile."
             />
+            )}
           </div>
         </section>
 
-        {listing.vaultDropCode ? (
+        {isHospitality ? null : listing.vaultDropCode ? (
           <section className="mt-6 rounded-lg border-2 border-amber-300/40 bg-amber-50/60 px-5 py-4 shadow-sm">
             <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">
               FLASH SALE Discount Code
@@ -980,6 +1211,7 @@ export function PartnerListingEditor() {
           </section>
         ) : null}
 
+        {isHospitality ? null : (
         <section id="flash-sale" className={`${portalCard} mt-6 scroll-mt-20`}>
           <h2 className={portalSectionTitle}>FLASH SALE (Optional)</h2>
           <div className={portalCardContent}>
@@ -996,7 +1228,9 @@ export function PartnerListingEditor() {
             />
           </div>
         </section>
+        )}
 
+        {isHospitality ? null : (
         <section id="affiliate" className={`${portalCard} mt-6 scroll-mt-20 opacity-95`}>
           <h2 className={portalSectionTitle}>Affiliate Program (Coming Soon)</h2>
           <div className={portalCardContent}>
@@ -1027,6 +1261,7 @@ export function PartnerListingEditor() {
             />
           </div>
         </section>
+        )}
 
         <fieldset disabled={!isListingEditable} className={`mt-6 ${portalSectionStack} disabled:opacity-90`}>
           <div className={`min-w-0 ${portalSectionStack}`}>
@@ -1083,6 +1318,7 @@ export function PartnerListingEditor() {
                     className={`${portalFieldGap} ${inputClass}`}
                   />
                 </div>
+                {isHospitality ? null : (
                 <div>
                   <label className={labelClass}>Support Phone (Optional)</label>
                   <input
@@ -1091,6 +1327,7 @@ export function PartnerListingEditor() {
                     className={`${portalFieldGap} ${inputClass}`}
                   />
                 </div>
+                )}
               </div>
             </section>
           </div>

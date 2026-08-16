@@ -1,34 +1,16 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { normalizeNzRegion } from "@/lib/hospitality/constants";
+import {
+  hospitalityLocationFromNominatim,
+  type NominatimSearchHit,
+} from "@/lib/hospitality/nominatim";
 import type { HospitalityLocation } from "@/lib/hospitality/types";
 
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 const labelClass = "text-sm font-bold text-foreground";
-
-type NominatimAddress = {
-  house_number?: string;
-  road?: string;
-  pedestrian?: string;
-  suburb?: string;
-  neighbourhood?: string;
-  city_district?: string;
-  city?: string;
-  town?: string;
-  village?: string;
-  state?: string;
-  region?: string;
-};
-
-export type NominatimSearchHit = {
-  display_name?: string;
-  lat?: string;
-  lon?: string;
-  address?: NominatimAddress;
-};
 
 export type AddressSuggestion = HospitalityLocation & {
   formattedAddress: string;
@@ -43,38 +25,6 @@ type AddressAutocompleteProps = {
   placeholder?: string;
   required?: boolean;
 };
-
-function formatNominatimAddress(hit: NominatimSearchHit) {
-  const address = hit.address ?? {};
-  const road = [address.house_number, address.road ?? address.pedestrian]
-    .filter(Boolean)
-    .join(" ");
-  const suburb = address.suburb ?? address.neighbourhood ?? address.city_district ?? "";
-  const city = address.city ?? address.town ?? address.village ?? "";
-  const constructed = [road, suburb, city].filter(Boolean).join(", ");
-  return constructed || hit.display_name?.trim() || "";
-}
-
-function toHospitalityLocation(hit: NominatimSearchHit): HospitalityLocation {
-  const address = hit.address ?? {};
-  const street = [address.house_number, address.road ?? address.pedestrian]
-    .filter(Boolean)
-    .join(" ");
-  const suburb =
-    address.suburb ?? address.neighbourhood ?? address.city_district ?? "";
-  const city = address.city ?? address.town ?? address.village ?? "";
-  const formattedAddress = formatNominatimAddress(hit);
-
-  return {
-    street,
-    suburb,
-    city,
-    region: normalizeNzRegion(address.state ?? address.region ?? ""),
-    lat: hit.lat ? Number(hit.lat) : null,
-    lng: hit.lon ? Number(hit.lon) : null,
-    displayName: formattedAddress,
-  };
-}
 
 export function AddressAutocomplete({
   value = "",
@@ -134,11 +84,11 @@ export function AddressAutocomplete({
         const nextSuggestions: AddressSuggestion[] =
           hits.length > 0
             ? hits.slice(0, 5).map((hit) => {
-                const location = toHospitalityLocation(hit);
+                const location = hospitalityLocationFromNominatim(hit);
                 return {
                   ...location,
                   formattedAddress: location.displayName,
-                  label: hit.display_name?.trim() || location.displayName,
+                  label: location.displayName || hit.display_name?.trim() || "",
                 };
               })
             : (payload.results ?? []).slice(0, 5).map((location) => ({

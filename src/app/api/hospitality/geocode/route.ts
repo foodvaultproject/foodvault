@@ -1,52 +1,12 @@
 import { NextResponse } from "next/server";
-import { normalizeNzRegion } from "@/lib/hospitality/constants";
-import type { HospitalityLocation } from "@/lib/hospitality/types";
+import {
+  hospitalityLocationFromNominatim,
+  type NominatimSearchHit,
+} from "@/lib/hospitality/nominatim";
 
 export const dynamic = "force-dynamic";
 
-type NominatimAddress = {
-  house_number?: string;
-  road?: string;
-  pedestrian?: string;
-  suburb?: string;
-  neighbourhood?: string;
-  city_district?: string;
-  city?: string;
-  town?: string;
-  village?: string;
-  state?: string;
-  region?: string;
-};
-
-type NominatimResult = {
-  display_name?: string;
-  lat?: string;
-  lon?: string;
-  address?: NominatimAddress;
-};
-
 let lastRequestAt = 0;
-
-function mapNominatimResult(result: NominatimResult): HospitalityLocation {
-  const address = result.address ?? {};
-  const street = [address.house_number, address.road ?? address.pedestrian]
-    .filter(Boolean)
-    .join(" ");
-  const suburb =
-    address.suburb ?? address.neighbourhood ?? address.city_district ?? "";
-  const city = address.city ?? address.town ?? address.village ?? "";
-  const region = normalizeNzRegion(address.state ?? address.region ?? "");
-
-  return {
-    street,
-    suburb,
-    city,
-    region,
-    lat: result.lat ? Number(result.lat) : null,
-    lng: result.lon ? Number(result.lon) : null,
-    displayName: result.display_name ?? [street, suburb, city, region].filter(Boolean).join(", "),
-  };
-}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -84,9 +44,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const payload = (await response.json()) as NominatimResult[];
+  const payload = (await response.json()) as NominatimSearchHit[];
   const hits = Array.isArray(payload) ? payload : [];
-  const results = hits.map(mapNominatimResult);
-
+  const results = hits.map(hospitalityLocationFromNominatim);
   return NextResponse.json({ hits, results });
 }

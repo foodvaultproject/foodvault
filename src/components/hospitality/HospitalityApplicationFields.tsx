@@ -12,6 +12,7 @@ import { capitalizeSentences } from "@/lib/hospitality/text";
 import {
   HOSPITALITY_OFFER_CATEGORIES,
   HOSPITALITY_VENUE_TYPES,
+  formatHospitalityAddress,
   type HospitalityApplicationDetails,
   type HospitalityLocation,
 } from "@/lib/hospitality/types";
@@ -44,10 +45,10 @@ export function HospitalityVenueFields({
 }: HospitalityFieldsProps) {
   function patchLocation(partial: Partial<HospitalityLocation>) {
     const next = { ...value.location, ...partial };
-    next.displayName = [next.street, next.suburb, next.city, next.region]
-      .map((part) => part.trim())
-      .filter(Boolean)
-      .join(", ");
+    next.displayName = formatHospitalityAddress({
+      ...next,
+      displayName: value.location.displayName,
+    });
     patchDetails(value, onChange, { location: next });
   }
 

@@ -83,6 +83,7 @@ export type PartnerProfile = {
   logoOriginalUrl: string | null;
   logoCrop: LogoCropSettings | null;
   galleryImageUrls: string[];
+  offerImageUrls: string[];
   instagram: string | null;
   facebook: string | null;
   linkedin: string | null;
@@ -141,6 +142,7 @@ type ProfileViewRow = {
   logo_original_url: string | null;
   logo_crop: unknown;
   gallery_image_urls: string[] | null;
+  offer_image_urls?: string[] | null;
   instagram: string | null;
   facebook: string | null;
   linkedin: string | null;
@@ -167,10 +169,12 @@ type ProfileViewRow = {
 const PARTNER_PREVIEW_COLUMNS_BASE =
   "id, slug, business_name, short_description, brand_story, website_url, location, primary_category, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, offer_exclusions, banner_image_url, logo_url, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, featured_until, support_phone";
 
-const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours`;
+const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, offer_image_urls`;
+
+const PARTNER_PREVIEW_COLUMNS_WITHOUT_OFFER_IMAGES = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours`;
 
 const PUBLIC_BRAND_PROFILE_SELECT =
-  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, support_phone";
+  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, offer_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, support_phone";
 
 async function fetchOwnPartnerPreviewRow(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -184,6 +188,16 @@ async function fetchOwnPartnerPreviewRow(
 
   if (!full.error && full.data) {
     return full.data as Record<string, unknown>;
+  }
+
+  const withoutOfferImages = await supabase
+    .from("partners")
+    .select(PARTNER_PREVIEW_COLUMNS_WITHOUT_OFFER_IMAGES)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!withoutOfferImages.error && withoutOfferImages.data) {
+    return withoutOfferImages.data as Record<string, unknown>;
   }
 
   const fallback = await supabase
@@ -224,6 +238,7 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
     logo_original_url: row.logo_original_url,
     logo_crop: row.logo_crop,
     gallery_image_urls: row.gallery_image_urls,
+    offer_image_urls: row.offer_image_urls,
     instagram: row.instagram,
     facebook: row.facebook,
     linkedin: row.linkedin,
@@ -303,6 +318,7 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     support_phone: row.support_phone,
     offer_type: row.offer_type,
     offer_exclusions: row.offer_exclusions,
+    offer_applies_to: row.offer_applies_to,
   };
   const isHospitality = isHospitalityPartnerRow(hospitalityRow);
   const hospitality: HospitalityDetails | null = isHospitality
@@ -348,6 +364,7 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     galleryImageUrls: Array.isArray(row.gallery_image_urls)
       ? row.gallery_image_urls
       : [],
+    offerImageUrls: Array.isArray(row.offer_image_urls) ? row.offer_image_urls : [],
     instagram: row.instagram,
     facebook: row.facebook,
     linkedin: row.linkedin,
@@ -411,6 +428,7 @@ function buildDevProfile(slug: string): PartnerProfile | null {
       "https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=600&h=400&fit=crop",
       "https://images.unsplash.com/photo-1521305916504-4a1121188589?w=600&h=400&fit=crop",
     ],
+    offerImageUrls: [],
     instagram: "https://instagram.com",
     facebook: "https://facebook.com",
     linkedin: null,
@@ -445,15 +463,26 @@ export const getPartnerProfile = cache(async function getPartnerProfile(
         return mapProfileRow(rpcData as ProfileViewRow);
       }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("v_public_brand_profile")
         .select(PUBLIC_BRAND_PROFILE_SELECT)
         .eq("slug", normalized)
         .limit(1)
         .maybeSingle();
 
-      if (data) {
+      if (!error && data) {
         return mapProfileRow(data as ProfileViewRow);
+      }
+
+      const fallback = await supabase
+        .from("v_public_brand_profile")
+        .select(PUBLIC_BRAND_PROFILE_SELECT.replace(", offer_image_urls", ""))
+        .eq("slug", normalized)
+        .limit(1)
+        .maybeSingle();
+
+      if (fallback.data && !fallback.error) {
+        return mapProfileRow(fallback.data as unknown as ProfileViewRow);
       }
     }
   } else {

@@ -6,6 +6,7 @@ import { BrandGallery } from "@/components/brands/BrandGallery";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { FavoriteToggleIcon } from "@/components/favorites/FavoriteToggleButton";
+import { HospitalityVenueDetails } from "@/components/hospitality/HospitalityVenueDetails";
 import { VerificationModal } from "@/components/verification/VerificationModal";
 import { PartnerBanner } from "@/components/partners/PartnerBanner";
 import { PartnerLogo } from "@/components/partners/PartnerLogo";
@@ -13,19 +14,12 @@ import {
   HOSPITALITY_REDEMPTION_CAP_LABEL,
   MAX_HOSPITALITY_PROFILE_GALLERY_IMAGES,
 } from "@/lib/hospitality/constants";
-import {
-  formatWeeklyScheduleLines,
-  parseWeeklySchedule,
-} from "@/lib/hospitality/hours";
 import { hospitalityDirectionsHref } from "@/lib/hospitality/maps";
 import {
   getMembershipPassViewerAction,
   type MembershipPassViewer,
 } from "@/lib/hospitality/pass-viewer";
-import {
-  formatHospitalityAddress,
-  formatHospitalityLocationLabel,
-} from "@/lib/hospitality/types";
+import { formatHospitalityLocationLabel } from "@/lib/hospitality/types";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { PartnerProfile, ProfileViewerContext } from "@/lib/member/partner-profile";
@@ -59,12 +53,12 @@ export function HospitalityProfileView({
   if (!hospitality) return null;
 
   const locationLabel = formatHospitalityLocationLabel(hospitality.location);
-  const address = formatHospitalityAddress(hospitality.location);
   const directionsHref = hospitalityDirectionsHref(hospitality.location);
   const galleryImages = profile.galleryImageUrls.slice(
     0,
     MAX_HOSPITALITY_PROFILE_GALLERY_IMAGES
   );
+  const offerImages = profile.offerImageUrls.filter(Boolean);
   const offerTitle = hospitality.offerTitle || profile.discountLabel;
 
   async function handleShowMembership() {
@@ -217,54 +211,19 @@ export function HospitalityProfileView({
             </section>
           ) : null}
 
-          <section id="info" className={SECTION_CARD}>
-            <h2 className="text-sm font-semibold text-foreground">Venue details</h2>
-            <dl className="mt-3 grid gap-4 sm:grid-cols-2">
-              {address ? (
-                <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Address
-                  </dt>
-                  <dd className="mt-1 text-xs text-foreground">{address}</dd>
-                </div>
-              ) : null}
-              {hospitality.openingHours ? (
-                <div className="sm:col-span-2">
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Opening hours
-                  </dt>
-                  <dd className="mt-1 text-xs text-foreground">
-                    {hospitality.openingHours.trim().startsWith("{") ? (
-                      <ul className="grid gap-1 sm:grid-cols-2">
-                        {formatWeeklyScheduleLines(
-                          parseWeeklySchedule(hospitality.openingHours)
-                        ).map((row) => (
-                          <li key={row.day} className="flex justify-between gap-3">
-                            <span className="font-semibold">{row.label}</span>
-                            <span className="text-muted-foreground">{row.hours}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      hospitality.openingHours
-                    )}
-                  </dd>
-                </div>
-              ) : null}
-              {hospitality.phone ? (
-                <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Phone
-                  </dt>
-                  <dd className="mt-1 text-xs text-foreground">
-                    <a href={`tel:${hospitality.phone}`} className="hover:text-primary">
-                      {hospitality.phone}
-                    </a>
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-          </section>
+          <HospitalityVenueDetails profile={profile} />
+
+          {offerImages.length > 0 ? (
+            <section id="whats-on-offer" className={SECTION_CARD}>
+              <h2 className="text-sm font-semibold text-foreground">Whats on offer</h2>
+              <div className="mt-3">
+                <BrandGallery
+                  images={offerImages}
+                  businessName={`${profile.businessName} offer`}
+                />
+              </div>
+            </section>
+          ) : null}
 
           {galleryImages.length > 0 ? (
             <section id="gallery" className={SECTION_CARD}>

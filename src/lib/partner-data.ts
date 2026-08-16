@@ -63,6 +63,11 @@ import {
   type AffiliateProgramConfig,
 } from "@/lib/partner-affiliate";
 import { serializeOpeningHoursForStorage } from "@/lib/hospitality/hours";
+import { parseListingModel } from "@/lib/hospitality/from-partner-row";
+import {
+  formatHospitalityAddress,
+  type ListingModel,
+} from "@/lib/hospitality/types";
 
 export type PartnerRecord = {
   id: string;
@@ -406,6 +411,10 @@ export async function submitPartnerApplication(
       : null;
   const offerExclusions = normalizeOfferExclusionsForStorage(draft.offerExclusions);
   const structuredLocation = structuredLocationPayload(draft);
+  const isHospitality = draft.listingModel === "hospitality_venue";
+  const offerAppliesTo = isHospitality
+    ? draft.hospitality?.offerCategory || offerAppliesToLabel(offerScope)
+    : offerAppliesToLabel(offerScope);
 
   const payload = {
     user_id: userId,
@@ -421,7 +430,7 @@ export async function submitPartnerApplication(
     offer_type: draft.offerType ?? null,
     discount_value:
       offerScope === "entire_store" ? draft.discountValue ?? null : null,
-    offer_applies_to: offerAppliesToLabel(offerScope),
+    offer_applies_to: offerAppliesTo,
     offer_terms: null,
     offer_exclusions: offerExclusions,
     support_email: draft.supportEmail ?? null,
@@ -493,6 +502,27 @@ export async function submitPartnerApplication(
     );
   }
 
+  let offerImageUrls: string[] = [];
+  let offerOriginalUrls: string[] = [];
+  let offerImageCrops: GalleryCropSettings[] = [];
+  if (assets?.offerGalleryItems?.length) {
+    const uploaded = await Promise.all(
+      assets.offerGalleryItems.map((item) => uploadPartnerGalleryItem(userId, item))
+    );
+    offerImageUrls = uploaded.map((row) => row.displayUrl);
+    offerOriginalUrls = uploaded.map((row) => row.originalUrl);
+    offerImageCrops = uploaded.map((row) => row.crop);
+  }
+
+  const offerImagePayload =
+    isHospitality || offerImageUrls.length > 0
+      ? {
+          offer_image_urls: offerImageUrls,
+          offer_original_urls: offerOriginalUrls,
+          offer_image_crops: offerImageCrops,
+        }
+      : {};
+
   const rpcBaseArgs = {
     p_business_name: businessName,
     p_website_url: draft.websiteUrl ?? null,
@@ -503,7 +533,7 @@ export async function submitPartnerApplication(
     p_offer_type: draft.offerType ?? null,
     p_discount_value:
       offerScope === "entire_store" ? draft.discountValue ?? null : null,
-    p_offer_applies_to: offerAppliesToLabel(offerScope),
+    p_offer_applies_to: offerAppliesTo,
     p_offer_terms: null,
     p_offer_exclusions: offerExclusions,
     p_support_email: draft.supportEmail ?? null,
@@ -587,6 +617,7 @@ export async function submitPartnerApplication(
             youtube: normalizeSocialValueForStorage(draft.youtube),
             location: payload.location,
             ...structuredLocation,
+            ...offerImagePayload,
             ...affiliatePayload,
           })
           .eq("user_id", userId);
@@ -610,6 +641,7 @@ export async function submitPartnerApplication(
       primary_categories: categoryFields.primary_categories,
       dietary_lifestyle_attributes: categoryFields.dietary_lifestyle_attributes,
       offer_exclusions: offerExclusions,
+      offer_applies_to: offerAppliesTo,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
       vault_drop: vaultDropStored,
@@ -617,11 +649,37 @@ export async function submitPartnerApplication(
       // RPC hardcodes location = 'New Zealand'; persist the selected physical address.
       location: payload.location,
       ...structuredLocation,
+      ...offerImagePayload,
       ...affiliatePayload,
     })
     .eq("user_id", userId);
 
-  if (postSubmitError) {
+  if (postSubmitError && isMissingPartnerColumnError(postSubmitError.message)) {
+    const retry = await supabase
+      .from("partners")
+      .update({
+        category_groups: categoryFields.category_groups,
+        primary_categories: categoryFields.primary_categories,
+        dietary_lifestyle_attributes: categoryFields.dietary_lifestyle_attributes,
+        offer_exclusions: offerExclusions,
+        youtube: normalizeSocialValueForStorage(draft.youtube),
+        contact_name: formatBusinessNameOrNull(draft.contactName),
+        vault_drop: vaultDropStored,
+        ...(vaultDropCode ? { vault_drop_code: vaultDropCode } : {}),
+        location: payload.location,
+        ...structuredLocation,
+        ...affiliatePayload,
+      })
+      .eq("user_id", userId);
+
+    if (retry.error) {
+      throw new Error(
+        retry.error.message.includes("vault_drop")
+          ? "Your application was submitted, but FLASH SALE details could not be saved. Please add them again on My Listing."
+          : `Unable to save application details: ${retry.error.message}`
+      );
+    }
+  } else if (postSubmitError) {
     throw new Error(
       postSubmitError.message.includes("vault_drop")
         ? "Your application was submitted, but FLASH SALE details could not be saved. Please add them again on My Listing."
@@ -717,6 +775,19 @@ export type PartnerListingData = {
   affiliateCreatedAt: string | null;
   affiliateUpdatedAt: string | null;
   vaultDrop: import("@/lib/vault-drop").VaultDropStored | null;
+  listingModel: ListingModel;
+  venueType: string;
+  suburb: string;
+  city: string;
+  region: string;
+  latitude: number | null;
+  longitude: number | null;
+  location: string;
+  openingHours: string;
+  hospitalityOfferCategory: string;
+  offerImageUrls: string[];
+  offerOriginalUrls: string[];
+  offerImageCrops: GalleryCropSettings[];
 };
 
 const LISTING_COLUMNS_CORE =
@@ -772,6 +843,43 @@ const LISTING_FALLBACK_COLUMNS =
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+const LISTING_HOSPITALITY_COLUMN_TIERS = [
+  "listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, location, offer_image_urls, offer_original_urls, offer_image_crops",
+  "listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, location",
+] as const;
+
+async function fetchPartnerHospitalityListingRow(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<Record<string, unknown>> {
+  for (const columns of LISTING_HOSPITALITY_COLUMN_TIERS) {
+    const { data, error } = await supabase
+      .from("partners")
+      .select(columns)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      return data as unknown as Record<string, unknown>;
+    }
+
+    if (error && !isPartnerListingColumnError(error.message)) {
+      break;
+    }
+  }
+
+  return {};
+}
+
+function listingFiniteOrNull(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 const LISTING_MEDIA_COLUMN_TIERS = [
@@ -886,6 +994,23 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
     affiliateUpdatedAt:
       typeof row.affiliate_updated_at === "string" ? row.affiliate_updated_at : null,
     vaultDrop: parseVaultDropStored(row.vault_drop),
+    listingModel: parseListingModel(str(row.listing_model)),
+    venueType: str(row.venue_type),
+    suburb: str(row.suburb),
+    city: str(row.city),
+    region: str(row.region),
+    latitude: listingFiniteOrNull(row.latitude),
+    longitude: listingFiniteOrNull(row.longitude),
+    location: str(row.location),
+    openingHours: str(row.opening_hours),
+    hospitalityOfferCategory: str(row.offer_applies_to),
+    offerImageUrls: Array.isArray(row.offer_image_urls)
+      ? (row.offer_image_urls as string[])
+      : [],
+    offerOriginalUrls: Array.isArray(row.offer_original_urls)
+      ? (row.offer_original_urls as string[])
+      : [],
+    offerImageCrops: parseGalleryImageCrops(row.offer_image_crops),
   };
 }
 
@@ -933,7 +1058,13 @@ export async function getPartnerListing(
   }
 
   const mediaRow = await fetchPartnerListingMediaRow(supabase, userId);
-  const listing = mapPartnerListingRow(mergePartnerListingRows(baseRow, mediaRow));
+  const hospitalityRow = await fetchPartnerHospitalityListingRow(supabase, userId);
+  const listing = mapPartnerListingRow(
+    mergePartnerListingRows(
+      mergePartnerListingRows(baseRow, mediaRow),
+      hospitalityRow
+    )
+  );
 
   if (!listing.contactName) {
     const { data, error } = await supabase
@@ -983,9 +1114,47 @@ function isMissingPartnerColumnError(message: string): boolean {
   return isPartnerListingColumnError(message);
 }
 
+function buildHospitalityListingPayload(data: PartnerListingData) {
+  if (data.listingModel !== "hospitality_venue") {
+    return {
+      listing_model: "online_brand",
+    };
+  }
+
+  return {
+    listing_model: "hospitality_venue" as const,
+    venue_type: data.venueType || null,
+    opening_hours: serializeOpeningHoursForStorage(data.openingHours),
+    suburb: data.suburb || null,
+    city: data.city || null,
+    region: data.region || null,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    location: data.location || formatHospitalityAddress({
+      street: "",
+      suburb: data.suburb,
+      city: data.city,
+      region: data.region,
+      lat: data.latitude,
+      lng: data.longitude,
+      displayName: data.location,
+    }) || "New Zealand",
+    support_phone: data.supportPhone || null,
+    offer_type: data.offerType || null,
+    offer_applies_to: data.hospitalityOfferCategory || null,
+    offer_exclusions: normalizeOfferExclusionsForStorage(data.offerExclusions),
+  };
+}
+
 function buildPartnerListingUpdatePayload(
   data: PartnerListingData,
-  options: { logoCrop?: boolean; bannerCrop?: boolean; galleryCrop?: boolean } = {}
+  options: {
+    logoCrop?: boolean;
+    bannerCrop?: boolean;
+    galleryCrop?: boolean;
+    offerImages?: boolean;
+    hospitality?: boolean;
+  } = {}
 ) {
   const categoryFields = syncLegacyCategoryFields(
     normalizeCategoryGroups(data.categoryGroups)
@@ -1023,16 +1192,33 @@ function buildPartnerListingUpdatePayload(
     updated_at: new Date().toISOString(),
   };
 
-  if (data.offerScope === "entire_store") {
-    payload.discount_value = data.offerValue
-      ? buildStorewideDiscountTitle(data.offerValue)
-      : data.offerTitle || null;
-    payload.discount_percent = data.offerValue
-      ? Number(data.offerValue.replace(/[^0-9.]/g, ""))
-      : null;
+  if (data.listingModel !== "hospitality_venue") {
+    if (data.offerScope === "entire_store") {
+      payload.discount_value = data.offerValue
+        ? buildStorewideDiscountTitle(data.offerValue)
+        : data.offerTitle || null;
+      payload.discount_percent = data.offerValue
+        ? Number(data.offerValue.replace(/[^0-9.]/g, ""))
+        : null;
+    } else {
+      payload.discount_value = null;
+      payload.discount_percent = null;
+    }
   } else {
-    payload.discount_value = null;
+    payload.discount_value = data.offerTitle || data.offerType || null;
     payload.discount_percent = null;
+    payload.selected_products = [];
+    payload.offer_scope = "entire_store";
+  }
+
+  if (options.hospitality !== false) {
+    Object.assign(payload, buildHospitalityListingPayload(data));
+  }
+
+  if (options.offerImages && data.listingModel === "hospitality_venue") {
+    payload.offer_image_urls = data.offerImageUrls ?? [];
+    payload.offer_original_urls = data.offerOriginalUrls ?? [];
+    payload.offer_image_crops = data.offerImageCrops ?? [];
   }
 
   if (options.logoCrop) {
@@ -1082,6 +1268,8 @@ export async function updatePartnerListing(
     logoCrop: true,
     bannerCrop: true,
     galleryCrop: true,
+    offerImages: true,
+    hospitality: true,
   });
 
   const { data: partnerRow } = await supabase
@@ -1349,7 +1537,15 @@ export async function uploadPartnerAsset(
   file: File,
   kind: PartnerAssetKind
 ): Promise<string> {
-  if (file.size > 10 * 1024 * 1024) {
+  const maxBytes = 10 * 1024 * 1024;
+
+  let uploadFile = file;
+  if (typeof window !== "undefined") {
+    const { compressImageForUpload } = await import("@/lib/image-compress");
+    uploadFile = await compressImageForUpload(file);
+  }
+
+  if (uploadFile.size > maxBytes) {
     throw new Error(
       "File size exceeds the 10MB limit. Please upload a smaller image."
     );
@@ -1357,16 +1553,10 @@ export async function uploadPartnerAsset(
 
   if (!isSupabaseConfigured()) {
     // Dev mode: return a local preview URL (not persisted).
-    return URL.createObjectURL(file);
+    return URL.createObjectURL(uploadFile);
   }
 
   const supabase = createClient();
-
-  let uploadFile = file;
-  if (typeof window !== "undefined") {
-    const { compressImageForUpload } = await import("@/lib/image-compress");
-    uploadFile = await compressImageForUpload(file);
-  }
 
   const ext = (uploadFile.name.split(".").pop() || "webp").toLowerCase();
   const path = `${userId}/${kind}-${Date.now()}-${Math.random()
