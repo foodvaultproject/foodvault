@@ -3,6 +3,7 @@ import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { SECTION_PY_HOME } from "@/components/home/section-spacing";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
+import { isHospitalityListing } from "@/lib/hospitality/types";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 type HomeFeaturedBrandsProps = {
@@ -20,7 +21,9 @@ export function HomeFeaturedBrands({
 }: HomeFeaturedBrandsProps) {
   if (brands.length === 0) return null;
 
-  const displayBrands = brands.slice(0, maxBrands);
+  const displayBrands = brands
+    .filter((brand) => !isHospitalityListing(brand.listingModel))
+    .slice(0, maxBrands);
   const favoritedSet = new Set(favoritedPartnerIds);
 
   return (

@@ -46,7 +46,9 @@ export async function getStaticHomepageData(): Promise<StaticHomepageData> {
 
   return {
     visitorFeaturedBrandLimit,
-    homepageFeatured: filterLocalhostHomepageBrands(featured),
+    homepageFeatured: filterLocalhostHomepageBrands(featured).filter(
+      (brand) => !isHospitalityListing(brand.listingModel)
+    ),
     homepageNewBrands: filterLocalhostHomepageBrands(newBrands)
       .filter((brand) => !isHospitalityListing(brand.listingModel))
       .slice(0, 8),

@@ -147,7 +147,7 @@ export function BrowseBrandCard({
 
         {isLocalVenue ? (
           <span
-            className="absolute left-2 top-2 z-20 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+            className="absolute left-2 top-2 z-20 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-sm"
             style={{ backgroundColor: HOSPITALITY_CARD_ACCENT }}
           >
             Instore Only

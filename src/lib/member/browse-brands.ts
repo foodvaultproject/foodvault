@@ -516,27 +516,33 @@ export async function getPartnerLogos(limit = 40): Promise<PartnerLogoItem[]> {
 
 /** Featured partners for the homepage, falling back to newest live brands. */
 export async function getHomepageFeaturedBrands(limit = 6): Promise<BrandCard[]> {
-  const featured = await getFeaturedBrands(limit);
-  if (featured.length >= limit) {
-    return featured.slice(0, limit);
+  const overFetch = Math.max(limit * 2, limit + 8);
+  const featured = await getFeaturedBrands(overFetch);
+  const onlineFeatured = featured.filter(
+    (brand) => !isHospitalityListing(brand.listingModel)
+  );
+
+  if (onlineFeatured.length >= limit) {
+    return onlineFeatured.slice(0, limit);
   }
 
   const fallback = await searchPublicBrands({
     sort: "newest",
-    limit,
+    limit: overFetch,
     offset: 0,
   });
 
-  const seen = new Set(featured.map((brand) => brand.id));
-  const merged = [...featured];
+  const seen = new Set(onlineFeatured.map((brand) => brand.id));
+  const merged = [...onlineFeatured];
   for (const brand of fallback.brands) {
     if (merged.length >= limit) break;
-    if (!seen.has(brand.id)) {
-      merged.push(brand);
-      seen.add(brand.id);
-    }
+    if (seen.has(brand.id) || isHospitalityListing(brand.listingModel)) continue;
+    merged.push(brand);
+    seen.add(brand.id);
   }
-  return enrichBrandCardsWithGalleryImages(merged);
+  return enrichBrandCardsWithGalleryImages(
+    merged.filter((brand) => !isHospitalityListing(brand.listingModel)).slice(0, limit)
+  );
 }
 
 const PUBLIC_BRAND_LISTING_SELECT =
@@ -742,24 +748,33 @@ export async function enrichBrandCardsWithGalleryImages(
   const brandIds = brands.map((brand) => brand.id);
   const { data, error } = await supabase
     .from("v_public_brand_profile")
-    .select("id, gallery_image_urls")
+    .select("id, gallery_image_urls, listing_model")
     .in("id", brandIds);
 
   if (error || !data) {
     return brands;
   }
 
-  const galleryById = new Map(
+  const extrasById = new Map(
     data.map((row) => [
       row.id as string,
-      firstGalleryImageUrl(row.gallery_image_urls as string[] | null),
+      {
+        galleryImageUrl: firstGalleryImageUrl(row.gallery_image_urls as string[] | null),
+        listingModel: parseListingModel(
+          typeof row.listing_model === "string" ? row.listing_model : null
+        ),
+      },
     ])
   );
 
-  return brands.map((brand) => ({
-    ...brand,
-    galleryImageUrl: galleryById.get(brand.id) ?? brand.galleryImageUrl,
-  }));
+  return brands.map((brand) => {
+    const extras = extrasById.get(brand.id);
+    return {
+      ...brand,
+      galleryImageUrl: extras?.galleryImageUrl ?? brand.galleryImageUrl,
+      listingModel: extras?.listingModel ?? brand.listingModel,
+    };
+  });
 }
 
 function mapRpcRow(row: RpcBrandRow): BrandCard {

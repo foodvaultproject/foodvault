@@ -24,9 +24,9 @@ export const brandTileGridClass =
 export const partnerBrandCardShellClass =
   "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-background shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
-/** Hospitality venue tile — pink border to distinguish from online brands. */
+/** Hospitality venue tile — yellow border to distinguish from online brands. */
 export const hospitalityBrandCardShellClass =
-  "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-lg border-2 border-[#f472b6] bg-background shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-[#ec4899] hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
+  "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-lg border-2 border-[#facc15] bg-background shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-[#eab308] hover:shadow-card-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
 export const brandCardShellClass = partnerBrandCardShellClass;
 

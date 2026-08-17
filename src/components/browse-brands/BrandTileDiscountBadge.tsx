@@ -31,7 +31,7 @@ export function BrandTileDiscountBadge({
   const captionText = caption?.trim() || (percent != null ? "Storewide" : "");
   const badgeToneClass =
     accent === "hospitality"
-      ? "bg-[#f472b6] text-white shadow-[0_4px_14px_rgba(244,114,182,0.35)]"
+      ? "bg-[#facc15] text-foreground shadow-[0_4px_14px_rgba(250,204,21,0.4)]"
       : "bg-primary text-primary-foreground shadow-[0_4px_14px_rgba(139,124,246,0.28)]";
 
   if (percent != null) {
