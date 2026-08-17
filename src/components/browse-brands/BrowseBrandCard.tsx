@@ -9,6 +9,7 @@ import {
   brandCardLogoClass,
   partnerBrandCardBodyClass,
   partnerBrandCardShellClass,
+  hospitalityBrandCardShellClass,
 } from "@/components/browse-brands/brand-card-layout";
 import { FavoriteHeartIcon } from "@/components/favorites/FavoriteHeartIcon";
 import { PartnerGalleryImage } from "@/components/partners/PartnerGalleryImage";
@@ -19,6 +20,7 @@ import {
   shouldUseLocalHospitalityFavorite,
   toggleLocalHospitalityFavorite,
 } from "@/lib/hospitality/local-favorites";
+import { HOSPITALITY_CARD_ACCENT } from "@/lib/hospitality/constants";
 import { isHospitalityListing } from "@/lib/hospitality/types";
 import { toggleFavoritePartnerAction } from "@/lib/member/favorites-actions";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
@@ -117,12 +119,16 @@ export function BrowseBrandCard({
     });
   }
 
+  const shellClass = isLocalVenue
+    ? hospitalityBrandCardShellClass
+    : `${partnerBrandCardShellClass} hover:border-primary/25`;
+
   return (
     <Link
       href={profilePath}
       prefetch
       aria-label={`${brand.businessName} — view member offer`}
-      className={`${partnerBrandCardShellClass} hover:border-primary/25`}
+      className={shellClass}
     >
       <div className="relative shrink-0 overflow-hidden">
         {imageSrc ? (
@@ -139,11 +145,21 @@ export function BrowseBrandCard({
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
 
+        {isLocalVenue ? (
+          <span
+            className="absolute left-2 top-2 z-20 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+            style={{ backgroundColor: HOSPITALITY_CARD_ACCENT }}
+          >
+            Instore Only
+          </span>
+        ) : null}
+
         <BrandTileDiscountBadge
           discountPercent={brand.discountPercent}
           discountLabel={brand.discountLabel}
           caption={isLocalVenue ? brand.locationLabel || brand.location : undefined}
           showMapIcon={isLocalVenue}
+          accent={isLocalVenue ? "hospitality" : "primary"}
           className="bottom-3 right-3 left-auto top-auto max-w-[calc(100%-3.5rem)]"
         />
 

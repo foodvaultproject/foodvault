@@ -110,7 +110,7 @@ export async function getCachedHomepageFeaturedBrands(limit: number) {
 export async function getCachedRecentBrandCards(limit: number) {
   return unstable_cache(
     async () => getRecentBrandCards(limit),
-    ["cached-recent-brand-cards-v2", String(limit)],
+    ["cached-recent-brand-cards-v3", String(limit)],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
       tags: [PUBLIC_CACHE_TAG.brands],

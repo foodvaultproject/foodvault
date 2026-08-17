@@ -1,4 +1,6 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { parseListingModel } from "@/lib/hospitality/from-partner-row";
+import { isHospitalityListing } from "@/lib/hospitality/types";
 import { formatBusinessName } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
 import {
@@ -542,13 +544,34 @@ const PUBLIC_BRAND_LISTING_SELECT =
 
 export async function getRecentBrandCards(limit = 3): Promise<BrandCard[]> {
   if (!isSupabaseConfigured()) {
-    return buildDevBrands().slice(0, limit);
+    return buildDevBrands()
+      .filter((brand) => !isHospitalityListing(brand.listingModel))
+      .slice(0, limit);
   }
 
   const supabase = createPublicReadClient();
   if (!supabase) {
     return [];
   }
+
+  const recentSelect =
+    "id, slug, business_name, short_description, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, banner_image_url, logo_url, logo_original_url, logo_crop, location, is_featured, listing_model";
+  const fromProfile = await supabase
+    .from("v_public_brand_profile")
+    .select(recentSelect)
+    .neq("listing_model", "hospitality_venue")
+    .order("approved_at", { ascending: false })
+    .limit(limit);
+
+  if (!fromProfile.error && fromProfile.data) {
+    const brands = (fromProfile.data as (ViewBrandRow & { listing_model?: string | null })[]).map(
+      mapViewRow
+    );
+    return enrichBrandCardsWithGalleryImages(
+      brands.filter((brand) => !isHospitalityListing(brand.listingModel))
+    );
+  }
+
   const { data, error } = await supabase
     .from("v_public_brand_listings")
     .select(PUBLIC_BRAND_LISTING_SELECT)
@@ -560,7 +583,9 @@ export async function getRecentBrandCards(limit = 3): Promise<BrandCard[]> {
   }
 
   const brands = (data as ViewBrandRow[]).map(mapViewRow);
-  return enrichBrandCardsWithGalleryImages(brands);
+  return enrichBrandCardsWithGalleryImages(
+    brands.filter((brand) => !isHospitalityListing(brand.listingModel))
+  );
 }
 
 export async function getFeaturedBrands(limit = 8): Promise<BrandCard[]> {
@@ -683,7 +708,9 @@ type RpcBrandRow = {
   total_count: number;
 };
 
-type ViewBrandRow = Omit<RpcBrandRow, "total_count">;
+type ViewBrandRow = Omit<RpcBrandRow, "total_count"> & {
+  listing_model?: string | null;
+};
 
 function firstGalleryImageUrl(urls: string[] | null | undefined): string | null {
   if (!Array.isArray(urls)) {
@@ -785,5 +812,6 @@ function mapViewRow(row: ViewBrandRow): BrandCard {
     logoCrop: parseLogoCrop(row.logo_crop),
     location: row.location ?? "New Zealand",
     isFeatured: Boolean(row.is_featured),
+    listingModel: parseListingModel(row.listing_model),
   };
 }

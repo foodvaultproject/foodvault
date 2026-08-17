@@ -665,7 +665,11 @@ export function PartnerApplicationPage() {
       );
       await notifyAdminPartnerListingSubmittedAction(record.id);
       clearPartnerApplicationDraft(session.id);
-      router.push(PARTNER_APPLICATION_SUBMITTED_PATH);
+      router.push(
+        isHospitality
+          ? `${PARTNER_APPLICATION_SUBMITTED_PATH}?listing=hospitality_venue`
+          : PARTNER_APPLICATION_SUBMITTED_PATH
+      );
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Unable to submit your application."

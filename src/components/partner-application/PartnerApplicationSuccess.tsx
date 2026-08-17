@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { HospitalityApplicationSuccess } from "@/components/partner-application/HospitalityApplicationSuccess";
+import { getPartnerSession } from "@/lib/partner-auth";
+import { getPartnerRecord } from "@/lib/partner-data";
+import { isHospitalityListing } from "@/lib/hospitality/types";
 
 const steps = [
   {
@@ -89,12 +94,50 @@ function ConfettiOverlay() {
   );
 }
 
-export function PartnerApplicationSuccess() {
+type PartnerApplicationSuccessProps = {
+  hospitality?: boolean;
+};
+
+export function PartnerApplicationSuccess({
+  hospitality = false,
+}: PartnerApplicationSuccessProps) {
+  const [isHospitality, setIsHospitality] = useState(hospitality);
+
+  useEffect(() => {
+    if (hospitality) {
+      setIsHospitality(true);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      const session = await getPartnerSession();
+      if (!session) return;
+      const record = await getPartnerRecord(session.id);
+      if (!cancelled && isHospitalityListing(record?.listingModel)) {
+        setIsHospitality(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hospitality]);
+
   return (
     <section className="relative overflow-hidden bg-background py-7 sm:py-10 md:py-12">
       <ConfettiOverlay />
 
       <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        {isHospitality ? <HospitalityApplicationSuccess /> : <OnlineBrandApplicationSuccess />}
+      </div>
+    </section>
+  );
+}
+
+function OnlineBrandApplicationSuccess() {
+  return (
+    <>
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
             Application Submitted Successfully
@@ -209,7 +252,6 @@ export function PartnerApplicationSuccess() {
             Return Home
           </Link>
         </div>
-      </div>
-    </section>
+    </>
   );
 }

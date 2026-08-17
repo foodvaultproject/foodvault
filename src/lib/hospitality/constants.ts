@@ -24,6 +24,9 @@ export const NZ_REGIONS = [
 
 export type NzRegion = (typeof NZ_REGIONS)[number];
 
+/** Accent used on public hospitality cards (border, offer badge, Instore Only). */
+export const HOSPITALITY_CARD_ACCENT = "#f472b6";
+
 export const HOSPITALITY_HOME_REGION_CHIPS = [
   { id: "auckland", label: "Auckland", region: "Auckland" },
   { id: "wellington", label: "Wellington", region: "Wellington" },

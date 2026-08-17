@@ -4,6 +4,7 @@ type BrandTileDiscountBadgeProps = {
   className?: string;
   caption?: string | null;
   showMapIcon?: boolean;
+  accent?: "primary" | "hospitality";
 };
 
 export function getBrandDiscountPercent(brand: {
@@ -24,14 +25,19 @@ export function BrandTileDiscountBadge({
   className = "",
   caption,
   showMapIcon = false,
+  accent = "primary",
 }: BrandTileDiscountBadgeProps) {
   const percent = discountPercent ?? getBrandDiscountPercent({ discountPercent, discountLabel });
   const captionText = caption?.trim() || (percent != null ? "Storewide" : "");
+  const badgeToneClass =
+    accent === "hospitality"
+      ? "bg-[#f472b6] text-white shadow-[0_4px_14px_rgba(244,114,182,0.35)]"
+      : "bg-primary text-primary-foreground shadow-[0_4px_14px_rgba(139,124,246,0.28)]";
 
   if (percent != null) {
     return (
       <div
-        className={`absolute right-3 top-3 z-10 rounded-md bg-primary px-3 py-2 text-center text-primary-foreground shadow-[0_4px_14px_rgba(139,124,246,0.28)] ${className}`.trim()}
+        className={`absolute right-3 top-3 z-10 rounded-md px-3 py-2 text-center ${badgeToneClass} ${className}`.trim()}
       >
         <div className="text-[15px] font-extrabold leading-none tracking-tight">
           {percent}% OFF
@@ -48,7 +54,7 @@ export function BrandTileDiscountBadge({
 
   return (
     <div
-      className={`absolute right-3 top-3 z-10 max-w-[8.5rem] rounded-md bg-primary px-3 py-2 text-center text-primary-foreground shadow-[0_4px_14px_rgba(139,124,246,0.28)] ${className}`.trim()}
+      className={`absolute right-3 top-3 z-10 max-w-[8.5rem] rounded-md px-3 py-2 text-center ${badgeToneClass} ${className}`.trim()}
     >
       <div className="text-[11px] font-bold leading-tight">{discountLabel}</div>
       {caption?.trim() ? (

@@ -9,6 +9,7 @@ import {
   getCachedSearchPublicBrands,
   getCachedTrendingThisWeekBrands,
 } from "@/lib/cache/public-directory";
+import { isHospitalityListing } from "@/lib/hospitality/types";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { MembershipSettings } from "@/lib/member/settings";
 import type { HomeVaultDrop } from "@/lib/vault-drop-data";
@@ -37,7 +38,7 @@ export async function getStaticHomepageData(): Promise<StaticHomepageData> {
   ] = await Promise.all([
     getCachedHomepageFeaturedBrands(visitorFeaturedBrandLimit),
     getCachedMembershipSettings(),
-    getCachedRecentBrandCards(9),
+    getCachedRecentBrandCards(12),
     getCachedSearchPublicBrands({ sort: "highest-discount", limit: 6, offset: 0 }),
     getCachedTrendingThisWeekBrands(),
     getCachedHomeVaultDrops(12),
@@ -46,7 +47,9 @@ export async function getStaticHomepageData(): Promise<StaticHomepageData> {
   return {
     visitorFeaturedBrandLimit,
     homepageFeatured: filterLocalhostHomepageBrands(featured),
-    homepageNewBrands: filterLocalhostHomepageBrands(newBrands).slice(0, 8),
+    homepageNewBrands: filterLocalhostHomepageBrands(newBrands)
+      .filter((brand) => !isHospitalityListing(brand.listingModel))
+      .slice(0, 8),
     homepageTrendingBrands: filterLocalhostHomepageBrands(trendingBrands),
     homepageTopOffers: filterLocalhostHomepageBrands(topOffers.brands),
     homepageFaqs: getHomepageFaqs(settings),
