@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo } from "react";
 import {
   HOSPITALITY_VENUE_TYPE_LABELS,
@@ -12,7 +13,7 @@ import {
 import { hospitalityDirectionsHref } from "@/lib/hospitality/maps";
 import { formatHospitalityAddress } from "@/lib/hospitality/types";
 import type { PartnerProfile } from "@/lib/member/partner-profile";
-import { listPartnerSocialLinks } from "@/lib/partner-social";
+import { listPartnerSocialLinks, SOCIAL_PROFILE_ICONS } from "@/lib/partner-social";
 
 type HospitalityVenueDetailsProps = {
   profile: PartnerProfile;
@@ -156,27 +157,39 @@ export function HospitalityVenueDetails({ profile }: HospitalityVenueDetailsProp
                   href={websiteHref(website)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-semibold text-primary hover:underline"
+                  className="fv-btn-primary inline-flex items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold text-primary-foreground"
                 >
-                  {website.replace(/^https?:\/\//i, "")} ↗
+                  Visit Website
+                  <span aria-hidden="true">&#8599;</span>
                 </a>
               </div>
             ) : null}
             {socials.length > 0 ? (
-              <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
-                {socials.map((social) => (
-                  <li key={social.platform}>
+              <div className="mt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Follow us on socials
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {socials.map((social) => (
                     <a
+                      key={social.platform}
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-semibold text-primary hover:underline"
+                      aria-label={social.label}
+                      className="inline-flex h-14 w-14 items-center justify-center transition-opacity hover:opacity-80"
                     >
-                      {social.label}
+                      <Image
+                        src={SOCIAL_PROFILE_ICONS[social.platform]}
+                        alt=""
+                        width={56}
+                        height={56}
+                        className="h-14 w-14 object-contain"
+                      />
                     </a>
-                  </li>
-                ))}
-              </ul>
+                  ))}
+                </div>
+              </div>
             ) : null}
           </div>
         ) : null}

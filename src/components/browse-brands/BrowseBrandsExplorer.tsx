@@ -359,6 +359,30 @@ export function BrowseBrandsExplorer({
     setLocalCity("");
   }
 
+  const loadCitySuggestions = useCallback(async (query: string) => {
+    const q =
+      localRegion && localRegion !== "other"
+        ? `${query}, ${localRegion}`
+        : query;
+    try {
+      const response = await fetch(
+        `/api/hospitality/geocode?q=${encodeURIComponent(q)}&limit=10`
+      );
+      if (!response.ok) return [];
+      const payload = (await response.json()) as {
+        results?: { suburb?: string; city?: string }[];
+      };
+      const values = new Set<string>();
+      for (const result of payload.results ?? []) {
+        if (result.suburb?.trim()) values.add(result.suburb.trim());
+        if (result.city?.trim()) values.add(result.city.trim());
+      }
+      return [...values];
+    } catch {
+      return [];
+    }
+  }, [localRegion]);
+
   function handleSearchSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (discoveryMode === "local") {
@@ -446,6 +470,7 @@ export function BrowseBrandsExplorer({
                 value={localCity}
                 onChange={setLocalCity}
                 options={localCityOptions}
+                loadSuggestions={loadCitySuggestions}
                 placeholder={
                   localRegion
                     ? "Start typing a city or suburb"

@@ -21,6 +21,7 @@ export type PartnerHospitalityRow = {
   support_phone?: string | null;
   offer_type?: string | null;
   offer_exclusions?: string | null;
+  offer_terms?: string | null;
   offer_applies_to?: string | null;
 };
 
@@ -84,6 +85,7 @@ export function hospitalityDetailsFromPartnerRow(
     phone: asTrimmed(row.support_phone),
     offerCategory: parseOfferCategory(row.offer_applies_to ?? row.offer_type),
     offerTitle: asTrimmed(row.offer_type),
+    offerDescription: asTrimmed(row.offer_terms),
     offerTerms: asTrimmed(row.offer_exclusions),
     redemptionCap: "once_per_visit",
   };

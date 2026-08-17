@@ -134,6 +134,7 @@ type ProfileViewRow = {
   discount_percent: number | null;
   offer_applies_to: string | null;
   offer_exclusions: string | null;
+  offer_terms?: string | null;
   offer_scope: string | null;
   selected_products: unknown;
   banner_image_url: string | null;
@@ -173,7 +174,7 @@ const PARTNER_PREVIEW_COLUMNS = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_
 const PARTNER_PREVIEW_COLUMNS_WITHOUT_OFFER_IMAGES = `${PARTNER_PREVIEW_COLUMNS_BASE}, logo_original_url, logo_crop, offer_scope, selected_products, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours`;
 
 const PUBLIC_BRAND_PROFILE_SELECT =
-  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, offer_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, support_phone";
+  "id, slug, business_name, short_description, brand_story, website_url, location, department, primary_categories, category_groups, subcategories, offer_type, discount_value, discount_percent, offer_applies_to, offer_terms, offer_exclusions, offer_scope, selected_products, banner_image_url, logo_url, logo_original_url, logo_crop, gallery_image_urls, offer_image_urls, instagram, facebook, linkedin, tiktok, youtube, is_featured, affiliate_enabled, affiliate_commission_percent, affiliate_cookie_duration_days, affiliate_program_description, affiliate_terms, vault_drop, listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, support_phone";
 
 async function fetchOwnPartnerPreviewRow(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -230,6 +231,7 @@ function mapPartnerTableRow(row: Record<string, unknown>): PartnerProfile {
     discount_percent: row.discount_percent,
     offer_applies_to: row.offer_applies_to,
     offer_exclusions: row.offer_exclusions,
+    offer_terms: row.offer_terms,
     offer_scope: row.offer_scope,
     selected_products: row.selected_products,
     banner_image_url: row.banner_image_url,
@@ -317,6 +319,7 @@ function mapProfileRow(row: ProfileViewRow): PartnerProfile {
     support_phone: row.support_phone,
     offer_type: row.offer_type,
     offer_exclusions: row.offer_exclusions,
+    offer_terms: row.offer_terms,
     offer_applies_to: row.offer_applies_to,
   };
   const isHospitality = isHospitalityPartnerRow(hospitalityRow);

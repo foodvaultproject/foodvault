@@ -2,6 +2,9 @@ import { resolvePrimaryDepartment } from "@/data/partner-categories";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { formatBusinessName } from "@/lib/business-name";
 import { featuredBrands } from "@/data/homepage";
+import { HOSPITALITY_VENUE_TYPE_LABELS } from "@/lib/hospitality/constants";
+import { isHospitalityDemoListing } from "@/lib/hospitality/demo-venues";
+import { parseListingModel, parseVenueType } from "@/lib/hospitality/from-partner-row";
 import {
   formatPartnerDiscountLabel,
   partnerProfileSlug,
@@ -16,6 +19,7 @@ export type HomeExploreGalleryItem = {
   partnerSlug: string;
   businessName: string;
   department: string | null;
+  listingModel?: "online_brand" | "hospitality_venue";
   logoUrl: string | null;
   logoOriginalUrl: string | null;
   logoCrop: LogoCropSettings | null;
@@ -77,6 +81,7 @@ function buildDevExploreItems(): HomeExploreGalleryItem[] {
         partnerSlug,
         businessName: brand.name,
         department: "Pantry",
+        listingModel: "online_brand",
         logoUrl: brand.image,
         logoOriginalUrl: null,
         logoCrop: null,
@@ -103,7 +108,7 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
   const { data, error } = await supabase
     .from("v_public_brand_profile")
     .select(
-      "id, slug, business_name, department, primary_categories, gallery_image_urls, logo_url, logo_original_url, logo_crop, offer_type, discount_value"
+      "id, slug, business_name, department, primary_categories, gallery_image_urls, logo_url, logo_original_url, logo_crop, offer_type, discount_value, listing_model, venue_type"
     );
 
   if (error || !data?.length) {
@@ -113,6 +118,12 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
   const items: HomeExploreGalleryItem[] = [];
 
   for (const row of data) {
+    const partnerId = String(row.id);
+    const slug = (row.slug as string | null) || "";
+    if (isHospitalityDemoListing(partnerId) || isHospitalityDemoListing(slug)) {
+      continue;
+    }
+
     const urls = Array.isArray(row.gallery_image_urls)
       ? (row.gallery_image_urls as string[]).filter(Boolean)
       : [];
@@ -120,13 +131,17 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
     if (urls.length === 0) continue;
 
     const businessName = formatBusinessName(String(row.business_name ?? ""));
-    const partnerId = String(row.id);
-    const partnerSlug =
-      (row.slug as string | null) || partnerProfileSlug(businessName);
-    const department = resolveExploreDepartment({
-      department: row.department as string | null,
-      primary_categories: row.primary_categories as string[] | null,
-    });
+    const partnerSlug = slug || partnerProfileSlug(businessName);
+    const listingModel = parseListingModel(
+      typeof row.listing_model === "string" ? row.listing_model : null
+    );
+    const department =
+      listingModel === "hospitality_venue"
+        ? HOSPITALITY_VENUE_TYPE_LABELS[parseVenueType(row.venue_type as string | null)]
+        : resolveExploreDepartment({
+            department: row.department as string | null,
+            primary_categories: row.primary_categories as string[] | null,
+          });
     const selected = getUniqueGalleryUrls(urls);
 
     const logoUrl = (row.logo_url as string | null) ?? null;
@@ -145,6 +160,7 @@ export async function getHomeExploreGalleryItems(): Promise<HomeExploreGalleryIt
         partnerSlug,
         businessName,
         department,
+        listingModel,
         logoUrl,
         logoOriginalUrl,
         logoCrop,

@@ -448,7 +448,9 @@ export async function submitPartnerApplication(
     discount_value:
       offerScope === "entire_store" ? draft.discountValue ?? null : null,
     offer_applies_to: offerAppliesTo,
-    offer_terms: null,
+    offer_terms: isHospitality
+      ? draft.hospitality?.offerDescription?.trim() || null
+      : null,
     offer_exclusions: offerExclusions,
     support_email: draft.supportEmail ?? null,
     support_phone: draft.supportPhone ?? null,
@@ -551,7 +553,9 @@ export async function submitPartnerApplication(
     p_discount_value:
       offerScope === "entire_store" ? draft.discountValue ?? null : null,
     p_offer_applies_to: offerAppliesTo,
-    p_offer_terms: null,
+    p_offer_terms: isHospitality
+      ? draft.hospitality?.offerDescription?.trim() || null
+      : null,
     p_offer_exclusions: offerExclusions,
     p_support_email: draft.supportEmail ?? null,
     p_support_phone: draft.supportPhone ?? null,
@@ -658,6 +662,9 @@ export async function submitPartnerApplication(
       primary_categories: categoryFields.primary_categories,
       dietary_lifestyle_attributes: categoryFields.dietary_lifestyle_attributes,
       offer_exclusions: offerExclusions,
+      offer_terms: isHospitality
+        ? draft.hospitality?.offerDescription?.trim() || null
+        : null,
       offer_applies_to: offerAppliesTo,
       youtube: normalizeSocialValueForStorage(draft.youtube),
       contact_name: formatBusinessNameOrNull(draft.contactName),
@@ -766,6 +773,7 @@ export type PartnerListingData = {
   offerScope: OfferScope;
   selectedProducts: SelectedProduct[];
   offerExclusions: string;
+  offerDescription: string;
   supportEmail: string;
   supportPhone: string;
   contactName: string;
@@ -863,7 +871,8 @@ function str(value: unknown): string {
 }
 
 const LISTING_HOSPITALITY_COLUMN_TIERS = [
-  "listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, location, offer_image_urls, offer_original_urls, offer_image_crops",
+  "listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, location, offer_image_urls, offer_original_urls, offer_image_crops, offer_terms",
+  "listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, location, offer_terms",
   "listing_model, venue_type, suburb, city, region, latitude, longitude, opening_hours, location",
 ] as const;
 
@@ -973,6 +982,7 @@ function mapPartnerListingRow(row: Record<string, unknown>): PartnerListingData 
       offerScopeFromLegacyAppliesTo(str(row.offer_applies_to)),
     selectedProducts: parseSelectedProducts(row.selected_products),
     offerExclusions: str(row.offer_exclusions),
+    offerDescription: str(row.offer_terms),
     supportEmail: str(row.support_email),
     supportPhone: str(row.support_phone),
     contactName: formatBusinessName(str(row.contact_name)),
@@ -1160,6 +1170,7 @@ function buildHospitalityListingPayload(data: PartnerListingData) {
     offer_type: data.offerType || null,
     offer_applies_to: data.hospitalityOfferCategory || null,
     offer_exclusions: normalizeOfferExclusionsForStorage(data.offerExclusions),
+    offer_terms: data.offerDescription?.trim() || null,
   };
 }
 
@@ -1194,7 +1205,10 @@ function buildPartnerListingUpdatePayload(
     offer_scope: data.offerScope,
     selected_products: data.selectedProducts ?? [],
     offer_exclusions: normalizeOfferExclusionsForStorage(data.offerExclusions),
-    offer_terms: null,
+    offer_terms:
+      data.listingModel === "hospitality_venue"
+        ? data.offerDescription?.trim() || null
+        : null,
     support_email: data.supportEmail || null,
     support_phone: data.supportPhone || null,
     contact_name: formatBusinessNameOrNull(data.contactName),

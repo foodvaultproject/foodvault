@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PartnerOnboardingBanner } from "./PartnerOnboardingBanner";
 import { PartnerNotificationBell } from "@/components/notification-service/PartnerNotificationBell";
+import { usePartnerOnboarding } from "./PartnerOnboardingProvider";
 
 const baseNavItems = [
   {
@@ -42,12 +43,19 @@ type PartnerPortalShellProps = {
 
 export function PartnerPortalShell({ children }: PartnerPortalShellProps) {
   const pathname = usePathname();
+  const { partner } = usePartnerOnboarding();
+  const isHospitality = partner?.listingModel === "hospitality_venue";
 
   return (
     <div data-partner-portal className="flex min-h-[calc(100dvh-4rem)] bg-surface">
       <aside className="hidden w-64 shrink-0 flex-col bg-navy text-white lg:flex">
         <div className="border-b border-white/10 px-5 py-4">
           <p className="text-sm font-semibold">Partner Vault</p>
+          {isHospitality ? (
+            <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-white/70">
+              Hospitality
+            </p>
+          ) : null}
         </div>
         <nav className="flex-1 space-y-0.5 px-2 py-3">
           {baseNavItems.map((item) => {

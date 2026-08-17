@@ -11,6 +11,7 @@ type SuggestFilterInputProps = {
   options: readonly string[];
   placeholder?: string;
   disabled?: boolean;
+  loadSuggestions?: (query: string) => Promise<string[]>;
 };
 
 export function SuggestFilterInput({
@@ -20,19 +21,51 @@ export function SuggestFilterInput({
   options,
   placeholder = "Start typing",
   disabled = false,
+  loadSuggestions,
 }: SuggestFilterInputProps) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
+  const [remoteOptions, setRemoteOptions] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setQuery(value);
   }, [value]);
 
-  const suggestions = useMemo(
-    () => filterSuggestions(options, query),
-    [options, query]
+  const mergedOptions = useMemo(
+    () => [...new Set([...options, ...remoteOptions])],
+    [options, remoteOptions]
   );
+
+  const suggestions = useMemo(
+    () => filterSuggestions(mergedOptions, query),
+    [mergedOptions, query]
+  );
+
+  useEffect(() => {
+    if (!loadSuggestions || disabled) {
+      setRemoteOptions([]);
+      return;
+    }
+
+    const trimmed = query.trim();
+    if (trimmed.length < 3) {
+      setRemoteOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void loadSuggestions(trimmed).then((next) => {
+        if (!cancelled) setRemoteOptions(next);
+      });
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [disabled, loadSuggestions, query]);
 
   const commit = useCallback(
     (raw: string) => {
@@ -44,7 +77,7 @@ export function SuggestFilterInput({
         return;
       }
 
-      const exact = options.find(
+      const exact = mergedOptions.find(
         (option) => option.toLowerCase() === trimmed.toLowerCase()
       );
       const next = exact ?? suggestions[0] ?? trimmed;
@@ -52,7 +85,7 @@ export function SuggestFilterInput({
       setQuery(next);
       setOpen(false);
     },
-    [onChange, options, suggestions]
+    [onChange, mergedOptions, suggestions]
   );
 
   useEffect(() => {

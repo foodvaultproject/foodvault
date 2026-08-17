@@ -266,6 +266,7 @@ function hospitalityFromListingData(data: PartnerListingData): HospitalityApplic
       data.listingModel === "hospitality_venue"
         ? data.offerType || data.offerTitle
         : "",
+    offerDescription: data.offerDescription,
     offerTerms: data.offerExclusions,
     redemptionCap: "once_per_visit",
   };
@@ -735,6 +736,7 @@ export function PartnerListingEditor() {
       offerExclusions: isHospitality
         ? listing.hospitality.offerTerms
         : listing.offerExclusions,
+      offerDescription: isHospitality ? listing.hospitality.offerDescription : "",
       selectedProducts,
       supportEmail: listing.supportEmail,
       supportPhone: isHospitality ? listing.hospitality.phone : listing.supportPhone,
@@ -1133,7 +1135,7 @@ export function PartnerListingEditor() {
                   <p className={labelClass}>Offer photos</p>
                   <p className={`${portalHelper} mt-1`}>
                     Add up to {MAX_HOSPITALITY_OFFER_IMAGES} photos of the member offer described
-                    above. These appear in Whats on offer on your profile, separate from Gallery.
+                    above. These appear in What you get on your profile, separate from Gallery.
                   </p>
                   <PartnerGalleryUploadGrid
                     variant="compact"

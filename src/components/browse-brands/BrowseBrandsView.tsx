@@ -1,9 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { BrowseBrandsExplorer } from "@/components/browse-brands/BrowseBrandsExplorer";
 import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import { OwnAKiwiBrandCard } from "@/components/partners/OwnAKiwiBrandCard";
+import { getAuthSession } from "@/lib/auth";
+import { readAuthStateHintClient } from "@/lib/auth/session-hint";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 
 type BrowseBrandsViewProps = {
@@ -52,6 +54,19 @@ export function BrowseBrandsView(props: BrowseBrandsViewProps) {
     initialSubcategory = "",
   } = props;
   const isActiveMember = useIsActiveMember();
+  const [isPartner, setIsPartner] = useState(
+    () => readAuthStateHintClient() === "partner"
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void getAuthSession().then((session) => {
+      if (!cancelled) setIsPartner(session?.accountType === "partner");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
@@ -73,7 +88,7 @@ export function BrowseBrandsView(props: BrowseBrandsViewProps) {
         </Suspense>
       </div>
 
-      {isActiveMember ? null : (
+      {isActiveMember || isPartner ? null : (
         <section className="bg-surface-lavender pb-5 pt-3 sm:pb-7 sm:pt-4 lg:pt-5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <OwnAKiwiBrandCard />

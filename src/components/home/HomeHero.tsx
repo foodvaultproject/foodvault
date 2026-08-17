@@ -20,11 +20,13 @@ export type HomeHeroVariant = "visitor" | "active-member" | "partner";
 type HomeHeroProps = {
   variant?: HomeHeroVariant;
   collageImages?: string[];
+  hospitality?: boolean;
 };
 
 export function HomeHero({
   variant = "visitor",
   collageImages = [],
+  hospitality = false,
 }: HomeHeroProps) {
   return (
     <section className="relative flex flex-col overflow-hidden border-b border-white/15 bg-primary">
@@ -35,11 +37,22 @@ export function HomeHero({
         {variant === "partner" ? (
           <SignedInHeroBanner
             title={
-              <>
-                Turn discovery into <span className="text-white/95">direct sales!</span>
-              </>
+              hospitality ? (
+                <>
+                  Turn local foot traffic into{" "}
+                  <span className="text-white/95">loyal regulars!</span>
+                </>
+              ) : (
+                <>
+                  Turn discovery into <span className="text-white/95">direct sales!</span>
+                </>
+              )
             }
-            description="Get your brand discovered by more Kiwis, showcase your products and send customers directly to your website to buy from you."
+            description={
+              hospitality
+                ? "Get your venue discovered by more Kiwis, showcase your menu, and drive local customers through your doors to dine with you."
+                : "Get your brand discovered by more Kiwis, showcase your products and send customers directly to your website to buy from you."
+            }
             cta={
               <Link href="/partner/listing" className={HERO_PRIMARY_CTA_CLASS}>
                 Manage My Listing

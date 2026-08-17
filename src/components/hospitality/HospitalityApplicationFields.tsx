@@ -233,6 +233,28 @@ export function HospitalityOfferFields({
       </div>
 
       <div>
+        <label htmlFor="hospitality-offer-description" className={labelClass}>
+          What You Get
+        </label>
+        <textarea
+          id="hospitality-offer-description"
+          rows={4}
+          value={value.offerDescription}
+          disabled={disabled}
+          onChange={(event) =>
+            patchDetails(value, onChange, {
+              offerDescription: capitalizeSentences(event.target.value),
+            })
+          }
+          placeholder="Describe what members receive — the food, drink, or experience included in this offer."
+          className={`mt-1 resize-y ${inputClass}`}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          This appears on your profile under What you get, below the offer photos.
+        </p>
+      </div>
+
+      <div>
         <label htmlFor="hospitality-offer-terms" className={labelClass}>
           Terms &amp; Conditions <span className="text-primary">*</span>
         </label>

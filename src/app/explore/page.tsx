@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ExploreSaveFeed } from "@/components/explore/ExploreSaveFeed";
 import { getCachedHomeExploreGalleryItems } from "@/lib/cache/public-directory";
 
@@ -15,11 +16,13 @@ export default async function ExplorePage() {
 
   return (
     <section className="bg-background">
-      <ExploreSaveFeed
-        items={items}
-        canFavorite={false}
-        favoritedPartnerIds={[]}
-      />
+      <Suspense>
+        <ExploreSaveFeed
+          items={items}
+          canFavorite={false}
+          favoritedPartnerIds={[]}
+        />
+      </Suspense>
     </section>
   );
 }

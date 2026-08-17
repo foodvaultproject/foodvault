@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { PRIMARY_DEPARTMENTS } from "@/data/partner-categories";
 
 type ExploreDepartmentFilterBarProps = {
@@ -10,6 +10,9 @@ type ExploreDepartmentFilterBarProps = {
   onDepartmentChange: (department: string | null) => void;
   moreFiltersHref: string;
   visible: boolean;
+  options?: readonly string[];
+  allLabel?: string;
+  leading?: ReactNode;
 };
 
 export function ExploreDepartmentFilterBar({
@@ -17,6 +20,9 @@ export function ExploreDepartmentFilterBar({
   onDepartmentChange,
   moreFiltersHref,
   visible,
+  options = PRIMARY_DEPARTMENTS,
+  allLabel = "All",
+  leading,
 }: ExploreDepartmentFilterBarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -61,6 +67,9 @@ export function ExploreDepartmentFilterBar({
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
+      {leading ? (
+        <div className="mx-auto max-w-[1200px] px-3 pt-2.5 sm:px-6 lg:px-8">{leading}</div>
+      ) : null}
       <div className="relative mx-auto max-w-[1200px]">
         {canScrollLeft ? (
           <button
@@ -97,9 +106,9 @@ export function ExploreDepartmentFilterBar({
                 : "bg-primary/10 text-primary hover:bg-primary/15"
             }`}
           >
-            All
+            {allLabel}
           </button>
-          {PRIMARY_DEPARTMENTS.map((department) => (
+          {options.map((department) => (
             <button
               key={department}
               type="button"

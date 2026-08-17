@@ -24,6 +24,14 @@ export const EMPTY_PARTNER_SOCIAL_LINKS: PartnerSocialLinks = {
   youtube: "",
 };
 
+export const SOCIAL_PROFILE_ICONS: Record<SocialPlatform, string> = {
+  instagram: "/brand profile/instagram-profile.webp",
+  facebook: "/brand profile/facebook-profile.webp",
+  linkedin: "/brand profile/linkedin-profile.webp",
+  tiktok: "/brand profile/tiktok-profile.webp",
+  youtube: "/brand profile/youtube-profile.webp",
+};
+
 export const SOCIAL_FIELD_ORDER: SocialFieldKey[] = [
   "instagram",
   "facebook",

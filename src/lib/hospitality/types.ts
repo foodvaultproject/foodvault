@@ -44,6 +44,7 @@ export type HospitalityDetails = {
   phone: string;
   offerCategory: HospitalityOfferCategory;
   offerTitle: string;
+  offerDescription: string;
   offerTerms: string;
   redemptionCap: HospitalityRedemptionCap;
 };
@@ -55,6 +56,7 @@ export type HospitalityApplicationDetails = {
   phone: string;
   offerCategory: HospitalityOfferCategory | "";
   offerTitle: string;
+  offerDescription: string;
   offerTerms: string;
   redemptionCap: HospitalityRedemptionCap;
 };
@@ -91,6 +93,7 @@ export function emptyHospitalityApplicationDetails(): HospitalityApplicationDeta
     phone: "",
     offerCategory: "",
     offerTitle: "",
+    offerDescription: "",
     offerTerms: "",
     redemptionCap: "once_per_visit",
   };

@@ -294,6 +294,9 @@ export function PartnerApplicationPage() {
               ...emptyHospitalityApplicationDetails(),
               ...draft.hospitality,
               offerTitle: capitalizeSentences(draft.hospitality.offerTitle ?? ""),
+              offerDescription: capitalizeSentences(
+                draft.hospitality.offerDescription ?? ""
+              ),
               offerTerms: capitalizeSentences(draft.hospitality.offerTerms ?? ""),
               location: {
                 ...emptyHospitalityApplicationDetails().location,
@@ -957,7 +960,7 @@ export function PartnerApplicationPage() {
                 <p className={labelClass}>Offer photos</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Add up to {MAX_HOSPITALITY_OFFER_IMAGES} photos of the member offer described
-                  above.
+                  above. These appear in What you get on your profile, separate from Gallery.
                 </p>
                 <PartnerGalleryDraftGrid
                   variant="compact"

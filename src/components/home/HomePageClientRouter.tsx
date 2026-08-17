@@ -32,11 +32,13 @@ function HomeAudienceContent({
   data,
   partnerGalleryImages,
   isSettling,
+  hospitalityPartner = false,
 }: {
   audience: HomeAudience;
   data: StaticHomepageData;
   partnerGalleryImages: string[];
   isSettling: boolean;
+  hospitalityPartner?: boolean;
 }) {
   const settleClass = isSettling
     ? "opacity-100 transition-opacity duration-200 ease-out"
@@ -45,8 +47,12 @@ function HomeAudienceContent({
   if (audience === "partner") {
     return (
       <div className={settleClass}>
-        <PartnerAffiliateSetupBanner variant="compact" />
-        <HomeHero variant="partner" collageImages={partnerGalleryImages} />
+        {hospitalityPartner ? null : <PartnerAffiliateSetupBanner variant="compact" />}
+        <HomeHero
+          variant="partner"
+          collageImages={partnerGalleryImages}
+          hospitality={hospitalityPartner}
+        />
         <HomeTrendingDepartmentCardsSection />
         <HomeGiftsHampersBanner compactSpacing />
         <HomePartnerQuickLinks compactSpacing />
@@ -116,6 +122,7 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
   const [audience, setAudience] = useState<HomeAudience | "unknown">(initialHint);
   const [resolved, setResolved] = useState(initialHint !== "unknown");
   const [partnerGalleryImages, setPartnerGalleryImages] = useState<string[]>([]);
+  const [hospitalityPartner, setHospitalityPartner] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,6 +148,7 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
 
         syncAuthSessionHints(session);
         setPartnerGalleryImages((listing?.galleryImageUrls ?? []).filter(Boolean).slice(0, 3));
+        setHospitalityPartner(listing?.listingModel === "hospitality_venue");
         setAudience("partner");
         setResolved(true);
         return;
@@ -185,6 +193,7 @@ export function HomePageClientRouter({ data }: { data: StaticHomepageData }) {
         audience={audience}
         data={data}
         partnerGalleryImages={partnerGalleryImages}
+        hospitalityPartner={hospitalityPartner}
         isSettling={resolved}
       />
     </div>

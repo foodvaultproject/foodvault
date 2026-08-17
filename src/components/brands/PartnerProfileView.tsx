@@ -26,7 +26,7 @@ import type { BrandAffiliateViewerContext } from "@/lib/affiliate/server";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import {
   listPartnerSocialLinks,
-  type SocialPlatform,
+  SOCIAL_PROFILE_ICONS,
 } from "@/lib/partner-social";
 
 type PartnerProfileViewProps = {
@@ -53,14 +53,6 @@ function browseCategoryHref(department: string | null, subcategory?: string) {
   const query = params.toString();
   return query ? `${basePath}?${query}` : basePath;
 }
-
-const SOCIAL_PROFILE_ICONS: Record<SocialPlatform, string> = {
-  instagram: "/brand profile/instagram-profile.webp",
-  facebook: "/brand profile/facebook-profile.webp",
-  linkedin: "/brand profile/linkedin-profile.webp",
-  tiktok: "/brand profile/tiktok-profile.webp",
-  youtube: "/brand profile/youtube-profile.webp",
-};
 
 function AboutBrandSection({ brandStory }: { brandStory: string }) {
   const [expanded, setExpanded] = useState(false);
