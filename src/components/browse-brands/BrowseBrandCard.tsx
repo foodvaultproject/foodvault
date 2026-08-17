@@ -29,10 +29,10 @@ import type { BrandCard } from "@/lib/member/browse-brands-types";
 const cardGallerySizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw";
 
 const favoriteOnImageClass =
-  "absolute right-2 top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/90 shadow-sm backdrop-blur-sm transition-colors hover:border-primary/30 disabled:opacity-60";
+  "absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/90 shadow-sm backdrop-blur-sm transition-colors hover:border-primary/30 disabled:opacity-60";
 
 const favoriteOnImageActiveClass =
-  "absolute right-2 top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/90 shadow-sm backdrop-blur-sm transition-transform hover:scale-105 disabled:opacity-60";
+  "absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/90 shadow-sm backdrop-blur-sm transition-transform hover:scale-105 disabled:opacity-60";
 
 type BrowseBrandCardProps = {
   brand: BrandCard;
@@ -147,7 +147,7 @@ export function BrowseBrandCard({
 
         {isLocalVenue ? (
           <span
-            className="absolute left-2 top-2 z-20 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-sm"
+            className="absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-sm"
             style={{ backgroundColor: HOSPITALITY_CARD_ACCENT }}
           >
             Instore Only

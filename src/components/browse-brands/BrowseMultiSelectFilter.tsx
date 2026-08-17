@@ -71,7 +71,10 @@ export function BrowseMultiSelectFilter({
         : [];
 
   return (
-    <div ref={containerRef} className="relative block min-w-0 flex-1">
+    <div
+      ref={containerRef}
+      className={`relative block min-w-0 flex-1 ${open ? "z-50" : "z-10"}`}
+    >
       <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
         {label}
       </span>
@@ -93,7 +96,7 @@ export function BrowseMultiSelectFilter({
         <div
           role="listbox"
           aria-multiselectable="true"
-          className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-background py-1 shadow-lg"
+          className="absolute z-[60] mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-background py-1 shadow-lg"
         >
           {groupedOptions.length === 0 ? (
             <p className="px-3 py-2 text-sm text-muted-foreground">

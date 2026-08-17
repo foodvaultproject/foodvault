@@ -20,6 +20,8 @@ export default async function SearchPage() {
         featured={data.featured}
         initialExplore={data.initialExplore}
         initialTotal={data.initialTotal}
+        initialLocalExplore={data.initialLocalExplore}
+        initialLocalTotal={data.initialLocalTotal}
         canFavorite={data.canFavorite}
         favoritedPartnerIds={data.favoritedPartnerIds}
         initialDepartment={data.initialDepartment}

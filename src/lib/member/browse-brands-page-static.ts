@@ -1,5 +1,6 @@
 import {
   getCachedFeaturedBrands,
+  getCachedHospitalityVenues,
   getCachedSearchPublicBrands,
 } from "@/lib/cache/public-directory";
 import {
@@ -17,7 +18,7 @@ export async function loadBrowseBrandsPageDataStatic(
   const initialDepartment = searchParams.department ?? "";
   const initialSubcategory = searchParams.subcategory ?? "";
 
-  const [featured, initial] = await Promise.all([
+  const [featured, initial, local] = await Promise.all([
     getCachedFeaturedBrands(6),
     getCachedSearchPublicBrands({
       sort: "featured",
@@ -26,12 +27,15 @@ export async function loadBrowseBrandsPageDataStatic(
       limit: BROWSE_PAGE_SIZE,
       offset: 0,
     }),
+    getCachedHospitalityVenues(BROWSE_PAGE_SIZE),
   ]);
 
   return {
     featured,
     initialExplore: initial.brands,
     initialTotal: initial.total,
+    initialLocalExplore: local.brands,
+    initialLocalTotal: local.total,
     canFavorite: false,
     favoritedPartnerIds: [] as string[],
     initialDepartment,

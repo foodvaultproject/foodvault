@@ -11,6 +11,7 @@ import {
 } from "@/lib/member/browse-brands";
 import type { BrandSearchParams } from "@/lib/member/browse-brands-types";
 import { getHomeExploreGalleryItems } from "@/lib/member/home-explore-gallery";
+import { searchHospitalityVenues } from "@/lib/hospitality/search";
 import {
   getPartnerProfile,
   getRecommendedBrands,
@@ -111,6 +112,22 @@ export async function getCachedRecentBrandCards(limit: number) {
   return unstable_cache(
     async () => getRecentBrandCards(limit),
     ["cached-recent-brand-cards-v3", String(limit)],
+    {
+      revalidate: PUBLIC_REVALIDATE_SECONDS,
+      tags: [PUBLIC_CACHE_TAG.brands],
+    }
+  )();
+}
+
+export async function getCachedHospitalityVenues(limit: number) {
+  return unstable_cache(
+    async () =>
+      searchHospitalityVenues({
+        sort: "featured",
+        limit,
+        offset: 0,
+      }),
+    ["cached-hospitality-venues-v1", String(limit)],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
       tags: [PUBLIC_CACHE_TAG.brands],

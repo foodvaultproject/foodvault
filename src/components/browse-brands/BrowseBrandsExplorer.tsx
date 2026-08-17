@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import {
   BrowseFilterTags,
@@ -65,6 +65,8 @@ type BrowseBrandsExplorerProps = {
   featured: BrandCard[];
   initialExplore: BrandCard[];
   initialTotal: number;
+  initialLocalExplore?: BrandCard[];
+  initialLocalTotal?: number;
   canFavorite: boolean;
   favoritedPartnerIds: string[];
   initialDepartment?: string;
@@ -87,6 +89,8 @@ export function BrowseBrandsExplorer({
   featured,
   initialExplore,
   initialTotal,
+  initialLocalExplore = [],
+  initialLocalTotal = 0,
   canFavorite,
   favoritedPartnerIds,
   initialDepartment = "",
@@ -98,18 +102,34 @@ export function BrowseBrandsExplorer({
   partnerHomepage = false,
   disableUrlHydration = false,
 }: BrowseBrandsExplorerProps) {
-  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [favoriteEnabled, setFavoriteEnabled] = useState(canFavorite);
   const [favoritedIds, setFavoritedIds] = useState(favoritedPartnerIds);
   const favoritedSet = useMemo(() => new Set(favoritedIds), [favoritedIds]);
-  const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>("online");
-  const [localRegion, setLocalRegion] = useState("");
-  const [localCity, setLocalCity] = useState("");
-  const [localVenueType, setLocalVenueType] = useState<HospitalityVenueType | "">("");
-  const [localBrands, setLocalBrands] = useState<BrandCard[]>([]);
-  const [localTotal, setLocalTotal] = useState(0);
+  const [discoveryMode, setDiscoveryMode] = useState<DiscoveryMode>(() =>
+    !disableUrlHydration && searchParams.get("mode")?.trim() === "local"
+      ? "local"
+      : "online"
+  );
+  const [localRegion, setLocalRegion] = useState(
+    () => (!disableUrlHydration ? searchParams.get("region")?.trim() ?? "" : "")
+  );
+  const [localCity, setLocalCity] = useState(
+    () => (!disableUrlHydration ? searchParams.get("city")?.trim() ?? "" : "")
+  );
+  const [localVenueType, setLocalVenueType] = useState<HospitalityVenueType | "">(() => {
+    if (disableUrlHydration) return "";
+    const venueTypeParam = searchParams.get("venueType")?.trim() ?? "";
+    return HOSPITALITY_VENUE_TYPES.includes(venueTypeParam as HospitalityVenueType)
+      ? (venueTypeParam as HospitalityVenueType)
+      : "";
+  });
+  const [localBrands, setLocalBrands] = useState<BrandCard[]>(initialLocalExplore);
+  const [localTotal, setLocalTotal] = useState(initialLocalTotal);
   const [localCityOptions, setLocalCityOptions] = useState<string[]>([]);
+  const [localLoading, setLocalLoading] = useState(false);
+  const localSearchRequestId = useRef(0);
 
   useEffect(() => {
     if (canFavorite) return;
@@ -140,7 +160,6 @@ export function BrowseBrandsExplorer({
   const [total, setTotal] = useState(initialTotal);
   const [isPending, startTransition] = useTransition();
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (disableUrlHydration) {
@@ -272,24 +291,39 @@ export function BrowseBrandsExplorer({
   const visibleFeatured = discoveryMode === "local" ? [] : featured;
 
   const runSearch = useCallback(
-    (offset: number, append: boolean) => {
-      startTransition(async () => {
-        if (discoveryMode === "local") {
-          const result = await searchHospitalityVenuesAction({
-            region: localRegion || null,
-            city: localCity || null,
-            venueType: localVenueType || null,
-            sort,
-            limit: BROWSE_PAGE_SIZE,
-            offset,
-          });
-          setLocalTotal(result.total);
-          setLocalBrands((current) =>
-            append ? [...current, ...result.brands] : result.brands
-          );
-          return;
+    (offset: number, append: boolean, modeOverride?: DiscoveryMode) => {
+      const mode = modeOverride ?? discoveryMode;
+
+      if (mode === "local") {
+        const requestId = ++localSearchRequestId.current;
+        if (!append) {
+          setLocalLoading(true);
         }
 
+        void searchHospitalityVenuesAction({
+          region: localRegion || null,
+          city: localCity || null,
+          venueType: localVenueType || null,
+          sort,
+          limit: BROWSE_PAGE_SIZE,
+          offset,
+        })
+          .then((result) => {
+            if (requestId !== localSearchRequestId.current) return;
+            setLocalTotal(result.total);
+            setLocalBrands((current) =>
+              append ? [...current, ...result.brands] : result.brands
+            );
+          })
+          .finally(() => {
+            if (requestId === localSearchRequestId.current) {
+              setLocalLoading(false);
+            }
+          });
+        return;
+      }
+
+      startTransition(async () => {
         const result = await searchBrandsAction({
           search: "",
           departments,
@@ -320,8 +354,27 @@ export function BrowseBrandsExplorer({
     ]
   );
 
+  useEffect(() => {
+    if (initialLocalExplore.length > 0) return;
+
+    let cancelled = false;
+    void searchHospitalityVenuesAction({
+      sort: "featured",
+      limit: BROWSE_PAGE_SIZE,
+      offset: 0,
+    }).then((result) => {
+      if (cancelled) return;
+      setLocalBrands((current) => (current.length > 0 ? current : result.brands));
+      setLocalTotal((current) => (current > 0 ? current : result.total));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialLocalExplore.length]);
+
   function syncDiscoveryUrl(mode: DiscoveryMode) {
-    if (disableUrlHydration) return;
+    if (disableUrlHydration || typeof window === "undefined") return;
     const params = new URLSearchParams();
     if (mode === "local") {
       params.set("mode", "local");
@@ -333,12 +386,18 @@ export function BrowseBrandsExplorer({
       if (subcategories[0]) params.set("subcategory", subcategories[0]);
     }
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    const url = query ? `${pathname}?${query}` : pathname;
+    // replaceState avoids useSearchParams() suspending and remounting the
+    // explorer (which discarded in-flight Visit Local results).
+    window.history.replaceState(window.history.state, "", url);
   }
 
   function handleDiscoveryModeChange(mode: DiscoveryMode) {
     setDiscoveryMode(mode);
     syncDiscoveryUrl(mode);
+    if (mode === "local" && localBrands.length === 0) {
+      runSearch(0, false, "local");
+    }
   }
 
   function handleRegionChange(nextRegion: string) {
@@ -395,13 +454,15 @@ export function BrowseBrandsExplorer({
     discoveryMode === "local" ? localBrands.length < localTotal : brands.length < total;
   const loadedCount = discoveryMode === "local" ? localBrands.length : brands.length;
 
+  const searchBusy = discoveryMode === "local" ? localLoading : isPending;
+
   useEffect(() => {
     if (discoveryMode !== "local") return;
     runSearch(0, false);
   }, [discoveryMode, localRegion, localCity, localVenueType, sort, runSearch]);
 
   useEffect(() => {
-    if (!hasMore || isPending) return;
+    if (!hasMore || searchBusy) return;
 
     const sentinel = loadMoreRef.current;
     if (!sentinel) return;
@@ -417,7 +478,7 @@ export function BrowseBrandsExplorer({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loadedCount, hasMore, isPending, runSearch]);
+  }, [loadedCount, hasMore, searchBusy, runSearch]);
 
   const formTopMargin = embedded
     ? ""
@@ -426,9 +487,9 @@ export function BrowseBrandsExplorer({
       : "mt-10 sm:mt-14 lg:mt-16";
   const formPadding = compactSpacing ? "p-3" : "p-5";
   const filterShellClassName = embedded
-    ? "relative overflow-visible"
-    : `${formTopMargin} relative overflow-visible`;
-  const filterFormClassName = `overflow-visible rounded-lg border border-border bg-background ${formPadding} shadow-sm`;
+    ? "relative z-40 overflow-visible"
+    : `${formTopMargin} relative z-40 overflow-visible`;
+  const filterFormClassName = `relative z-40 overflow-visible rounded-lg border border-border bg-background ${formPadding} shadow-sm`;
   const filterPeepingClassName = partnerHomepage
     ? "pointer-events-none absolute -top-8 left-6 z-10 block h-8 w-auto max-w-[8.4rem] object-contain object-bottom sm:-top-[2.4rem] sm:left-7 sm:h-[2.4rem] md:-top-[2.8rem] md:h-[2.8rem] lg:-top-[3.2rem] lg:left-8 lg:h-[3.2rem] lg:max-w-[11.2rem]"
     : compactSpacing
@@ -631,16 +692,27 @@ export function BrowseBrandsExplorer({
         ) : null}
         {visibleBrands.length === 0 ? (
           <div className={`${gridGap} rounded-lg border border-border bg-background p-10 text-center`}>
-            <p className="text-lg font-semibold text-foreground">
-              {discoveryMode === "local"
-                ? "No venues match your filters"
-                : "No brands match your filters"}
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {discoveryMode === "local"
-                ? "Try another region, city, or venue type."
-                : "Try adjusting your department, diet & lifestyle, or discount filters."}
-            </p>
+            {discoveryMode === "local" && localLoading ? (
+              <>
+                <p className="text-lg font-semibold text-foreground">Loading local venues...</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Finding member offers near you.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold text-foreground">
+                  {discoveryMode === "local"
+                    ? "No venues match your filters"
+                    : "No brands match your filters"}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {discoveryMode === "local"
+                    ? "Try another region, city, or venue type."
+                    : "Try adjusting your department, diet & lifestyle, or discount filters."}
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -661,7 +733,7 @@ export function BrowseBrandsExplorer({
                 className={`${compactSpacing ? "mt-4" : "mt-8"} flex min-h-12 items-center justify-center`}
                 aria-live="polite"
               >
-                {isPending ? (
+                {searchBusy ? (
                   <p className="text-sm text-muted-foreground">
                     {discoveryMode === "local"
                       ? "Loading more venues..."

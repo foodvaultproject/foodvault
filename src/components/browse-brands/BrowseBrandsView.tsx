@@ -12,34 +12,27 @@ type BrowseBrandsViewProps = {
   featured: BrandCard[];
   initialExplore: BrandCard[];
   initialTotal: number;
+  initialLocalExplore?: BrandCard[];
+  initialLocalTotal?: number;
   canFavorite: boolean;
   favoritedPartnerIds: string[];
   initialDepartment?: string;
   initialSubcategory?: string;
 };
 
-function BrowseBrandsExplorerFallback({
-  featured,
-  initialExplore,
-  initialTotal,
-  canFavorite,
-  favoritedPartnerIds,
-  initialDepartment = "",
-  initialSubcategory = "",
-}: BrowseBrandsViewProps) {
+function BrowseBrandsExplorerFallback() {
   return (
-    <BrowseBrandsExplorer
-      featured={featured}
-      initialExplore={initialExplore}
-      initialTotal={initialTotal}
-      canFavorite={canFavorite}
-      favoritedPartnerIds={favoritedPartnerIds}
-      initialDepartment={initialDepartment}
-      initialSubcategory={initialSubcategory}
-      exploreHeading=""
-      compactSpacing
-      disableUrlHydration
-    />
+    <div className="mt-5 sm:mt-7">
+      <div className="h-40 animate-pulse rounded-lg border border-border bg-background" />
+      <div className="mt-6 grid grid-cols-2 gap-[5px] lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div
+            key={index}
+            className="aspect-[3/4] animate-pulse rounded-lg bg-border/70"
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -48,6 +41,8 @@ export function BrowseBrandsView(props: BrowseBrandsViewProps) {
     featured,
     initialExplore,
     initialTotal,
+    initialLocalExplore = [],
+    initialLocalTotal = 0,
     canFavorite,
     favoritedPartnerIds,
     initialDepartment = "",
@@ -73,11 +68,13 @@ export function BrowseBrandsView(props: BrowseBrandsViewProps) {
       <h1 className="sr-only">Browse Brands</h1>
 
       <div className="mx-auto max-w-[1200px] overflow-visible px-4 py-8 sm:px-6 lg:px-8">
-        <Suspense fallback={<BrowseBrandsExplorerFallback {...props} />}>
+        <Suspense fallback={<BrowseBrandsExplorerFallback />}>
           <BrowseBrandsExplorer
             featured={featured}
             initialExplore={initialExplore}
             initialTotal={initialTotal}
+            initialLocalExplore={initialLocalExplore}
+            initialLocalTotal={initialLocalTotal}
             canFavorite={canFavorite}
             favoritedPartnerIds={favoritedPartnerIds}
             initialDepartment={initialDepartment}

@@ -50,6 +50,8 @@ export default async function BrowseBrandsPage({
       featured={data.featured}
       initialExplore={data.initialExplore}
       initialTotal={data.initialTotal}
+      initialLocalExplore={data.initialLocalExplore}
+      initialLocalTotal={data.initialLocalTotal}
       canFavorite={data.canFavorite}
       favoritedPartnerIds={data.favoritedPartnerIds}
       initialDepartment={data.initialDepartment}

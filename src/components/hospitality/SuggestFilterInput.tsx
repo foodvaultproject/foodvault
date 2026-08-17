@@ -105,7 +105,10 @@ export function SuggestFilterInput({
   }, [open, query, commit]);
 
   return (
-    <div ref={containerRef} className="relative block min-w-0 flex-1">
+    <div
+      ref={containerRef}
+      className={`relative block min-w-0 flex-1 ${open ? "z-50" : "z-10"}`}
+    >
       <label className="block">
         <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
           {label}
@@ -141,7 +144,7 @@ export function SuggestFilterInput({
       </label>
       {open && !disabled && suggestions.length > 0 ? (
         <ul
-          className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-md border border-border bg-background py-1 shadow-lg"
+          className="absolute z-[60] mt-1 max-h-64 w-full overflow-auto rounded-md border border-border bg-background py-1 shadow-lg"
           role="listbox"
         >
           {suggestions.map((option) => (
