@@ -213,7 +213,12 @@ export function HospitalityProfileView({
 
           {offerImages.length > 0 || hospitality.offerDescription ? (
             <section id="what-you-get" className={SECTION_CARD}>
-              <h2 className="text-sm font-semibold text-foreground">What you get</h2>
+              <h2 className="text-sm font-semibold text-foreground">What you get!</h2>
+              {hospitality.offerDescription ? (
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  {hospitality.offerDescription}
+                </p>
+              ) : null}
               {offerImages.length > 0 ? (
                 <div className="mt-3">
                   <BrandGallery
@@ -221,11 +226,6 @@ export function HospitalityProfileView({
                     businessName={`${profile.businessName} offer`}
                   />
                 </div>
-              ) : null}
-              {hospitality.offerDescription ? (
-                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                  {hospitality.offerDescription}
-                </p>
               ) : null}
             </section>
           ) : null}

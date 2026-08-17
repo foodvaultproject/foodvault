@@ -19,6 +19,7 @@ export {
   renderPartnerApplicationReceivedEmail,
   renderPartnerApplicationApprovedEmail,
   renderPartnerListingLiveEmail,
+  renderPartnerHospitalityListingLiveEmail,
   renderPartnerApplicationRejectedEmail,
   renderAdminNewBrandApplicationEmail,
 } from "@/lib/email-templates/render";
@@ -33,6 +34,7 @@ export {
   sendPartnerApplicationReceivedEmail,
   sendPartnerApplicationApprovedEmail,
   sendPartnerListingLiveEmail,
+  sendPartnerHospitalityListingLiveEmail,
   sendPartnerApplicationRejectedEmail,
   sendAdminNewBrandApplicationEmail,
   sendPartnerApprovalEmail,

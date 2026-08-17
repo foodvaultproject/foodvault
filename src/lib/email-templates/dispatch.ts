@@ -9,6 +9,7 @@ import {
   renderPartnerApplicationRejectedEmail,
 } from "@/lib/email-templates/render";
 import { renderPartnerListingLiveEmail } from "@/lib/email-templates/templates/partner/listing-live";
+import { renderPartnerHospitalityListingLiveEmail } from "@/lib/email-templates/templates/partner/hospitality-listing-live";
 import {
   renderPartnerActivationReminderEmail,
   type PartnerActivationReminderNumber,
@@ -107,6 +108,28 @@ export async function sendPartnerListingLiveEmail(input: {
       contactName: input.contactName,
       businessName: input.businessName,
       brandProfileUrl,
+    }),
+  });
+}
+
+export async function sendPartnerHospitalityListingLiveEmail(input: {
+  to: string;
+  contactName?: string | null;
+  businessName: string;
+  slug?: string | null;
+}) {
+  const appUrl = getEmailAppUrl();
+  const listingUrl = input.slug
+    ? `${appUrl.replace(/\/$/, "")}${partnerProfilePathFromSlug(input.slug)}`
+    : null;
+
+  return sendPlatformEmailSafe({
+    to: input.to,
+    rendered: renderPartnerHospitalityListingLiveEmail({
+      appUrl,
+      contactName: input.contactName,
+      businessName: input.businessName,
+      listingUrl,
     }),
   });
 }
@@ -213,7 +236,7 @@ export async function sendPartnerActivationReminderEmail(input: {
   const { data: partner } = await admin
     .from("partners")
     .select(
-      "business_name, support_email, user_id, contact_name, member_code, vault_drop_code, application_status_v2, listing_status_v2"
+      "business_name, support_email, user_id, contact_name, member_code, vault_drop_code, application_status_v2, listing_status_v2, listing_model"
     )
     .eq("id", input.partnerId)
     .maybeSingle();
@@ -222,7 +245,8 @@ export async function sendPartnerActivationReminderEmail(input: {
 
   if (
     String(partner.application_status_v2).toUpperCase() !== "APPROVED" ||
-    String(partner.listing_status_v2).toUpperCase() === "LIVE"
+    String(partner.listing_status_v2).toUpperCase() === "LIVE" ||
+    String(partner.listing_model ?? "") === "hospitality_venue"
   ) {
     return { sent: false as const, reason: "not_pending_activation" as const };
   }
@@ -255,7 +279,9 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
 
   const { data: partner } = await admin
     .from("partners")
-    .select("business_name, support_email, slug, user_id, contact_name, member_code, vault_drop_code")
+    .select(
+      "business_name, support_email, slug, user_id, contact_name, member_code, vault_drop_code, listing_model"
+    )
     .eq("id", partnerId)
     .maybeSingle();
 
@@ -266,16 +292,27 @@ export async function sendPartnerApprovalEmail(partnerId: string) {
     partner.support_email?.trim() || userData?.user?.email?.trim() || "";
   if (!contactEmail) return { sent: false as const, reason: "missing_email" as const };
 
-  const result = await sendPartnerApplicationApprovedEmail({
-    to: contactEmail,
-    contactName:
-      partner.contact_name?.trim() ||
-      resolveContactName(userData?.user?.user_metadata) ||
-      null,
-    businessName: partner.business_name?.trim() || "your brand",
-    memberCode: partner.member_code?.trim() || null,
-    vaultDropCode: partner.vault_drop_code?.trim() || null,
-  });
+  const contactName =
+    partner.contact_name?.trim() ||
+    resolveContactName(userData?.user?.user_metadata) ||
+    null;
+  const businessName = partner.business_name?.trim() || "your brand";
+  const isHospitality = String(partner.listing_model ?? "") === "hospitality_venue";
+
+  const result = isHospitality
+    ? await sendPartnerHospitalityListingLiveEmail({
+        to: contactEmail,
+        contactName,
+        businessName,
+        slug: partner.slug,
+      })
+    : await sendPartnerApplicationApprovedEmail({
+        to: contactEmail,
+        contactName,
+        businessName,
+        memberCode: partner.member_code?.trim() || null,
+        vaultDropCode: partner.vault_drop_code?.trim() || null,
+      });
 
   if (result.sent) {
     await admin

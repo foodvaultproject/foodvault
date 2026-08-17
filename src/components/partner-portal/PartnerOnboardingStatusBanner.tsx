@@ -177,6 +177,7 @@ export function PartnerOnboardingStatusBanner({
   partnerId,
   className = "mb-4",
   previewMode = false,
+  hospitality = false,
   onActivate,
   confirmingActivation = false,
 }: PartnerOnboardingStatusBannerProps) {
@@ -203,6 +204,10 @@ export function PartnerOnboardingStatusBanner({
         </div>
       </div>
     );
+  }
+
+  if (state === "APPROVED_PENDING_ACTIVATION" && hospitality) {
+    return null;
   }
 
   if (state === "APPROVED_PENDING_ACTIVATION") {

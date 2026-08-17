@@ -8,6 +8,7 @@ import { renderPartnerApplicationReceivedEmail } from "@/lib/email-templates/tem
 import { renderPartnerApplicationRejectedEmail } from "@/lib/email-templates/templates/partner/application-rejected";
 import { renderPartnerActivationReminderEmail } from "@/lib/email-templates/templates/partner/activation-reminder";
 import { renderPartnerListingLiveEmail } from "@/lib/email-templates/templates/partner/listing-live";
+import { renderPartnerHospitalityListingLiveEmail } from "@/lib/email-templates/templates/partner/hospitality-listing-live";
 import type { RenderedEmail } from "@/lib/email-templates/types";
 
 export type EmailTemplateId =
@@ -19,6 +20,7 @@ export type EmailTemplateId =
   | "partner.application-approved"
   | "partner.activation-reminder"
   | "partner.listing-live"
+  | "partner.hospitality-listing-live"
   | "partner.application-rejected"
   | "admin.new-brand-application";
 
@@ -83,6 +85,13 @@ export function renderEmailTemplate(
         businessName: String(params.businessName ?? ""),
         brandProfileUrl: params.brandProfileUrl as string | null | undefined,
       });
+    case "partner.hospitality-listing-live":
+      return renderPartnerHospitalityListingLiveEmail({
+        appUrl: String(params.appUrl ?? ""),
+        contactName: params.contactName as string | null | undefined,
+        businessName: String(params.businessName ?? ""),
+        listingUrl: params.listingUrl as string | null | undefined,
+      });
     case "partner.application-rejected":
       return renderPartnerApplicationRejectedEmail({
         appUrl: String(params.appUrl ?? ""),
@@ -117,6 +126,7 @@ export {
   renderPartnerApplicationApprovedEmail,
   renderPartnerActivationReminderEmail,
   renderPartnerListingLiveEmail,
+  renderPartnerHospitalityListingLiveEmail,
   renderPartnerApplicationReceivedEmail,
   renderPartnerApplicationRejectedEmail,
 };

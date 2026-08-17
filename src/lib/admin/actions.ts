@@ -63,6 +63,33 @@ export async function approvePartnerApplicationAction(partnerId: string) {
 
   if (error) return { error: error.message };
 
+  const { data: approved } = await supabase
+    .from("partners")
+    .select("listing_model, listing_status_v2")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  if (
+    String(approved?.listing_model ?? "") === "hospitality_venue" &&
+    String(approved?.listing_status_v2 ?? "").toUpperCase() !== "LIVE"
+  ) {
+    const { error: liveError } = await supabase
+      .from("partners")
+      .update({
+        listing_status_v2: "LIVE",
+        member_offer_confirmed: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", partnerId);
+
+    if (liveError) {
+      console.error("[admin] Failed to publish hospitality listing on approval", {
+        partnerId,
+        error: liveError.message,
+      });
+    }
+  }
+
   const emailResult = await sendPartnerApprovalEmail(partnerId);
   if (emailResult.sent === false) {
     console.error("[admin] Partner approval email was not sent", {

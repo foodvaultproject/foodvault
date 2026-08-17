@@ -46,6 +46,7 @@ export async function processPartnerActivationReminderEmails(
     )
     .eq("application_status_v2", "APPROVED")
     .eq("listing_status_v2", "PENDING")
+    .neq("listing_model", "hospitality_venue")
     .not("approved_at", "is", null);
 
   if (error || !partners?.length) {

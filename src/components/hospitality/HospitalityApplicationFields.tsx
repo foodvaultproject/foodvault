@@ -250,7 +250,7 @@ export function HospitalityOfferFields({
           className={`mt-1 resize-y ${inputClass}`}
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          This appears on your profile under What you get, below the offer photos.
+          This appears on your profile under What you get, above the offer photos.
         </p>
       </div>
 
