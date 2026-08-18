@@ -69,7 +69,7 @@ export function HowItWorksFAQ({ memberFaqs, partnerFaqs }: HowItWorksFAQProps) {
         </h2>
         <div className="mt-8 grid gap-6 md:grid-cols-2 md:gap-8">
           <FAQColumn title="For Members" items={memberFaqs} />
-          <FAQColumn title="For Brands" items={partnerFaqs} />
+          <FAQColumn title="For Businesses" items={partnerFaqs} />
         </div>
       </div>
     </section>

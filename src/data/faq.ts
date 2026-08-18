@@ -12,17 +12,20 @@ const memberFaqsBase: FAQItem[] = [
   {
     question: "What is FoodVault?",
     answer:
-      "FoodVault helps Kiwis discover New Zealand brands, unlock exclusive member discounts, and shop direct. Save money while supporting local businesses.",
+      "FoodVault helps Kiwis discover New Zealand brands and local venues, unlock exclusive member discounts, and save both online and in-store. Save money while supporting local cafes, restaurants, and Kiwi businesses.",
   },
   {
     question: "Is FoodVault an online store?",
     answer:
-      "No. FoodVault doesn't sell products or process orders. We help you discover great New Zealand brands and provide exclusive member discount codes. When you're ready to buy, you'll be taken directly to the brand's own website to complete your purchase.",
+      "No. FoodVault doesn't sell products or process orders directly. We help you discover great New Zealand brands and local hospitality venues. You can shop directly on brand websites using exclusive promo codes or visit local cafes and eateries in person to redeem member perks.",
   },
   {
-    question: "How do I receive discounts?",
-    answer:
-      "Once you're a FoodVault member, you'll have access to exclusive discount codes on every participating brand's profile. Simply copy the code, click through to the brand's website, and apply it at checkout to receive your member discount.",
+    question: "How do I receive and redeem discounts?",
+    answer: "Once you're a FoodVault member, you can redeem discounts in two ways:",
+    bullets: [
+      "Online: Copy unique promo codes from a brand's profile and apply them at checkout on their website.",
+      "In-Store: Visit participating cafes, restaurants, or bakeries and present your live digital membership screen on your phone at the counter.",
+    ],
   },
   {
     question: "What about membership and payment?",
@@ -42,7 +45,7 @@ export function getMemberFaqs(settings: MembershipSettings): FAQItem[] {
     faq.question === "What about membership and payment?"
       ? {
           ...faq,
-          answer: `You can browse all brand discounts for free. Revealing and copying promo codes requires a paid membership at ${priceLabel}. You can manage your billing, update payment methods, and view invoices at any time through your Member Account settings.`,
+          answer: `You can browse all brand and venue listings for free. Revealing online promo codes or accessing your live in-store membership pass requires an active membership at ${priceLabel}. You can manage your billing, update payment methods, and view invoices at any time through your Member Account settings.`,
         }
       : faq
   );
@@ -50,24 +53,34 @@ export function getMemberFaqs(settings: MembershipSettings): FAQItem[] {
 
 export const partnerFaqs: FAQItem[] = [
   {
-    question: "Is listing my brand free?",
+    question: "Is listing my business free?",
     answer:
-      "Yes, listing your brand on the FoodVault directory is currently free for qualified partners in New Zealand. Our goal is to connect our members with the best independent food and beverage brands, providing you with a direct-to-consumer channel to acquire customers you own.",
+      "Yes, listing your business on the FoodVault directory is 100% free for qualified online brands and hospitality venues in New Zealand. Our goal is to connect members with the best independent products and local spots without charging setup fees or sales commissions.",
   },
   {
     question: "How long does approval take?",
     answer:
-      "Once you submit your application through the Partner Portal, our team typically reviews it within 2–3 business days. We look for New Zealand brands that align with our premium, artisan, and health-conscious values to ensure the best experience for our members.",
+      "Once you submit your application through the Partner Portal, our team typically reviews and approves it within 24 hours.",
   },
   {
-    question: "Do I need a Shopify store to join?",
+    question: "Do I need an online store or Shopify site to join?",
     answer:
-      "While many of our partners use Shopify, it is not a requirement. As long as you have a professional e-commerce presence where our New Zealand members can shop directly, you are eligible to apply for the FoodVault network.",
+      "Not at all! Online brands need an e-commerce website where members can use promo codes. However, physical hospitality venues (cafes, restaurants, bakeries, delis) do not need an online store—members simply show their live membership pass at your counter.",
   },
   {
-    question: "How do I contact members?",
+    question: "How do in-store redemptions work at hospitality venues?",
     answer:
-      "FoodVault is designed to help you acquire customers you own. When a member shops on your site, they become your customer. You'll receive their order data and contact information directly through your own e-commerce platform, allowing you to build a long-term relationship.",
+      "Members present their live digital membership pass on their phone when ordering or paying at your counter. To prevent screenshot sharing or offer abuse, the membership screen features an active counting clock and dynamic live verification badge.",
+  },
+  {
+    question: "Do I need to integrate with my POS system?",
+    answer:
+      "No technical or POS integration is required. Your staff simply check the member's live screen at the counter, apply your agreed discount or perk to the bill, and complete the order normally.",
+  },
+  {
+    question: "How do I acquire customer relationships?",
+    answer:
+      "For online sales, members buy directly through your e-commerce site, giving you full ownership of the customer data. For venue visits, FoodVault drives local foot traffic straight through your front door, allowing your team to turn first-time visitors into repeat regulars.",
   },
 ];
 

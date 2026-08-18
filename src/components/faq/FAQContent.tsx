@@ -120,7 +120,7 @@ function FAQCategoryCard({
 
 export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
   const [openKey, setOpenKey] = useState<string | null>(
-    "member-faqs-What is FOODVAULT?"
+    "member-faqs-What is FoodVault?"
   );
 
   const handleToggle = (key: string) => {
@@ -200,7 +200,7 @@ export function FAQMainContent({ memberFaqs }: { memberFaqs: FAQItem[] }) {
 
         <FAQAccordionGroup
           id="partner-faqs"
-          title="Partner FAQs"
+          title="Business FAQ"
           items={partnerFaqs}
           openKey={openKey}
           onToggle={handleToggle}

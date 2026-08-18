@@ -4,7 +4,7 @@ import { LoginPage } from "@/components/auth/LoginPage";
 export const metadata: Metadata = {
   title: "Log In",
   description:
-    "Log in to your FoodVault member or partner account to browse brands, manage your membership, or access your partner dashboard.",
+    "Log in to your FoodVault member or partner account to browse brands and local venues, manage your membership, or access your partner dashboard.",
 };
 
 export default function LoginRoute() {

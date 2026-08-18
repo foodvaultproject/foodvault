@@ -5,7 +5,7 @@ import { ContactAlert, ContactHero } from "@/components/contact/ContactSidebar";
 export const metadata: Metadata = {
   title: "Contact Us",
   description:
-    "Contact FoodVault for membership, partner, or general enquiries in New Zealand. Our team is ready to assist members and brands.",
+    "Contact FoodVault for membership, partner, or general enquiries in New Zealand. Our team is ready to assist members, brands, and hospitality venues.",
 };
 
 export default function ContactPage() {

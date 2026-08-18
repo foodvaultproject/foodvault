@@ -215,8 +215,8 @@ function LoginForm() {
             Welcome Back.
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Log in to access your FoodVault membership, browse participating brands,
-            save your favourites and manage your account.
+            Log in to access your FoodVault membership, browse participating brands
+            and local venues, save your favourites, and manage your account.
           </p>
 
           <button
@@ -330,9 +330,9 @@ function LoginForm() {
 
           <div className="mt-8 border-t border-border pt-8">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              New to FoodVault? Unlock exclusive member pricing from participating
-              food, beverage and household brands. Browse every offer for free, then
-              reveal promo codes when you join.
+              New to FoodVault? Unlock exclusive member perks from participating
+              Kiwi brands and local hospitality venues. Browse every offer for free,
+              then reveal promo codes or access your live pass when you join.
             </p>
             <MemberSignupCtaLink
               variant="unlock-discounts"
@@ -344,7 +344,7 @@ function LoginForm() {
         <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-6 sm:p-8">
           <p className="text-sm leading-relaxed text-muted-foreground">
             Are you a FoodVault Partner? Access your Partner Dashboard to manage
-            your business listing, member offer and account.
+            your brand or venue listing, member offers, and account.
           </p>
           <Link
             href={PARTNER_LOGIN_PATH}

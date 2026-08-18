@@ -27,22 +27,25 @@ const memberSteps = [
   {
     number: 1,
     title: "Create Your Account",
-    description: "Sign up in minutes and get started.",
+    description: "Sign up in seconds to start unlocking exclusive member savings.",
   },
   {
     number: 2,
-    title: "Browse Participating Brands",
-    description: "Explore food, beverage, household and health brands.",
+    title: "Browse Brands & Venues",
+    description:
+      "Explore online food & beverage brands or discover local cafes, bakeries, and eateries near you.",
   },
   {
     number: 3,
-    title: "Unlock Member Pricing",
-    description: "See exclusive member-only prices before you shop.",
+    title: "Unlock Member Perks",
+    description:
+      "Get unique online promo codes or open your live digital membership screen on your phone.",
   },
   {
     number: 4,
-    title: "Buy Direct and Save",
-    description: "Purchase on each brand's website and save.",
+    title: "Save Online or In-Store",
+    description:
+      "Redeem codes at web checkout or show your live membership at the counter to save instantly.",
   },
 ] as const;
 
@@ -77,9 +80,9 @@ function HowItWorksHero() {
             Built to Save Kiwis Money.
           </h1>
           <p className="mt-4 max-w-lg text-base leading-relaxed text-black sm:text-lg">
-            Unlock exclusive member discounts from Kiwi brands all over New Zealand. Save on the
-            things you love, discover new favourites, and shop direct while supporting local
-            businesses.
+            Unlock exclusive member perks from top Kiwi brands and local venues across New Zealand.
+            Save online at checkout or show your membership at the counter for instant discounts at
+            cafes, restaurants, and eateries.
           </p>
           <HowItWorksHeroSignupCta />
         </div>

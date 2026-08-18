@@ -241,12 +241,12 @@ export function PartnerCreateAccountPage() {
               </span>
               <h1 className="mt-5 text-[2.625rem] font-bold leading-[1.08] tracking-tight text-foreground sm:text-[2.75rem] lg:text-[3rem]">
                 Join the growing list of awesome{" "}
-                <span className="text-primary">Kiwi brands</span> on FoodVault!
+                <span className="text-primary">Kiwi businesses</span> on FoodVault!
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                 Create your free profile in a couple of minutes and start getting
-                discovered by more Kiwis. Every order goes straight through your own
-                website, helping you grow your D2C business.
+                discovered by more Kiwis. Drive online sales through your website or bring
+                local foot traffic straight through your front door.
               </p>
             </div>
 

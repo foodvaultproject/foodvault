@@ -11,10 +11,10 @@ export function OwnAKiwiBrandCard({ className = "" }: OwnAKiwiBrandCardProps) {
     <article
       className={`flex h-full flex-col rounded-2xl border border-primary/25 bg-[#F5F2FF] p-6 shadow-sm sm:p-8 ${className}`.trim()}
     >
-      <h2 className={`${heading2} text-foreground`}>Own a Kiwi Brand?</h2>
+      <h2 className={`${heading2} text-foreground`}>Own a Kiwi Business?</h2>
       <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:mt-4 sm:text-base">
-        Join FoodVault free of charge and connect directly with members looking to save. List your
-        business, create an exclusive member offer and drive traffic directly to your own website.
+        Join FoodVault free of charge. List your online store or physical venue to drive web traffic
+        and local foot traffic directly to your business.
       </p>
       <div className="mt-auto flex flex-col gap-3 pt-6 sm:flex-row sm:pt-8">
         <Link

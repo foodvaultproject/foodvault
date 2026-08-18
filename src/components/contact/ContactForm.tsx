@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
-const contactTypes = [
+type ContactTypeOption = {
+  id: string;
+  label: string;
+  description?: string;
+  icon: ReactNode;
+};
+
+const contactTypes: ContactTypeOption[] = [
   {
     id: "member",
     label: "Member",
@@ -16,6 +23,7 @@ const contactTypes = [
   {
     id: "partner",
     label: "Partner",
+    description: "For online brands, cafes, restaurants, bakeries & delis",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
@@ -87,6 +95,7 @@ export function ContactForm() {
           {contactTypes.map((type) => (
             <label
               key={type.id}
+              title={type.description}
               className={`flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-center transition-colors sm:gap-2 sm:p-4 ${
                 contactType === type.id
                   ? "border-primary bg-primary/5 text-primary"

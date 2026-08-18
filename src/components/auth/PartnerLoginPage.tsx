@@ -184,7 +184,7 @@ function PartnerLoginForm() {
               Partner Login
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Log in to manage your FoodVault business listing, member offer and
+              Log in to manage your FoodVault brand or venue listing, member offers, and
               partner account.
             </p>
 
@@ -296,9 +296,9 @@ function PartnerLoginForm() {
 
           <div className="border-t border-primary/10 bg-primary/5 px-6 py-6 sm:px-8 sm:py-8">
             <p className="text-sm leading-relaxed text-muted-foreground">
-              New to FoodVault? Create a Partner account to apply for listing on
-              FoodVault and start reaching members looking for better value from
-              participating food, beverage and household brands.
+              New to FoodVault? Create a Partner account to list your business on
+              FoodVault and start reaching members looking for great Kiwi brands and
+              local hospitality venues.
             </p>
             <Link
               href={PARTNER_CREATE_ACCOUNT_PATH}

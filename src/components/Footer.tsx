@@ -39,7 +39,7 @@ const footerSections = [
 ];
 
 const FOOTER_DESCRIPTION =
-  "Unlock exclusive member discounts from Kiwi brands all over New Zealand. Save on the things you love, discover new favourites, and shop direct while supporting local businesses.";
+  "Unlock exclusive member discounts from Kiwi brands and local hospitality venues all over New Zealand. Save on the things you love, discover new favourites, and support local cafes, restaurants, and online stores direct.";
 
 const socialLinks = [
   {

@@ -42,23 +42,26 @@ export function HomeBrandBanner() {
 const whyJoinFeatures = [
   {
     title: "Exclusive Member Savings",
-    description: "Unlock exclusive discounts from Kiwi brands.",
+    description:
+      "Enjoy special perks and discounts both online and in-store at participating venues.",
     iconSrc: "/home/why-join-savings.png",
   },
   {
-    title: "Discover Awesome Kiwi Brands",
+    title: "Discover Kiwi Favourites",
     description:
-      "Find your next favourite, from well-known brands to hidden gems.",
+      "Find your next go-to coffee spot, bakery, or direct-to-consumer Kiwi brand in one place.",
     iconSrc: "/home/why-join-kiwi.png",
   },
   {
-    title: "Shop Direct",
-    description: "Shop directly on each brand's website with confidence.",
+    title: "Shop Direct & Save",
+    description:
+      "Buy straight from brand websites or drop into local hospitality venues to claim member-only deals.",
     iconSrc: "/home/why-join-direct.png",
   },
   {
-    title: "More Brands. More Savings.",
-    description: "New brands join regularly, giving you more ways to save.",
+    title: "More Places, More Savings",
+    description:
+      "New online brands and physical locations join regularly, giving you more ways to save every week.",
     iconSrc: "/home/why-join-scale.png",
   },
 ];

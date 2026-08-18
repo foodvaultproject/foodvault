@@ -4,7 +4,7 @@ import { HowItWorksPageContent } from "@/components/how-it-works/HowItWorksSecti
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "FoodVault helps Kiwis save money on everyday food, beverage, household and health products through exclusive member pricing.",
+    "FoodVault helps Kiwis save money online and in-store with exclusive member perks from Kiwi brands and local hospitality venues.",
 };
 
 export const revalidate = 86400;

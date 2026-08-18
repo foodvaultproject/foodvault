@@ -11,9 +11,9 @@ import { getCachedPartnerLogos } from "@/lib/cache/public-directory";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "For Brands",
+  title: "For Businesses",
   description:
-    "Grow your New Zealand brand with FoodVault. Showcase your brand, promote exclusive member offers, and drive customers to your own website—while keeping complete control.",
+    "Grow your New Zealand business with FoodVault. Showcase your brand or venue, promote exclusive member offers, and drive web traffic or local foot traffic—while keeping complete control.",
 };
 
 export default async function ForBrandsPage() {

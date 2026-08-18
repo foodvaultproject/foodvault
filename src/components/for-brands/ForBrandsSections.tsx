@@ -4,34 +4,34 @@ import { heading1, heading2, heading3 } from "@/lib/ui-classes";
 
 const heroBenefits = [
   "No Fees. Ever.",
-  "Keep 100% of Every Sale",
-  "Customers Buy Directly From Your Website",
-  "Full Control of Your Brand & Offers",
+  "Keep 100% of Every Sale or Order",
+  "Drive Web Traffic or Local Foot Traffic",
+  "Full Control of Your Listing & Offers",
 ];
 
 const partnerBenefits = [
   {
     title: "Reach New Customers",
     description:
-      "Put your brand in front of members actively looking for quality New Zealand food, beverage, household and health products.",
+      "Put your business in front of members actively looking for quality Kiwi products, local dining, and hidden gems.",
     iconSrc: "/for-brands/reach-new-customers.png",
   },
   {
-    title: "Sell Direct",
+    title: "Direct Sales & Visits",
     description:
-      "Every purchase happens on your own website, allowing you to manage the entire customer experience.",
+      "Send customers directly to your website to buy, or bring hungry locals straight through your front door.",
     iconSrc: "/for-brands/sell-direct.png",
   },
   {
-    title: "Build Brand Awareness",
+    title: "Build Awareness",
     description:
-      "Create a professional brand profile showcasing your story, products and imagery.",
+      "Showcase your story, photos, opening hours, menu highlights, or product range with a slick profile.",
     iconSrc: "/for-brands/build-brand-awareness.png",
   },
   {
-    title: "Promote Exclusive Member Offers",
+    title: "Promote Member Perks",
     description:
-      "Encourage new customers to buy directly by offering exclusive member discounts.",
+      "Attract repeat customers by offering exclusive online discounts or in-store member perks.",
     iconSrc: "/for-brands/promote-exclusive-offers.png",
   },
 ];
@@ -40,31 +40,27 @@ const howItWorksSteps = [
   {
     step: "1",
     title: "Apply",
-    description: "Submit your free partner application.",
+    description: "Submit your free partner application in minutes.",
   },
   {
     step: "2",
-    title: "Create Your Brand Profile",
-    description:
-      "Add your company information, logo, banner, gallery images, products and social links.",
+    title: "Create Your Profile",
+    description: "Add your logo, photos, address or website, and business details.",
   },
   {
     step: "3",
-    title: "Create Your Member Offer",
-    description:
-      "Choose the products or store-wide discounts you want FoodVault members to receive.",
+    title: "Set Your Perk",
+    description: "Choose an online promo code or an in-store counter offer for members.",
   },
   {
     step: "4",
-    title: "Approval",
-    description:
-      "Our team reviews your listing and confirms your member offer before your profile goes live.",
+    title: "Fast Approval",
+    description: "Our team reviews and approves your listing within 24 hours.",
   },
   {
     step: "5",
-    title: "Start Reaching Members",
-    description:
-      "Members can discover your brand and purchase directly from your website.",
+    title: "Start Growing",
+    description: "Gain instant exposure to active FoodVault members nationwide.",
   },
 ];
 
@@ -76,12 +72,12 @@ export function ForBrandsHero() {
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <div>
             <h1 className={heading1}>
-              Reach More Kiwi Consumers.{" "}
+              Reach More Kiwi Customers.{" "}
               <span className="text-primary">It&apos;s Free.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              We help more Kiwi consumers discover your brand and shop directly from your website.
-              You keep every sale and stay in control. The best part? It&apos;s completely free!
+              We help Kiwi consumers discover your business—whether you sell online or run a local
+              cafe, restaurant, or eatery. Keep 100% of your sales with zero fees.
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">

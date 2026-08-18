@@ -12,7 +12,7 @@ const faqs = [
   {
     question: "How does a FoodVault membership help me save?",
     answer:
-      "Your FoodVault membership gives you access to exclusive discounts and offers from participating New Zealand food, beverage and household brands. Shop directly with our partner brands and use your member discount codes at checkout to unlock exclusive savings.",
+      "Your FoodVault membership gives you access to exclusive discounts and perks from participating Kiwi brands and local venues. Redeem unique promo codes online at checkout, or show your live digital membership at the counter when visiting local cafes, restaurants, and eateries.",
   },
   {
     question: "Can I cancel my membership anytime?",
@@ -20,14 +20,14 @@ const faqs = [
       "Yes. Cancel anytime from your account settings with no lock-in contracts. Your access continues until the end of your current billing period.",
   },
   {
-    question: "Where do I shop?",
+    question: "Where do I shop or redeem?",
     answer:
-      "FoodVault is not a marketplace or checkout platform. You browse member offers on FoodVault, then shop directly on each brand's own website. They handle payment, shipping, and customer service.",
+      "You can shop directly on our partner websites using exclusive member codes, or visit local hospitality venues in person and present your membership pass on your phone.",
   },
   {
     question: "Can I browse discounts without paying?",
     answer:
-      "Yes. Anyone can browse brands and see advertised member discounts. A paid membership is required to reveal and copy promo codes.",
+      "Yes. Anyone can browse brands, venues, and advertised member perks. A paid membership is required to reveal promo codes or access your live in-store pass.",
   },
 ] as const;
 

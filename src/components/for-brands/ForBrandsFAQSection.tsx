@@ -15,39 +15,39 @@ type FAQ = {
 
 const faqs: FAQ[] = [
   {
-    question: "Is FoodVault really free for brands?",
+    question: "Is FoodVault really free for businesses?",
     answer:
-      "Yes. There are no setup fees, no monthly listing fees and no commission on your product sales. FoodVault is free for qualified New Zealand brands to join.",
+      "Yes. There are no setup fees, listing fees, or sales commissions. It is 100% free for qualified Kiwi brands and hospitality venues.",
   },
   {
     question: "How do customers purchase from us?",
     answer:
-      "Always on your website. FoodVault is not a marketplace checkout. We drive qualified traffic to your store — you handle checkout, fulfilment and customer service.",
+      "Online businesses send customers to your website. Hospitality venues welcome members in person at the counter. FoodVault is not a marketplace checkout — you handle the sale, service and customer experience.",
   },
   {
     question: "Can I choose which products receive discounts?",
     answer:
-      "Yes. You control your member offer and can structure discounts however suits your business — sitewide, category-based or on selected products.",
+      "Yes. You control your member offer and can structure discounts however suits your business — sitewide, category-based, selected products, or an in-store counter perk.",
   },
   {
     question: "Can I update my offers at any time?",
     answer:
-      "Yes. Update member offers, brand information, images, products and promotions whenever you like through your Partner Dashboard.",
+      "Yes. Update member offers, business information, images, products and promotions whenever you like through your Partner Dashboard.",
   },
   {
     question: "Do I need an online store?",
     answer:
-      "Yes. You need a professional e-commerce website where New Zealand customers can shop directly with you. Shopify is not required.",
+      "No! Online brands can offer web promo codes, while hospitality venues (cafes, restaurants, bakeries, delis) can host in-store member perks redeemed directly at the counter.",
   },
   {
     question: "How long does approval take?",
     answer:
-      "Most applications are reviewed within 2–3 business days. Our team checks that your brand, imagery and member offer meet FoodVault's quality standards.",
+      "Our team typically reviews and approves your listing within 24 hours. We check that your business, imagery and member offer meet FoodVault's quality standards.",
   },
   {
     question: "How do I manage my listing?",
     answer:
-      "From your Partner Dashboard you can update your company profile, upload products and gallery images, create and manage member offers, edit categories and brand information, view performance analytics and access partner support.",
+      "From your Partner Dashboard you can update your company or venue profile, upload products and gallery images, create and manage member offers, edit categories and business information, view performance analytics and access partner support.",
   },
   {
     question: "Can I leave FoodVault at any time?",

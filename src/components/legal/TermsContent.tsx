@@ -10,15 +10,15 @@ const navItems = [
   { id: "accounts", label: "Accounts" },
   { id: "membership", label: "Membership" },
   { id: "membership-fees", label: "Membership Fees" },
-  { id: "member-access", label: "Member Access" },
+  { id: "member-access", label: "Member Access & Offer Redemption" },
   { id: "price-changes", label: "Price Changes" },
   { id: "cancellation", label: "Cancellation" },
   { id: "refund-policy", label: "Refund Policy" },
-  { id: "partner-businesses", label: "Partner Businesses" },
-  { id: "purchases", label: "Purchases" },
+  { id: "partner-businesses", label: "Partner Businesses & Venues" },
+  { id: "purchases", label: "Online Purchases & In-Store Transactions" },
   { id: "affiliate-programme", label: "Affiliate Programme" },
   { id: "partner-accounts", label: "Partner Accounts" },
-  { id: "acceptable-use", label: "Acceptable Use" },
+  { id: "acceptable-use", label: "Acceptable Use & Fraud Prevention" },
   { id: "intellectual-property", label: "Intellectual Property" },
   { id: "availability", label: "Platform Availability" },
   { id: "third-party-services", label: "Third-Party Services" },
@@ -30,90 +30,76 @@ const navItems = [
 ];
 
 const foodVaultIsNot = [
-  "an online supermarket",
-  "a retailer",
-  "a marketplace checkout",
-  "a payment intermediary for retail purchases",
-  "a delivery company",
-  "a fulfilment service",
+  "an online supermarket or grocery store",
+  "a retailer or direct product manufacturer",
+  "a marketplace checkout processor for partner goods",
+  "a payment intermediary for retail or dining transactions",
+  "a food delivery, courier, or fulfilment service",
+  "a venue, cafe, bar, or restaurant operator",
 ];
 
 const memberEligibility = [
-  "provide accurate information",
+  "provide accurate and truthful information",
   "comply with these Terms",
   "have the legal capacity to enter into these Terms or have any consent required by law to use the Platform or purchase a membership",
 ];
 
 const partnerEligibility = [
-  "be legally entitled to operate their business",
-  "maintain appropriate channels for accepting customer orders where applicable",
-  "comply with applicable laws and regulations",
+  "be legally entitled to operate their business, online store, or physical commercial premises in New Zealand",
+  "maintain appropriate health, safety, food hygiene, licensing, and payment channels for accepting customer orders and venue patrons",
+  "comply with all applicable local laws, food safety regulations, and trading standards",
 ];
 
 const accountResponsibilities = [
   "keep your login credentials confidential",
   "provide accurate and current information",
-  "update information when changes occur",
-  "notify FoodVault if you believe your account has been accessed without authorisation",
+  "update information promptly when changes occur",
+  "notify FoodVault immediately if you believe your account or digital membership pass has been accessed without authorisation",
 ];
 
 const membershipBenefits = [
-  "member-only discounts",
-  "exclusive partner offers",
-  "partner promotions",
-  "brand discovery features",
+  "member-only digital promo codes for online partner brands",
+  "live digital membership verification passes for in-person hospitality venue discounts",
+  "exclusive partner promotions and member perks",
+  "brand and local venue discovery features",
   "other membership benefits made available from time to time",
 ];
 
 const partnerResponsibilities = [
-  "pricing",
-  "product information",
-  "product availability",
-  "order processing",
-  "shipping",
-  "customer support",
-  "warranties",
-  "returns",
-  "refunds relating to products they sell",
+  "setting and honoring advertised discounts or member perks",
+  "product and menu information, pricing, and availability",
+  "food preparation, quality, allergens, and food safety standards",
+  "order processing, fulfillment, delivery, and shipping (for online purchases)",
+  "venue seating, service, POS discount application, and counter operations",
+  "customer support, warranties, returns, and refunds relating to their products or hospitality services",
 ];
 
 const foodVaultDoesNotGuarantee = [
-  "availability of products",
-  "pricing accuracy",
-  "shipping times",
-  "stock levels",
-  "product quality",
-  "partner conduct",
+  "real-time stock levels, table availability, or opening hours of partner venues",
+  "pricing accuracy or perpetual availability of specific menu items/products",
+  "partner venue staff performance or service quality",
 ];
 
 const acceptableUseProhibitions = [
-  "misuse the Platform",
-  "attempt unauthorised access",
-  "interfere with Platform security",
-  "scrape or copy Platform data",
-  "use automated systems without permission",
-  "impersonate another person or business",
-  "use FoodVault for unlawful purposes",
-  "publicly distribute member-only discount codes where prohibited",
+  "misuse the Platform or attempt unauthorised access to system infrastructure",
+  "present static screenshots, screen recordings, or counterfeit representations of the live digital membership pass at partner venues",
+  "publicly post, resell, or distribute member-exclusive online discount codes",
+  "share account credentials to allow non-paying third parties to claim in-store or online member perks",
+  "scrape, crawl, or harvest Platform data using automated tools",
+  "impersonate another person or business entity",
+  "use FoodVault for any unlawful, fraudulent, or unauthorised commercial purposes",
 ];
 
 const ipOwnership = [
-  "the Platform",
-  "software",
-  "branding",
-  "logos",
-  "graphics",
-  "written content",
-  "databases",
-  "design",
+  "the Platform, software code, dynamic pass verification technology, and databases",
+  "FoodVault branding, trademarks, logos, graphics, copy, and UI/UX designs",
 ];
 
 const liabilityExclusions = [
-  "use of the Platform",
-  "partner businesses",
-  "third-party websites",
-  "products purchased from partners",
-  "interruption of services",
+  "your use of, or inability to use, the Platform or digital membership pass",
+  "products, food, beverages, or services consumed or purchased from partner businesses or venues",
+  "acts, omissions, food safety failures, or conduct of any partner venue or brand",
+  "unauthorized access to or alteration of your account transmissions",
 ];
 
 export function TermsContent() {
@@ -121,12 +107,12 @@ export function TermsContent() {
     <LegalDocShell
       badge="Legal Framework"
       title="Terms & Conditions"
-      lastUpdated="July 2026"
+      lastUpdated="August 2026"
       intro={
         <>
           These Terms &amp; Conditions (&ldquo;Terms&rdquo;) govern your access to
-          and use of the FoodVault website, membership platform and related services
-          (&ldquo;Platform&rdquo;).
+          and use of the FoodVault website, membership platform, digital pass
+          verification system, and related services (&ldquo;Platform&rdquo;).
         </>
       }
       sidebarTitle="Quick Navigation"
@@ -173,9 +159,10 @@ export function TermsContent() {
     >
       <LegalSection id="about" number="01" title="About FoodVault">
         <p>
-          FoodVault is a membership platform that helps consumers discover New Zealand
-          food, beverage and household brands while accessing exclusive member discounts
-          and offers provided by participating partner businesses.
+          FoodVault is a membership and discovery platform that helps consumers discover
+          New Zealand food, beverage, and household brands, as well as local hospitality
+          venues (including cafes, restaurants, bakeries, bars, and delis), while accessing
+          exclusive member discounts and offers provided by participating partner businesses.
         </p>
         <p>FoodVault is not:</p>
         <ul className="list-disc space-y-2 pl-5">
@@ -183,11 +170,15 @@ export function TermsContent() {
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p>FoodVault does not sell physical products.</p>
-        <p>FoodVault only sells access to its membership platform.</p>
         <p>
-          All product purchases are completed directly with independent partner
-          businesses through their own websites.
+          FoodVault does not sell physical products or food items directly. FoodVault only
+          sells subscription access to its membership platform.
+        </p>
+        <p>
+          All online product purchases are completed directly with independent partner
+          businesses through their own websites. All in-store purchases and dining
+          transactions occur directly at the physical venues of participating hospitality
+          partners.
         </p>
       </LegalSection>
 
@@ -198,7 +189,7 @@ export function TermsContent() {
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p>Partner businesses must:</p>
+        <p>Partner businesses (Online Brands and Hospitality Venues) must:</p>
         <ul className="list-disc space-y-2 pl-5">
           {partnerEligibility.map((item) => (
             <li key={item}>{item}</li>
@@ -215,7 +206,7 @@ export function TermsContent() {
       </LegalSection>
 
       <LegalSection id="accounts" number="03" title="Accounts">
-        <p>You are responsible for maintaining the security of your account.</p>
+        <p>You are responsible for maintaining the security of your account credentials.</p>
         <p>You agree to:</p>
         <ul className="list-disc space-y-2 pl-5">
           {accountResponsibilities.map((item) => (
@@ -223,17 +214,17 @@ export function TermsContent() {
           ))}
         </ul>
         <p>
-          You remain responsible for activity occurring under your account.
+          You remain responsible for all activity occurring under your account.
         </p>
         <p>
           FoodVault may suspend or terminate accounts where we reasonably believe there
-          has been misuse, fraud, security concerns or a breach of these Terms.
+          has been misuse, screenshot sharing, fraud, security breaches, or non-compliance
+          with these Terms.
         </p>
       </LegalSection>
 
       <LegalSection id="membership" number="04" title="Membership">
-        <p>FoodVault currently offers subscription access to:</p>
-        <p className="font-semibold text-foreground">FoodVault Membership</p>
+        <p>FoodVault currently offers subscription access to the FoodVault Membership.</p>
         <p>Membership provides access to:</p>
         <ul className="list-disc space-y-2 pl-5">
           {membershipBenefits.map((item) => (
@@ -244,8 +235,9 @@ export function TermsContent() {
           Membership benefits may change as the Platform evolves.
         </p>
         <p>
-          FoodVault does not guarantee that membership will result in savings or that
-          member offers will always represent the lowest available price.
+          FoodVault does not guarantee that membership will result in specific monetary
+          savings or that member offers will always represent the absolute lowest available
+          price in the market.
         </p>
       </LegalSection>
 
@@ -258,30 +250,48 @@ export function TermsContent() {
           By subscribing, you authorise FoodVault to charge your selected payment method
           each billing cycle until your subscription is cancelled.
         </p>
-        <p>Membership fees include applicable taxes where required.</p>
+        <p>Membership fees include applicable taxes (GST) where required.</p>
         <p>Payments are securely processed by Stripe.</p>
         <p>FoodVault does not store complete payment card details.</p>
       </LegalSection>
 
-      <LegalSection id="member-access" number="06" title="Member Access">
+      <LegalSection id="member-access" number="06" title="Member Access & Offer Redemption">
         <p>
-          Anyone may browse participating brands and view advertised member discounts
-          without paying.
+          Anyone may browse participating brand profiles, local venue listings, and view
+          advertised member perks without paying. Revealing/copying online promo codes or
+          accessing the live in-store digital membership screen requires an active, paid
+          membership.
         </p>
+        <p className="font-semibold text-foreground">Redemption Mechanics:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <span className="font-semibold text-foreground">Online Offers:</span> Members
+            unlock and copy unique promo codes on the Platform to apply at checkout on the
+            partner brand&apos;s website.
+          </li>
+          <li>
+            <span className="font-semibold text-foreground">In-Store / Hospitality Offers:</span>{" "}
+            Members must present their active digital membership screen on their personal
+            mobile device to staff at the venue&apos;s counter or payment point before
+            transaction completion.
+          </li>
+          <li>
+            <span className="font-semibold text-foreground">Verification Security:</span>{" "}
+            In-store membership passes display dynamic, live clock elements. Static
+            screenshots, video recordings, printed copies, or shared logins are strictly
+            invalid and will be rejected by partner venues.
+          </li>
+        </ul>
         <p>
-          Revealing and copying promo codes, and using other member benefits, requires
-          an active paid membership purchased through Stripe Checkout.
-        </p>
-        <p>
-          Membership access begins immediately after successful payment confirmation.
+          Membership access begins immediately upon successful payment confirmation.
         </p>
       </LegalSection>
 
       <LegalSection id="price-changes" number="07" title="Price Changes">
-        <p>FoodVault may change membership pricing from time to time.</p>
+        <p>FoodVault may change membership subscription pricing from time to time.</p>
         <p>
-          Where pricing changes affect existing members, FoodVault will provide
-          reasonable notice before the updated pricing applies.
+          Where pricing changes affect existing active members, FoodVault will provide
+          reasonable advance notice before updated pricing applies.
         </p>
         <p>
           Continued use of the Platform after a price change takes effect constitutes
@@ -291,17 +301,17 @@ export function TermsContent() {
 
       <LegalSection id="cancellation" number="08" title="Cancellation">
         <p>
-          You may cancel your membership at any time through your FoodVault account or
-          through the Stripe Customer Billing Portal.
+          You may cancel your membership at any time through your FoodVault account
+          settings or via the Stripe Customer Billing Portal.
         </p>
-        <p>Cancellation prevents future billing.</p>
+        <p>Cancellation prevents future automatic billing.</p>
         <p>
           Your membership remains active until the end of your current paid billing
           period.
         </p>
         <p>
           Cancelling your membership does not automatically entitle you to a refund for
-          the current billing period.
+          the remaining duration of the current billing period.
         </p>
       </LegalSection>
 
@@ -309,7 +319,7 @@ export function TermsContent() {
         <p>Membership fees are generally non-refundable once charged.</p>
         <p>
           Where required by applicable law, FoodVault will provide refunds in
-          accordance with the Consumer Guarantees Act 1993, the Fair Trading Act 1986
+          accordance with the Consumer Guarantees Act 1993, the Fair Trading Act 1986,
           and other applicable New Zealand legislation.
         </p>
         <p>
@@ -327,12 +337,13 @@ export function TermsContent() {
           .
         </p>
         <p>
-          Refunds do not apply to products purchased from partner businesses.
+          Refunds do not apply to products, food, beverages, or services purchased
+          directly from partner businesses or hospitality venues.
         </p>
       </LegalSection>
 
-      <LegalSection id="partner-businesses" number="10" title="Partner Businesses">
-        <p>Each partner business operates independently from FoodVault.</p>
+      <LegalSection id="partner-businesses" number="10" title="Partner Businesses & Venues">
+        <p>Each partner business and hospitality venue operates independently from FoodVault.</p>
         <p>Partners are solely responsible for:</p>
         <ul className="list-disc space-y-2 pl-5">
           {partnerResponsibilities.map((item) => (
@@ -345,19 +356,31 @@ export function TermsContent() {
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p>Partner offers may change, expire or be withdrawn without notice.</p>
+        <p>
+          Partner offers and perks may change, expire, or be updated by the partner
+          business in accordance with platform guidelines.
+        </p>
       </LegalSection>
 
-      <LegalSection id="purchases" number="11" title="Purchases">
-        <p>When you leave FoodVault and visit a partner website:</p>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>you enter into a direct transaction with that business</li>
-          <li>that business&apos;s Terms, Privacy Policy and return policies apply</li>
-          <li>FoodVault is not a party to the transaction</li>
-        </ul>
+      <LegalSection id="purchases" number="11" title="Purchases & In-Person Transactions">
         <p>
-          Any disputes relating to purchased products must be resolved directly with
-          the relevant partner business.
+          <span className="font-semibold text-foreground">Online Purchases:</span> When you
+          leave FoodVault and visit a partner website, you enter into a direct commercial
+          transaction with that independent business. Their terms, privacy policies, and
+          return policies govern the purchase.
+        </p>
+        <p>
+          <span className="font-semibold text-foreground">In-Store &amp; Dining Transactions:</span>{" "}
+          When you visit a participating hospitality venue, all food, beverage, and service
+          transactions occur directly between you and the venue. The venue is solely
+          responsible for applying the member discount to your bill upon presentation of a
+          valid, live FoodVault membership pass.
+        </p>
+        <p>
+          <span className="font-semibold text-foreground">Disputes:</span> FoodVault is not
+          a party to transactions executed with partner brands or venues. Any product
+          defects, service complaints, order disputes, or refund requests regarding
+          goods/dining must be resolved directly with the relevant partner business.
         </p>
       </LegalSection>
 
@@ -371,8 +394,8 @@ export function TermsContent() {
           .
         </p>
         <p>
-          FoodVault may approve, reject, suspend or terminate affiliate accounts where
-          misuse, fraud, prohibited activity or breaches of these Terms are identified.
+          FoodVault may approve, reject, suspend, or terminate affiliate accounts where
+          misuse, fraud, prohibited activity, or breaches of these Terms are identified.
         </p>
         <p>
           Affiliate commissions are payable only where transactions meet applicable
@@ -382,44 +405,35 @@ export function TermsContent() {
 
       <LegalSection id="partner-accounts" number="13" title="Partner Accounts">
         <p>
-          Partners remain responsible for ensuring that they have the necessary rights
-          and permissions to provide FoodVault with any business information, logos,
-          images, product images, videos, marketing materials or other content submitted
-          to the Platform.
+          Partners remain responsible for ensuring that they have the necessary rights,
+          licenses, and permissions to provide FoodVault with business information, trading
+          names, logos, menu items, gallery images, videos, marketing materials, or other
+          content submitted to the Platform.
         </p>
         <p>Partners retain ownership of their intellectual property.</p>
         <p>
           By submitting content to FoodVault, Partners grant FoodVault a non-exclusive,
-          royalty-free licence to use, reproduce, display, publish, distribute and share
-          that content for the purpose of operating, displaying and promoting the Partner,
-          the Partner&apos;s products and services, and the FoodVault Platform.
+          royalty-free licence to use, reproduce, display, publish, distribute, and share
+          that content for the purpose of operating, displaying, and promoting the Partner,
+          the Partner&apos;s venue/products, and the FoodVault Platform.
         </p>
         <p>
-          This licence includes use of submitted content on the FoodVault website and
-          Platform, social media channels, email communications, advertising, public
-          relations, media coverage and other FoodVault marketing and promotional
-          activities.
+          This licence includes use of submitted content on the FoodVault website and app,
+          social media channels, email marketing, advertising, public relations, and
+          promotional activities.
         </p>
         <p>
-          FoodVault may reasonably resize, crop, format or otherwise adapt submitted
-          content where necessary for different platforms, layouts or promotional formats.
-          FoodVault will not materially alter the underlying content in a way that
-          misrepresents the Partner, its products or services.
+          FoodVault may reasonably resize, crop, or format submitted content for layout
+          purposes without materially altering the underlying substance.
         </p>
         <p>
-          Partners may continue to use their content and grant similar rights to other
-          parties. Nothing in these Terms transfers ownership of a Partner&apos;s
-          intellectual property to FoodVault.
-        </p>
-        <p>
-          Partners may request that FoodVault stop using submitted content for future
-          promotional activities by contacting FoodVault. This does not require FoodVault
-          to remove content that has already been published, distributed or incorporated
-          into materials before the request is received.
+          Partners may request that FoodVault cease using submitted content for future
+          marketing by contacting FoodVault. This does not require FoodVault to recall or
+          destroy materials already published or distributed prior to the request.
         </p>
       </LegalSection>
 
-      <LegalSection id="acceptable-use" number="14" title="Acceptable Use">
+      <LegalSection id="acceptable-use" number="14" title="Acceptable Use & Fraud Prevention">
         <p>You agree not to:</p>
         <ul className="list-disc space-y-2 pl-5">
           {acceptableUseProhibitions.map((item) => (
@@ -427,54 +441,58 @@ export function TermsContent() {
           ))}
         </ul>
         <p>
-          FoodVault may suspend or terminate accounts that breach these Terms.
+          FoodVault or partner venue staff reserve the right to verify live membership
+          screens. FoodVault may immediately suspend or terminate accounts identified in
+          breach of these rules without refund.
         </p>
       </LegalSection>
 
       <LegalSection id="intellectual-property" number="15" title="Intellectual Property">
-        <p>FoodVault owns all rights in:</p>
+        <p>FoodVault owns all legal rights, title, and interest in:</p>
         <ul className="list-disc space-y-2 pl-5">
           {ipOwnership.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
         <p>
-          Partner names, trademarks and product images remain the property of their
-          respective owners.
+          Partner business names, trademarks, menus, and product images remain the property
+          of their respective owners.
         </p>
         <p>
-          Nothing in these Terms transfers ownership of intellectual property.
+          Nothing in these Terms transfers ownership of any intellectual property.
         </p>
       </LegalSection>
 
       <LegalSection id="availability" number="16" title="Platform Availability">
         <p>
-          FoodVault aims to keep the Platform available but does not guarantee
+          FoodVault aims to maintain high Platform availability but does not guarantee
           uninterrupted operation.
         </p>
         <p>
-          Maintenance, upgrades, security events or third-party failures may temporarily
-          affect availability.
+          Maintenance, software upgrades, network security events, or third-party
+          infrastructure failures may temporarily affect platform availability or live
+          digital pass rendering.
         </p>
       </LegalSection>
 
       <LegalSection id="third-party-services" number="17" title="Third-Party Services">
         <p>
-          The Platform relies on third-party services including payment processors,
-          hosting providers, authentication providers and technology services.
+          The Platform relies on external third-party infrastructure, including payment
+          gateways (Stripe), hosting providers, mapping/location services, and security
+          verification tools (e.g., Cloudflare).
         </p>
         <p>
-          FoodVault is not responsible for interruptions, failures or errors caused by
-          third-party services outside our reasonable control.
+          FoodVault is not responsible for interruptions, errors, or service delays caused
+          by third-party systems outside our reasonable control.
         </p>
       </LegalSection>
 
       <LegalSection id="liability" number="18" title="Limitation of Liability">
         <div className="rounded-lg bg-navy p-6 text-white sm:p-8">
           <p className="leading-relaxed text-white/90">
-            To the maximum extent permitted by New Zealand law, FoodVault is not liable
-            for indirect, incidental, consequential, special or punitive damages arising
-            from:
+            To the maximum extent permitted by New Zealand law, FoodVault (and its
+            directors, officers, and employees) shall not be liable for any indirect,
+            incidental, consequential, special, or punitive damages arising from:
           </p>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-white/90">
             {liabilityExclusions.map((item) => (
@@ -483,47 +501,56 @@ export function TermsContent() {
           </ul>
           <p className="mt-4 leading-relaxed text-white/90">
             FoodVault&apos;s maximum aggregate liability relating to the Platform will
-            not exceed the membership fees paid by the affected member during the twelve
-            months immediately preceding the event giving rise to the claim.
+            not exceed the total membership fees paid by the affected member during the
+            twelve (12) months immediately preceding the event giving rise to the claim.
           </p>
           <p className="mt-4 leading-relaxed text-white/90">
             Nothing in these Terms limits rights that cannot legally be excluded under
-            New Zealand law.
+            New Zealand law, including the Consumer Guarantees Act 1993 and the Fair
+            Trading Act 1986.
           </p>
         </div>
       </LegalSection>
 
       <LegalSection id="privacy" number="19" title="Privacy">
         <p>
-          Your use of the Platform is also governed by the FoodVault{" "}
+          Your use of the Platform is governed by the FoodVault{" "}
           <Link href="/privacy" className="font-semibold text-primary hover:text-primary-hover">
             Privacy Policy
           </Link>
           .
         </p>
         <p>
-          The Privacy Policy explains how personal information is collected, used, stored
-          and disclosed in accordance with the Privacy Act 2020.
+          The Privacy Policy details how personal information (including account
+          credentials and location data where applicable) is collected, stored, used, and
+          protected in compliance with the New Zealand Privacy Act 2020.
         </p>
       </LegalSection>
 
       <LegalSection id="changes" number="20" title="Changes to These Terms">
-        <p>FoodVault may update these Terms from time to time.</p>
         <p>
-          Material changes will be published on the Platform and, where appropriate,
-          communicated by email.
+          FoodVault may update these Terms from time to time to reflect platform
+          improvements or business changes.
         </p>
         <p>
-          Continued use of the Platform after changes become effective constitutes
+          Material changes will be published on the Platform and, where appropriate,
+          notified via email.
+        </p>
+        <p>
+          Continued use of the Platform after changes take effect constitutes binding
           acceptance of the updated Terms.
         </p>
       </LegalSection>
 
       <LegalSection id="governing-law" number="21" title="Governing Law">
-        <p>These Terms are governed by the laws of New Zealand.</p>
         <p>
-          Any dispute relating to these Terms or the Platform shall be subject to the
-          exclusive jurisdiction of the New Zealand courts.
+          These Terms are governed by and construed in accordance with the laws of New
+          Zealand.
+        </p>
+        <p>
+          Any legal dispute or claim arising under or in connection with these Terms or
+          the Platform shall be subject to the exclusive jurisdiction of the courts of New
+          Zealand.
         </p>
       </LegalSection>
 
@@ -536,12 +563,12 @@ export function TermsContent() {
             Trading as FoodVault
           </p>
           <p className="mx-auto mt-4 max-w-lg text-sm text-white/80 sm:text-base">
-            General enquiries, membership support, legal enquiries and privacy requests
-            may be submitted through the{" "}
+            General enquiries, member support, business partner enquiries, and
+            legal/privacy notices may be submitted via the{" "}
             <Link href="/contact" className="font-semibold text-white underline hover:text-white/90">
               Contact page
             </Link>{" "}
-            within the Platform or by emailing:
+            on the Platform or by emailing:
           </p>
           <a
             href="mailto:mark@benchmark-int.com"

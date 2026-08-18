@@ -5,108 +5,112 @@ import {
 } from "@/components/legal/LegalDocShell";
 
 const navItems = [
-  { id: "what-are-cookies", label: "1. What Are Cookies?" },
-  { id: "why-we-use", label: "2. Why FoodVault Uses Cookies" },
-  { id: "types", label: "3. Types of Cookies We Use" },
-  { id: "third-party", label: "4. Third-Party Services" },
-  { id: "managing", label: "5. Managing Cookies" },
-  { id: "consent-changes", label: "6. Consent and Changes to This Policy" },
-  { id: "contact", label: "7. Contact Us" },
+  { id: "what-are-cookies", label: "What Are Cookies?" },
+  { id: "why-we-use", label: "Why FoodVault Uses Cookies" },
+  { id: "types", label: "Types of Cookies We Use" },
+  { id: "third-party", label: "Third-Party Services" },
+  { id: "managing", label: "Managing Cookies" },
+  { id: "consent-changes", label: "Consent and Changes to This Policy" },
+  { id: "contact", label: "Contact Us" },
 ];
 
 const cookiePurposes = [
-  "remember preferences",
-  "keep users signed in",
-  "maintain security",
-  "understand how visitors use the Platform",
-  "improve functionality and performance",
+  "remember user preferences and saved venues",
+  "keep members signed in securely across devices",
+  "maintain platform security and anti-fraud checks",
+  "render live digital membership passes for in-store counter redemptions",
+  "understand how visitors use the Platform to improve performance",
 ];
 
 const whyFoodVaultUsesCookies = [
   {
     title: "Keep You Signed In",
     description:
-      "Cookies help maintain secure login sessions and allow members to access their accounts.",
+      "Maintain secure login sessions so members can access their account, unlock online promo codes, or open their live pass on their mobile browser.",
   },
   {
-    title: "Maintain Security",
+    title: "Support In-Store Pass Verification",
     description:
-      "Cookies help protect accounts, detect suspicious activity and maintain Platform security.",
+      "Help render dynamic membership verification features (such as live counting clocks) when presenting your phone at local hospitality counters.",
+  },
+  {
+    title: "Maintain Security & Anti-Fraud",
+    description:
+      "Protect user accounts, prevent screenshot abuse, detect suspicious login attempts, and uphold Platform integrity.",
   },
   {
     title: "Remember Preferences",
     description:
-      "Cookies may remember settings and preferences to improve your experience.",
+      "Store bookmarked online brands, favourite local cafes, and search filters across visits.",
   },
   {
     title: "Improve Platform Performance",
     description:
-      "Cookies help us understand how the Platform is used and identify opportunities to improve functionality and reliability.",
+      "Track usage patterns, detect broken links or technical errors, and optimize local venue search rendering.",
   },
   {
-    title: "Support Subscription Services",
+    title: "Support Subscriptions",
     description:
-      "Cookies may assist with secure subscription management and payment processes.",
+      "Interface securely with payment gateways for monthly billing and membership verification.",
   },
 ];
 
 const essentialCookieSupport = [
-  "account authentication",
-  "secure login sessions",
-  "account security",
-  "core Platform functionality",
+  "account authentication and secure sessions",
+  "rendering active digital membership passes on mobile devices",
+  "security, bot protection, and fraud prevention",
+  "core Platform navigation and venue discovery",
 ];
 
 const functionalCookieSupport = [
-  "saved preferences",
-  "user settings",
-  "personalised Platform features",
+  "saved preferences and location settings",
+  "favourite brands and bookmarked local venues",
+  "personalized interface elements",
 ];
 
 const analyticsInformation = [
-  "pages visited",
-  "general usage patterns",
-  "technical performance information",
+  "pages and venue profiles visited",
+  "usage patterns and search queries",
+  "site speed and technical performance metrics",
 ];
 
 const browserControls = [
-  "block cookies",
-  "delete existing cookies",
   "block third-party cookies",
-  "receive notifications before cookies are stored",
+  "clear existing cookies and site storage",
+  "receive alerts when cookies are placed on your device",
 ];
 
 const cookieTypes = [
   {
-    title: "Essential Cookies",
+    title: "Essential Cookies & Local Storage",
     borderClass: "border-l-primary",
-    intro: "These cookies are required for the Platform to function.",
+    intro: "These technologies are strictly required for the Platform to function properly.",
     supportLabel: "They support:",
     points: essentialCookieSupport,
-    note: "Disabling essential cookies may prevent you from accessing certain FoodVault features.",
+    note: "Disabling essential cookies or session storage will prevent you from signing in or displaying your live membership pass at physical venues.",
   },
   {
     title: "Functional Cookies",
     borderClass: "border-l-success",
-    intro: "These cookies help remember preferences and improve your experience.",
-    supportLabel: "They may support:",
+    intro: "These cookies help customize your experience and remember your choices.",
+    supportLabel: "They support:",
     points: functionalCookieSupport,
   },
   {
     title: "Analytics Cookies",
     borderClass: "border-l-teal-500",
     intro:
-      "Where enabled, analytics cookies help us understand how members use the Platform.",
-    supportLabel: "This information may include:",
+      "Where enabled, performance and analytics cookies help us understand how members interact with the Platform.",
+    supportLabel: "This information includes:",
     points: analyticsInformation,
-    note: "Analytics information is used to improve the Platform and is not used to identify individual members.",
+    note: "Analytics data is aggregated to help us improve FoodVault for members and business partners; it is not used to track individual purchase histories at local venues.",
   },
   {
     title: "Marketing Cookies",
     borderClass: "border-l-red-500",
     intro:
-      "FoodVault does not currently use marketing cookies for advertising purposes.",
-    note: "If this changes in the future, this Cookie Policy will be updated and appropriate consent will be obtained where required.",
+      "FoodVault does not currently use marketing or targeted advertising cookies.",
+    note: "If this changes in the future, this policy will be updated and explicit consent will be requested where required by law.",
   },
 ];
 
@@ -114,14 +118,14 @@ export function CookieContent() {
   return (
     <LegalDocShell
       title="Cookie Policy"
-      lastUpdated="July 2026"
+      lastUpdated="August 2026"
       intro={
         <>
           This Cookie Policy explains how Britomart Groceries Limited, trading as
           FoodVault (&ldquo;FoodVault&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, or
-          &ldquo;us&rdquo;), uses cookies and similar technologies when you visit the
-          FoodVault website, membership platform and related services
-          (&ldquo;Platform&rdquo;).
+          &ldquo;us&rdquo;), uses cookies, session storage, and similar technologies when
+          you visit the FoodVault website, membership platform, digital pass system, and
+          related services (&ldquo;Platform&rdquo;).
         </>
       }
       sidebarTitle="On This Page"
@@ -131,19 +135,24 @@ export function CookieContent() {
           This policy should be read together with our{" "}
           <Link href="/privacy" className="font-semibold text-primary hover:text-primary-hover">
             Privacy Policy
+          </Link>{" "}
+          and{" "}
+          <Link href="/terms" className="font-semibold text-primary hover:text-primary-hover">
+            Terms &amp; Conditions
           </Link>
-          , which explains how we collect, use and protect personal information.
+          , which explain how we collect, use, and protect personal information.
         </p>
       }
       footerNote={
         <p className="text-center text-sm text-muted-foreground">
-          FoodVault does not currently use marketing cookies for advertising purposes.
+          FoodVault does not currently use marketing or targeted advertising cookies.
         </p>
       }
     >
       <LegalSection id="what-are-cookies" number="01" title="What Are Cookies?">
         <p>
-          Cookies are small text files stored on your device when you visit a website.
+          Cookies and local storage are small text files or data fragments stored on your
+          computer or mobile device when you visit a website.
         </p>
         <p>Cookies help websites:</p>
         <ul className="list-disc space-y-2 pl-5">
@@ -152,13 +161,14 @@ export function CookieContent() {
           ))}
         </ul>
         <p>
-          Cookies may be placed by FoodVault (&ldquo;first-party cookies&rdquo;) or by
-          trusted third-party service providers (&ldquo;third-party cookies&rdquo;).
+          Cookies may be placed directly by FoodVault (&ldquo;first-party cookies&rdquo;)
+          or by trusted third-party technology providers (&ldquo;third-party
+          cookies&rdquo;).
         </p>
       </LegalSection>
 
       <LegalSection id="why-we-use" number="02" title="Why FoodVault Uses Cookies">
-        <p>FoodVault uses cookies and similar technologies to:</p>
+        <p>FoodVault uses cookies and local storage technologies to:</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {whyFoodVaultUsesCookies.map((item) => (
             <div
@@ -199,37 +209,38 @@ export function CookieContent() {
 
       <LegalSection id="third-party" number="04" title="Third-Party Services">
         <p>
-          FoodVault may use trusted third-party services that may set cookies or similar
-          technologies.
+          FoodVault relies on trusted third-party providers that may set cookies or use
+          similar storage technologies to support our operations. These include:
         </p>
-        <p>These services may include:</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 sm:p-6">
             <h3 className="font-semibold text-foreground">Payment Processing</h3>
             <p className="mt-2">
-              Stripe may use cookies and similar technologies when processing
-              subscription payments through its secure checkout services.
+              Stripe uses secure cookies and storage to manage billing portals, card
+              verifications, and subscription processing.
             </p>
           </div>
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 sm:p-6">
             <h3 className="font-semibold text-foreground">
-              Platform Infrastructure and Security
+              Platform Security &amp; Infrastructure
             </h3>
             <p className="mt-2">
-              Our technology providers may use cookies or similar technologies necessary
-              to operate, secure and maintain the Platform.
+              Cloud infrastructure, mapping, and security providers (such as Cloudflare)
+              use essential cookies to block malicious bots, deliver content quickly, and
+              protect user sessions.
             </p>
           </div>
         </div>
         <p>
-          Third-party providers operate under their own privacy policies and terms.
-          FoodVault does not control how third parties use their technologies.
+          Third-party providers operate under their own privacy and cookie policies.
+          FoodVault does not control third-party tracking technologies.
         </p>
       </LegalSection>
 
       <LegalSection id="managing" number="05" title="Managing Cookies">
         <p>
-          You can control or delete cookies through your browser settings.
+          You can control, block, or delete cookies at any time through your web or mobile
+          browser settings.
         </p>
         <p>Most browsers allow you to:</p>
         <ul className="list-disc space-y-2 pl-5">
@@ -238,22 +249,27 @@ export function CookieContent() {
           ))}
         </ul>
         <p>
-          Please note that disabling essential cookies may affect your ability to log in
-          or use certain FoodVault features.
+          Please note: Clearing or disabling essential cookies on your mobile browser will
+          log you out and prevent you from loading your live digital membership pass when
+          visiting participating hospitality venues.
         </p>
       </LegalSection>
 
       <LegalSection id="consent-changes" number="06" title="Consent and Changes to This Policy">
         <p>
-          Essential cookies are necessary for the operation and security of FoodVault.
+          Essential cookies are automatically applied because they are necessary to deliver
+          secure membership access and pass verification.
         </p>
         <p>
-          Where required by applicable law, FoodVault will request consent before using
-          optional cookies.
+          Where required by applicable privacy laws, FoodVault will request consent before
+          placing optional performance or functional cookies.
         </p>
-        <p>We may update this Cookie Policy from time to time.</p>
         <p>
-          Any changes will be published on this page with an updated &ldquo;Last
+          We may update this Cookie Policy from time to time to reflect platform updates or
+          legal requirements.
+        </p>
+        <p>
+          Updated versions will be published on this page with a revised &ldquo;Last
           Updated&rdquo; date.
         </p>
       </LegalSection>
@@ -267,7 +283,7 @@ export function CookieContent() {
             Trading as FoodVault
           </p>
           <p className="mx-auto mt-4 max-w-lg text-sm text-white/80 sm:text-base">
-            For questions about cookies or privacy:
+            For questions about our Cookie Policy or data practices:
           </p>
           <a
             href="mailto:mark@benchmark-int.com"

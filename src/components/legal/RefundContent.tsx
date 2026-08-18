@@ -5,79 +5,76 @@ import {
 } from "@/components/legal/LegalDocShell";
 
 const navItems = [
-  { id: "memberships-only", label: "1. Memberships Only" },
-  { id: "partner-purchases", label: "2. Partner Purchases" },
-  { id: "subscription", label: "3. Membership Subscription" },
-  { id: "member-access", label: "4. Member Access" },
-  { id: "cancellation", label: "5. Cancelling Your Membership" },
-  { id: "refunds", label: "6. Membership Refund Policy" },
-  { id: "failed-payments", label: "7. Failed Payments" },
-  { id: "termination", label: "8. Membership Suspension or Termination" },
-  { id: "payment-disputes", label: "9. Payment Disputes" },
-  { id: "changes", label: "10. Changes to This Policy" },
-  { id: "contact", label: "11. Contact Us" },
+  { id: "memberships-only", label: "Memberships Only" },
+  { id: "partner-purchases", label: "Partner Purchases & Hospitality Visits" },
+  { id: "subscription", label: "Membership Subscription" },
+  { id: "member-access", label: "Member Access & Redemption" },
+  { id: "cancellation", label: "Cancelling Your Membership" },
+  { id: "refunds", label: "Membership Refund Policy" },
+  { id: "failed-payments", label: "Failed Payments" },
+  { id: "termination", label: "Membership Suspension or Termination" },
+  { id: "payment-disputes", label: "Payment Disputes" },
+  { id: "changes", label: "Changes to This Policy" },
+  { id: "contact", label: "Contact Us" },
 ];
 
 const foodVaultDoesNot = [
-  "sell physical products",
-  "process retail purchases",
-  "fulfil customer orders",
-  "provide delivery services",
-  "manage returns or refunds for products purchased from partner businesses",
+  "sell physical products directly",
+  "process retail checkout transactions",
+  "operate hospitality venues, cafes, or restaurants",
+  "fulfill customer orders or provide food delivery services",
+  "manage returns, item replacements, or refunds for products or meals purchased from partner businesses",
 ];
 
 const partnerPurchaseTopics = [
-  "payments",
-  "delivery",
-  "product quality",
-  "returns",
-  "refunds",
-  "order issues",
+  "online order payments and shipping",
+  "food quality, dietary/allergen requirements, or venue service",
+  "product returns, exchanges, or meal refunds",
+  "order or receipt issues",
 ];
 
 const accountManagement = [
   "viewing membership status",
   "updating payment details",
-  "managing cancellation",
+  "managing subscription cancellation",
 ];
 
 const cancelSteps = [
   "Log in to your FoodVault account.",
-  "Navigate to your membership settings.",
-  "Select cancellation and follow the confirmation process.",
+  "Navigate to your account settings / membership portal.",
+  "Select cancellation and follow the confirmation prompt.",
 ];
 
 const nonRefundableCircumstances = [
-  "you have not used your membership",
-  "you forgot to cancel before renewal",
+  "you have not used your membership during the month",
+  "you forgot to cancel before the automatic renewal date",
   "you no longer wish to use the Platform",
-  "you do not find suitable partner offers",
-  "you do not use available membership benefits",
+  "you do not find partner offers or local venues in your immediate area that suit your preferences",
+  "you failed to present your live membership pass at a venue counter prior to paying your bill",
 ];
 
 const failedPaymentActions = [
-  "retry the payment",
-  "notify you of the failed payment",
-  "restrict membership access until payment is resolved",
+  "re-attempt the transaction via Stripe",
+  "notify you of the billing issue",
+  "restrict access to online codes and live in-store passes until payment is resolved",
 ];
 
 const terminationReasons = [
-  "these Terms or policies are breached",
-  "fraudulent activity is suspected",
-  "the Platform is misused",
-  "member-only benefits are abused",
-  "activity may harm FoodVault, members or partner businesses",
+  "these Terms or Platform policies are breached",
+  "fraudulent pass usage (such as sharing static screenshots or screen recordings at venues) is identified",
+  "member account credentials are shared with non-members",
+  "activity presents a security risk or potential harm to FoodVault, other members, or partner venues",
 ];
 
 export function RefundContent() {
   return (
     <LegalDocShell
       title="Refund & Cancellation Policy"
-      lastUpdated="July 2026"
+      lastUpdated="August 2026"
       intro={
         <>
           This Refund &amp; Cancellation Policy explains how membership cancellations,
-          subscription payments and refund requests are managed by FoodVault.
+          subscription payments, and refund requests are managed by FoodVault.
         </>
       }
       sidebarSubtitle="Legal & Compliance"
@@ -122,9 +119,10 @@ export function RefundContent() {
           <div className="relative">
             <h2 className="text-2xl font-bold sm:text-3xl">Important Reminder</h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-              FoodVault manages your membership subscription only. Any purchases made
-              directly with partner businesses are separate transactions and are governed
-              by the individual partner&apos;s own refund, return and cancellation policies.
+              FoodVault manages your membership subscription only. Any purchases or
+              transactions made directly with partner brands or local hospitality venues
+              are separate transactions governed by the individual business&apos;s own
+              refund, return, and cancellation policies.
             </p>
           </div>
         </div>
@@ -133,7 +131,8 @@ export function RefundContent() {
       <LegalSection id="memberships-only" number="01" title="Memberships Only">
         <p>
           FoodVault is a membership platform that provides access to member benefits,
-          including exclusive offers and discounts from participating partner businesses.
+          including exclusive online promo codes and live in-store discounts from
+          participating partner businesses and local venues.
         </p>
         <p>FoodVault does not:</p>
         <ul className="list-disc space-y-2 pl-5">
@@ -142,34 +141,41 @@ export function RefundContent() {
           ))}
         </ul>
         <p>
-          Your FoodVault membership fee provides access to the Platform and membership
-          benefits only.
+          Your FoodVault membership fee provides subscription access to the Platform and
+          member benefits only.
         </p>
       </LegalSection>
 
-      <LegalSection id="partner-purchases" number="02" title="Partner Purchases">
+      <LegalSection id="partner-purchases" number="02" title="Partner Purchases & Hospitality Visits">
         <p>
-          FoodVault does not sell products on behalf of partner businesses.
+          FoodVault does not sell products or food items on behalf of partner businesses.
         </p>
         <p>
-          When you purchase products from a partner business, you enter into a separate
-          transaction directly with that business.
+          <span className="font-semibold text-foreground">Online Purchases:</span> When you
+          buy products from a partner brand&apos;s website, you enter into a separate
+          commercial transaction directly with that business.
         </p>
-        <p>Any questions relating to partner purchases, including:</p>
+        <p>
+          <span className="font-semibold text-foreground">In-Store &amp; Dining Visits:</span>{" "}
+          When you order food, drinks, or goods at a participating hospitality venue
+          (cafe, restaurant, bakery, deli), all food preparation, service quality, and
+          payment transactions occur directly between you and the venue.
+        </p>
+        <p>Any questions relating to partner transactions, including:</p>
         <ul className="list-disc space-y-2 pl-5">
           {partnerPurchaseTopics.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p>must be directed to the relevant partner business.</p>
         <p>
-          Partner purchases are subject to the partner&apos;s own Terms, Privacy Policy
-          and refund policies.
+          must be directed directly to the relevant partner business or venue. Partner
+          transactions are governed by the individual partner&apos;s own Terms, Privacy
+          Policy, and refund policies.
         </p>
       </LegalSection>
 
       <LegalSection id="subscription" number="03" title="Membership Subscription">
-        <p>FoodVault membership is provided as a recurring subscription.</p>
+        <p>FoodVault membership is provided as a recurring monthly subscription.</p>
         <p>
           The applicable membership price is displayed during signup before payment
           confirmation.
@@ -178,7 +184,7 @@ export function RefundContent() {
           By subscribing, you authorise FoodVault to charge your nominated payment method
           at each billing cycle until your membership is cancelled.
         </p>
-        <p>Your account allows you to manage your subscription, including:</p>
+        <p>Your account allows you to manage your subscription at any time, including:</p>
         <ul className="list-disc space-y-2 pl-5">
           {accountManagement.map((item) => (
             <li key={item}>{item}</li>
@@ -188,15 +194,18 @@ export function RefundContent() {
         <p>FoodVault does not store complete payment card details.</p>
       </LegalSection>
 
-      <LegalSection id="member-access" number="04" title="Member Access">
+      <LegalSection id="member-access" number="04" title="Member Access & Redemption">
         <p>
-          You can browse all brand discounts on FoodVault without a paid membership.
+          You can browse all brand profiles and local venue listings on FoodVault without
+          a paid membership.
         </p>
         <p>
-          Promo codes and other member benefits are unlocked only after you complete
-          payment for a membership through Stripe Checkout.
+          Unlocking online promo codes and accessing your live in-store digital membership
+          pass requires an active paid membership purchased through Stripe Checkout.
         </p>
-        <p>Access to promo codes begins immediately after successful payment.</p>
+        <p>
+          Access to member benefits begins immediately upon successful payment confirmation.
+        </p>
       </LegalSection>
 
       <LegalSection id="cancellation" number="05" title="Cancelling Your Membership">
@@ -207,21 +216,21 @@ export function RefundContent() {
             <li key={step}>{step}</li>
           ))}
         </ol>
-        <p>Cancellation prevents future subscription charges.</p>
+        <p>Cancellation prevents future recurring subscription charges.</p>
         <p>
           Your membership will remain active until the end of your current paid billing
-          period.
+          period, allowing you to continue using online codes and in-store passes until
+          that period expires.
         </p>
         <p>
-          Cancelling your membership does not provide a refund for unused time remaining
-          in that billing period unless required by law.
+          Cancelling your membership does not entitle you to a refund for unused time
+          remaining in that billing period unless required by law.
         </p>
       </LegalSection>
 
       <LegalSection id="refunds" number="06" title="Membership Refund Policy">
         <p>
-          Membership fees are generally non-refundable once a billing period has
-          commenced.
+          Membership fees are generally non-refundable once a billing cycle has commenced.
         </p>
         <p>This includes circumstances where:</p>
         <ul className="list-disc space-y-2 pl-5">
@@ -229,22 +238,23 @@ export function RefundContent() {
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p>Refunds may be provided where:</p>
+        <p className="font-semibold text-foreground">Refund Exceptions:</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-background p-5 shadow-sm sm:p-6">
             <h3 className="font-bold text-foreground">Technical Issues</h3>
             <p className="mt-2">
-              FoodVault may provide a refund or account adjustment where a significant
-              Platform issue prevents access to core membership features for an extended
-              period and the issue is caused by FoodVault.
+              FoodVault may provide a refund or subscription credit where a significant
+              Platform outage prevents access to core membership features (such as
+              rendering live in-store passes or retrieving codes) for an extended period,
+              and the fault lies solely with FoodVault.
             </p>
           </div>
           <div className="rounded-lg border border-border bg-background p-5 shadow-sm sm:p-6">
             <h3 className="font-bold text-foreground">Legal Requirements</h3>
             <p className="mt-2">
               FoodVault will provide refunds where required under applicable New Zealand
-              law, including obligations under the Consumer Guarantees Act 1993 where
-              applicable.
+              legislation, including statutory obligations under the Consumer Guarantees
+              Act 1993 and the Fair Trading Act 1986.
             </p>
           </div>
         </div>
@@ -265,7 +275,7 @@ export function RefundContent() {
       </LegalSection>
 
       <LegalSection id="failed-payments" number="07" title="Failed Payments">
-        <p>If a membership payment fails, FoodVault may:</p>
+        <p>If a recurring membership payment fails, FoodVault may:</p>
         <ul className="list-disc space-y-2 pl-5">
           {failedPaymentActions.map((item) => (
             <li key={item}>{item}</li>
@@ -285,24 +295,23 @@ export function RefundContent() {
           ))}
         </ul>
         <p>
-          Where termination occurs due to misuse or breach, refunds are not guaranteed
-          except where required by law.
+          Where account termination occurs due to fraud or breach, subscription refunds
+          will not be granted except where required by law.
         </p>
       </LegalSection>
 
       <LegalSection id="payment-disputes" number="09" title="Payment Disputes">
         <p>
-          If you believe there is an issue with a FoodVault membership charge, please
-          contact FoodVault first so we can investigate and attempt to resolve the
-          matter.
+          If you believe there is an error with a FoodVault membership charge, please
+          contact FoodVault directly so we can investigate and resolve the issue quickly.
         </p>
         <p>
-          Submitting a payment dispute or chargeback without first contacting FoodVault
-          may delay resolution.
+          Submitting a bank chargeback or payment dispute without contacting us first may
+          result in temporary account suspension pending review.
         </p>
         <p>
-          Nothing in this policy limits any rights available to you under applicable New
-          Zealand law.
+          Nothing in this policy limits any non-excludable rights available to you under
+          New Zealand law.
         </p>
       </LegalSection>
 
@@ -323,7 +332,7 @@ export function RefundContent() {
       <LegalSection id="contact" number="11" title="Contact Us">
         <div className="rounded-lg bg-primary p-6 text-center text-white sm:p-10">
           <p className="text-sm text-white/80 sm:text-base">
-            For questions relating to membership billing, cancellations or refund
+            For questions relating to membership billing, cancellations, or refund
             requests:
           </p>
           <h3 className="mt-4 text-xl font-bold sm:text-2xl">FoodVault</h3>

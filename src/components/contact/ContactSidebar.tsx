@@ -6,8 +6,8 @@ export function ContactHero() {
           How Can We Help?
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-          Whether you&apos;re a member looking for savings, a brand interested in
-          the vault, or just have a general question, our team is ready to
+          Whether you&apos;re a member looking for savings, a brand or hospitality venue
+          interested in partnering, or just have a general question, our team is ready to
           assist.
         </p>
       </div>
@@ -27,15 +27,15 @@ export function ContactAlert() {
         <div>
           <h2 className="font-bold text-foreground">Before You Contact Us</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            FoodVault is a membership and discovery platform, not a direct
-            retailer. We do not manufacture or sell products directly. For
-            questions regarding{" "}
+            FoodVault is a membership and discovery platform, not a retailer or
+            venue operator. For questions regarding{" "}
             <strong className="font-semibold text-foreground">
-              specific orders, shipping status, product quality, returns, or
-              refunds
+              online orders, shipping status, product quality, or specific
+              in-store venue policies
             </strong>
-            , please contact the partner business where you made the purchase.
-            You can find their contact details on your order confirmation email.
+            , please contact the partner business or venue directly. You can find
+            their contact details on their FoodVault profile or your order
+            confirmation email.
           </p>
         </div>
       </div>

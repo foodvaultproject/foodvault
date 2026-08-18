@@ -4,7 +4,7 @@ import { PartnerLoginPage } from "@/components/auth/PartnerLoginPage";
 export const metadata: Metadata = {
   title: "Partner Log In",
   description:
-    "Log in to your FoodVault Partner account to manage your business listing, member offer, and partner dashboard.",
+    "Log in to your FoodVault Partner account to manage your brand or venue listing, member offers, and partner dashboard.",
 };
 
 export default function PartnerLoginRoute() {

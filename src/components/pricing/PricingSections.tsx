@@ -9,9 +9,9 @@ import { heading1, heading2, heading2OnDark } from "@/lib/ui-classes";
 
 const membershipFeatures = [
   "Unlimited access",
-  "All categories",
-  "Favourite brands",
-  "Shop smarter. Start saving",
+  "All categories & local venues",
+  "Favorite brands & local spots",
+  "Shop online or dine in-store",
   "Cancel anytime",
 ];
 
@@ -31,8 +31,8 @@ export function PricingHero({ settings }: { settings: MembershipSettings }) {
           Simple, Transparent Membership
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-          Become a FoodVault member and unlock exclusive discounts from Kiwi brands across
-          New Zealand. Discover something new, shop direct, and save.
+          Become a FoodVault member to unlock exclusive perks from top Kiwi brands and local
+          venues across New Zealand. Save online or show your membership at the counter.
         </p>
 
         <div className="mx-auto mt-10 max-w-md rounded-lg border border-border bg-background p-6 text-left shadow-lg sm:mt-12 sm:p-8">
@@ -90,8 +90,8 @@ export function PricingDualCTASection() {
             <div className="relative z-10 flex h-full flex-col">
               <h2 className={heading2OnDark}>Spend less. Save more.</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/85 sm:mt-4 sm:text-base">
-                Join FoodVault and unlock exclusive member pricing from participating New Zealand
-                brands—all in one place.
+                Join FoodVault and unlock exclusive member perks from participating Kiwi brands
+                and local venues—all in one place.
               </p>
               <div className="mt-auto pt-6 sm:pt-8">
                 <PricingSpendLessCta />

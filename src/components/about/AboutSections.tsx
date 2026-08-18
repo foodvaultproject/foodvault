@@ -15,11 +15,11 @@ export function AboutHero() {
               Once upon a time...
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mx-0">
-              Kiwi was off hunting for awesome local brands. Piggy was busy sniffing out bargains.
-              One day they absolutely sent it around the supermarket corner, crashed trolleys, and
-              instead of arguing, decided to team up. That&apos;s how FoodVault was born. Now Kiwi
-              helps you discover great brands, and Piggy makes sure you save a few bucks along the
-              way.
+              Kiwi was off hunting for awesome local brands and top coffee spots. Piggy was busy
+              sniffing out bargains. One day they absolutely sent it around the supermarket
+              corner, crashed trolleys, and decided to team up. That&apos;s how FoodVault was
+              born. Now Kiwi helps you discover great brands and local venues, while Piggy makes
+              sure you save a few bucks along the way.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <MemberSignupCtaLink
@@ -30,7 +30,7 @@ export function AboutHero() {
                 href="/browse-brands"
                 className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-transparent px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
               >
-                Browse Brands
+                Browse Listings
               </Link>
             </div>
           </div>
@@ -67,21 +67,21 @@ export function AboutValueSplitSection() {
               For Members
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Discover amazing Kiwi brands, unlock exclusive member savings, and shop directly
-              with confidence. Whether you&apos;re buying everyday essentials or discovering
-              something new, FoodVault helps you get more for your money while supporting local
-              businesses.
+              Discover amazing Kiwi brands and local hospitality venues, unlock exclusive member
+              savings, and save with confidence. Whether you&apos;re shopping online for everyday
+              essentials or grabbing lunch at a local cafe, FoodVault helps you get more value
+              every day.
             </p>
           </article>
 
           <article className="rounded-lg border border-border bg-surface p-6 shadow-sm sm:p-8">
             <h3 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
-              For Brands
+              For Businesses
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              FoodVault helps more people discover your business and sends shoppers directly to
-              your website. Create your free profile, promote your products, control your offers,
-              and connect with customers who are actively looking for brands like yours.
+              FoodVault helps more people discover your business—whether you sell online or run a
+              local cafe, restaurant, bakery, or deli. Create your free profile, showcase your
+              offers, and connect directly with members actively looking for places like yours.
             </p>
           </article>
         </div>
@@ -118,20 +118,20 @@ export function AboutFounderSection() {
             <p className="font-medium text-foreground">Hi, I&apos;m Mark Coulston.</p>
             <p>
               Having owned a Four Square (Foodstuffs North Island) and built wholesale
-              distribution across two continents, I&apos;ve seen the retail game from every
-              angle—from early pitch meetings landing first shelf spots to nationwide
-              rollouts.
+              distribution across two continents, I&apos;ve seen the retail and hospitality game
+              from every angle—from early pitch meetings landing first shelf spots to running
+              daily store operations.
             </p>
             <p>
-              If there&apos;s one thing I know, it&apos;s that building a brand takes serious
-              time and grit. New Zealand is a tough market with tight retail channels, and
-              building a loyal base of everyday supporters is the real foundation of any
-              lasting business.
+              If there&apos;s one thing I know, it&apos;s that building a brand or running a venue
+              takes serious time and grit. New Zealand is a tough market with tight margins, and
+              building a loyal base of everyday supporters is the real foundation of any lasting
+              business.
             </p>
             <p>
-              That&apos;s why I built FoodVault: to give Kiwi brands a direct connection to
-              loyal customers, while giving Kiwi families genuine value on the products they
-              love.
+              That&apos;s why I built FoodVault: to give Kiwi brands and local hospitality venues
+              a direct connection to loyal customers, while giving Kiwi families genuine savings
+              on the things they love.
             </p>
           </div>
         </div>

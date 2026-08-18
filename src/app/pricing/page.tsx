@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: "Pricing",
-    description: `FoodVault membership is ${priceLabel}. Browse brand discounts for free, then unlock promo codes with a paid membership from 900+ independent food and beverage brands across New Zealand.`,
+    description: `FoodVault membership is ${priceLabel}. Browse brand and venue listings for free, then unlock promo codes or your live in-store pass with a paid membership from Kiwi brands and hospitality venues across New Zealand.`,
   };
 }
 
