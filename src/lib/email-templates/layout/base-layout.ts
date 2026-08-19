@@ -59,14 +59,8 @@ export function renderEmailLayout({ appUrl, content, preheader }: EmailLayoutOpt
               <td class="fv-email-footer" style="padding:24px 32px;background-color:${EMAIL_BRAND.surface};border-top:1px solid ${EMAIL_BRAND.border};">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td align="center" style="padding-bottom:16px;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
-                        <tr>
-                          <td align="center" style="padding:10px 18px;background-color:${EMAIL_BRAND.primary};border-radius:${EMAIL_BRAND.radiusButton};">
-                            <img src="${escapeHtml(logoUrl)}" width="110" height="28" alt="FoodVault" style="display:block;width:110px;height:auto;border:0;" />
-                          </td>
-                        </tr>
-                      </table>
+                    <td align="center" style="padding-bottom:16px;font-family:${EMAIL_BRAND.fontFamily};font-size:16px;font-weight:700;line-height:1.2;color:${EMAIL_BRAND.primary};">
+                      <img src="${escapeHtml(logoUrl)}" width="110" height="28" alt="FoodVault" title="FoodVault" style="display:block;margin:0 auto;width:110px;height:auto;border:0;outline:none;text-decoration:none;font-family:${EMAIL_BRAND.fontFamily};font-size:16px;font-weight:700;color:${EMAIL_BRAND.primary};" />
                     </td>
                   </tr>
                   <tr>

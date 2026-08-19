@@ -43,20 +43,26 @@ export function emailDivider() {
 export function emailButton(href: string, label: string) {
   const safeHref = escapeHtml(href);
   const safeLabel = escapeHtml(label);
+  const isHttpUrl = /^https?:\/\//i.test(href);
 
   return `
     <table cellpadding="0" cellspacing="0" role="presentation" style="margin:24px 0 8px;">
       <tr>
-        <td align="center" style="border-radius:${EMAIL_BRAND.radiusButton};background:${EMAIL_BRAND.primaryGradient};">
+        <td align="center" style="border-radius:${EMAIL_BRAND.radiusButton};background-color:${EMAIL_BRAND.primary};background:${EMAIL_BRAND.primaryGradient};">
           <a
             href="${safeHref}"
-            style="display:inline-block;padding:12px 28px;font-family:${EMAIL_BRAND.fontFamily};font-size:14px;font-weight:600;line-height:1;color:${EMAIL_BRAND.primaryForeground};text-decoration:none;border-radius:${EMAIL_BRAND.radiusButton};mso-line-height-rule:exactly;"
+            style="display:inline-block;padding:12px 28px;font-family:${EMAIL_BRAND.fontFamily};font-size:14px;font-weight:600;line-height:1;color:${EMAIL_BRAND.primaryForeground} !important;background-color:${EMAIL_BRAND.primary};text-decoration:none;border-radius:${EMAIL_BRAND.radiusButton};mso-line-height-rule:exactly;"
           >
             ${safeLabel}
           </a>
         </td>
       </tr>
     </table>
+    ${
+      isHttpUrl
+        ? `<p style="font-size:12px;color:${EMAIL_BRAND.muted};margin-top:12px;">If the button above doesn't load, copy and paste this link into your browser: <a href="${safeHref}">${safeHref}</a></p>`
+        : ""
+    }
   `.trim();
 }
 
