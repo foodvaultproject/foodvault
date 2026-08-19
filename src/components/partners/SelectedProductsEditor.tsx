@@ -164,7 +164,7 @@ function ProductFields({
         <div>
           <label className={labelClass}>Normal Price</label>
           <div className={`relative max-w-[180px] ${gapClass}`}>
-            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+            <span className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-8 items-center justify-center text-sm text-muted-foreground">
               $
             </span>
             <input
@@ -181,7 +181,7 @@ function ProductFields({
                 })
               }
               placeholder="0.00"
-              className={`${inputClass} pl-8${missingPrice ? ` ${invalidFieldClass}` : ""}`}
+              className={`${inputClass.replace(/\bpx-\d+\b/g, "").replace(/\bpl-\d+\b/g, "")} !pl-8 pr-3${missingPrice ? ` ${invalidFieldClass}` : ""}`}
             />
           </div>
         </div>

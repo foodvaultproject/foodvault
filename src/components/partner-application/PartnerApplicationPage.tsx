@@ -750,7 +750,7 @@ export function PartnerApplicationPage() {
         setSubmitError(
           hasSocialErrors && Object.keys(nextFieldErrors).length === 0
             ? "Please fix the social media fields highlighted below."
-            : "Please complete the highlighted fields below."
+            : "Please complete the highlighted fields above."
         );
         scrollToFirstFieldError(nextFieldErrors);
         return;
