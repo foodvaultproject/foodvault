@@ -71,8 +71,8 @@ import {
   resolvePartnerApplicationDiscountValue,
   MIN_PARTNER_GALLERY_IMAGES,
   MAX_PARTNER_SHORT_DESCRIPTION_LENGTH,
+  sanitizeDiscountValue,
   validatePartnerBrandDetails,
-  validateOfferForm,
   type OfferScope,
   type SelectedProductDraft,
 } from "@/lib/partner-offer";
@@ -106,7 +106,67 @@ import { validateHospitalityApplication } from "@/lib/hospitality/validate";
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
+const errorInputClass =
+  "!border-red-500 focus:!border-red-500 focus:!ring-red-500/20";
+
+const errorWrapClass = "rounded-lg border-2 border-red-500 p-2";
+
 const labelClass = "text-sm font-bold text-foreground";
+
+type ApplicationFieldKey =
+  | "businessName"
+  | "websiteUrl"
+  | "banner"
+  | "logo"
+  | "shortDescription"
+  | "brandStory"
+  | "gallery"
+  | "categories"
+  | "discountValue"
+  | "selectedProducts"
+  | "contactName"
+  | "supportEmail"
+  | "terms";
+
+type ApplicationFieldErrors = Partial<Record<ApplicationFieldKey, string>>;
+
+const APPLICATION_FIELD_ORDER: ApplicationFieldKey[] = [
+  "businessName",
+  "websiteUrl",
+  "banner",
+  "logo",
+  "shortDescription",
+  "brandStory",
+  "gallery",
+  "categories",
+  "discountValue",
+  "selectedProducts",
+  "contactName",
+  "supportEmail",
+  "terms",
+];
+
+function isValidWebsiteUrl(value: string) {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function FieldErrorText({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="mt-1 text-xs font-medium text-red-600" role="alert">
+      {message}
+    </p>
+  );
+}
 
 const DEFAULT_OFFER_TYPE = "Percentage Discount";
 
@@ -261,6 +321,7 @@ export function PartnerApplicationPage() {
   const [vaultDrop, setVaultDrop] = useState<VaultDropFormDraft>(emptyVaultDropFormDraft());
   const [isSubmitPending, startSubmitTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<ApplicationFieldErrors>({});
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -323,12 +384,12 @@ export function PartnerApplicationPage() {
             )
           );
           setOfferExclusions(draft.offerExclusions ?? "");
-          setOfferScope(
+          const restoredScope =
             draft.offerScope ??
-              offerScopeFromLegacyAppliesTo(draft.offerAppliesTo)
-          );
-          setSelectedProducts(
-            (draft.selectedProducts ?? []).map((product, index) => {
+            offerScopeFromLegacyAppliesTo(draft.offerAppliesTo);
+          setOfferScope(restoredScope);
+          const restoredProducts = (draft.selectedProducts ?? []).map(
+            (product, index) => {
               const restored = {
                 ...createSelectedProductDraft(product.sortOrder ?? index),
                 ...product,
@@ -340,7 +401,12 @@ export function PartnerApplicationPage() {
                 collapsed:
                   product.collapsed ?? isSelectedProductComplete(restored),
               };
-            })
+            }
+          );
+          setSelectedProducts(
+            restoredProducts.length === 0 && restoredScope === "selected_products"
+              ? [createSelectedProductDraft(0, { collapsed: false })]
+              : restoredProducts
           );
           setSupportEmail(draft.supportEmail ?? partnerSession.email);
           setSupportPhone(sanitizePhoneNumber(draft.supportPhone ?? ""));
@@ -483,6 +549,41 @@ export function PartnerApplicationPage() {
     youtube,
   };
 
+  function clearFieldError(field: ApplicationFieldKey) {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function inputClassFor(field: ApplicationFieldKey) {
+    return fieldErrors[field] ? `${inputClass} ${errorInputClass}` : inputClass;
+  }
+
+  function scrollToFirstFieldError(errors: ApplicationFieldErrors) {
+    const first = APPLICATION_FIELD_ORDER.find((key) => errors[key]);
+    if (!first) return;
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`application-field-${first}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  function handleOfferScopeChange(scope: OfferScope) {
+    setOfferScope(scope);
+    clearFieldError("discountValue");
+    clearFieldError("selectedProducts");
+    if (scope !== "selected_products") return;
+    setSelectedProducts((current) =>
+      current.length === 0
+        ? [createSelectedProductDraft(0, { collapsed: false })]
+        : current
+    );
+  }
+
   function handleSocialChange(field: SocialFieldKey, value: string) {
     switch (field) {
       case "instagram":
@@ -522,6 +623,7 @@ export function PartnerApplicationPage() {
     if (!session) return;
 
     setSubmitError(null);
+    setFieldErrors({});
 
     const galleryItems = galleryDraftItems.filter(
       (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
@@ -530,20 +632,23 @@ export function PartnerApplicationPage() {
       (item): item is NonNullable<PartnerGalleryDraftItem> => item != null
     );
     const isHospitality = listingModel === "hospitality_venue";
-
-    const brandDetailsValidation = validatePartnerBrandDetails({
-      bannerImageUrl: bannerUpload?.croppedFile ? bannerUpload.previewUrl : null,
-      logoUrl: logoUpload?.croppedFile ? logoUpload.previewUrl : null,
-      shortDescription,
-      brandStory,
-      galleryImageCount: galleryItems.length,
-    });
-    if (!brandDetailsValidation.ok) {
-      setSubmitError(brandDetailsValidation.message);
-      return;
-    }
+    const termsAccepted =
+      e.currentTarget.elements.namedItem("termsAccepted") instanceof HTMLInputElement &&
+      (e.currentTarget.elements.namedItem("termsAccepted") as HTMLInputElement).checked;
 
     if (isHospitality) {
+      const brandDetailsValidation = validatePartnerBrandDetails({
+        bannerImageUrl: bannerUpload?.croppedFile ? bannerUpload.previewUrl : null,
+        logoUrl: logoUpload?.croppedFile ? logoUpload.previewUrl : null,
+        shortDescription,
+        brandStory,
+        galleryImageCount: galleryItems.length,
+      });
+      if (!brandDetailsValidation.ok) {
+        setSubmitError(brandDetailsValidation.message);
+        return;
+      }
+
       const hospitalityValidation = validateHospitalityApplication(hospitalityDetails, {
         galleryImageCount: galleryItems.length,
         offerImageCount: offerGalleryItems.length,
@@ -554,47 +659,120 @@ export function PartnerApplicationPage() {
         return;
       }
     } else {
-      const offerValidation = validateOfferForm(
-        offerScope,
-        discountValue,
-        selectedProducts,
-        { requireProducts: offerScope === "selected_products" }
-      );
-      if (!offerValidation.ok) {
-        setSubmitError(offerValidation.message);
-        return;
+      const nextFieldErrors: ApplicationFieldErrors = {};
+
+      if (!businessName.trim()) {
+        nextFieldErrors.businessName = "Enter your trading name.";
+      }
+      if (!websiteUrl.trim()) {
+        nextFieldErrors.websiteUrl = "Enter your website URL.";
+      } else if (!isValidWebsiteUrl(websiteUrl)) {
+        nextFieldErrors.websiteUrl = "Enter a valid website URL, including https://.";
+      }
+
+      if (!bannerUpload?.croppedFile) {
+        nextFieldErrors.banner = "Upload a banner image.";
+      }
+      if (!logoUpload?.croppedFile) {
+        nextFieldErrors.logo = "Upload a brand logo.";
+      }
+      if (!shortDescription.trim()) {
+        nextFieldErrors.shortDescription = "Enter a short description.";
+      }
+      if (!brandStory.trim()) {
+        nextFieldErrors.brandStory = "Add your brand story.";
+      }
+      if (galleryItems.length < MIN_PARTNER_GALLERY_IMAGES) {
+        nextFieldErrors.gallery = `Upload at least ${MIN_PARTNER_GALLERY_IMAGES} gallery images.`;
       }
 
       const nextCategoryError = validateCategoryGroups(categoryGroups);
       if (nextCategoryError) {
         setCategoryError(nextCategoryError);
-        setSubmitError(nextCategoryError);
-        return;
+        nextFieldErrors.categories = nextCategoryError;
+      }
+
+      const discount = Number(sanitizeDiscountValue(discountValue));
+      if (!discount || discount < 1 || discount > 99) {
+        nextFieldErrors.discountValue = "Enter a discount between 1 and 99.";
+      }
+
+      if (offerScope === "selected_products") {
+        const incompleteIndex = selectedProducts.findIndex(
+          (product) => !isSelectedProductComplete(product)
+        );
+        if (selectedProducts.length === 0 || incompleteIndex >= 0) {
+          nextFieldErrors.selectedProducts =
+            selectedProducts.length === 0
+              ? "Add at least one selected product."
+              : "Complete the highlighted product fields.";
+          setSelectedProducts((current) => {
+            if (current.length === 0) {
+              return [createSelectedProductDraft(0, { collapsed: false })];
+            }
+            const index = current.findIndex(
+              (product) => !isSelectedProductComplete(product)
+            );
+            if (index < 0) return current;
+            return current.map((product, productIndex) => ({
+              ...product,
+              collapsed: productIndex !== index,
+            }));
+          });
+        }
+      }
+
+      if (!contactName.trim()) {
+        nextFieldErrors.contactName = "Enter a contact name.";
+      }
+      if (!supportEmail.trim()) {
+        nextFieldErrors.supportEmail = "Enter a customer support email.";
+      } else if (!isValidEmail(supportEmail)) {
+        nextFieldErrors.supportEmail = "Enter a valid email address.";
+      }
+      if (!termsAccepted) {
+        nextFieldErrors.terms = "Please agree to the Partner Terms of Service.";
       }
 
       const affiliateValidation = AFFILIATE_PROGRAM_COMING_SOON
         ? ({ ok: true } as const)
         : validateAffiliateProgram(affiliateProgram);
-      if (!affiliateValidation.ok) {
-        setSubmitError(affiliateValidation.message);
-        return;
-      }
-
       const preparedVaultDrop = prepareVaultDropDraftForSubmit(vaultDrop);
       const vaultDropValidation = validateVaultDropForm(preparedVaultDrop, {
         requireComplete: preparedVaultDrop.enabled,
       });
+      const nextSocialErrors = validatePartnerSocialLinks(socialValues);
+      const hasSocialErrors = hasSocialFieldErrors(nextSocialErrors);
+
+      if (Object.keys(nextFieldErrors).length > 0 || hasSocialErrors) {
+        if (hasSocialErrors) setSocialErrors(nextSocialErrors);
+        setFieldErrors(nextFieldErrors);
+        setSubmitError(
+          hasSocialErrors && Object.keys(nextFieldErrors).length === 0
+            ? "Please fix the social media fields highlighted below."
+            : "Please complete the highlighted fields below."
+        );
+        scrollToFirstFieldError(nextFieldErrors);
+        return;
+      }
+
+      if (!affiliateValidation.ok) {
+        setSubmitError(affiliateValidation.message);
+        return;
+      }
       if (!vaultDropValidation.ok) {
         setSubmitError(vaultDropValidation.message);
         return;
       }
     }
 
-    const nextSocialErrors = validatePartnerSocialLinks(socialValues);
-    if (hasSocialFieldErrors(nextSocialErrors)) {
-      setSocialErrors(nextSocialErrors);
-      setSubmitError("Please fix the social media fields highlighted below.");
-      return;
+    if (isHospitality) {
+      const nextSocialErrors = validatePartnerSocialLinks(socialValues);
+      if (hasSocialFieldErrors(nextSocialErrors)) {
+        setSocialErrors(nextSocialErrors);
+        setSubmitError("Please fix the social media fields highlighted below.");
+        return;
+      }
     }
 
     startSubmitTransition(async () => {
@@ -740,7 +918,11 @@ export function PartnerApplicationPage() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            noValidate={!isHospitalityForm}
+            className="mt-5 space-y-5"
+          >
             <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
               <SectionHeader
                 title="Business Details"
@@ -752,40 +934,55 @@ export function PartnerApplicationPage() {
                 }
               />
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <div>
+                <div id="application-field-businessName">
                   <label htmlFor="businessName" className={labelClass}>
-                    Business Name {isHospitalityForm ? <span className="text-primary">*</span> : null}
+                    {isHospitalityForm ? "Business Name" : "Trading Name"}{" "}
+                    <span className="text-red-600">*</span>
                   </label>
                   <input
                     id="businessName"
                     name="businessName"
                     required
+                    aria-invalid={fieldErrors.businessName ? true : undefined}
                     maxLength={MAX_BUSINESS_NAME_LENGTH}
                     value={businessName}
-                    onChange={(e) =>
-                      setBusinessName(formatBusinessNameInput(e.target.value))
-                    }
+                    onChange={(e) => {
+                      setBusinessName(formatBusinessNameInput(e.target.value));
+                      clearFieldError("businessName");
+                    }}
                     onBlur={(e) =>
                       setBusinessName(finalizeBusinessNameInput(e.target.value))
                     }
                     placeholder="e.g. Artisan Coffee Co"
-                    className={`mt-1 ${inputClass}`}
+                    className={`mt-1 ${inputClassFor("businessName")}`}
                   />
+                  <FieldErrorText message={fieldErrors.businessName} />
                 </div>
-                <div>
+                <div id="application-field-websiteUrl">
                   <label htmlFor="websiteUrl" className={labelClass}>
                     {isHospitalityForm ? "Website (Optional)" : "Website URL"}
+                    {!isHospitalityForm ? (
+                      <>
+                        {" "}
+                        <span className="text-red-600">*</span>
+                      </>
+                    ) : null}
                   </label>
                   <input
                     id="websiteUrl"
                     name="websiteUrl"
                     type="url"
                     required={!isHospitalityForm}
+                    aria-invalid={fieldErrors.websiteUrl ? true : undefined}
                     value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    onChange={(e) => {
+                      setWebsiteUrl(e.target.value);
+                      clearFieldError("websiteUrl");
+                    }}
                     placeholder="https://yourbrand.com"
-                    className={`mt-1 ${inputClass}`}
+                    className={`mt-1 ${inputClassFor("websiteUrl")}`}
                   />
+                  <FieldErrorText message={fieldErrors.websiteUrl} />
                 </div>
               </div>
               {isHospitalityForm ? (
@@ -843,24 +1040,42 @@ export function PartnerApplicationPage() {
                 }
               />
               <div className="mt-3 grid gap-2.5 lg:grid-cols-2">
-                <PartnerBannerUploadField
-                  variant="compact"
-                  previewUrl={bannerUpload?.previewUrl}
-                  label="Banner Image *"
-                  hint="Wide 3:1 cover image for your brand profile — upload, then adjust crop and zoom"
-                  onChange={setBannerUpload}
-                />
-                <PartnerLogoUploadField
-                  variant="compact"
-                  businessName={businessName}
-                  previewUrl={logoUpload?.previewUrl}
-                  hasStoredCrop={Boolean(logoUpload)}
-                  label="Brand Logo *"
-                  hint="Upload your logo, then adjust how it appears in the circular frame"
-                  onChange={setLogoUpload}
-                />
+                <div
+                  id="application-field-banner"
+                  className={fieldErrors.banner ? errorWrapClass : undefined}
+                >
+                  <PartnerBannerUploadField
+                    variant="compact"
+                    previewUrl={bannerUpload?.previewUrl}
+                    label="Banner Image *"
+                    hint="Wide 3:1 cover image for your brand profile — upload, then adjust crop and zoom"
+                    onChange={(value) => {
+                      setBannerUpload(value);
+                      clearFieldError("banner");
+                    }}
+                  />
+                  <FieldErrorText message={fieldErrors.banner} />
+                </div>
+                <div
+                  id="application-field-logo"
+                  className={fieldErrors.logo ? errorWrapClass : undefined}
+                >
+                  <PartnerLogoUploadField
+                    variant="compact"
+                    businessName={businessName}
+                    previewUrl={logoUpload?.previewUrl}
+                    hasStoredCrop={Boolean(logoUpload)}
+                    label="Brand Logo *"
+                    hint="Upload your logo, then adjust how it appears in the circular frame"
+                    onChange={(value) => {
+                      setLogoUpload(value);
+                      clearFieldError("logo");
+                    }}
+                  />
+                  <FieldErrorText message={fieldErrors.logo} />
+                </div>
               </div>
-              <div className="mt-2">
+              <div id="application-field-shortDescription" className="mt-2">
                 <label htmlFor="shortDescription" className={labelClass}>
                   Short Description (Max 100 characters) <span className="text-red-600">*</span>
                 </label>
@@ -868,20 +1083,23 @@ export function PartnerApplicationPage() {
                   id="shortDescription"
                   name="shortDescription"
                   required
+                  aria-invalid={fieldErrors.shortDescription ? true : undefined}
                   maxLength={MAX_PARTNER_SHORT_DESCRIPTION_LENGTH}
                   value={shortDescription}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setShortDescription(
                       isHospitalityForm
                         ? capitalizeSentences(e.target.value)
                         : e.target.value
-                    )
-                  }
+                    );
+                    clearFieldError("shortDescription");
+                  }}
                   placeholder="Freshly baked bread delivered to your door"
-                  className={`mt-2 ${inputClass}`}
+                  className={`mt-2 ${inputClassFor("shortDescription")}`}
                 />
+                <FieldErrorText message={fieldErrors.shortDescription} />
               </div>
-              <div className="mt-2">
+              <div id="application-field-brandStory" className="mt-2">
                 <label htmlFor="brandStory" className={labelClass}>
                   Your Story <span className="text-red-600">*</span>
                 </label>
@@ -889,18 +1107,21 @@ export function PartnerApplicationPage() {
                   id="brandStory"
                   name="brandStory"
                   required
+                  aria-invalid={fieldErrors.brandStory ? true : undefined}
                   rows={5}
                   value={brandStory}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setBrandStory(
                       isHospitalityForm
                         ? capitalizeSentences(e.target.value)
                         : e.target.value
-                    )
-                  }
+                    );
+                    clearFieldError("brandStory");
+                  }}
                   placeholder="Tell members about your brand, values, and what makes your products special..."
-                  className={`mt-1 resize-y ${inputClass}`}
+                  className={`mt-1 resize-y ${inputClassFor("brandStory")}`}
                 />
+                <FieldErrorText message={fieldErrors.brandStory} />
               </div>
             </section>
 
@@ -918,23 +1139,32 @@ export function PartnerApplicationPage() {
                   ? `Upload at least ${MIN_HOSPITALITY_GALLERY_IMAGES} photos of your interior, signature dishes, or menu highlights (maximum ${MAX_HOSPITALITY_GALLERY_IMAGES}).`
                   : `Upload at least ${MIN_PARTNER_GALLERY_IMAGES} high-quality images of your products or brand (maximum ${MAX_PRODUCT_GALLERY_IMAGES}). Images are cropped to a 4:5 portrait format, like Instagram.`}
               </p>
-              <PartnerGalleryDraftGrid
-                variant="compact"
-                className="mt-2"
-                items={galleryDraftItems}
-                minItems={
-                  isHospitalityForm
-                    ? MIN_HOSPITALITY_GALLERY_IMAGES
-                    : MIN_PARTNER_GALLERY_IMAGES
-                }
-                maxItems={
-                  isHospitalityForm
-                    ? MAX_HOSPITALITY_GALLERY_IMAGES
-                    : MAX_PRODUCT_GALLERY_IMAGES
-                }
-                disabled={isSubmitPending}
-                onChange={setGalleryDraftItems}
-              />
+              <div
+                id="application-field-gallery"
+                className={fieldErrors.gallery ? errorWrapClass : undefined}
+              >
+                <PartnerGalleryDraftGrid
+                  variant="compact"
+                  className="mt-2"
+                  items={galleryDraftItems}
+                  minItems={
+                    isHospitalityForm
+                      ? MIN_HOSPITALITY_GALLERY_IMAGES
+                      : MIN_PARTNER_GALLERY_IMAGES
+                  }
+                  maxItems={
+                    isHospitalityForm
+                      ? MAX_HOSPITALITY_GALLERY_IMAGES
+                      : MAX_PRODUCT_GALLERY_IMAGES
+                  }
+                  disabled={isSubmitPending}
+                  onChange={(items) => {
+                    setGalleryDraftItems(items);
+                    clearFieldError("gallery");
+                  }}
+                />
+                <FieldErrorText message={fieldErrors.gallery} />
+              </div>
             </section>
 
             {isHospitalityForm ? (
@@ -978,7 +1208,12 @@ export function PartnerApplicationPage() {
               </div>
             </section>
             ) : (
-            <section className="rounded-lg border border-border bg-background p-3 shadow-sm sm:p-4">
+            <section
+              id="application-field-categories"
+              className={`rounded-lg border bg-background p-3 shadow-sm sm:p-4 ${
+                fieldErrors.categories ? "border-red-500" : "border-border"
+              }`}
+            >
               <SectionHeader
                 title="Categories"
                 icon={
@@ -995,15 +1230,23 @@ export function PartnerApplicationPage() {
                 onChange={(groups) => {
                   setCategoryGroups(groups);
                   setCategoryError(validateCategoryGroups(groups));
+                  clearFieldError("categories");
                 }}
-                error={categoryError}
+                error={fieldErrors.categories ?? categoryError}
                 disabled={isSubmitPending}
               />
             </section>
             )}
 
             {isHospitalityForm ? null : (
-            <section className="rounded-lg border border-success/20 bg-success-light/40 p-3 sm:p-4">
+            <section
+              id="application-field-discountValue"
+              className={`rounded-lg border p-3 sm:p-4 ${
+                fieldErrors.discountValue || fieldErrors.selectedProducts
+                  ? "border-red-500 bg-success-light/40"
+                  : "border-success/20 bg-success-light/40"
+              }`}
+            >
               <SectionHeader
                 title="Member Exclusive Offer"
                 description={
@@ -1027,18 +1270,27 @@ export function PartnerApplicationPage() {
                   </svg>
                 }
               />
-              <div className="mt-3">
+              <div id="application-field-selectedProducts" className="mt-3">
                 <MemberExclusiveOfferFields
                   offerScope={offerScope}
-                  onOfferScopeChange={setOfferScope}
+                  onOfferScopeChange={handleOfferScopeChange}
                   discountValue={discountValue}
-                  onDiscountValueChange={setDiscountValue}
+                  onDiscountValueChange={(value) => {
+                    setDiscountValue(value);
+                    clearFieldError("discountValue");
+                  }}
                   offerExclusions={offerExclusions}
                   onOfferExclusionsChange={setOfferExclusions}
                   selectedProducts={selectedProducts}
-                  onSelectedProductsChange={setSelectedProducts}
+                  onSelectedProductsChange={(products) => {
+                    setSelectedProducts(products);
+                    clearFieldError("selectedProducts");
+                  }}
                   inputClass={inputClass}
                   labelClass={labelClass}
+                  discountError={fieldErrors.discountValue}
+                  productsError={fieldErrors.selectedProducts}
+                  highlightIncompleteProducts={Boolean(fieldErrors.selectedProducts)}
                 />
               </div>
             </section>
@@ -1129,44 +1381,52 @@ export function PartnerApplicationPage() {
                 }
               />
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <div>
+                <div id="application-field-contactName">
                   <label htmlFor="contactName" className={labelClass}>
-                    Contact Name
+                    Contact Name <span className="text-red-600">*</span>
                   </label>
                   <input
                     id="contactName"
                     name="contactName"
                     required
+                    aria-invalid={fieldErrors.contactName ? true : undefined}
                     maxLength={MAX_CONTACT_NAME_LENGTH}
                     value={contactName}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setContactName(
                         formatBusinessNameInput(e.target.value, MAX_CONTACT_NAME_LENGTH)
-                      )
-                    }
+                      );
+                      clearFieldError("contactName");
+                    }}
                     onBlur={(e) =>
                       setContactName(
                         finalizeBusinessNameInput(e.target.value, MAX_CONTACT_NAME_LENGTH)
                       )
                     }
                     placeholder="e.g. Jane Smith"
-                    className={`mt-1 ${inputClass}`}
+                    className={`mt-1 ${inputClassFor("contactName")}`}
                   />
+                  <FieldErrorText message={fieldErrors.contactName} />
                 </div>
-                <div>
+                <div id="application-field-supportEmail">
                   <label htmlFor="supportEmail" className={labelClass}>
-                    Customer Support Email
+                    Customer Support Email <span className="text-red-600">*</span>
                   </label>
                   <input
                     id="supportEmail"
                     name="supportEmail"
                     type="email"
                     required
+                    aria-invalid={fieldErrors.supportEmail ? true : undefined}
                     value={supportEmail}
-                    onChange={(e) => setSupportEmail(e.target.value)}
+                    onChange={(e) => {
+                      setSupportEmail(e.target.value);
+                      clearFieldError("supportEmail");
+                    }}
                     placeholder="support@yourbrand.co.nz"
-                    className={`mt-1 ${inputClass}`}
+                    className={`mt-1 ${inputClassFor("supportEmail")}`}
                   />
+                  <FieldErrorText message={fieldErrors.supportEmail} />
                 </div>
                 <div>
                   <label htmlFor="supportPhone" className={labelClass}>
@@ -1188,12 +1448,21 @@ export function PartnerApplicationPage() {
             </section>
 
             <section className="space-y-2">
-              <label className="flex items-start gap-3">
+              <label
+                id="application-field-terms"
+                className={`flex items-start gap-3 rounded-md p-2 ${
+                  fieldErrors.terms ? "border border-red-500 bg-red-50" : ""
+                }`}
+              >
                 <input
                   type="checkbox"
                   name="termsAccepted"
                   required
-                  className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  aria-invalid={fieldErrors.terms ? true : undefined}
+                  onChange={() => clearFieldError("terms")}
+                  className={`mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary ${
+                    fieldErrors.terms ? "border-red-500" : ""
+                  }`}
                 />
                 <span className="text-sm leading-relaxed text-muted-foreground">
                   I agree to the{" "}
@@ -1203,6 +1472,7 @@ export function PartnerApplicationPage() {
                   and confirm that the products meet FoodVault&apos;s quality standards.
                 </span>
               </label>
+              <FieldErrorText message={fieldErrors.terms} />
 
               <button
                 type="submit"
@@ -1215,7 +1485,9 @@ export function PartnerApplicationPage() {
                 </svg>
               </button>
               {submitError ? (
-                <p className="text-sm text-red-600">{submitError}</p>
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600" role="alert">
+                  {submitError}
+                </p>
               ) : null}
             </section>
           </form>

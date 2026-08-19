@@ -26,6 +26,9 @@ type MemberExclusiveOfferFieldsProps = {
   fieldGapClass?: string;
   compact?: boolean;
   discountHelperText?: string;
+  discountError?: string | null;
+  productsError?: string | null;
+  highlightIncompleteProducts?: boolean;
 };
 
 function DiscountValueField({
@@ -38,6 +41,7 @@ function DiscountValueField({
   helperClass,
   fieldGapClass,
   helperText,
+  error,
 }: {
   id: string;
   discountValue: string;
@@ -48,6 +52,7 @@ function DiscountValueField({
   helperClass: string;
   fieldGapClass: string;
   helperText: string;
+  error?: string | null;
 }) {
   return (
     <div>
@@ -63,18 +68,25 @@ function DiscountValueField({
           maxLength={2}
           required
           disabled={disabled}
+          aria-invalid={error ? true : undefined}
           value={discountValue}
           onChange={(event) =>
             onDiscountValueChange(sanitizeDiscountValue(event.target.value))
           }
           placeholder="20"
-          className={`${inputClass} pr-10`}
+          className={`${inputClass} pr-10${error ? " !border-red-500 focus:!border-red-500 focus:!ring-red-500/20" : ""}`}
         />
         <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.9375rem] text-muted-foreground">
           %
         </span>
       </div>
-      <p className={`${helperClass} mt-1`}>{helperText}</p>
+      {error ? (
+        <p className="mt-1 text-xs font-medium text-red-600" role="alert">
+          {error}
+        </p>
+      ) : (
+        <p className={`${helperClass} mt-1`}>{helperText}</p>
+      )}
     </div>
   );
 }
@@ -139,6 +151,9 @@ export function MemberExclusiveOfferFields({
   fieldGapClass = "mt-1",
   compact = false,
   discountHelperText = "You can change the discount value at any time.",
+  discountError = null,
+  productsError = null,
+  highlightIncompleteProducts = false,
 }: MemberExclusiveOfferFieldsProps) {
   return (
     <div className={compact ? "space-y-4" : "space-y-6"}>
@@ -165,6 +180,7 @@ export function MemberExclusiveOfferFields({
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
             helperText={discountHelperText}
+            error={discountError}
           />
           <OfferExclusionsField
             id="offerExclusions"
@@ -197,6 +213,7 @@ export function MemberExclusiveOfferFields({
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
             helperText="Enter a number from 1 to 99. This discount applies to all products in your selection."
+            error={discountError}
           />
 
           <OfferExclusionsField
@@ -220,6 +237,8 @@ export function MemberExclusiveOfferFields({
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
             compact={compact}
+            error={productsError}
+            highlightIncomplete={highlightIncompleteProducts}
           />
         </div>
       )}

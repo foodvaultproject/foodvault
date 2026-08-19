@@ -201,7 +201,9 @@ export function PartnerCategoriesEditor({
           return (
             <div
               key={`${idPrefix}-group-${index}`}
-              className={`rounded-lg border border-border bg-surface/50 ${compact ? "p-4" : "p-4 sm:p-5"}`}
+              className={`rounded-lg border bg-surface/50 ${compact ? "p-4" : "p-4 sm:p-5"} ${
+                error ? "border-red-500" : "border-border"
+              }`}
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1">

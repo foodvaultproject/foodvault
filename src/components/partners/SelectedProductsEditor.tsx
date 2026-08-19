@@ -40,7 +40,11 @@ type SelectedProductsEditorProps = {
   helperClass?: string;
   fieldGapClass?: string;
   compact?: boolean;
+  error?: string | null;
+  highlightIncomplete?: boolean;
 };
+
+const invalidFieldClass = "!border-red-500 focus:!border-red-500 focus:!ring-red-500/20";
 
 function productPreviewUrl(product: SelectedProductDraft): string | null {
   return product.imageUrl;
@@ -51,11 +55,13 @@ function ProductImageThumbnail({
   disabled,
   onUpload,
   onEditCrop,
+  invalid,
 }: {
   product: SelectedProductDraft;
   disabled?: boolean;
   onUpload: () => void;
   onEditCrop: () => void;
+  invalid?: boolean;
 }) {
   const preview = productPreviewUrl(product);
 
@@ -68,7 +74,9 @@ function ProductImageThumbnail({
         className={`flex items-center justify-center overflow-hidden rounded-lg border bg-surface transition-colors ${portalThumbGallery} ${
           preview
             ? "cursor-pointer border-border border-solid shadow-sm hover:border-primary/40"
-            : "cursor-pointer border-2 border-dashed border-border hover:border-primary/40 hover:bg-primary/5"
+            : invalid
+              ? "cursor-pointer border-2 border-dashed border-red-500 hover:border-red-600 hover:bg-red-50"
+              : "cursor-pointer border-2 border-dashed border-border hover:border-primary/40 hover:bg-primary/5"
         } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
       >
         {preview ? (
@@ -104,6 +112,7 @@ function ProductFields({
   helperClass,
   fieldGapClass,
   compact,
+  highlightIncomplete,
   onUpdate,
 }: {
   product: SelectedProductDraft;
@@ -114,10 +123,15 @@ function ProductFields({
   helperClass: string;
   fieldGapClass: string;
   compact?: boolean;
+  highlightIncomplete?: boolean;
   onUpdate: (next: SelectedProductDraft) => void;
 }) {
   const memberPrice = calculateMemberPriceLabel(product.normalPrice, sharedDiscountValue);
   const gapClass = compact ? fieldGapClass : "mt-2";
+  const missingName = Boolean(highlightIncomplete && !product.name.trim());
+  const missingPrice = Boolean(highlightIncomplete && !product.normalPrice.trim());
+  const missingDescription = Boolean(highlightIncomplete && !product.shortDescription.trim());
+  const missingUrl = Boolean(highlightIncomplete && !product.productUrl.trim());
 
   return (
     <div className={compact ? "min-w-0 flex-1 space-y-3" : "space-y-4"}>
@@ -128,6 +142,7 @@ function ProductFields({
           required
           maxLength={MAX_PRODUCT_NAME_LENGTH}
           disabled={disabled}
+          aria-invalid={missingName || undefined}
           value={product.name}
           onChange={(event) =>
             onUpdate({
@@ -141,7 +156,7 @@ function ProductFields({
               name: finalizeProductNameInput(product.name),
             })
           }
-          className={`${gapClass} ${inputClass}`}
+          className={`${gapClass} ${inputClass}${missingName ? ` ${invalidFieldClass}` : ""}`}
         />
       </div>
 
@@ -157,6 +172,7 @@ function ProductFields({
               inputMode="decimal"
               required
               disabled={disabled}
+              aria-invalid={missingPrice || undefined}
               value={product.normalPrice}
               onChange={(event) =>
                 onUpdate({
@@ -165,7 +181,7 @@ function ProductFields({
                 })
               }
               placeholder="0.00"
-              className={`${inputClass} pl-8`}
+              className={`${inputClass} pl-8${missingPrice ? ` ${invalidFieldClass}` : ""}`}
             />
           </div>
         </div>
@@ -200,11 +216,12 @@ function ProductFields({
           required
           maxLength={MAX_PRODUCT_DESCRIPTION_LENGTH}
           disabled={disabled}
+          aria-invalid={missingDescription || undefined}
           value={product.shortDescription}
           onChange={(event) =>
             onUpdate({ ...product, shortDescription: event.target.value })
           }
-          className={`${gapClass} ${inputClass}`}
+          className={`${gapClass} ${inputClass}${missingDescription ? ` ${invalidFieldClass}` : ""}`}
         />
         <p className={`${helperClass} mt-1`}>
           {product.shortDescription.length}/{MAX_PRODUCT_DESCRIPTION_LENGTH}
@@ -217,10 +234,11 @@ function ProductFields({
           type="url"
           required
           disabled={disabled}
+          aria-invalid={missingUrl || undefined}
           value={product.productUrl}
           onChange={(event) => onUpdate({ ...product, productUrl: event.target.value })}
           placeholder="https://yourstore.com/product"
-          className={`${gapClass} ${inputClass}`}
+          className={`${gapClass} ${inputClass}${missingUrl ? ` ${invalidFieldClass}` : ""}`}
         />
         {!compact ? (
           <p className={`${helperClass} mt-1`}>
@@ -300,6 +318,7 @@ function ProductEditorCard({
   helperClass,
   fieldGapClass,
   compact,
+  highlightIncomplete,
   onUpdate,
   onUploadImage,
   onEditCrop,
@@ -313,13 +332,22 @@ function ProductEditorCard({
   helperClass: string;
   fieldGapClass: string;
   compact?: boolean;
+  highlightIncomplete?: boolean;
   onUpdate: (next: SelectedProductDraft) => void;
   onUploadImage: () => void;
   onEditCrop: () => void;
 }) {
+  const missingImage = Boolean(
+    highlightIncomplete && !product.imageUrl && !product.imageFile
+  );
+
   return (
     <article
-      className={`rounded-lg border border-border bg-background shadow-sm ${compact ? "p-4" : "p-5"}`}
+      className={`rounded-lg border bg-background shadow-sm ${compact ? "p-4" : "p-5"} ${
+        highlightIncomplete && !isSelectedProductComplete(product)
+          ? "border-red-500"
+          : "border-border"
+      }`}
       data-product-id={product.id}
       data-sort-order={product.sortOrder}
     >
@@ -338,6 +366,7 @@ function ProductEditorCard({
             <ProductImageThumbnail
               product={product}
               disabled={disabled}
+              invalid={missingImage}
               onUpload={onUploadImage}
               onEditCrop={onEditCrop}
             />
@@ -351,6 +380,7 @@ function ProductEditorCard({
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
             compact={compact}
+            highlightIncomplete={highlightIncomplete}
             onUpdate={onUpdate}
           />
         </div>
@@ -364,6 +394,7 @@ function ProductEditorCard({
                 <ProductImageThumbnail
                   product={product}
                   disabled={disabled}
+                  invalid={missingImage}
                   onUpload={onUploadImage}
                   onEditCrop={onEditCrop}
                 />
@@ -378,6 +409,7 @@ function ProductEditorCard({
             labelClass={labelClass}
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
+            highlightIncomplete={highlightIncomplete}
             onUpdate={onUpdate}
           />
         </div>
@@ -396,6 +428,8 @@ export function SelectedProductsEditor({
   helperClass = "text-xs leading-snug text-muted-foreground",
   fieldGapClass = "mt-1",
   compact = false,
+  error = null,
+  highlightIncomplete = false,
 }: SelectedProductsEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editorSrc, setEditorSrc] = useState<string | null>(null);
@@ -614,6 +648,7 @@ export function SelectedProductsEditor({
             helperClass={helperClass}
             fieldGapClass={fieldGapClass}
             compact={compact}
+            highlightIncomplete={highlightIncomplete}
             onUpdate={(next) => updateProduct(activeProduct.id, next)}
             onUploadImage={() => openFilePicker(activeProduct.id)}
             onEditCrop={() => openCropEditor(activeProduct.id)}
@@ -639,9 +674,9 @@ export function SelectedProductsEditor({
                 </button>
               ) : null}
             </div>
-            {showIncompleteNote ? (
+            {showIncompleteNote || error ? (
               <p className="text-xs font-medium text-red-600" role="alert">
-                {SELECTED_PRODUCT_ADD_INCOMPLETE_MESSAGE}
+                {error || SELECTED_PRODUCT_ADD_INCOMPLETE_MESSAGE}
               </p>
             ) : null}
           </div>
@@ -654,7 +689,11 @@ export function SelectedProductsEditor({
             type="button"
             disabled={disabled}
             onClick={addProduct}
-            className="inline-flex h-9 items-center rounded-sm border border-primary/30 bg-primary/5 px-4 text-[0.8125rem] font-semibold text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`inline-flex h-9 items-center rounded-sm border px-4 text-[0.8125rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+              error
+                ? "border-red-500 bg-red-50 text-red-700 hover:bg-red-100"
+                : "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10"
+            }`}
           >
             {products.length === 0 ? "+ Add Product" : "Add new product"}
           </button>
@@ -665,6 +704,11 @@ export function SelectedProductsEditor({
       ) : products.length >= MAX_SELECTED_PRODUCTS && !activeProduct ? (
         <p className={helperClass}>
           Maximum of {MAX_SELECTED_PRODUCTS} products reached.
+        </p>
+      ) : null}
+      {error && !activeProduct ? (
+        <p className="text-xs font-medium text-red-600" role="alert">
+          {error}
         </p>
       ) : null}
 
