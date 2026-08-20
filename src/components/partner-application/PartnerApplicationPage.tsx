@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -240,9 +241,19 @@ function UploadBox({
         className="flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-sm border-2 border-dashed border-border bg-surface px-4 py-8 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
       >
         {preview ? (
-          <div className="relative mb-3 w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={preview} alt="" className="h-20 w-full rounded-lg object-cover" />
+          <div className="relative mb-3 h-20 w-full overflow-hidden rounded-lg">
+            {preview.startsWith("blob:") || preview.startsWith("data:") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Image
+                src={preview}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 100vw, 400px"
+                className="object-cover"
+              />
+            )}
             {onChange ? (
               <button
                 type="button"

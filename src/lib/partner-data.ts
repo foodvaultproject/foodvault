@@ -1598,7 +1598,7 @@ export async function uploadPartnerAsset(
     .from("partner-assets")
     .upload(path, uploadFile, {
       upsert: true,
-      cacheControl: "3600",
+      cacheControl: "31536000",
       contentType: uploadFile.type || "image/webp",
     });
 

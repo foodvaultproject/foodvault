@@ -446,7 +446,7 @@ export async function uploadArticleHeroAction(formData: FormData) {
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage.from("article-images").upload(path, file, {
     contentType: file.type || "image/webp",
-    cacheControl: "3600",
+    cacheControl: "31536000",
   });
   if (error) return { error: error.message };
 

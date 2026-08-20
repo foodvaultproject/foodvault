@@ -154,7 +154,7 @@ async function optimizeFile(supabase, bucket, path, dryRun) {
     supabase.storage.from(bucket).upload(path, optimizedBuffer, {
       upsert: true,
       contentType: "image/webp",
-      cacheControl: "3600",
+      cacheControl: "31536000",
     })
   );
 

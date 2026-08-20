@@ -210,7 +210,6 @@ function ApplicationMediaThumbnails({ application }: { application: PartnerAppli
               width={320}
               height={107}
               className="h-full w-full object-cover"
-              unoptimized
             />
           </MediaPreview>
         ) : null}
@@ -223,7 +222,6 @@ function ApplicationMediaThumbnails({ application }: { application: PartnerAppli
               width={64}
               height={64}
               className="h-full w-full object-cover"
-              unoptimized
             />
           </MediaPreview>
         ) : null}
@@ -240,7 +238,6 @@ function ApplicationMediaThumbnails({ application }: { application: PartnerAppli
                     width={96}
                     height={96}
                     className="h-full w-full object-cover"
-                    unoptimized
                   />
                 </MediaPreview>
               ))}

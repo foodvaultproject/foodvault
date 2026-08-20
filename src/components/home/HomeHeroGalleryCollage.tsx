@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type HomeHeroGalleryCollageProps = {
   images: string[];
   variant?: "member" | "partner";
@@ -31,17 +33,17 @@ function CollageImage({
 }) {
   return (
     <div
-      className={`absolute overflow-hidden rounded-xl border border-white/20 bg-white/10 shadow-card ${
+      className={`absolute aspect-[4/5] overflow-hidden rounded-xl border border-white/20 bg-white/10 shadow-card ${
         partner ? "w-[52%] max-w-[10rem]" : "w-[44%] max-w-[11rem]"
       } ${className ?? ""}`}
     >
-      <img
+      <Image
         src={src}
         alt=""
-        aria-hidden="true"
-        className={`h-full w-full object-cover ${partner ? "aspect-[4/5]" : "aspect-[4/5]"}`}
-        decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
+        fill
+        sizes={partner ? "(max-width: 768px) 52vw, 10rem" : "(max-width: 768px) 44vw, 11rem"}
+        className="object-cover"
+        priority={priority}
       />
     </div>
   );

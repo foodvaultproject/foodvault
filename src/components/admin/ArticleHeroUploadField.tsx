@@ -113,14 +113,22 @@ export function ArticleHeroUploadField({
       <div className="flex flex-wrap items-start gap-4">
         {displayUrl ? (
           <div className={`${THUMB_CLASS} border border-border bg-page`}>
-            <Image
-              src={displayUrl}
-              alt="Article hero thumbnail"
-              fill
-              className="object-cover"
-              sizes="96px"
-              unoptimized
-            />
+            {displayUrl.startsWith("blob:") || displayUrl.startsWith("data:") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={displayUrl}
+                alt="Article hero thumbnail"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Image
+                src={displayUrl}
+                alt="Article hero thumbnail"
+                fill
+                className="object-cover"
+                sizes="96px"
+              />
+            )}
             {uploading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-[10px] font-semibold text-white">
                 Uploading...

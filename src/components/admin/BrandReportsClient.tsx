@@ -368,7 +368,6 @@ export function BrandReportsClient({
                       fill
                       className="object-cover"
                       sizes="40px"
-                      unoptimized
                     />
                   </div>
                 ) : (

@@ -178,7 +178,6 @@ function LogoImage({
       priority={priority}
       className={className}
       style={style}
-      unoptimized
     />
   );
 }

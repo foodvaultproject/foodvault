@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { GalleryCropEditor } from "@/components/partners/GalleryCropEditor";
 import {
@@ -71,7 +72,7 @@ function ProductImageThumbnail({
         type="button"
         disabled={disabled}
         onClick={preview ? onEditCrop : onUpload}
-        className={`flex items-center justify-center overflow-hidden rounded-lg border bg-surface transition-colors ${portalThumbGallery} ${
+        className={`relative flex items-center justify-center overflow-hidden rounded-lg border bg-surface transition-colors ${portalThumbGallery} ${
           preview
             ? "cursor-pointer border-border border-solid shadow-sm hover:border-primary/40"
             : invalid
@@ -80,8 +81,18 @@ function ProductImageThumbnail({
         } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
       >
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="h-full w-full object-cover" />
+          preview.startsWith("blob:") || preview.startsWith("data:") ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <Image
+              src={preview}
+              alt=""
+              fill
+              sizes="96px"
+              className="object-cover"
+            />
+          )
         ) : (
           <div className="px-2 text-center">
             <span className="block text-xs font-semibold text-foreground">Upload</span>
@@ -272,12 +283,24 @@ function CollapsedSelectedProduct({
     <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5">
       <div className="flex min-w-0 items-center gap-3">
         {product.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.imageUrl}
-            alt=""
-            className="h-10 w-8 shrink-0 rounded object-cover"
-          />
+          product.imageUrl.startsWith("blob:") || product.imageUrl.startsWith("data:") ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={product.imageUrl}
+              alt=""
+              className="h-10 w-8 shrink-0 rounded object-cover"
+            />
+          ) : (
+            <div className="relative h-10 w-8 shrink-0 overflow-hidden rounded">
+              <Image
+                src={product.imageUrl}
+                alt=""
+                fill
+                sizes="32px"
+                className="object-cover"
+              />
+            </div>
+          )
         ) : null}
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground">{label}</p>

@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+function supabaseStorageHostname(): string | null {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!raw) return null;
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseHostname = supabaseStorageHostname();
+
 const nextConfig: NextConfig = {
   // Brand reports: up to 5 attachments × 10 MB (+ multipart overhead).
   experimental: {
@@ -21,9 +33,6 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    // Serve images directly (Supabase/public URLs) — bypass Vercel Image Optimization
-    // to avoid transformation quota limits on high-traffic logos, banners, and cards.
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -31,8 +40,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**.supabase.co",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
+      ...(supabaseHostname
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: supabaseHostname,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
     ],
   },
 };
