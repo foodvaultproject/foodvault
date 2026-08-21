@@ -13,7 +13,7 @@ const HERO_PRIMARY_CTA_CLASS =
   "inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto";
 
 const VISITOR_SUPPORTING_COPY =
-  "Explore Kiwi brands, discover something new and save with exclusive member discounts. Find new favourites and keep more money in your pocket along the way!";
+  "Save money when shopping online or visiting local spots. Unlock discounts online and in-store to keep more cash in your pocket.";
 
 export type HomeHeroVariant = "visitor" | "active-member" | "partner";
 
@@ -190,7 +190,7 @@ function VisitorHeroBanner() {
       <HeroTextColumn
         title={
           <>
-            Discover Kiwi Brands.{" "}
+            Discover Local Kiwi Spots and Brands.{" "}
             <span className="text-white/95">Enjoy Member Savings.</span>
           </>
         }

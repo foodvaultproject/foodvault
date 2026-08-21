@@ -191,17 +191,17 @@ export function getHomepageFaqs(settings: MembershipSettings) {
     {
       question: "What is FoodVault?",
       answer:
-        "FoodVault helps Kiwis discover New Zealand brands, unlock exclusive member discounts, and shop direct. Save money while supporting local businesses.",
+        "FoodVault helps Kiwis discover top local spots and brands, unlock exclusive member savings, and shop direct. Save money while supporting local New Zealand businesses both online and in-store.",
     },
     {
       question: "How do I receive discounts?",
       answer:
-        "You can browse every participating brand and see the advertised member discounts for free. A paid membership is required to reveal and copy promo codes. Then visit the brand's website and apply the member code at checkout.",
+        "Browse participating brands and venues for free to see member savings. A paid membership unlocks exclusive online promo codes to use at checkout, plus a digital member pass to present at local counters for instant in-store discounts.",
     },
     {
       question: "What about membership and payment?",
       answer:
-        `Anyone can browse brands and discounts. Unlocking promo codes requires a paid FoodVault membership at ${priceLabel}, billed securely through Stripe Checkout.`,
+        `Anyone can browse brands and local spots for free. Unlocking online promo codes and in-store member passes requires a paid FoodVault membership at ${priceLabel}, billed securely through Stripe.`,
     },
   ];
 }

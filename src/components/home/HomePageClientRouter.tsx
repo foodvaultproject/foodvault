@@ -10,13 +10,13 @@ import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { HomeTrendingSection } from "@/components/home/HomeTrendingSection";
 import { HomeVaultDropSection } from "@/components/home/HomeVaultDropSection";
 import {
-  HomePartnerBanner,
   HomePartnerQuickLinks,
   HomeQuickActions,
   HomeGiftsHampersBanner,
   HomeMeatPoultryBanner,
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
+import { OwnAKiwiBrandCard } from "@/components/partners/OwnAKiwiBrandCard";
 import { HomeDineLocalSection } from "@/components/hospitality/HomeDineLocalSection";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { getAuthSession, syncAuthSessionHints } from "@/lib/auth";
@@ -106,13 +106,17 @@ function HomeAudienceContent({
       <HomeWhyJoinFeatures mobileTwoColumn />
       <HomeGiftsHampersBanner />
       <HomeTrendingSection
-        trending={data.homepageTrendingBrands}
-        newBrands={data.homepageNewBrands}
-        topOffers={data.homepageTopOffers}
+        trending={[]}
+        newBrands={data.homepageNewBrands.slice(0, 4)}
+        topOffers={[]}
       />
       <HomeDineLocalSection />
       <HomeFAQ faqs={data.homepageFaqs} />
-      <HomePartnerBanner />
+      <section className="bg-surface-lavender pb-5 pt-3 sm:pb-7 sm:pt-4 lg:pt-5">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <OwnAKiwiBrandCard />
+        </div>
+      </section>
     </div>
   );
 }
