@@ -12,6 +12,11 @@ function supabaseStorageHostname(): string | null {
 
 const supabaseHostname = supabaseStorageHostname();
 
+const supabaseStoragePattern = {
+  protocol: "https" as const,
+  pathname: "/storage/v1/object/public/**",
+};
+
 const nextConfig: NextConfig = {
   // Brand reports: up to 5 attachments × 10 MB (+ multipart overhead).
   experimental: {
@@ -33,22 +38,25 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Keep the built-in optimizer on so Vercel CDN caches `/_next/image` variants.
+    unoptimized: false,
+    // Partner/article objects use unique Storage paths; a long TTL avoids re-fetching
+    // from Supabase on every request. Upstream Cache-Control wins if it is larger.
+    minimumCacheTTL: 2678400,
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
       {
-        protocol: "https",
+        ...supabaseStoragePattern,
         hostname: "*.supabase.co",
-        pathname: "/storage/v1/object/public/**",
       },
       ...(supabaseHostname
         ? [
             {
-              protocol: "https" as const,
+              ...supabaseStoragePattern,
               hostname: supabaseHostname,
-              pathname: "/storage/v1/object/public/**",
             },
           ]
         : []),
