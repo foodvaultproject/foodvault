@@ -38,11 +38,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    // Keep the built-in optimizer on so Vercel CDN caches `/_next/image` variants.
-    unoptimized: false,
-    // Partner/article objects use unique Storage paths; a long TTL avoids re-fetching
-    // from Supabase on every request. Upstream Cache-Control wins if it is larger.
-    minimumCacheTTL: 2678400,
+    // Bypass /_next/image so browsers load Storage URLs directly. Vercel Image
+    // Optimization is returning 402 (quota) even though Supabase itself is 200.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
