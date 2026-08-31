@@ -1,6 +1,10 @@
 import type { AccountType } from "@/lib/auth";
 import { RESET_PASSWORD_PATH } from "@/lib/auth";
-import { reserveAuthEmailSend } from "@/lib/auth/bot-protection/email-dedup";
+import {
+  releaseAuthEmailSend,
+  reserveAuthEmailSend,
+} from "@/lib/auth/bot-protection/email-dedup";
+import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
 import { renderMemberPasswordResetEmail, renderMemberVerifyEmail } from "@/lib/email-templates/render";
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -164,6 +168,7 @@ export async function sendSignupVerificationEmail(params: {
   });
 
   if (!result.sent) {
+    await releaseAuthEmailSend("signup_verification", params.to);
     return {
       error:
         "Your account was created, but we could not send the verification email via Resend. Please try resending it.",
@@ -209,7 +214,37 @@ export async function issueAndSendSignupVerification(params: {
 }
 
 function isUserNotFoundError(message: string) {
-  return /user not found|not found/i.test(message);
+  return /user not found|unable to find user|user does not exist/i.test(message);
+}
+
+function readHashedToken(data: {
+  properties?: { hashed_token?: string | null; action_link?: string | null };
+  hashed_token?: string | null;
+  action_link?: string | null;
+} | null) {
+  const hashed = data?.properties?.hashed_token || data?.hashed_token;
+  if (hashed) return hashed;
+
+  const actionLink = data?.properties?.action_link || data?.action_link;
+  if (!actionLink) return null;
+
+  try {
+    const url = new URL(actionLink);
+    return url.searchParams.get("token_hash") || url.searchParams.get("token");
+  } catch {
+    return null;
+  }
+}
+
+function readFirstName(metadata: Record<string, unknown> | null | undefined) {
+  if (!metadata) return null;
+  const firstName =
+    typeof metadata.first_name === "string" ? metadata.first_name.trim() : "";
+  if (firstName) return firstName;
+  const fullName =
+    typeof metadata.full_name === "string" ? metadata.full_name.trim() : "";
+  if (fullName) return fullName.split(/\s+/)[0] ?? null;
+  return null;
 }
 
 export async function generatePasswordRecoveryLink(email: string) {
@@ -238,7 +273,7 @@ export async function generatePasswordRecoveryLink(email: string) {
     return formatAuthStepError("admin.generateLink.recovery", error);
   }
 
-  const tokenHash = data.properties?.hashed_token;
+  const tokenHash = readHashedToken(data);
   if (!tokenHash) {
     return {
       error: "Unable to generate password reset link.",
@@ -247,10 +282,8 @@ export async function generatePasswordRecoveryLink(email: string) {
   }
 
   const metadata = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
-  const firstName =
-    typeof metadata.first_name === "string" ? metadata.first_name.trim() : null;
 
-  return { tokenHash, firstName: firstName || null };
+  return { tokenHash, firstName: readFirstName(metadata) };
 }
 
 export async function sendPasswordResetEmail(params: {
@@ -274,6 +307,7 @@ export async function sendPasswordResetEmail(params: {
   });
 
   if (!result.sent) {
+    await releaseAuthEmailSend("password_reset", params.to);
     return {
       error:
         "We could not send the password reset email right now. Please try again in a few minutes.",
@@ -289,13 +323,31 @@ export async function issueAndSendPasswordReset(params: {
   account: AccountType;
   firstName?: string | null;
 }) {
-  const linkResult = await generatePasswordRecoveryLink(params.email);
+  const email = params.email.trim();
+
+  try {
+    const existingUser = await findAuthUserByEmail(email);
+    if (!existingUser) {
+      return { success: true as const };
+    }
+  } catch (error) {
+    console.warn("[password-reset] Could not look up auth user before generateLink", {
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+
+  const linkResult = await generatePasswordRecoveryLink(email);
 
   if ("notFound" in linkResult && linkResult.notFound) {
     return { success: true as const };
   }
 
   if ("error" in linkResult) {
+    console.error("[password-reset] generateLink.recovery failed", {
+      step: linkResult.step,
+      code: linkResult.code,
+      status: linkResult.status,
+    });
     return linkResult;
   }
 
@@ -307,7 +359,7 @@ export async function issueAndSendPasswordReset(params: {
   });
 
   const sendResult = await sendPasswordResetEmail({
-    to: params.email.trim(),
+    to: email,
     firstName: params.firstName ?? linkResult.firstName,
     resetUrl,
   });

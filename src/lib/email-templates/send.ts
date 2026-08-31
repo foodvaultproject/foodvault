@@ -12,8 +12,11 @@ export type SendPlatformEmailInput = {
 };
 
 export type SendPlatformEmailResult =
-  | { sent: true }
-  | { sent: false; reason: "not_configured" | "invalid_recipient" };
+  | { sent: true; id?: string }
+  | {
+      sent: false;
+      reason: "not_configured" | "invalid_recipient" | "provider_error";
+    };
 
 export async function sendPlatformEmail(
   input: SendPlatformEmailInput
@@ -32,13 +35,14 @@ export async function sendPlatformEmail(
     return { sent: false, reason: "not_configured" };
   }
 
-  await sendResendEmail({
+  const queued = await sendResendEmail({
     to: recipient,
     subject: input.rendered.subject,
     html: input.rendered.html,
+    text: input.rendered.text,
   });
 
-  return { sent: true };
+  return { sent: true, id: queued.id };
 }
 
 export function getEmailAppUrl() {
@@ -56,6 +60,6 @@ export async function sendPlatformEmailSafe(
       to: input.to,
       error: error instanceof Error ? error.message : error,
     });
-    return { sent: false, reason: "not_configured" };
+    return { sent: false, reason: "provider_error" };
   }
 }

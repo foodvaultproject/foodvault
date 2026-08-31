@@ -60,3 +60,13 @@ export async function reserveAuthEmailSend(kind: AuthEmailKind, email: string) {
 
   return { allowed: true as const, duplicate: false as const };
 }
+
+export async function releaseAuthEmailSend(kind: AuthEmailKind, email: string) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return;
+
+  memoryDedup.delete(dedupKey(kind, normalized));
+
+  if (!redis) return;
+  await redis.del(dedupKey(kind, normalized));
+}

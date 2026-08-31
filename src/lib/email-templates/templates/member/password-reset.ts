@@ -38,5 +38,14 @@ export function renderMemberPasswordResetEmail(
       content,
       "Reset your FoodVault password using the secure link in this email."
     ),
+    text: [
+      greeting.replace(/&[^;]+;/g, ""),
+      "",
+      "We received a request to reset the password for your FoodVault account.",
+      "Open this link to choose a new password:",
+      params.resetUrl,
+      "",
+      "This link will expire for security. If you didn't request a password reset, you can ignore this email.",
+    ].join("\n"),
   };
 }
