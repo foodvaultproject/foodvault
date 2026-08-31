@@ -12,7 +12,7 @@
 export function getNotificationServiceConfig() {
   const resendApiKey = process.env.RESEND_API_KEY ?? "";
   const fromEmailRaw =
-    process.env.NOTIFICATION_FROM_EMAIL ?? "FoodVault <notifications@foodvault.co.nz>";
+    process.env.NOTIFICATION_FROM_EMAIL ?? "FoodVault <hello@foodvault.co.nz>";
   const fromEmail = fromEmailRaw.includes("<")
     ? fromEmailRaw
     : `FoodVault <${fromEmailRaw}>`;

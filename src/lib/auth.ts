@@ -1,3 +1,4 @@
+import { authEmailCandidates } from "@/lib/auth/email-aliases";
 import { createClient } from "@/lib/supabase/client";
 import {
   getAvailableRoles,
@@ -164,8 +165,9 @@ export async function signInWithEmail(
   }
 
   const supabase = createClient();
+  const loginEmail = authEmailCandidates(email).at(-1) ?? email.trim();
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: loginEmail,
     password,
     options: supabaseAuthCaptchaOptions(captchaToken),
   });

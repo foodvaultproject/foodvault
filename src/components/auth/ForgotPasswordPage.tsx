@@ -61,7 +61,9 @@ export function ForgotPasswordPage({
         return;
       }
 
-      setMessage("If an account exists for that email, a reset link has been sent.");
+      setMessage(
+        "If an account exists for that email, a reset link has been sent from hello@foodvault.co.nz. Check your inbox and spam folder."
+      );
     } finally {
       setSubmitting(false);
       turnstileRef.current?.reset();

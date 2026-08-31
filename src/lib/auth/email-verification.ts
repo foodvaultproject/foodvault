@@ -1,5 +1,6 @@
 import type { AccountType } from "@/lib/auth";
 import { RESET_PASSWORD_PATH } from "@/lib/auth";
+import { authEmailCandidates } from "@/lib/auth/email-aliases";
 import {
   releaseAuthEmailSend,
   reserveAuthEmailSend,
@@ -323,49 +324,70 @@ export async function issueAndSendPasswordReset(params: {
   account: AccountType;
   firstName?: string | null;
 }) {
-  const email = params.email.trim();
-
-  try {
-    const existingUser = await findAuthUserByEmail(email);
-    if (!existingUser) {
-      return { success: true as const };
-    }
-  } catch (error) {
-    console.warn("[password-reset] Could not look up auth user before generateLink", {
-      error: error instanceof Error ? error.message : error,
-    });
-  }
-
-  const linkResult = await generatePasswordRecoveryLink(email);
-
-  if ("notFound" in linkResult && linkResult.notFound) {
+  const candidates = authEmailCandidates(params.email);
+  if (candidates.length === 0) {
     return { success: true as const };
   }
 
-  if ("error" in linkResult) {
-    console.error("[password-reset] generateLink.recovery failed", {
-      step: linkResult.step,
-      code: linkResult.code,
-      status: linkResult.status,
-    });
-    return linkResult;
+  let resolvedEmail: string | null = null;
+  for (const candidate of candidates) {
+    try {
+      const existingUser = await findAuthUserByEmail(candidate);
+      if (existingUser?.email) {
+        resolvedEmail = existingUser.email;
+        break;
+      }
+    } catch (error) {
+      console.warn("[password-reset] Could not look up auth user", {
+        error: error instanceof Error ? error.message : error,
+      });
+    }
   }
 
-  const resetUrl = buildConfirmUrl({
-    tokenHash: linkResult.tokenHash,
-    type: "recovery",
-    next: RESET_PASSWORD_PATH,
-    account: params.account,
-  });
+  const emailsToTry = resolvedEmail
+    ? [resolvedEmail]
+    : candidates;
 
-  const sendResult = await sendPasswordResetEmail({
-    to: email,
-    firstName: params.firstName ?? linkResult.firstName,
-    resetUrl,
-  });
+  let lastError: AuthStepError | null = null;
+  for (const email of emailsToTry) {
+    const linkResult = await generatePasswordRecoveryLink(email);
 
-  if ("error" in sendResult) {
-    return sendResult;
+    if ("notFound" in linkResult && linkResult.notFound) {
+      continue;
+    }
+
+    if ("error" in linkResult) {
+      lastError = linkResult;
+      console.error("[password-reset] generateLink.recovery failed", {
+        step: linkResult.step,
+        code: linkResult.code,
+        status: linkResult.status,
+      });
+      continue;
+    }
+
+    const resetUrl = buildConfirmUrl({
+      tokenHash: linkResult.tokenHash,
+      type: "recovery",
+      next: RESET_PASSWORD_PATH,
+      account: params.account,
+    });
+
+    const sendResult = await sendPasswordResetEmail({
+      to: email,
+      firstName: params.firstName ?? linkResult.firstName,
+      resetUrl,
+    });
+
+    if ("error" in sendResult) {
+      return sendResult;
+    }
+
+    return { success: true as const };
+  }
+
+  if (lastError) {
+    return lastError;
   }
 
   return { success: true as const };
