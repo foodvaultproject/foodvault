@@ -11,11 +11,10 @@ import {
 } from "@/components/auth/TurnstileField";
 import { resendMemberSignupConfirmationAction } from "@/lib/member/signup-actions";
 import { assertLoginAllowedAction } from "@/lib/auth/login-actions";
+import { LoginModeTabs } from "@/components/auth/LoginModeTabs";
 import {
   FORGOT_PASSWORD_PATH,
   getAuthSession,
-  LOGIN_PATH,
-  PARTNER_LOGIN_PATH,
   resolvePostLoginRedirect,
   signInWithEmail,
   signInWithGoogle,
@@ -27,7 +26,7 @@ const inputClass =
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   wrong_account_type:
-    "This email is registered as a FoodVault Partner account. Please use Partner Login instead.",
+    "This email is registered as a FoodVault Partner account. Please use Business Login instead.",
   oauth_cancelled:
     "Google sign-in was cancelled. You can try again or log in with your email and password.",
   oauth_failed:
@@ -200,20 +199,20 @@ function LoginForm() {
     }
   };
 
-  if (checkingSession) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center bg-surface-lavender">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
   return (
     <section className="bg-surface-lavender py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-lg px-4 sm:px-6">
-        <div className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Welcome Back.
+        <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+          <div className="p-6 sm:p-8">
+          <LoginModeTabs active="member" />
+          {checkingSession ? (
+            <div className="flex min-h-[40vh] items-center justify-center">
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            </div>
+          ) : (
+            <>
+          <h1 className="mt-6 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Member Login
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
             Log in to access your FoodVault membership, browse participating brands
@@ -359,19 +358,9 @@ function LoginForm() {
               className="mt-4 inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-6 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5"
             />
           </div>
-        </div>
-
-        <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-6 sm:p-8">
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Are you a FoodVault Partner? Access your Partner Dashboard to manage
-            your brand or venue listing, member offers, and account.
-          </p>
-          <Link
-            href={PARTNER_LOGIN_PATH}
-            className="mt-4 fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
-          >
-            Partner Login
-          </Link>
+            </>
+          )}
+          </div>
         </div>
       </div>
     </section>

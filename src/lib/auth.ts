@@ -140,7 +140,7 @@ export function syncAuthSessionHints(
 
 const WRONG_ACCOUNT_MESSAGES: Record<AccountType, string> = {
   member:
-    "This email is registered as a FoodVault Partner account. Please use Partner Login instead.",
+    "This email is registered as a FoodVault Partner account. Please use Business Login instead.",
   partner:
     "This email is not registered for Partner access. Create a Brand profile or use the member login page.",
   affiliate:

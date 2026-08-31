@@ -8,6 +8,7 @@ import {
   type TurnstileFieldHandle,
   isTurnstileEnabledClient,
 } from "@/components/auth/TurnstileField";
+import { LoginModeTabs } from "@/components/auth/LoginModeTabs";
 import {
   FORGOT_PASSWORD_PATH,
   getAuthSession,
@@ -164,24 +165,23 @@ function PartnerLoginForm() {
     }
   };
 
-  if (checkingSession) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center bg-surface-lavender">
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
   return (
     <section className="bg-surface-lavender py-7 sm:py-10 md:py-12">
       <div className="mx-auto max-w-lg px-4 sm:px-6">
         <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
           <div className="p-6 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">
+            <LoginModeTabs active="business" />
+            {checkingSession ? (
+              <div className="flex min-h-[40vh] items-center justify-center">
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              </div>
+            ) : (
+              <>
+            <p className="mt-6 text-xs font-bold uppercase tracking-widest text-primary">
               FoodVault Partners
             </p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Partner Login
+              Business Login
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
               Log in to manage your FoodVault brand or venue listing, member offers, and
@@ -292,8 +292,11 @@ function PartnerLoginForm() {
                 {submitting ? "Signing in..." : "Log In"}
               </button>
             </form>
+              </>
+            )}
           </div>
 
+          {checkingSession ? null : (
           <div className="border-t border-primary/10 bg-primary/5 px-6 py-6 sm:px-8 sm:py-8">
             <p className="text-sm leading-relaxed text-muted-foreground">
               New to FoodVault? Create a Partner account to list your business on
@@ -307,6 +310,7 @@ function PartnerLoginForm() {
               Create Partner Account
             </Link>
           </div>
+          )}
         </div>
 
         <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-lg border border-primary/20 bg-primary/5 p-6 sm:flex-row sm:items-center sm:p-8">
