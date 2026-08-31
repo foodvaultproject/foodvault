@@ -15,7 +15,7 @@ export function HomePageSkeleton() {
       <section className="relative flex flex-col overflow-hidden border-b border-white/15 bg-primary">
         <div className="pointer-events-none absolute inset-0 z-0 bg-primary/90" aria-hidden="true" />
         <div className="relative z-10 mx-auto w-full max-w-[1200px]">
-          <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
+          <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[23.8rem] md:items-stretch lg:min-h-[27.2rem]">
             <div className={`flex flex-col justify-center px-4 sm:px-6 lg:px-8 ${HOME_HERO_PY_COMPACT}`}>
               <PulseBlock className="h-10 w-4/5 max-w-md bg-white/20" />
               <PulseBlock className="mt-4 h-10 w-3/5 max-w-sm bg-white/15" />

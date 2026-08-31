@@ -6,7 +6,7 @@ import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import { HOME_HERO_PY_COMPACT } from "@/components/home/section-spacing";
 
 const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-background.webp";
-const VISITOR_HERO_ILLUSTRATION = "/home/kiwi_piggy_hp.webp";
+const VISITOR_HERO_ILLUSTRATION = "/home/kiwi_piggy_hp.png";
 const ACTIVE_MEMBER_HERO_ILLUSTRATION = "/home hero active member/piggy_active_hero.webp";
 
 const HERO_PRIMARY_CTA_CLASS =
@@ -14,6 +14,12 @@ const HERO_PRIMARY_CTA_CLASS =
 
 const VISITOR_SUPPORTING_COPY =
   "Save money when shopping online or visiting local spots. Unlock discounts online and in-store to keep more cash in your pocket.";
+
+const VISITOR_HERO_TEXT_PY = "py-[1.275rem] sm:py-[1.7rem] lg:py-[2.125rem]";
+const VISITOR_HERO_GRID_MIN_H =
+  "md:min-h-[23.8rem] lg:min-h-[27.2rem]";
+const VISITOR_HERO_IMAGE_H = "min-h-[min(61.2vw,15.3rem)]";
+const VISITOR_HERO_IMAGE_MAX_H = "max-h-[min(61.2vw,15.3rem)]";
 
 export type HomeHeroVariant = "visitor" | "active-member" | "partner";
 
@@ -153,7 +159,7 @@ function HeroIllustration({
           className={
             compact
               ? "flex min-h-[min(50.4vw,12.6rem)] w-full items-end justify-center"
-              : "flex min-h-[min(72vw,18rem)] w-full items-end justify-center"
+              : `flex ${VISITOR_HERO_IMAGE_H} w-full items-end justify-center`
           }
         >
           <img
@@ -163,7 +169,7 @@ function HeroIllustration({
             className={
               compact
                 ? "block h-auto w-full max-h-[min(50.4vw,12.6rem)] object-contain object-bottom"
-                : "block h-auto w-full max-h-[min(72vw,18rem)] object-contain object-bottom"
+                : `block h-auto w-full ${VISITOR_HERO_IMAGE_MAX_H} object-contain object-bottom`
             }
             decoding="async"
           />
@@ -186,8 +192,9 @@ function HeroIllustration({
 
 function VisitorHeroBanner() {
   return (
-    <div className="grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:min-h-[28rem] md:items-stretch lg:min-h-[32rem]">
+    <div className={`grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:items-stretch ${VISITOR_HERO_GRID_MIN_H}`}>
       <HeroTextColumn
+        paddingClass={VISITOR_HERO_TEXT_PY}
         title={
           <>
             Discover Local Kiwi Spots and Brands.{" "}
