@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   TurnstileField,
   type TurnstileFieldHandle,
@@ -14,14 +13,27 @@ import { resetPassword } from "@/lib/auth/password-reset-actions";
 const inputClass =
   "w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
-function ForgotPasswordForm() {
-  const searchParams = useSearchParams();
-  const isPartner = searchParams.get("account") === "partner";
+const RESET_LINK_INVALID_MESSAGE =
+  "That password reset link is invalid or has expired. Enter your email to send a new one.";
+
+type ForgotPasswordPageProps = {
+  initialEmail?: string;
+  isPartner?: boolean;
+  initialError?: string | null;
+};
+
+export function ForgotPasswordPage({
+  initialEmail = "",
+  isPartner = false,
+  initialError = null,
+}: ForgotPasswordPageProps) {
   const backLink = isPartner ? PARTNER_LOGIN_PATH : LOGIN_PATH;
-  const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [email, setEmail] = useState(initialEmail);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    initialError === "reset_link_invalid" ? RESET_LINK_INVALID_MESSAGE : null
+  );
   const [submitting, setSubmitting] = useState(false);
   const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const captchaRequired = isTurnstileEnabledClient();
@@ -75,6 +87,7 @@ function ForgotPasswordForm() {
                 name="email"
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={isPartner ? "name@business.co.nz" : "you@example.com"}
@@ -99,9 +112,9 @@ function ForgotPasswordForm() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-fv-btn-primary flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+              className="fv-btn-primary flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Sending..." : "Send Reset Link"}
+              {submitting ? "Sending..." : "Send password reset email"}
             </button>
           </form>
 
@@ -113,13 +126,5 @@ function ForgotPasswordForm() {
         </div>
       </div>
     </section>
-  );
-}
-
-export function ForgotPasswordPage() {
-  return (
-    <Suspense fallback={<div className="min-h-[50vh] bg-surface-lavender" />}>
-      <ForgotPasswordForm />
-    </Suspense>
   );
 }

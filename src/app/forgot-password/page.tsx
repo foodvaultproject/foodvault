@@ -6,6 +6,20 @@ export const metadata: Metadata = {
   description: "Reset your FoodVault member or partner account password.",
 };
 
-export default function ForgotPasswordRoute() {
-  return <ForgotPasswordPage />;
+type ForgotPasswordRouteProps = {
+  searchParams: Promise<{ email?: string; account?: string; error?: string }>;
+};
+
+export default async function ForgotPasswordRoute({
+  searchParams,
+}: ForgotPasswordRouteProps) {
+  const params = await searchParams;
+
+  return (
+    <ForgotPasswordPage
+      initialEmail={params.email?.trim() ?? ""}
+      isPartner={params.account === "partner"}
+      initialError={params.error ?? null}
+    />
+  );
 }
