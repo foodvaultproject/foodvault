@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { isSupabaseConfigured } from "@/lib/auth";
-import { revalidatePublicBrandDirectory } from "@/lib/cache/revalidate";
+import {
+  revalidatePublicBrandDirectory,
+  revalidatePublicDiscover,
+} from "@/lib/cache/revalidate";
 import {
   sendPartnerApprovalEmail,
   sendPartnerRejectionEmail,
@@ -305,7 +308,11 @@ export async function saveHomepageAction(formData: FormData) {
   return { success: true };
 }
 
-export async function saveArticleAction(formData: FormData, publish = false) {
+export async function saveArticleAction(
+  formData: FormData,
+  publish = false,
+  bodyHtml?: string
+) {
   const admin = await getAdminUser();
   if (!admin) return { error: "Unauthorized" };
 
@@ -314,13 +321,15 @@ export async function saveArticleAction(formData: FormData, publish = false) {
   const slug = String(formData.get("slug") ?? slugifyTitle(title));
   const heroImageUrl = formData.get("hero_image_url");
   const now = new Date().toISOString();
+  const rawBody = typeof bodyHtml === "string" ? bodyHtml : String(formData.get("body") ?? "");
 
   let publishDate = now;
+  let previousSlug: string | null = null;
   if (id && isSupabaseConfigured()) {
     const supabase = await createClient();
     const { data: existing } = await supabase
       .from("discover_articles")
-      .select("publish_date, created_at")
+      .select("publish_date, created_at, slug")
       .eq("id", id)
       .maybeSingle();
     publishDate =
@@ -328,6 +337,8 @@ export async function saveArticleAction(formData: FormData, publish = false) {
         ?.publish_date ??
       (existing as { created_at?: string } | null)?.created_at ??
       now;
+    previousSlug =
+      (existing as { slug?: string | null } | null)?.slug ?? null;
   }
 
   const payload = {
@@ -335,7 +346,7 @@ export async function saveArticleAction(formData: FormData, publish = false) {
     slug,
     category: String(formData.get("category") ?? ""),
     summary: String(formData.get("summary") ?? ""),
-    body: normalizeArticleBodyHtml(String(formData.get("body") ?? ""), title),
+    body: normalizeArticleBodyHtml(rawBody, title),
     hero_image_url: heroImageUrl ? String(heroImageUrl) : null,
     meta_title: String(formData.get("meta_title") ?? ""),
     meta_description: String(formData.get("meta_description") ?? ""),
@@ -348,9 +359,7 @@ export async function saveArticleAction(formData: FormData, publish = false) {
   };
 
   if (!isSupabaseConfigured()) {
-    revalidatePath("/admin/discover");
-    revalidatePath("/discover");
-    revalidatePath("/");
+    revalidatePublicDiscover({ slug, previousSlug });
     return { success: true, id: id ?? "new" };
   }
 
@@ -361,15 +370,11 @@ export async function saveArticleAction(formData: FormData, publish = false) {
   } else {
     const { data, error } = await supabase.from("discover_articles").insert(payload).select("id").single();
     if (error) return { error: error.message };
-    revalidatePath("/admin/discover");
-    revalidatePath("/discover");
-    revalidatePath("/");
+    revalidatePublicDiscover({ slug, previousSlug });
     return { success: true, id: data.id };
   }
 
-  revalidatePath("/admin/discover");
-  revalidatePath("/discover");
-  revalidatePath("/");
+  revalidatePublicDiscover({ slug, previousSlug });
   return { success: true, id };
 }
 
@@ -404,9 +409,7 @@ export async function deleteArticleAction(articleId: string) {
   if (!articleId) return { error: "Article ID is required" };
 
   if (!isSupabaseConfigured()) {
-    revalidatePath("/admin/discover");
-    revalidatePath("/discover");
-    revalidatePath("/");
+    revalidatePublicDiscover();
     return { success: true };
   }
 
@@ -421,12 +424,7 @@ export async function deleteArticleAction(articleId: string) {
   if (error) return { error: error.message };
 
   await logAuditAction("delete_article", "discover_article", articleId);
-  revalidatePath("/admin/discover");
-  revalidatePath("/discover");
-  revalidatePath("/");
-  if (article?.slug) {
-    revalidatePath(`/discover/${article.slug}`);
-  }
+  revalidatePublicDiscover({ slug: article?.slug ?? null });
   return { success: true };
 }
 

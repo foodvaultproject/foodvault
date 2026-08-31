@@ -1,10 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { ArticleHeroUploadField } from "@/components/admin/ArticleHeroUploadField";
 import { ArticleMetaTagsField } from "@/components/admin/ArticleMetaTagsField";
-import { ArticleBodyEditor } from "@/components/admin/ArticleBodyEditor";
+import {
+  ArticleBodyEditor,
+  type ArticleBodyEditorHandle,
+} from "@/components/admin/ArticleBodyEditor";
 import { saveArticleAction } from "@/lib/admin/actions";
 import { DISCOVER_CMS_CATEGORIES, slugifyTitle, type DiscoverArticleRow } from "@/lib/admin/types";
 import { normalizeDiscoverCategory } from "@/lib/discover/categories";
@@ -16,6 +19,7 @@ const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wide t
 
 export function ArticleEditorClient({ article }: { article: DiscoverArticleRow | null }) {
   const router = useRouter();
+  const bodyEditorRef = useRef<ArticleBodyEditorHandle>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState(article?.title ?? "");
@@ -33,9 +37,11 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
     startTransition(async () => {
       const form = document.getElementById("article-form") as HTMLFormElement;
       const fd = new FormData(form);
+      const bodyHtml = bodyEditorRef.current?.getHtml() ?? "";
+      fd.set("body", bodyHtml);
       if (heroUrl) fd.set("hero_image_url", heroUrl);
       fd.set("meta_tags", JSON.stringify(metaTags));
-      const result = await saveArticleAction(fd, publish);
+      const result = await saveArticleAction(fd, publish, bodyHtml);
       if (result.error) {
         setError(result.error);
         return;
@@ -106,6 +112,7 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
         <div>
           <label className={labelClass}>Body</label>
           <ArticleBodyEditor
+            ref={bodyEditorRef}
             initialBody={article?.body ?? ""}
             articleTitle={title}
             disabled={pending}

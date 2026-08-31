@@ -1,6 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { formatArticleBodyAction } from "@/lib/admin/actions";
 import {
   blocksToHtml,
@@ -31,6 +40,10 @@ type ArticleBodyEditorProps = {
   articleTitle: string;
   disabled?: boolean;
   onChange?: (html: string) => void;
+};
+
+export type ArticleBodyEditorHandle = {
+  getHtml: () => string;
 };
 
 function isRichTextBlock(type: ArticleBlockType): boolean {
@@ -88,12 +101,11 @@ function RichTextBlockEditor({
   );
 }
 
-export function ArticleBodyEditor({
-  initialBody,
-  articleTitle,
-  disabled = false,
-  onChange,
-}: ArticleBodyEditorProps) {
+export const ArticleBodyEditor = forwardRef<ArticleBodyEditorHandle, ArticleBodyEditorProps>(
+  function ArticleBodyEditor(
+    { initialBody, articleTitle, disabled = false, onChange },
+    ref
+  ) {
   const [blocks, setBlocks] = useState<ArticleBlock[]>(() =>
     bodyToBlocks(initialBody, articleTitle)
   );
@@ -101,8 +113,43 @@ export function ArticleBodyEditor({
   const [formatError, setFormatError] = useState<string | null>(null);
   const [formatting, startFormatTransition] = useTransition();
   const richTextRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const headingInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const listTextareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
+  const serializeBlocks = useCallback((current: ArticleBlock[]) => {
+    const flushed = current.map((block) => {
+      if (isRichTextBlock(block.type)) {
+        const element = richTextRefs.current[block.id];
+        if (element) {
+          return { ...block, content: sanitizeInlineHtml(element.innerHTML) };
+        }
+      }
+      if (isPlainTextBlock(block.type)) {
+        const element = headingInputRefs.current[block.id];
+        if (element) {
+          return { ...block, content: element.value };
+        }
+      }
+      if (isListBlock(block.type)) {
+        const element = listTextareaRefs.current[block.id];
+        if (element) {
+          return { ...block, content: element.value };
+        }
+      }
+      return block;
+    });
+    return blocksToHtml(flushed);
+  }, []);
 
   const html = useMemo(() => blocksToHtml(blocks), [blocks]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getHtml: () => serializeBlocks(blocks),
+    }),
+    [blocks, serializeBlocks]
+  );
 
   useEffect(() => {
     onChange?.(html);
@@ -201,7 +248,7 @@ export function ArticleBodyEditor({
 
   return (
     <div className="space-y-3">
-      <input type="hidden" name="body" value={html} readOnly />
+      <textarea name="body" hidden readOnly value={html} />
 
       <div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface/40 p-3">
         <button
@@ -305,6 +352,9 @@ export function ArticleBodyEditor({
             {isPlainTextBlock(block.type) ? (
               <input
                 type="text"
+                ref={(element) => {
+                  headingInputRefs.current[block.id] = element;
+                }}
                 value={block.content}
                 disabled={disabled}
                 onChange={(event) =>
@@ -317,6 +367,9 @@ export function ArticleBodyEditor({
 
             {isListBlock(block.type) ? (
               <textarea
+                ref={(element) => {
+                  listTextareaRefs.current[block.id] = element;
+                }}
                 value={block.content}
                 disabled={disabled}
                 rows={4}
@@ -350,4 +403,4 @@ export function ArticleBodyEditor({
       </p>
     </div>
   );
-}
+});
