@@ -3,49 +3,74 @@ import Link from "next/link";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
 
-const ABOUT_HERO_IMAGE = "/about/about-hero-bg.png";
+const VISITOR_HERO_BACKGROUND = "/home/hero-visitor-background.webp";
+const ABOUT_HERO_IMAGE = "/about/about-hero-bg.webp";
+
+const HERO_PRIMARY_CTA_CLASS =
+  "inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-sm font-semibold text-primary shadow-card transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:bg-white/95 sm:w-auto";
+
+const ABOUT_HERO_TEXT_PY = "py-[1.02rem] sm:py-[1.36rem] lg:py-[1.7rem]";
+const ABOUT_HERO_GRID_MIN_H = "md:min-h-[19.04rem] lg:min-h-[21.76rem]";
+const ABOUT_HERO_IMAGE_H = "min-h-[min(48.96vw,12.24rem)]";
+const ABOUT_HERO_IMAGE_MAX_H = "max-h-[min(48.96vw,12.24rem)]";
 
 export function AboutHero() {
   return (
-    <section className="overflow-hidden border-b border-border bg-page">
-      <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
-          <div className="text-center lg:text-left">
-            <h1 className="text-3xl font-bold leading-[1.1] tracking-tight text-primary sm:text-4xl lg:text-[2.75rem]">
-              Once upon a time...
+    <section className="relative flex flex-col overflow-hidden border-b border-white/15 bg-primary">
+      <div
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+        style={{ isolation: "isolate" }}
+      >
+        <img
+          src={VISITOR_HERO_BACKGROUND}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover object-center"
+          style={{ imageRendering: "-webkit-optimize-contrast" }}
+          decoding="async"
+          fetchPriority="high"
+        />
+      </div>
+      <div className="relative z-10 mx-auto w-full max-w-[1200px]">
+        <div
+          className={`grid min-h-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,46%)] md:items-stretch ${ABOUT_HERO_GRID_MIN_H}`}
+        >
+          <div className={`flex flex-col justify-center px-4 sm:px-6 lg:px-8 ${ABOUT_HERO_TEXT_PY}`}>
+            <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-white sm:text-[2.75rem] lg:text-[3rem]">
+              Discover More. <span className="text-white/95">Pay Less.</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:mx-0">
-              Kiwi was off hunting for awesome local brands and top coffee spots. Piggy was busy
-              sniffing out bargains. One day they absolutely sent it around the supermarket
-              corner, crashed trolleys, and decided to team up. That&apos;s how FoodVault was
-              born. Now Kiwi helps you discover great brands and local venues, while Piggy makes
-              sure you save a few bucks along the way.
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
+              Your membership unlocks exclusive savings from Kiwi brands, local businesses and
+              places worth discovering.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <MemberSignupCtaLink
-                variant="unlock-discounts"
-                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
-              />
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <MemberSignupCtaLink variant="unlock-discounts" className={HERO_PRIMARY_CTA_CLASS} />
               <Link
                 href="/browse-brands"
-                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-transparent px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
+                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
               >
                 Browse Listings
               </Link>
             </div>
           </div>
 
-          <div className="relative mx-auto aspect-square w-full max-w-[800px] overflow-hidden rounded-2xl bg-surface-lavender lg:mx-0">
-            <Image
+          <div className="relative flex min-h-0 w-full items-center justify-center self-stretch px-4 pb-4 sm:px-6 md:px-8 md:pb-0">
+            <div className="w-full md:hidden">
+              <div className={`flex ${ABOUT_HERO_IMAGE_H} w-full items-center justify-center`}>
+                <img
+                  src={ABOUT_HERO_IMAGE}
+                  alt="Kiwi brand products and local favourites"
+                  className={`block h-auto w-full ${ABOUT_HERO_IMAGE_MAX_H} object-contain object-center`}
+                  decoding="async"
+                />
+              </div>
+            </div>
+            <img
               src={ABOUT_HERO_IMAGE}
-              alt="Kiwi and Piggy crash their shopping trolleys and become friends"
-              width={800}
-              height={800}
-              priority
-              quality={100}
-              unoptimized
-              className="h-full w-full object-contain [image-rendering:-webkit-optimize-contrast]"
-              sizes="(max-width: 1024px) 100vw, 800px"
+              alt=""
+              aria-hidden="true"
+              className="hidden h-auto max-h-full w-full max-w-[min(100%,40rem)] object-contain object-center md:block md:w-auto md:max-w-full"
+              decoding="async"
             />
           </div>
         </div>
