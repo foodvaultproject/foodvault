@@ -2,13 +2,6 @@ import Link from "next/link";
 import { PARTNER_CREATE_ACCOUNT_PATH, PARTNER_LOGIN_PATH } from "@/lib/partner-auth";
 import { heading1, heading2, heading3 } from "@/lib/ui-classes";
 
-const heroBenefits = [
-  "No Fees. Ever.",
-  "Keep 100% of Every Sale or Order",
-  "Drive Web Traffic or Local Foot Traffic",
-  "Full Control of Your Listing & Offers",
-];
-
 const partnerBenefits = [
   {
     title: "Reach New Customers",
@@ -64,59 +57,53 @@ const howItWorksSteps = [
   },
 ];
 
+const FOR_BRANDS_HERO_IMAGE = "/for-brands/for-brands-hero.png?v=2";
+
 export function ForBrandsHero() {
   return (
     <section className="relative overflow-hidden bg-surface-lavender">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,124,246,0.08),transparent_50%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-        <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
-          <div>
-            <h1 className={heading1}>
-              Reach More Kiwi Customers.{" "}
-              <span className="text-primary">It&apos;s Free.</span>
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              We help Kiwi consumers discover your business—whether you sell online or run a local
-              cafe, restaurant, or eatery. Keep 100% of your sales with zero fees.
-            </p>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,124,246,0.08),transparent_50%)]" />
+      <img
+        src={FOR_BRANDS_HERO_IMAGE}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute top-0 right-0 hidden h-full w-auto max-w-none md:block"
+        decoding="async"
+      />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+        <div className="max-w-xl">
+          <h1 className={heading1}>
+            Reach More Kiwi Customers.{" "}
+            <span className="text-primary">It&apos;s Free.</span>
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            We help Kiwi consumers discover your business—whether you sell online or run a local
+            cafe, restaurant, or eatery. Keep 100% of your sales with zero fees.
+          </p>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href={PARTNER_CREATE_ACCOUNT_PATH}
-                className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
-              >
-                Become a Partner
-              </Link>
-              <Link
-                href={PARTNER_LOGIN_PATH}
-                className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
-              >
-                Log In
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-border bg-background p-6 shadow-sm sm:p-8">
-            <ul className="space-y-4">
-              {heroBenefits.map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-                    <svg
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={3}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                  </span>
-                  <span className="text-sm font-medium text-foreground sm:text-base">{item}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={PARTNER_CREATE_ACCOUNT_PATH}
+              className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
+            >
+              Become a Partner
+            </Link>
+            <Link
+              href={PARTNER_LOGIN_PATH}
+              className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
+            >
+              Log In
+            </Link>
           </div>
         </div>
+      </div>
+      <div className="relative md:hidden">
+        <img
+          src={FOR_BRANDS_HERO_IMAGE}
+          alt="Kiwi brand products and local food"
+          className="h-auto w-full object-contain object-right"
+          decoding="async"
+        />
       </div>
     </section>
   );
