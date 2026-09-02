@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { submitContactEnquiryAction } from "@/lib/contact/submit-enquiry";
 
 type ContactTypeOption = {
   id: string;
@@ -62,11 +63,31 @@ const contactTypes: ContactTypeOption[] = [
 export function ContactForm() {
   const [contactType, setContactType] = useState("member");
   const [submitted, setSubmitted] = useState(false);
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [attachmentNames, setAttachmentNames] = useState<string[]>([]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
-  };
+    const form = e.currentTarget;
+    setError(null);
+    setPending(true);
+
+    try {
+      const result = await submitContactEnquiryAction(new FormData(form));
+      if ("success" in result) {
+        setReferenceNumber(result.referenceNumber);
+        setSubmitted(true);
+        return;
+      }
+      setError(result.error);
+    } catch {
+      setError("Something went wrong sending your enquiry. Please try again.");
+    } finally {
+      setPending(false);
+    }
+  }
 
   if (submitted) {
     return (
@@ -81,6 +102,14 @@ export function ContactForm() {
           Thank you for contacting FoodVault. Our team will respond within 1–2
           business days.
         </p>
+        {referenceNumber ? (
+          <p className="mt-5 text-sm text-foreground">
+            Your reference number is{" "}
+            <span className="inline-block rounded-md border border-border bg-surface px-2.5 py-1 font-mono text-sm font-semibold tracking-wide">
+              {referenceNumber}
+            </span>
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -108,6 +137,7 @@ export function ContactForm() {
                 value={type.id}
                 checked={contactType === type.id}
                 onChange={() => setContactType(type.id)}
+                disabled={pending}
                 className="sr-only"
               />
               <span className="[&>svg]:h-5 [&>svg]:w-5 sm:[&>svg]:h-6 sm:[&>svg]:w-6">{type.icon}</span>
@@ -131,6 +161,8 @@ export function ContactForm() {
               name="fullName"
               type="text"
               required
+              maxLength={120}
+              disabled={pending}
               placeholder="John Doe"
               className="w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
@@ -144,6 +176,8 @@ export function ContactForm() {
               name="email"
               type="email"
               required
+              maxLength={254}
+              disabled={pending}
               placeholder="john@example.com"
               className="w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
@@ -163,6 +197,8 @@ export function ContactForm() {
           name="subject"
           type="text"
           required
+          maxLength={200}
+          disabled={pending}
           placeholder="How can we help you today?"
           className="mt-3 w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -180,6 +216,8 @@ export function ContactForm() {
           name="message"
           required
           rows={6}
+          maxLength={8000}
+          disabled={pending}
           placeholder="Please provide as much detail as possible..."
           className="mt-3 w-full resize-y rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -209,8 +247,20 @@ export function ContactForm() {
             accept=".png,.jpg,.jpeg,.pdf"
             className="sr-only"
             multiple
+            disabled={pending}
+            onChange={(e) => {
+              const files = Array.from(e.target.files ?? []).filter((file) => file.size > 0);
+              setAttachmentNames(files.map((file) => file.name));
+            }}
           />
         </label>
+        {attachmentNames.length > 0 ? (
+          <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+            {attachmentNames.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className="flex items-start gap-3">
@@ -219,6 +269,7 @@ export function ContactForm() {
           name="consent"
           type="checkbox"
           required
+          disabled={pending}
           className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
         />
         <label htmlFor="consent" className="text-sm leading-relaxed text-muted-foreground">
@@ -231,14 +282,40 @@ export function ContactForm() {
         </label>
       </div>
 
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {error}
+        </div>
+      ) : null}
+
       <button
         type="submit"
-        className="fv-btn-primary inline-flex w-full items-center justify-center gap-2 rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+        disabled={pending}
+        className="fv-btn-primary inline-flex w-full items-center justify-center gap-2 rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Send Enquiry
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-        </svg>
+        {pending ? (
+          <>
+            <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path
+                className="opacity-90"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
+              />
+            </svg>
+            Sending…
+          </>
+        ) : (
+          <>
+            Send Enquiry
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            </svg>
+          </>
+        )}
       </button>
     </form>
   );

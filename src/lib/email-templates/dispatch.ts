@@ -1,5 +1,6 @@
 import {
   getEmailAppUrl,
+  sendPlatformEmail,
   sendPlatformEmailSafe,
 } from "@/lib/email-templates/send";
 import {
@@ -15,11 +16,18 @@ import {
   type PartnerActivationReminderNumber,
 } from "@/lib/email-templates/templates/partner/activation-reminder";
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
+import { renderAdminNewContactEnquiryEmail } from "@/lib/email-templates/templates/admin/new-contact-enquiry";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const PARTNER_SUBMISSION_ADMIN_EMAIL =
   process.env.PARTNER_SUBMISSION_ADMIN_EMAIL ?? "mark@benchmark-int.com";
+
+export const CONTACT_CENTRE_ADMIN_EMAIL =
+  process.env.CONTACT_CENTRE_ADMIN_EMAIL || "mark@benchmark-int.com";
+
+const CONTACT_CENTRE_FROM_EMAIL =
+  process.env.NOTIFICATION_FROM_EMAIL || "FoodVault <hello@foodvault.co.nz>";
 
 function resolveContactName(metadata: Record<string, unknown> | undefined) {
   if (!metadata) return null;
@@ -169,6 +177,41 @@ export async function sendAdminNewBrandApplicationEmail(input: {
       submittedAt: input.submittedAt ?? new Date(),
     }),
   });
+}
+
+export async function sendAdminContactEnquiryEmail(input: {
+  referenceNumber: string;
+  name: string;
+  email: string;
+  enquiryType: string;
+  subject: string;
+  message: string;
+}) {
+  const appUrl = getEmailAppUrl();
+  const result = await sendPlatformEmail({
+    to: CONTACT_CENTRE_ADMIN_EMAIL,
+    from: CONTACT_CENTRE_FROM_EMAIL,
+    replyTo: input.email,
+    rendered: renderAdminNewContactEnquiryEmail({
+      appUrl,
+      referenceNumber: input.referenceNumber,
+      name: input.name,
+      email: input.email,
+      enquiryType: input.enquiryType,
+      subject: input.subject,
+      message: input.message,
+    }),
+  });
+
+  if (!result.sent) {
+    throw new Error(
+      result.reason === "not_configured"
+        ? "Resend is not configured (RESEND_API_KEY missing)."
+        : `Contact enquiry email was not sent (${result.reason}).`
+    );
+  }
+
+  return result;
 }
 
 export async function notifyPartnerLifecycleEmails(partnerId: string) {

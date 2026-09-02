@@ -22,6 +22,7 @@ export {
   renderPartnerHospitalityListingLiveEmail,
   renderPartnerApplicationRejectedEmail,
   renderAdminNewBrandApplicationEmail,
+  renderAdminNewContactEnquiryEmail,
 } from "@/lib/email-templates/render";
 export {
   sendPlatformEmail,
@@ -30,6 +31,7 @@ export {
 } from "@/lib/email-templates/send";
 export {
   PARTNER_SUBMISSION_ADMIN_EMAIL,
+  CONTACT_CENTRE_ADMIN_EMAIL,
   sendMemberMembershipActivatedEmail,
   sendPartnerApplicationReceivedEmail,
   sendPartnerApplicationApprovedEmail,
@@ -37,6 +39,7 @@ export {
   sendPartnerHospitalityListingLiveEmail,
   sendPartnerApplicationRejectedEmail,
   sendAdminNewBrandApplicationEmail,
+  sendAdminContactEnquiryEmail,
   sendPartnerApprovalEmail,
   sendPartnerActivationReminderEmail,
   sendPartnerListingLiveEmailForPartner,

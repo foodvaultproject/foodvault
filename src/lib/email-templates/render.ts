@@ -1,4 +1,5 @@
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
+import { renderAdminNewContactEnquiryEmail } from "@/lib/email-templates/templates/admin/new-contact-enquiry";
 import { renderMemberMembershipActivatedEmail } from "@/lib/email-templates/templates/member/membership-activated";
 import { renderMemberPasswordResetEmail } from "@/lib/email-templates/templates/member/password-reset";
 import { renderMemberVerifyEmail } from "@/lib/email-templates/templates/member/verify-email";
@@ -22,7 +23,8 @@ export type EmailTemplateId =
   | "partner.listing-live"
   | "partner.hospitality-listing-live"
   | "partner.application-rejected"
-  | "admin.new-brand-application";
+  | "admin.new-brand-application"
+  | "admin.new-contact-enquiry";
 
 export function renderEmailTemplate(
   templateId: EmailTemplateId,
@@ -110,6 +112,16 @@ export function renderEmailTemplate(
             ? params.submittedAt
             : new Date(String(params.submittedAt ?? Date.now())),
       });
+    case "admin.new-contact-enquiry":
+      return renderAdminNewContactEnquiryEmail({
+        appUrl: String(params.appUrl ?? ""),
+        referenceNumber: String(params.referenceNumber ?? ""),
+        name: String(params.name ?? ""),
+        email: String(params.email ?? ""),
+        enquiryType: String(params.enquiryType ?? ""),
+        subject: String(params.subject ?? ""),
+        message: String(params.message ?? ""),
+      });
     default: {
       const exhaustive: never = templateId;
       throw new Error(`Unknown email template: ${exhaustive}`);
@@ -119,6 +131,7 @@ export function renderEmailTemplate(
 
 export {
   renderAdminNewBrandApplicationEmail,
+  renderAdminNewContactEnquiryEmail,
   renderMemberMembershipActivatedEmail,
   renderMemberPasswordResetEmail,
   renderMemberVerifyEmail,

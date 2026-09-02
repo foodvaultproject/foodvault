@@ -16,18 +16,25 @@ export function getResendClient(): Resend {
   return resendClient;
 }
 
+function formatFromAddress(from?: string) {
+  const value = from?.trim();
+  if (!value) return null;
+  return value.includes("<") ? value : `FoodVault <${value}>`;
+}
+
 export async function sendResendEmail(input: {
   to: string;
   subject: string;
   html: string;
   text?: string;
   replyTo?: string;
+  from?: string;
 }) {
   const { fromEmail, replyToEmail } = getNotificationServiceConfig();
   const resend = getResendClient();
 
   const { data, error } = await resend.emails.send({
-    from: fromEmail,
+    from: formatFromAddress(input.from) ?? fromEmail,
     to: input.to,
     replyTo: input.replyTo ?? replyToEmail,
     subject: input.subject,

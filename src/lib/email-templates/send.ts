@@ -9,6 +9,8 @@ import type { RenderedEmail } from "@/lib/email-templates/types";
 export type SendPlatformEmailInput = {
   to: string;
   rendered: RenderedEmail;
+  replyTo?: string;
+  from?: string;
 };
 
 export type SendPlatformEmailResult =
@@ -37,9 +39,11 @@ export async function sendPlatformEmail(
 
   const queued = await sendResendEmail({
     to: recipient,
+    from: input.from,
     subject: input.rendered.subject,
     html: input.rendered.html,
     text: input.rendered.text,
+    replyTo: input.replyTo,
   });
 
   return { sent: true, id: queued.id };
