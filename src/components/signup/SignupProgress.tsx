@@ -6,15 +6,15 @@ export function SignupProgress({
   step,
   stepLabel,
 }: {
-  step: 1 | 2 | 3;
+  step: 1 | 2;
   stepLabel: string;
 }) {
-  const percent = (step / 3) * 100;
+  const percent = (step / 2) * 100;
 
   return (
     <div className="mb-8">
       <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide">
-        <span className="text-primary">Step {step} of 3</span>
+        <span className="text-primary">Step {step} of 2</span>
         <span className="text-muted-foreground">{stepLabel}</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-border">

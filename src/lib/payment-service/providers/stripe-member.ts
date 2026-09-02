@@ -1,6 +1,6 @@
 import { sendMemberMembershipActivatedEmail } from "@/lib/email-templates/dispatch";
 import type Stripe from "stripe";
-import { SIGNUP_PAYMENT_PATH, SIGNUP_WELCOME_PATH } from "@/lib/member/paths";
+import { SIGNUP_MEMBERSHIP_PATH, SIGNUP_WELCOME_PATH } from "@/lib/member/paths";
 import {
   memberRowHasPaidSubscription,
   resolveMemberBillingRow,
@@ -83,7 +83,7 @@ export async function createMemberCheckoutSession(
     mode: "subscription",
     line_items: [lineItem],
     success_url: `${baseUrl}${SIGNUP_WELCOME_PATH}?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}${SIGNUP_PAYMENT_PATH}?cancelled=1`,
+    cancel_url: `${baseUrl}${SIGNUP_MEMBERSHIP_PATH}?cancelled=1`,
     client_reference_id: input.authUserId,
     ...(input.stripeCustomerId
       ? { customer: input.stripeCustomerId }

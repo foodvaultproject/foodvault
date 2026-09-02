@@ -24,6 +24,15 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "52mb",
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/signup/payment",
+        destination: "/signup/membership",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

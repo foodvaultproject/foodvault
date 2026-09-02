@@ -234,7 +234,6 @@ export async function saveSystemSettingsAction(formData: FormData) {
     revalidatePath("/pricing");
     revalidatePath("/signup");
     revalidatePath("/signup/membership");
-    revalidatePath("/signup/payment");
     revalidatePath("/membership");
     revalidatePath("/terms");
     revalidatePath("/refund-policy");
@@ -252,7 +251,6 @@ export async function saveSystemSettingsAction(formData: FormData) {
   revalidatePath("/pricing");
   revalidatePath("/signup");
   revalidatePath("/signup/membership");
-  revalidatePath("/signup/payment");
   revalidatePath("/membership");
   revalidatePath("/terms");
   revalidatePath("/refund-policy");
