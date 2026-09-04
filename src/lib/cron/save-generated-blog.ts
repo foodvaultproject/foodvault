@@ -7,6 +7,7 @@ import {
 import type { GeneratedBlogDraft } from "@/lib/cron/generate-blog-gemini";
 import { normalizeArticleBodyHtml } from "@/lib/discover/article-blocks";
 import { DISCOVER_ARTICLE_AUTHOR } from "@/lib/discover/constants";
+import { unescapeArticleEntities } from "@/lib/discover/article-inline";
 import { formatArticleBodyContent } from "@/lib/discover/format-article-body";
 
 function isMissingColumnError(error: { message?: string } | null) {
@@ -55,8 +56,12 @@ export async function saveGeneratedDiscoverArticle(
 ): Promise<SavedGeneratedBlog> {
   const now = new Date().toISOString();
   const slug = await uniqueDiscoverSlug(admin, draft.slug, draft.title);
+  const markdown = unescapeArticleEntities(draft.content).replace(
+    /&amp;amp;/g,
+    "&"
+  ).replace(/&amp;/g, "&");
   const body = normalizeArticleBodyHtml(
-    formatArticleBodyContent(draft.content, draft.title),
+    formatArticleBodyContent(markdown, draft.title),
     draft.title
   );
   const partner = featuredPartnerFromPayload(payload);

@@ -1,6 +1,10 @@
 import {
   normalizeArticleBodyHtml,
 } from "@/lib/discover/article-blocks";
+import {
+  markdownLinksToHtml,
+  unescapeArticleEntities,
+} from "@/lib/discover/article-inline";
 
 const HTML_BLOCK_TAG_PATTERN =
   /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|section|article|table|thead|tbody|tr|td|th)\b/i;
@@ -31,7 +35,9 @@ export function plainTextToArticleHtml(body: string): string {
   const paragraphs = lines.filter((line) => line.length > 0);
   if (paragraphs.length === 0) return "";
 
-  return paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
+  return paragraphs
+    .map((paragraph) => `<p>${markdownLinksToHtml(escapeHtml(paragraph))}</p>`)
+    .join("");
 }
 
 /** Prepare article body for public rendering. */
@@ -41,9 +47,9 @@ export function formatArticleBodyHtml(
 ): string {
   if (!body?.trim()) return "";
 
-  const trimmed = body.trim();
+  const trimmed = unescapeArticleEntities(body.trim());
   if (isArticleBodyHtml(trimmed)) {
-    return normalizeArticleBodyHtml(trimmed, articleTitle);
+    return normalizeArticleBodyHtml(markdownLinksToHtml(trimmed), articleTitle);
   }
 
   return plainTextToArticleHtml(trimmed);
@@ -61,6 +67,7 @@ export function articleHtmlToPlainText(body: string | null): string {
     .replace(/<\/p>\s*<p>/gi, "\n\n")
     .replace(/<\/?(p|div|h[1-6]|li|blockquote)[^>]*>/gi, "\n")
     .replace(/<[^>]+>/g, "")
+    .replace(/&amp;amp;/g, "&")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")

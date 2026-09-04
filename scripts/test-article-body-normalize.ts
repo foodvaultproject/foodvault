@@ -73,4 +73,22 @@ eq(
   "TEST 8: Inline nested heading stripped from paragraph"
 );
 
-console.log("\nAll 8 tests passed.");
+eq(
+  formatArticleBodyContent(
+    "Save with [Join FoodVault](https://www.foodvault.co.nz/signup) and [Grove Avocado Oil](/brands/grove-avocado-oil).",
+    "Unrelated Title"
+  ),
+  '<p>Save with <a href="https://www.foodvault.co.nz/signup">Join FoodVault</a> and <a href="/brands/grove-avocado-oil">Grove Avocado Oil</a>.</p>',
+  "TEST 9: Markdown links become clickable anchors"
+);
+
+eq(
+  formatArticleBodyContent(
+    "Members save on Grove Avocado Oil &amp;amp; other Kiwi pantry staples every week.",
+    "Unrelated Title"
+  ),
+  "<p>Members save on Grove Avocado Oil & other Kiwi pantry staples every week.</p>",
+  "TEST 10: Double-encoded amp;amp is unescaped before save"
+);
+
+console.log("\nAll 10 tests passed.");

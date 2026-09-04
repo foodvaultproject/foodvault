@@ -5,6 +5,10 @@ import {
   type ArticleBlock,
   type ArticleBlockType,
 } from "@/lib/discover/article-blocks";
+import {
+  markdownLinksToHtml,
+  unescapeArticleEntities,
+} from "@/lib/discover/article-inline";
 
 type ParsedLine = {
   type: ArticleBlockType;
@@ -20,6 +24,7 @@ function normalizeInput(input: string): string {
     .replace(/<\/p>\s*<p>/gi, "\n\n")
     .replace(/<\/?(p|div|h1|h2|h3|h4|h5|h6|li|blockquote)[^>]*>/gi, "\n")
     .replace(/<[^>]+>/g, "")
+    .replace(/&amp;amp;/g, "&")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -136,10 +141,13 @@ export function formatArticleBodyContent(
   let lastBlockWasH3 = false;
   let paragraphsSinceLastHeading = 0;
 
+  const withInlineLinks = (text: string) =>
+    markdownLinksToHtml(unescapeArticleEntities(text.trim()));
+
   const pushParagraph = (text: string) => {
     if (!text.trim()) return;
     if (articleTitle && titlesMatch(text, articleTitle)) return;
-    blocks.push(createBlock("paragraph", text.trim()));
+    blocks.push(createBlock("paragraph", withInlineLinks(text)));
     lastBlockWasH3 = false;
     paragraphsSinceLastHeading += 1;
   };
@@ -204,7 +212,7 @@ export function formatArticleBodyContent(
         listItems = [];
       }
       listType = parsed.type;
-      listItems.push(parsed.text);
+      listItems.push(withInlineLinks(parsed.text));
       lastBlockWasH3 = false;
       continue;
     }
@@ -224,7 +232,7 @@ export function formatArticleBodyContent(
     }
 
     if (parsed.type === "blockquote") {
-      blocks.push(createBlock("blockquote", parsed.text));
+      blocks.push(createBlock("blockquote", withInlineLinks(parsed.text)));
       lastBlockWasH3 = false;
       continue;
     }

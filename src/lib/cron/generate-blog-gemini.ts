@@ -8,6 +8,7 @@ import {
   type BlogGenerationPayload,
   type BlogRotationCategory,
 } from "@/lib/cron/generate-blog";
+import { unescapeArticleEntities } from "@/lib/discover/article-inline";
 
 export const GEMINI_BLOG_MODEL = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
 const GEMINI_BLOG_MODEL_FALLBACK = "gemini-3.6-flash";
@@ -156,8 +157,9 @@ function buildPrompt(payload: BlogGenerationPayload): string {
     "slug: clean, URL-friendly kebab-case.",
     "excerpt: exactly two sentences.",
     "content: 600-800 words of standard Markdown with ## / ### subheadings, **bold highlights**, bullet points, and a FoodVault CTA.",
-    "Include a clear call-to-action to save with FoodVault (join or start a trial at /signup).",
-    "If a partner slug is provided, you may link to /brands/{slug}.",
+    "When referencing FoodVault routes, always write standard Markdown hyperlinked text using valid absolute or root relative URLs, e.g., [Join FoodVault](https://www.foodvault.co.nz/signup) or [Grove Avocado Oil](/brands/grove-avocado-oil). Never print raw unlinked paths.",
+    "Use a literal & character in titles and body text. Do not emit HTML entities such as &amp; or &amp;amp;.",
+    "Include a clear Markdown call-to-action such as [Join FoodVault](https://www.foodvault.co.nz/signup).",
     "Do not invent prices, discount percentages, or brand facts that are not in the context.",
     "Do not wrap the JSON in markdown fences.",
     "",
@@ -187,12 +189,15 @@ function parseGeneratedBlog(
   }
 
   const row = parsed as Record<string, unknown>;
-  const title = String(row.title ?? "").trim();
-  const excerpt = String(row.excerpt ?? "").trim();
-  const content = String(row.content ?? "").trim();
+  const title = unescapeArticleEntities(String(row.title ?? "").trim());
+  const excerpt = unescapeArticleEntities(String(row.excerpt ?? "").trim());
+  let content = unescapeArticleEntities(String(row.content ?? "").trim());
+  content = content.replace(/&amp;amp;/g, "&").replace(/&amp;/g, "&");
   const slug = String(row.slug ?? "").trim();
-  const metaTitle = String(row.meta_title ?? "").trim();
-  const metaDescription = String(row.meta_description ?? "").trim();
+  const metaTitle = unescapeArticleEntities(String(row.meta_title ?? "").trim());
+  const metaDescription = unescapeArticleEntities(
+    String(row.meta_description ?? "").trim()
+  );
 
   if (!title || !excerpt || !content) {
     throw new Error("Gemini draft was missing title, excerpt, or content");
