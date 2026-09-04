@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   ARTICLE_HERO_ASPECT,
   DEFAULT_ARTICLE_HERO_CROP,
@@ -45,7 +46,7 @@ export function ArticleHeroCropEditor({
     setSaving(true);
     try {
       const croppedBlob = await getCroppedArticleHeroBlob(imageSrc, croppedAreaPixels);
-      const previewUrl = URL.createObjectURL(croppedBlob);
+      const previewUrl = await createLocalPreviewUrl(croppedBlob);
       onConfirm({
         croppedBlob,
         previewUrl,

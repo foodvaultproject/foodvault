@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
@@ -39,12 +39,13 @@ function VaultDropImageCarousel({ images }: { images: string[] }) {
 
   return (
     <>
-      <Image
+      <SafeImage
         src={src}
         alt=""
         fill
         sizes="(max-width: 640px) 80vw, 19rem"
         className="object-cover transition-opacity duration-500"
+        fallbackVariant="muted"
       />
       {slides.length > 1 ? (
         <div className="absolute bottom-2 right-2 z-10 flex gap-1">

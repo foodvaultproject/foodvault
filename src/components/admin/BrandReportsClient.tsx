@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { StatCard, StatusBadge, formatAdminDate } from "@/components/admin/AdminUi";
@@ -362,12 +362,14 @@ export function BrandReportsClient({
               <div className="flex items-center gap-3">
                 {selected.brand_logo_url ? (
                   <div className="relative h-10 w-10 overflow-hidden rounded-full border border-border">
-                    <Image
+                    <SafeImage
                       src={selected.brand_logo_url}
                       alt=""
                       fill
                       className="object-cover"
                       sizes="40px"
+                      fallbackVariant="initials"
+                      initials={selected.brand_name ?? "?"}
                     />
                   </div>
                 ) : (

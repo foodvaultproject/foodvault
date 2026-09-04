@@ -9,6 +9,7 @@ import {
   portalTextAction,
   portalThumbLogo,
 } from "@/lib/partner-portal-classes";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   DEFAULT_LOGO_CROP,
   revokeIfBlobUrl,
@@ -80,9 +81,9 @@ export function PartnerLogoUploadField({
     inputRef.current?.click();
   }
 
-  function handleFileSelected(file: File) {
+  async function handleFileSelected(file: File) {
     revokeIfBlobUrl(editorSrc ?? undefined);
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = await createLocalPreviewUrl(file);
     setPendingOriginalFile(file);
     setInitialCrop(DEFAULT_LOGO_CROP);
     setReCropMode(false);
@@ -274,7 +275,7 @@ export function PartnerLogoUploadField({
           disabled={disabled}
           onChange={(event) => {
             const file = event.target.files?.[0];
-            if (file) handleFileSelected(file);
+            if (file) void handleFileSelected(file);
           }}
         />
       </div>

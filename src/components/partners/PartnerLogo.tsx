@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import {
   canRenderLogoFromCrop,
   getLogoCropImageStyle,
@@ -104,10 +104,6 @@ type PartnerLogoProps = {
 
 type LogoRenderMode = "cssCrop" | "avatar" | "legacy";
 
-function isNativeImageSrc(src: string) {
-  return src.startsWith("blob:") || src.startsWith("data:");
-}
-
 function resolveLogoRender({
   size,
   src,
@@ -154,6 +150,7 @@ function LogoImage({
   priority,
   className,
   style,
+  initials,
 }: {
   src: string;
   alt: string;
@@ -161,16 +158,10 @@ function LogoImage({
   priority?: boolean;
   className: string;
   style?: CSSProperties;
+  initials: string;
 }) {
-  if (isNativeImageSrc(src)) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt} className={className} style={style} />
-    );
-  }
-
   return (
-    <Image
+    <SafeImage
       src={src}
       alt={alt}
       fill
@@ -178,6 +169,8 @@ function LogoImage({
       priority={priority}
       className={className}
       style={style}
+      fallbackVariant="initials"
+      initials={initials}
     />
   );
 }
@@ -238,6 +231,7 @@ export function PartnerLogo({
           priority={priority}
           className="absolute max-w-none"
           style={scaledStyle}
+          initials={initial}
         />
       </div>
     );
@@ -260,6 +254,7 @@ export function PartnerLogo({
         sizes={styles.sizes}
         priority={priority}
         className={`absolute inset-0 ${imageClass}`}
+        initials={initial}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import Link from "next/link";
 import {
   articleHref,
@@ -46,12 +46,13 @@ export function DiscoverArticleTile({
         className={`${cardClass} group relative block w-full ${equalHeight ? "h-full" : ""}`}
       >
         <div className={DISCOVER_TILE_IMAGE_CLASS}>
-          <Image
+          <SafeImage
             src={article.heroImageUrl}
             alt={article.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes={imageSizes}
+            fallbackVariant="muted"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
         </div>
@@ -66,12 +67,13 @@ export function DiscoverArticleTile({
     <article className={`${cardClass} ${equalHeight ? "h-full" : ""}`}>
       <Link href={articleHref(article.slug)} className="block">
         <div className={DISCOVER_TILE_IMAGE_CLASS}>
-          <Image
+          <SafeImage
             src={article.heroImageUrl}
             alt={article.title}
             fill
             className="object-cover"
             sizes={imageSizes}
+            fallbackVariant="muted"
           />
         </div>
       </Link>
@@ -150,12 +152,13 @@ export function DiscoverRecipeTile({
       className={`${cardClass} group relative shrink-0 ${equalHeight ? "h-full" : ""}`}
     >
       <div className={DISCOVER_TILE_IMAGE_CLASS}>
-        <Image
+        <SafeImage
           src={article.heroImageUrl}
           alt={article.title}
           fill
           className="object-cover"
           sizes={TILE_IMAGE_SIZES}
+          fallbackVariant="muted"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/30 to-transparent" />
       </div>

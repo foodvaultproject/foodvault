@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 
 type HomeHeroGalleryCollageProps = {
   images: string[];
@@ -37,13 +37,14 @@ function CollageImage({
         partner ? "w-[52%] max-w-[10rem]" : "w-[44%] max-w-[11rem]"
       } ${className ?? ""}`}
     >
-      <Image
+      <SafeImage
         src={src}
         alt=""
         fill
         sizes={partner ? "(max-width: 768px) 52vw, 10rem" : "(max-width: 768px) 44vw, 11rem"}
         className="object-cover"
         priority={priority}
+        fallbackVariant="muted"
       />
     </div>
   );

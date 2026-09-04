@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   BANNER_ASPECT,
   DEFAULT_BANNER_CROP,
@@ -45,7 +46,7 @@ export function BannerCropEditor({
     setSaving(true);
     try {
       const croppedBlob = await getCroppedBannerBlob(imageSrc, croppedAreaPixels);
-      const previewUrl = URL.createObjectURL(croppedBlob);
+      const previewUrl = await createLocalPreviewUrl(croppedBlob);
       onSave({
         croppedBlob,
         previewUrl,

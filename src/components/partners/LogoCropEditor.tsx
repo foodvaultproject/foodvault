@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   DEFAULT_LOGO_CROP,
   getCroppedLogoBlob,
@@ -54,7 +55,7 @@ export function LogoCropEditor({
         0,
         croppedAreaPercentages ?? undefined
       );
-      const previewUrl = URL.createObjectURL(croppedBlob);
+      const previewUrl = await createLocalPreviewUrl(croppedBlob);
       onSave({
         croppedBlob,
         previewUrl,

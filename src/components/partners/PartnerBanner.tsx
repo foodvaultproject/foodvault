@@ -1,5 +1,5 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
+import { SafeImage } from "@/components/media/SafeImage";
 
 type PartnerBannerProps = {
   src?: string | null;
@@ -25,7 +25,7 @@ export function PartnerBanner({
       className={`relative aspect-[3/1] w-full overflow-hidden bg-gradient-to-br from-primary/30 to-primary/5 ${className}`}
     >
       {src ? (
-        <Image
+        <SafeImage
           src={src}
           alt={alt}
           fill
@@ -33,6 +33,7 @@ export function PartnerBanner({
           loading={priority ? undefined : "lazy"}
           className={`object-cover ${imageClassName}`}
           sizes={sizes}
+          fallbackVariant="empty"
         />
       ) : null}
       {children}

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 
 type PartnerGalleryImageProps = {
   src: string;
@@ -12,10 +12,6 @@ type PartnerGalleryImageProps = {
   height?: number;
   square?: boolean;
 };
-
-function isNativeImageSrc(src: string) {
-  return src.startsWith("blob:") || src.startsWith("data:");
-}
 
 export function PartnerGalleryImage({
   src,
@@ -35,28 +31,18 @@ export function PartnerGalleryImage({
     ? `relative ${aspectClass} w-full overflow-hidden rounded-lg bg-surface ${className}`
     : `relative overflow-hidden bg-surface ${useFixedSize ? "" : `${aspectClass} w-full`} rounded-lg ${className}`;
 
-  const media = isNativeImageSrc(src) ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      className={`absolute inset-0 h-full w-full object-cover ${imageClassName}`}
-    />
-  ) : (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      priority={priority}
-      loading={priority ? undefined : "lazy"}
-      className={`object-cover ${imageClassName}`}
-      sizes={useFixedSize ? `${width}px` : sizes}
-    />
-  );
-
   return (
     <div className={frameClass} style={useFixedSize ? { width, height } : undefined}>
-      {media}
+      <SafeImage
+        src={src}
+        alt={alt}
+        fill
+        priority={priority}
+        loading={priority ? undefined : "lazy"}
+        className={`object-cover ${imageClassName}`}
+        sizes={useFixedSize ? `${width}px` : sizes}
+        fallbackVariant="muted"
+      />
     </div>
   );
 }

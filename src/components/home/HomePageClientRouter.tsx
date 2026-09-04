@@ -17,6 +17,7 @@ import {
   HomeWhyJoinFeatures,
 } from "@/components/home/HomeSections";
 import { OwnAKiwiBrandCard } from "@/components/partners/OwnAKiwiBrandCard";
+import { SavingsCalculator } from "@/components/home/SavingsCalculator";
 import { HomeDineLocalSection } from "@/components/hospitality/HomeDineLocalSection";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { getAuthSession, syncAuthSessionHints } from "@/lib/auth";
@@ -26,6 +27,15 @@ import { getPartnerListing } from "@/lib/partner-data";
 import type { StaticHomepageData } from "@/lib/homepage/static-data";
 
 type HomeAudience = "guest" | "partner" | "active-member";
+
+function HomeCalculatorThenBanner3({ compactSpacing = false }: { compactSpacing?: boolean }) {
+  return (
+    <>
+      <SavingsCalculator compactSpacing={compactSpacing} />
+      <HomeMeatPoultryBanner compactSpacing={compactSpacing} />
+    </>
+  );
+}
 
 function HomeAudienceContent({
   audience,
@@ -56,7 +66,7 @@ function HomeAudienceContent({
         <HomeTrendingDepartmentCardsSection />
         <HomeGiftsHampersBanner compactSpacing />
         <HomePartnerQuickLinks compactSpacing />
-        <HomeMeatPoultryBanner compactSpacing />
+        <HomeCalculatorThenBanner3 compactSpacing />
         <HomeTrendingSection
           trending={data.homepageTrendingBrands}
           newBrands={data.homepageNewBrands}
@@ -76,7 +86,7 @@ function HomeAudienceContent({
         <HomeHero variant="active-member" />
         <HomeTrendingDepartmentCardsSection />
         <HomeVaultDropSection drops={data.vaultDrops} />
-        <HomeMeatPoultryBanner compactSpacing />
+        <HomeCalculatorThenBanner3 compactSpacing />
         <HomeQuickActions compactSpacing />
         <HomeGiftsHampersBanner compactSpacing />
         <HomeTrendingSection
@@ -102,7 +112,7 @@ function HomeAudienceContent({
         favoritedPartnerIds={[]}
       />
       <HomeVaultDropSection drops={data.vaultDrops} />
-      <HomeMeatPoultryBanner />
+      <HomeCalculatorThenBanner3 />
       <HomeWhyJoinFeatures mobileTwoColumn />
       <HomeGiftsHampersBanner />
       <HomeTrendingSection

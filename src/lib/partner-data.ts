@@ -1,3 +1,4 @@
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthSession, isSupabaseConfigured } from "@/lib/auth";
 import type {
@@ -1584,7 +1585,7 @@ export async function uploadPartnerAsset(
 
   if (!isSupabaseConfigured()) {
     // Dev mode: return a local preview URL (not persisted).
-    return URL.createObjectURL(uploadFile);
+    return createLocalPreviewUrl(uploadFile);
   }
 
   const supabase = createClient();

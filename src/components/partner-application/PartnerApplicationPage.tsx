@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -83,6 +83,7 @@ import {
   validateAffiliateProgram,
   type AffiliateProgramConfig,
 } from "@/lib/partner-affiliate";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import { PartnerOnboardingProgress } from "./PartnerOnboardingProgress";
 import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { ListingModelGatekeeper } from "@/components/hospitality/ListingModelGatekeeper";
@@ -242,18 +243,14 @@ function UploadBox({
       >
         {preview ? (
           <div className="relative mb-3 h-20 w-full overflow-hidden rounded-lg">
-            {preview.startsWith("blob:") || preview.startsWith("data:") ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={preview} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <Image
-                src={preview}
-                alt=""
-                fill
-                sizes="(max-width: 640px) 100vw, 400px"
-                className="object-cover"
-              />
-            )}
+            <SafeImage
+              src={preview}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, 400px"
+              className="object-cover"
+              fallbackVariant="muted"
+            />
             {onChange ? (
               <button
                 type="button"
@@ -281,7 +278,7 @@ function UploadBox({
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file && onChange) {
-              onChange(file, URL.createObjectURL(file));
+              void createLocalPreviewUrl(file).then((url) => onChange(file, url));
             }
           }}
         />

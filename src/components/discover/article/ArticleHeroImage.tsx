@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import {
   DISCOVER_TILE_IMAGE_CLASS,
   DISCOVER_TILE_WIDTH_CLASS,
@@ -15,13 +15,14 @@ export function ArticleHeroImage({ src, alt }: ArticleHeroImageProps) {
       <div
         className={`${DISCOVER_TILE_IMAGE_CLASS} overflow-hidden rounded-lg border border-border bg-background`}
       >
-        <Image
+        <SafeImage
           src={src}
           alt={alt}
           fill
           className="object-cover"
           priority
           sizes="256px"
+          fallbackVariant="muted"
         />
       </div>
     </div>

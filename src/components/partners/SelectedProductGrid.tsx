@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import { DiscountCodeBlock } from "@/components/brands/DiscountCodeBlock";
 import type { CodeAccessState } from "@/lib/member/partner-profile";
 import {
@@ -63,12 +63,13 @@ export function SelectedProductGrid({
             embedMemberOffer ? "" : "rounded-lg"
           }`}
         >
-          <Image
+          <SafeImage
             src={product.imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
             className="object-cover"
+            fallbackVariant="muted"
           />
           {discountBadge}
         </div>

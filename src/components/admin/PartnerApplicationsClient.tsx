@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { useState, useTransition } from "react";
+import { SafeImage } from "@/components/media/SafeImage";
 import { StatCard, formatAdminDate } from "@/components/admin/AdminUi";
 import {
   approvePartnerApplicationAction,
@@ -186,6 +185,7 @@ function ApplicationMediaThumbnails({ application }: { application: PartnerAppli
   const hasBanner = Boolean(application.banner_image_url);
   const hasLogo = Boolean(application.logo_url);
   const hasGallery = gallery.length > 0;
+  const initials = application.business_name ?? "";
 
   if (!hasBanner && !hasLogo && !hasGallery) {
     return (
@@ -203,27 +203,22 @@ function ApplicationMediaThumbnails({ application }: { application: PartnerAppli
       <p className="text-xs font-semibold uppercase tracking-wide text-muted">Brand Assets</p>
       <div className="mt-2 space-y-3">
         {hasBanner ? (
-          <MediaPreview label="Banner" href={application.banner_image_url!} aspect="banner">
-            <Image
-              src={application.banner_image_url!}
-              alt=""
-              width={320}
-              height={107}
-              className="h-full w-full object-cover"
-            />
-          </MediaPreview>
+          <MediaPreview
+            label="Banner"
+            href={application.banner_image_url!}
+            aspect="banner"
+            sizes="320px"
+          />
         ) : null}
 
         {hasLogo ? (
-          <MediaPreview label="Logo" href={application.logo_url!} aspect="logo">
-            <Image
-              src={application.logo_url!}
-              alt=""
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-            />
-          </MediaPreview>
+          <MediaPreview
+            label="Logo"
+            href={application.logo_url!}
+            aspect="logo"
+            sizes="64px"
+            initials={initials}
+          />
         ) : null}
 
         {hasGallery ? (
@@ -231,15 +226,13 @@ function ApplicationMediaThumbnails({ application }: { application: PartnerAppli
             <p className="mb-1.5 text-xs text-muted">Gallery ({gallery.length})</p>
             <div className="grid grid-cols-3 gap-2">
               {gallery.map((url, index) => (
-                <MediaPreview key={`${url}-${index}`} href={url} aspect="gallery" hideLabel>
-                  <Image
-                    src={url}
-                    alt=""
-                    width={96}
-                    height={96}
-                    className="h-full w-full object-cover"
-                  />
-                </MediaPreview>
+                <MediaPreview
+                  key={`${url}-${index}`}
+                  href={url}
+                  aspect="gallery"
+                  hideLabel
+                  sizes="96px"
+                />
               ))}
             </div>
           </div>
@@ -254,20 +247,22 @@ function MediaPreview({
   href,
   aspect,
   hideLabel = false,
-  children,
+  sizes,
+  initials,
 }: {
   label?: string;
   href: string;
   aspect: "banner" | "logo" | "gallery";
   hideLabel?: boolean;
-  children: ReactNode;
+  sizes: string;
+  initials?: string;
 }) {
   const frameClass =
     aspect === "banner"
-      ? "aspect-[3/1] w-full"
+      ? "relative aspect-[3/1] w-full"
       : aspect === "logo"
-        ? "h-16 w-16 rounded-full"
-        : "aspect-square w-full";
+        ? "relative h-16 w-16 rounded-full"
+        : "relative aspect-square w-full";
 
   return (
     <div>
@@ -279,7 +274,15 @@ function MediaPreview({
         className={`block overflow-hidden rounded border border-border bg-page transition hover:border-primary/40 hover:shadow-sm ${frameClass}`}
         title="Open full image"
       >
-        {children}
+        <SafeImage
+          src={href}
+          alt=""
+          fill
+          sizes={sizes}
+          className="object-cover"
+          fallbackVariant={aspect === "logo" ? "initials" : "muted"}
+          initials={initials}
+        />
       </a>
     </div>
   );

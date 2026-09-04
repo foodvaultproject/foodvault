@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { BannerCropEditor } from "@/components/partners/BannerCropEditor";
 import { PartnerBanner } from "@/components/partners/PartnerBanner";
+import { SafeImage } from "@/components/media/SafeImage";
 import {
   portalHelper,
   portalLabel,
@@ -15,6 +15,7 @@ import {
   revokeIfBlobUrl,
   type BannerCropSettings,
 } from "@/lib/partner-banner-crop";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 
 export type PartnerBannerUploadValue = {
   originalFile?: File | null;
@@ -76,12 +77,12 @@ export function PartnerBannerUploadField({
     inputRef.current?.click();
   }
 
-  function handleFileSelected(file: File) {
+  async function handleFileSelected(file: File) {
     revokeIfBlobUrl(editorSrc ?? undefined);
     setPendingOriginalFile(file);
     setInitialCrop(DEFAULT_BANNER_CROP);
     setReCropMode(false);
-    setEditorSrc(URL.createObjectURL(file));
+    setEditorSrc(await createLocalPreviewUrl(file));
   }
 
   function handleEditCrop() {
@@ -169,18 +170,14 @@ export function PartnerBannerUploadField({
             >
               {displayUrl ? (
                 <>
-                  {displayUrl.startsWith("blob:") || displayUrl.startsWith("data:") ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={displayUrl} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <Image
-                      src={displayUrl}
-                      alt=""
-                      fill
-                      sizes="240px"
-                      className="object-cover"
-                    />
-                  )}
+                  <SafeImage
+                    src={displayUrl}
+                    alt=""
+                    fill
+                    sizes="240px"
+                    className="object-cover"
+                    fallbackVariant="muted"
+                  />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-xs font-semibold text-white opacity-0 transition-opacity group-hover:bg-black/40 group-hover:opacity-100">
                     Edit
                   </span>
@@ -270,7 +267,7 @@ export function PartnerBannerUploadField({
           disabled={disabled}
           onChange={(event) => {
             const file = event.target.files?.[0];
-            if (file) handleFileSelected(file);
+            if (file) void handleFileSelected(file);
           }}
         />
       </div>

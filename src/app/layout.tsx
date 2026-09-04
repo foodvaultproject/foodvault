@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Hanken_Grotesk } from "next/font/google";
 import { SiteLayout } from "@/components/SiteLayout";
 import { locale } from "@/lib/locale";
 import "./globals.css";
+
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-hanken-grotesk",
@@ -54,6 +57,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
         <SiteLayout>{children}</SiteLayout>
       </body>
+      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

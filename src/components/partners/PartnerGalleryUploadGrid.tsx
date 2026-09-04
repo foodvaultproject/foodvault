@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { GalleryCropEditor } from "@/components/partners/GalleryCropEditor";
 import { PartnerGalleryImage } from "@/components/partners/PartnerGalleryImage";
 import { portalTextAction, portalThumbGallery } from "@/lib/partner-portal-classes";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   DEFAULT_GALLERY_CROP,
   revokeIfBlobUrl,
@@ -232,9 +233,9 @@ export function PartnerGalleryUploadGrid({
     pendingPickerIndexRef.current = nextIndex;
   }
 
-  function handleFileSelected(file: File) {
+  async function handleFileSelected(file: File) {
     revokeIfBlobUrl(editorSrc ?? undefined);
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = await createLocalPreviewUrl(file);
     setPendingOriginalFile(file);
     setInitialCrop(DEFAULT_GALLERY_CROP);
     setReCropMode(false);
@@ -305,7 +306,7 @@ export function PartnerGalleryUploadGrid({
         disabled={disabled || uploading}
         onRemove={() => handleRemove(index)}
         onReplace={() => openFilePicker(index)}
-        onEditCrop={() => handleEditCrop(index)}
+        onEditCrop={() => void handleEditCrop(index)}
       />
     );
   });
@@ -346,7 +347,7 @@ export function PartnerGalleryUploadGrid({
         disabled={disabled || uploading}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) handleFileSelected(file);
+          if (file) void handleFileSelected(file);
         }}
       />
 
@@ -442,15 +443,15 @@ export function PartnerGalleryDraftGrid({
     pendingPickerIndexRef.current = nextIndex;
   }
 
-  function handleFileSelected(file: File) {
+  async function handleFileSelected(file: File) {
     revokeIfBlobUrl(editorSrc ?? undefined);
     setPendingOriginalFile(file);
     setInitialCrop(DEFAULT_GALLERY_CROP);
     setReCropMode(false);
-    setEditorSrc(URL.createObjectURL(file));
+    setEditorSrc(await createLocalPreviewUrl(file));
   }
 
-  function handleEditCrop(index: number) {
+  async function handleEditCrop(index: number) {
     const item = items[index];
     if (!item || disabled) return;
     revokeIfBlobUrl(editorSrc ?? undefined);
@@ -458,7 +459,7 @@ export function PartnerGalleryDraftGrid({
     setPendingOriginalFile(item.originalFile ?? null);
     setInitialCrop(item.crop ?? DEFAULT_GALLERY_CROP);
     setReCropMode(true);
-    setEditorSrc(URL.createObjectURL(item.originalFile ?? item.croppedFile));
+    setEditorSrc(await createLocalPreviewUrl(item.originalFile ?? item.croppedFile));
   }
 
   function handleRemove(index: number) {
@@ -515,7 +516,7 @@ export function PartnerGalleryDraftGrid({
         disabled={disabled}
         onRemove={() => handleRemove(index)}
         onReplace={() => openFilePicker(index)}
-        onEditCrop={() => handleEditCrop(index)}
+        onEditCrop={() => void handleEditCrop(index)}
       />
     );
   });
@@ -563,7 +564,7 @@ export function PartnerGalleryDraftGrid({
         disabled={disabled}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) handleFileSelected(file);
+          if (file) void handleFileSelected(file);
         }}
       />
 

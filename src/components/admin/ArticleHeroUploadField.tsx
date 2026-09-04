@@ -1,13 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { ArticleHeroCropEditor } from "@/components/admin/ArticleHeroCropEditor";
+import { SafeImage } from "@/components/media/SafeImage";
 import {
   DEFAULT_ARTICLE_HERO_CROP,
   revokeIfBlobUrl,
   type ArticleHeroCropSettings,
 } from "@/lib/article-hero-crop";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import { uploadArticleHeroAction } from "@/lib/admin/actions";
 
 type ArticleHeroUploadFieldProps = {
@@ -40,10 +41,10 @@ export function ArticleHeroUploadField({
     inputRef.current?.click();
   }
 
-  function handleFileSelected(file: File) {
+  async function handleFileSelected(file: File) {
     revokeIfBlobUrl(editorSrc ?? undefined);
     setInitialCrop(DEFAULT_ARTICLE_HERO_CROP);
-    setEditorSrc(URL.createObjectURL(file));
+    setEditorSrc(await createLocalPreviewUrl(file));
   }
 
   function handleEditCrop() {
@@ -113,22 +114,14 @@ export function ArticleHeroUploadField({
       <div className="flex flex-wrap items-start gap-4">
         {displayUrl ? (
           <div className={`${THUMB_CLASS} border border-border bg-page`}>
-            {displayUrl.startsWith("blob:") || displayUrl.startsWith("data:") ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={displayUrl}
-                alt="Article hero thumbnail"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Image
-                src={displayUrl}
-                alt="Article hero thumbnail"
-                fill
-                className="object-cover"
-                sizes="96px"
-              />
-            )}
+            <SafeImage
+              src={displayUrl}
+              alt="Article hero thumbnail"
+              fill
+              className="object-cover"
+              sizes="96px"
+              fallbackVariant="muted"
+            />
             {uploading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-[10px] font-semibold text-white">
                 Uploading...
@@ -215,7 +208,7 @@ export function ArticleHeroUploadField({
           disabled={disabled || uploading}
           onChange={(event) => {
             const file = event.target.files?.[0];
-            if (file) handleFileSelected(file);
+            if (file) void handleFileSelected(file);
           }}
         />
       </div>

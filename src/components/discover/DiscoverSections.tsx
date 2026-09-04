@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import Link from "next/link";
 import { consumerSearchPath } from "@/lib/consumer-nav-restructure";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
@@ -38,13 +38,14 @@ export function FeaturedArticleSection({
         <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
           <div className="grid md:grid-cols-[minmax(0,320px)_1fr] lg:grid-cols-[minmax(0,360px)_1fr]">
             <div className={`${DISCOVER_ARTICLE_IMAGE_CLASS} md:rounded-l-2xl`}>
-              <Image
+              <SafeImage
                 src={article.heroImageUrl}
                 alt={article.title}
                 fill
                 className="object-cover"
                 priority
                 sizes="(max-width: 768px) 100vw, 360px"
+                fallbackVariant="muted"
               />
             </div>
             <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">

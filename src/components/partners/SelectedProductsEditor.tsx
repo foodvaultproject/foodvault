@@ -1,14 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { GalleryCropEditor } from "@/components/partners/GalleryCropEditor";
+import { SafeImage } from "@/components/media/SafeImage";
 import {
   portalCardTitle,
   portalHelper,
   portalTextAction,
   portalThumbGallery,
 } from "@/lib/partner-portal-classes";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   DEFAULT_GALLERY_CROP,
   GALLERY_ASPECT,
@@ -81,18 +82,14 @@ function ProductImageThumbnail({
         } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
       >
         {preview ? (
-          preview.startsWith("blob:") || preview.startsWith("data:") ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <Image
-              src={preview}
-              alt=""
-              fill
-              sizes="96px"
-              className="object-cover"
-            />
-          )
+          <SafeImage
+            src={preview}
+            alt=""
+            fill
+            sizes="96px"
+            className="object-cover"
+            fallbackVariant="muted"
+          />
         ) : (
           <div className="px-2 text-center">
             <span className="block text-xs font-semibold text-foreground">Upload</span>
@@ -283,24 +280,16 @@ function CollapsedSelectedProduct({
     <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5">
       <div className="flex min-w-0 items-center gap-3">
         {product.imageUrl ? (
-          product.imageUrl.startsWith("blob:") || product.imageUrl.startsWith("data:") ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+          <div className="relative h-10 w-8 shrink-0 overflow-hidden rounded">
+            <SafeImage
               src={product.imageUrl}
               alt=""
-              className="h-10 w-8 shrink-0 rounded object-cover"
+              fill
+              sizes="32px"
+              className="object-cover"
+              fallbackVariant="muted"
             />
-          ) : (
-            <div className="relative h-10 w-8 shrink-0 overflow-hidden rounded">
-              <Image
-                src={product.imageUrl}
-                alt=""
-                fill
-                sizes="32px"
-                className="object-cover"
-              />
-            </div>
-          )
+          </div>
         ) : null}
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground">{label}</p>
@@ -572,10 +561,10 @@ export function SelectedProductsEditor({
     setEditorSrc(src);
   }
 
-  function handleFileSelected(file: File) {
+  async function handleFileSelected(file: File) {
     if (!editingProductId) return;
     revokeIfBlobUrl(editorSrc ?? undefined);
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = await createLocalPreviewUrl(file);
     setPendingOriginalFile(file);
     setInitialCrop(DEFAULT_GALLERY_CROP);
     setReCropMode(false);
@@ -743,7 +732,7 @@ export function SelectedProductsEditor({
         disabled={disabled}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) handleFileSelected(file);
+          if (file) void handleFileSelected(file);
           event.target.value = "";
         }}
       />

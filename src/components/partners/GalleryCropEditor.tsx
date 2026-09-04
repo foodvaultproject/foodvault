@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
+import { createLocalPreviewUrl } from "@/lib/image-preview";
 import {
   DEFAULT_GALLERY_CROP,
   GALLERY_ASPECT,
@@ -64,7 +65,7 @@ export function GalleryCropEditor({
               outputHeight
             )
           : await getCroppedGalleryBlob(imageSrc, croppedAreaPixels);
-      const previewUrl = URL.createObjectURL(croppedBlob);
+      const previewUrl = await createLocalPreviewUrl(croppedBlob);
       onSave({
         croppedBlob,
         previewUrl,

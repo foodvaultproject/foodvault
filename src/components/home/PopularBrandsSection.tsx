@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import Link from "next/link";
 import { popularBrands } from "@/data/homepage";
 
@@ -17,13 +17,14 @@ export function PopularBrandsSection() {
               href={`/brands/${brand.name.toLowerCase().replace(/\s+/g, "-")}`}
               className="group relative aspect-square overflow-hidden rounded-lg"
             >
-              <Image
+              <SafeImage
                 src={brand.image}
                 alt={brand.name}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 sizes="(max-width: 768px) 50vw, 25vw"
                 unoptimized
+                fallbackVariant="muted"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <span className="absolute bottom-2 left-2 text-xs font-semibold text-white sm:bottom-3 sm:left-3 sm:text-sm">

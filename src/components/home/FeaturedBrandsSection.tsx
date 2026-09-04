@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeImage } from "@/components/media/SafeImage";
 import Link from "next/link";
 import { featuredBrands } from "@/data/homepage";
 
@@ -17,13 +17,14 @@ export function FeaturedBrandsSection() {
               className="overflow-hidden rounded-lg border border-border bg-background shadow-sm"
             >
               <div className="relative aspect-[3/2]">
-                <Image
+                <SafeImage
                   src={brand.image}
                   alt={brand.name}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   unoptimized
+                  fallbackVariant="muted"
                 />
                 <span className="absolute right-3 top-3 rounded-full bg-success px-2.5 py-1 text-xs font-semibold text-white">
                   {brand.discount}
