@@ -639,6 +639,20 @@ export function featuredPartnerFromPayload(
   return null;
 }
 
+/** Prefer a partner's uploaded gallery shot over the wide banner or logo. */
+export function partnerBlogHeroImageUrl(
+  partner: Pick<PartnerBlogContext, "galleryImageUrls" | "bannerImageUrl" | "logoUrl"> | null
+): string | null {
+  if (!partner) return null;
+
+  for (const url of partner.galleryImageUrls) {
+    const trimmed = url.trim();
+    if (trimmed) return trimmed;
+  }
+
+  return partner.bannerImageUrl?.trim() || partner.logoUrl?.trim() || null;
+}
+
 export function logBlogGenerationPayload(payload: BlogGenerationPayload) {
   console.info("[generate-blog] selected category", {
     category: payload.category,

@@ -2,7 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { slugifyTitle, type DiscoverCategory } from "@/lib/admin/types";
 import {
   featuredPartnerFromPayload,
+  partnerBlogHeroImageUrl,
   type BlogGenerationPayload,
+  type PartnerBlogContext,
 } from "@/lib/cron/generate-blog";
 import type { GeneratedBlogDraft } from "@/lib/cron/generate-blog-gemini";
 import { normalizeArticleBodyHtml } from "@/lib/discover/article-blocks";
@@ -49,6 +51,33 @@ export type SavedGeneratedBlog = {
   category: DiscoverCategory;
 };
 
+async function replacePartnerBannerHeroesWithGallery(
+  admin: SupabaseClient,
+  partner: PartnerBlogContext,
+  now: string
+) {
+  const galleryUrl = partner.galleryImageUrls.find((url) => url.trim())?.trim();
+  if (!galleryUrl) return;
+
+  const staleHeroes = [partner.bannerImageUrl, partner.logoUrl]
+    .map((url) => url?.trim())
+    .filter((url): url is string => Boolean(url) && url !== galleryUrl);
+
+  for (const url of staleHeroes) {
+    const { error } = await admin
+      .from("discover_articles")
+      .update({ hero_image_url: galleryUrl, updated_at: now })
+      .eq("hero_image_url", url);
+
+    if (error) {
+      console.error("[generate-blog] failed to swap banner hero for gallery", {
+        partnerId: partner.id,
+        message: error.message,
+      });
+    }
+  }
+}
+
 export async function saveGeneratedDiscoverArticle(
   admin: SupabaseClient,
   payload: BlogGenerationPayload,
@@ -65,14 +94,12 @@ export async function saveGeneratedDiscoverArticle(
     draft.title
   );
   const partner = featuredPartnerFromPayload(payload);
-  const heroImageUrl =
-    partner?.bannerImageUrl || partner?.galleryImageUrls[0] || partner?.logoUrl || null;
+  const heroImageUrl = partnerBlogHeroImageUrl(partner);
   const metaTags = [
     payload.cmsCategory,
     "FoodVault",
     partner?.businessName,
   ].filter((tag): tag is string => Boolean(tag));
-
   const insertPayload = {
     title: draft.title,
     slug,
@@ -97,6 +124,8 @@ export async function saveGeneratedDiscoverArticle(
   }
 
   if (partner?.id) {
+    await replacePartnerBannerHeroesWithGallery(admin, partner, now);
+
     const update = await admin
       .from("partners")
       .update({ last_blogged_at: now, updated_at: now })
