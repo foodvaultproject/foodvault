@@ -15,11 +15,11 @@ const HERO_PRIMARY_CTA_CLASS =
 const VISITOR_SUPPORTING_COPY =
   "Save money when shopping online or visiting local spots. Unlock discounts online and in-store to keep more cash in your pocket.";
 
-const VISITOR_HERO_TEXT_PY = "py-[1.275rem] sm:py-[1.7rem] lg:py-[2.125rem]";
+const VISITOR_HERO_TEXT_PY = "py-[1.148rem] sm:py-[1.53rem] lg:py-[1.913rem]";
 const VISITOR_HERO_GRID_MIN_H =
-  "md:min-h-[23.8rem] lg:min-h-[27.2rem]";
-const VISITOR_HERO_IMAGE_H = "min-h-[min(61.2vw,15.3rem)]";
-const VISITOR_HERO_IMAGE_MAX_H = "max-h-[min(61.2vw,15.3rem)]";
+  "md:min-h-[21.42rem] lg:min-h-[24.48rem]";
+const VISITOR_HERO_IMAGE_H = "min-h-[min(55.08vw,13.77rem)]";
+const VISITOR_HERO_IMAGE_MAX_H = "max-h-[min(55.08vw,13.77rem)]";
 
 export type HomeHeroVariant = "visitor" | "active-member" | "partner";
 
@@ -197,8 +197,7 @@ function VisitorHeroBanner() {
         paddingClass={VISITOR_HERO_TEXT_PY}
         title={
           <>
-            Discover Local Kiwi Spots and Brands.{" "}
-            <span className="text-white/95">Enjoy Member Savings.</span>
+            Discover More. <span className="text-white/95">Pay Less.</span>
           </>
         }
         description={VISITOR_SUPPORTING_COPY}
