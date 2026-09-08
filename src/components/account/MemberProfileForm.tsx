@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmModal } from "@/components/account/ConfirmModal";
+import { MemberVaultMarketCard } from "@/components/account/MemberVaultMarketCard";
 import { resetPassword } from "@/lib/auth/password-reset-actions";
 import {
   deleteMemberAccountAction,
@@ -45,9 +46,13 @@ function CardShell({
 
 type MemberProfileFormProps = {
   profile: MemberProfile;
+  lifetimeSavings?: number;
 };
 
-export function MemberProfileForm({ profile }: MemberProfileFormProps) {
+export function MemberProfileForm({
+  profile,
+  lifetimeSavings = 0,
+}: MemberProfileFormProps) {
   const router = useRouter();
   const [firstName, setFirstName] = useState(profile.firstName);
   const [lastName, setLastName] = useState(profile.lastName);
@@ -125,11 +130,9 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
           <p className="mt-2 text-sm text-muted-foreground">
             Manage your personal information and security settings.
           </p>
-          <p className="mt-3 text-sm font-semibold">
-            <a href="/account/orders" className="text-primary hover:text-primary-hover">
-              View Vault Market orders →
-            </a>
-          </p>
+          <div className="mt-5">
+            <MemberVaultMarketCard lifetimeSavings={lifetimeSavings} />
+          </div>
 
           {message ? (
             <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">

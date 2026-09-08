@@ -18,6 +18,7 @@ import {
 } from "@/components/home/HomeSections";
 import { OwnAKiwiBrandCard } from "@/components/partners/OwnAKiwiBrandCard";
 import { SavingsCalculator } from "@/components/home/SavingsCalculator";
+import { HomeVaultMarketBanner } from "@/components/home/HomeVaultMarketBanner";
 import { HomeDineLocalSection } from "@/components/hospitality/HomeDineLocalSection";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { getAuthSession, syncAuthSessionHints } from "@/lib/auth";
@@ -75,6 +76,7 @@ function HomeAudienceContent({
           compactSpacing
         />
         <HomeDineLocalSection compactSpacing />
+        <HomeVaultMarketBanner compactSpacing />
         <HomeVaultDropSection drops={data.vaultDrops} />
       </div>
     );
@@ -97,6 +99,7 @@ function HomeAudienceContent({
           compactSpacing
         />
         <HomeDineLocalSection compactSpacing />
+        <HomeVaultMarketBanner compactSpacing />
       </div>
     );
   }
@@ -121,6 +124,7 @@ function HomeAudienceContent({
         topOffers={[]}
       />
       <HomeDineLocalSection />
+      <HomeVaultMarketBanner />
       <HomeFAQ faqs={data.homepageFaqs} />
       <section className="bg-surface-lavender pb-5 pt-3 sm:pb-7 sm:pt-4 lg:pt-5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

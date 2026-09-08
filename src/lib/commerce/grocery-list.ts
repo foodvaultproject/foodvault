@@ -4,10 +4,24 @@ import type { CartItem, FoodVaultProduct, GroceryListItem } from "@/types/commer
 export const GROCERY_LIST_KEY = "foodvault_grocery_list";
 export const GROCERY_LIST_CHANGE_EVENT = "fv:vault-market-grocery-change";
 export const GROCERY_LIST_OPEN_EVENT = "fv:vault-market-grocery-open";
+export const GROCERY_LIST_OPEN_FLAG = "fv.vault-market.open-grocery";
 
 export function emitGroceryListOpen(): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event(GROCERY_LIST_OPEN_EVENT));
+}
+
+export function requestGroceryListOpen(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(GROCERY_LIST_OPEN_FLAG, "1");
+  emitGroceryListOpen();
+}
+
+export function consumeGroceryListOpenFlag(): boolean {
+  if (typeof window === "undefined") return false;
+  const flagged = window.sessionStorage.getItem(GROCERY_LIST_OPEN_FLAG) === "1";
+  if (flagged) window.sessionStorage.removeItem(GROCERY_LIST_OPEN_FLAG);
+  return flagged;
 }
 
 export function readGroceryList(): GroceryListItem[] {

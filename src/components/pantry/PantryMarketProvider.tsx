@@ -27,6 +27,7 @@ import {
   GROCERY_LIST_CHANGE_EVENT,
   GROCERY_LIST_OPEN_EVENT,
   addGroceryItemsToCart,
+  consumeGroceryListOpenFlag,
   readGroceryList,
   removeGroceryListItem,
   setGroceryListQuantity,
@@ -94,6 +95,9 @@ export function PantryMarketProvider({
     if (consumeVaultMarketCartOpenFlag()) {
       setGroceryOpen(false);
       setCartOpen(true);
+    } else if (consumeGroceryListOpenFlag()) {
+      setCartOpen(false);
+      setGroceryOpen(true);
     }
 
     function handleCartOpen() {

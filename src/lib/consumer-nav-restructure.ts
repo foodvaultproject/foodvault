@@ -6,6 +6,7 @@ export function isConsumerNavRestructureEnabled(): boolean {
 export const CONSUMER_HOME_PATH = "/";
 export const CONSUMER_SEARCH_PATH = "/search";
 export const CONSUMER_EXPLORE_PATH = "/explore";
+export const CONSUMER_VAULT_MARKET_PATH = "/pantry";
 export const LEGACY_BROWSE_PATH = "/browse-brands";
 
 export const CONSUMER_BROWSE_PATHS = new Set([
@@ -41,6 +42,10 @@ export function isExplorePath(pathname: string): boolean {
 
 export function isConsumerHomePath(pathname: string): boolean {
   return pathname === CONSUMER_HOME_PATH;
+}
+
+export function isVaultMarketPath(pathname: string): boolean {
+  return pathname === CONSUMER_VAULT_MARKET_PATH || pathname.startsWith(`${CONSUMER_VAULT_MARKET_PATH}/`);
 }
 
 export function shouldShowConsumerSecondaryNav(pathname: string): boolean {

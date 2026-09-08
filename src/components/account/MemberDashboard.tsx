@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrowseBrandCard } from "@/components/browse-brands/BrowseBrandCard";
 import { brandTileGridClass } from "@/components/browse-brands/brand-card-layout";
 import { MemberDashboardFavorites } from "@/components/account/MemberDashboardFavorites";
+import { MemberVaultMarketCard } from "@/components/account/MemberVaultMarketCard";
 import { MemberQuickActionCards } from "@/components/member/MemberQuickActionCards";
 import type { BrandCard } from "@/lib/member/browse-brands-types";
 import type { FavoritePartner } from "@/lib/member/favorites-queries";
@@ -11,6 +12,7 @@ type MemberDashboardProps = {
   favorites: FavoritePartner[];
   canFavorite: boolean;
   favoritedPartnerIds: string[];
+  lifetimeSavings?: number;
   error?: string | null;
 };
 
@@ -19,6 +21,7 @@ export function MemberDashboard({
   favorites,
   canFavorite,
   favoritedPartnerIds,
+  lifetimeSavings = 0,
   error,
 }: MemberDashboardProps) {
   return (
@@ -33,6 +36,10 @@ export function MemberDashboard({
             {error}
           </p>
         ) : null}
+
+        <div className="mt-6">
+          <MemberVaultMarketCard lifetimeSavings={lifetimeSavings} />
+        </div>
 
         <section className="mt-6">
           <div className="flex items-center justify-between gap-4">

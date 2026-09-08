@@ -14,6 +14,8 @@ const footerSections = [
       { href: "/affiliate-program", label: "Affiliate Program" },
       { href: "/partners", label: "Our Partners" },
       { href: "/discover", label: "What's Happening?" },
+      { href: "/pantry", label: "Vault Market" },
+      { href: "/pantry/list", label: "My Grocery List" },
       { href: "/contact", label: "Contact Us" },
     ],
   },
