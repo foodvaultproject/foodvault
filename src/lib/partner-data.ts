@@ -80,6 +80,7 @@ export type PartnerRecord = {
   business_name: string | null;
   website_url: string | null;
   affiliate_enabled: boolean;
+  deletedAt: string | null;
   listingModel?: ListingModel;
 };
 
@@ -137,6 +138,10 @@ function mapRow(row: Record<string, unknown>): PartnerRecord {
     business_name: formatBusinessNameOrNull(row.business_name as string | null),
     website_url: (row.website_url as string | null) ?? null,
     affiliate_enabled: Boolean(row.affiliate_enabled),
+    deletedAt:
+      typeof row.deleted_at === "string" && row.deleted_at.trim()
+        ? row.deleted_at
+        : null,
     listingModel: parseListingModel(
       typeof row.listing_model === "string" ? row.listing_model : null
     ),
@@ -207,10 +212,10 @@ export async function resolvePartnerVaultDropCode(
 }
 
 const PARTNER_RECORD_COLUMNS =
-  "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled, listing_model";
+  "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled, listing_model, deleted_at";
 
 const PARTNER_RECORD_COLUMNS_LEGACY =
-  "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled";
+  "id, user_id, application_status_v2, listing_status_v2, business_name, website_url, affiliate_enabled, deleted_at";
 
 export async function getPartnerRecord(userId: string): Promise<PartnerRecord | null> {
   if (!isSupabaseConfigured()) {
@@ -383,6 +388,13 @@ export async function submitPartnerApplication(
   draft: PartnerApplicationDraft,
   assets?: PartnerApplicationAssets
 ): Promise<PartnerRecord> {
+  const existing = await getPartnerRecord(userId);
+  if (existing?.deletedAt) {
+    throw new Error(
+      "This partner profile has been deleted. Contact FoodVault support if you need it restored."
+    );
+  }
+
   const businessName = formatBusinessNameOrNull(draft.businessName);
   const offerScope = draft.offerScope ?? "entire_store";
   const selectedProductDrafts = draft.selectedProducts ?? [];
@@ -472,6 +484,7 @@ export async function submitPartnerApplication(
       ...payload,
       affiliate_enabled: affiliateConfig.enabled,
       vault_drop_code: existing?.vault_drop_code ?? null,
+      deletedAt: existing?.deletedAt ?? null,
     };
     writeDevPartner(record);
     return record;

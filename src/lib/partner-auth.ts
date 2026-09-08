@@ -141,6 +141,9 @@ export async function resolvePartnerPostLoginPath(
   if (!record) {
     return PARTNER_APPLICATION_PATH;
   }
+  if (record.deletedAt) {
+    return `${PARTNER_LOGIN_PATH}?deleted=1`;
+  }
 
   if (nextPath && nextPath.startsWith("/")) {
     return nextPath;

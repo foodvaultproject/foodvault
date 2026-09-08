@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ConfirmModal } from "@/components/account/ConfirmModal";
+import { deletePartnerProfileAction } from "@/lib/partner/account-actions";
 import { getPartnerSession } from "@/lib/partner-auth";
 import {
   portalBtnGhost,
@@ -31,6 +33,9 @@ export function PartnerAccountPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     getPartnerSession().then((session) => {
@@ -39,6 +44,17 @@ export function PartnerAccountPage() {
       }
     });
   }, []);
+
+  async function handleDeleteProfile() {
+    setDeleting(true);
+    setDeleteError(null);
+    const result = await deletePartnerProfileAction();
+    if (result && "error" in result && result.error) {
+      setDeleting(false);
+      setShowDeleteModal(false);
+      setDeleteError(result.error);
+    }
+  }
 
   return (
     <PartnerPortalShell>
@@ -193,9 +209,18 @@ export function PartnerAccountPage() {
           </section>
         </div>
 
+        {deleteError ? (
+          <p className="mt-4 text-sm font-medium text-red-600">{deleteError}</p>
+        ) : null}
+
         <div className="mt-5 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <button type="button" className={portalDestructive}>
-            Deactivate Account
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={deleting}
+            className={portalDestructive}
+          >
+            Delete profile
           </button>
           <div className="flex flex-col gap-2 sm:flex-row">
             <button type="button" className={portalBtnGhost}>
@@ -207,6 +232,17 @@ export function PartnerAccountPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete your partner profile?"
+        description="This removes your brand listing from FoodVault and signs you out. Member discount codes and the public profile will no longer be available. This cannot be undone from the partner portal."
+        confirmLabel="Delete profile"
+        destructive
+        loading={deleting}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={() => void handleDeleteProfile()}
+      />
     </PartnerPortalShell>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { getAuthSession, MEMBER_DASHBOARD_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
+import { getAuthSession, MEMBER_DASHBOARD_PATH, PARTNER_LOGIN_PATH, signOut } from "@/lib/auth";
 import { setActivePortalClient } from "@/lib/auth/active-portal";
 import { getPartnerRecord } from "@/lib/partner-data";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
@@ -36,6 +36,11 @@ export function PartnerAuthGuard({ children }: { children: React.ReactNode }) {
       const partnerRecord = await getPartnerRecord(session.id);
       if (!partnerRecord) {
         router.replace(PARTNER_APPLICATION_PATH);
+        return;
+      }
+      if (partnerRecord.deletedAt) {
+        await signOut();
+        router.replace(`${PARTNER_LOGIN_PATH}?deleted=1`);
         return;
       }
 

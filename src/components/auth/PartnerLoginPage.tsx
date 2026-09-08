@@ -15,6 +15,7 @@ import {
   resolvePostLoginRedirect,
   signInWithEmail,
   signInWithGoogle,
+  signOut,
 } from "@/lib/auth";
 import {
   PARTNER_CREATE_ACCOUNT_PATH,
@@ -77,7 +78,9 @@ function PartnerLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(
-    messageForAuthError(searchParams.get("error"))
+    searchParams.get("deleted") === "1"
+      ? "Your partner profile has been deleted and the public listing has been removed."
+      : messageForAuthError(searchParams.get("error"))
   );
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -104,6 +107,9 @@ function PartnerLoginForm() {
         }
 
         const path = await resolvePartnerPostLoginPath(session.id, nextPath);
+        if (path.includes("deleted=1")) {
+          await signOut();
+        }
         router.replace(path);
         return;
       }

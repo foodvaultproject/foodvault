@@ -31,7 +31,7 @@ import {
   type VaultDropFormDraft,
 } from "@/lib/vault-drop";
 import { notifyAdminPartnerListingSubmittedAction } from "@/lib/partner/submission-notifications";
-import { PARTNER_DASHBOARD_PATH } from "@/lib/auth";
+import { PARTNER_DASHBOARD_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import {
   finalizeBusinessNameInput,
   formatBusinessNameInput,
@@ -347,6 +347,11 @@ export function PartnerApplicationPage() {
 
         const existingRecord = await getPartnerRecord(partnerSession.id);
         if (cancelled) return;
+
+        if (existingRecord?.deletedAt) {
+          router.replace(`${PARTNER_LOGIN_PATH}?deleted=1`);
+          return;
+        }
 
         if (existingRecord) {
           router.replace(PARTNER_DASHBOARD_PATH);

@@ -175,11 +175,29 @@ export async function deletePartnerAction(partnerId: string) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("partners").delete().eq("id", partnerId);
+  const { data: existing } = await supabase
+    .from("partners")
+    .select("slug")
+    .eq("id", partnerId)
+    .maybeSingle();
+
+  const deletedAt = new Date().toISOString();
+  const { error } = await supabase
+    .from("partners")
+    .update({
+      deleted_at: deletedAt,
+      listing_status_v2: "PENDING",
+      member_offer_confirmed: false,
+      affiliate_enabled: false,
+      business_status: "deleted",
+      updated_at: deletedAt,
+    })
+    .eq("id", partnerId);
+
   if (error) return { error: error.message };
   await logAuditAction("delete_partner", "partner", partnerId);
   revalidatePath("/admin/partners");
-  await revalidatePartnerPublicSurfaces(partnerId);
+  revalidatePublicBrandDirectory({ slug: existing?.slug ?? null });
   return { success: true };
 }
 

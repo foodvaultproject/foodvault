@@ -32,9 +32,13 @@ export function PartnersClient({
   }
 
   function handleDelete(partnerId: string) {
-    if (!confirm("Delete this partner permanently?")) return;
+    if (!confirm("Remove this partner listing from FoodVault?")) return;
     startTransition(async () => {
-      await deletePartnerAction(partnerId);
+      const result = await deletePartnerAction(partnerId);
+      if (result && "error" in result && result.error) {
+        window.alert(result.error);
+        return;
+      }
       router.refresh();
     });
   }
