@@ -17,6 +17,15 @@ const styles: Record<string, string> = {
   MEMBER: "bg-blue-50 text-blue-700",
   PARTNER: "bg-purple-50 text-purple-700",
   GENERAL: "bg-slate-100 text-slate-700",
+  "Class A": "bg-emerald-50 text-emerald-700",
+  "Class B": "bg-blue-50 text-blue-700",
+  "Class C": "bg-slate-100 text-slate-700",
+  Sufficient: "bg-emerald-50 text-emerald-700",
+  "Reorder Soon": "bg-amber-50 text-amber-800",
+  "Stockout Risk": "bg-red-50 text-red-700",
+  Draft: "bg-slate-100 text-slate-700",
+  "Submitted to Vendor": "bg-blue-50 text-blue-700",
+  Settled: "bg-emerald-50 text-emerald-700",
 };
 
 export function StatusBadge({ label }: { label: string }) {

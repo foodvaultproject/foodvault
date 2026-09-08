@@ -3,6 +3,7 @@ import {
   MEMBER_DASHBOARD_PATH,
   MEMBER_FAVORITES_PATH,
   MEMBER_MEMBERSHIP_PATH,
+  MEMBER_ORDERS_PATH,
 } from "@/lib/member/paths";
 
 export type NavAuthState =
@@ -31,6 +32,7 @@ export const memberNavMenuItems = [
   { href: "/", label: "Home" },
   { href: MEMBER_DASHBOARD_PATH, label: "My Dashboard" },
   { href: MEMBER_ACCOUNT_PATH, label: "My Account" },
+  { href: MEMBER_ORDERS_PATH, label: "My Orders" },
   { href: MEMBER_MEMBERSHIP_PATH, label: "Membership" },
   { href: MEMBER_FAVORITES_PATH, label: "Favorites" },
   { href: "/contact", label: "Help & Support" },

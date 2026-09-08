@@ -11,6 +11,7 @@ import {
   handleMemberInvoicePaymentSucceeded,
   syncMemberSubscriptionState,
 } from "@/lib/payment-service/providers/stripe-member";
+import { fulfillPantryOrderFromCheckoutSession } from "@/lib/commerce/fulfill-pantry-order";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 
 export async function POST(request: NextRequest) {
@@ -57,6 +58,12 @@ export async function POST(request: NextRequest) {
               });
             }
           }
+        }
+        if (
+          session.mode === "payment" &&
+          session.metadata?.foodvault === "vault_market"
+        ) {
+          await fulfillPantryOrderFromCheckoutSession(session);
         }
         if (
           session.mode === "subscription" &&

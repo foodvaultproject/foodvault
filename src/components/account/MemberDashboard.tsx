@@ -35,7 +35,12 @@ export function MemberDashboard({
         ) : null}
 
         <section className="mt-6">
-          <h2 className="text-[14px] font-bold text-foreground">Quick Actions</h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-[14px] font-bold text-foreground">Quick Actions</h2>
+            <Link href="/account/orders" className="text-sm font-semibold text-primary hover:text-primary-hover">
+              My Orders
+            </Link>
+          </div>
           <div className="mt-2.5">
             <MemberQuickActionCards />
           </div>

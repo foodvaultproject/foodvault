@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MobileMenu } from "@/components/NavLinks";
 import { NavLinks } from "@/components/NavLinks";
@@ -24,6 +25,8 @@ import {
   type NavAuthState,
 } from "@/lib/nav-auth";
 import { FavoritesNavLink } from "@/components/favorites/FavoritesNavLink";
+import { GroceryListButton } from "@/components/pantry/GroceryListButton";
+import { VaultMarketCartButton } from "@/components/pantry/VaultMarketCartButton";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { isPartnerAccount } from "@/lib/partner-data";
 import { isAffiliateAccount } from "@/lib/affiliate/auth";
@@ -370,8 +373,10 @@ function DesktopAuthActions({
 
 export function Navigation() {
   const auth = useNavAuth();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
+  const showVaultMarketCart = pathname === "/pantry" || pathname.startsWith("/pantry/");
   return (
     <header
       className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
@@ -403,6 +408,12 @@ export function Navigation() {
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
+          {showVaultMarketCart ? (
+            <>
+              <GroceryListButton variant="nav" />
+              <VaultMarketCartButton variant="nav" menuPreview={menuPreview} />
+            </>
+          ) : null}
           <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
           <MobileMenu
             auth={auth}

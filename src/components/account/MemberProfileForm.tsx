@@ -125,6 +125,11 @@ export function MemberProfileForm({ profile }: MemberProfileFormProps) {
           <p className="mt-2 text-sm text-muted-foreground">
             Manage your personal information and security settings.
           </p>
+          <p className="mt-3 text-sm font-semibold">
+            <a href="/account/orders" className="text-primary hover:text-primary-hover">
+              View Vault Market orders →
+            </a>
+          </p>
 
           {message ? (
             <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">

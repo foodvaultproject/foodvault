@@ -15,7 +15,12 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const showConsumerSecondaryNav = shouldShowConsumerSecondaryNav(pathname);
 
   if (isAdmin) {
-    return <div className="min-h-screen bg-page">{children}</div>;
+    const isPackingSlip = pathname.includes("/packing-slip");
+    return (
+      <div className={isPackingSlip ? "min-h-screen bg-white" : "min-h-screen bg-page"}>
+        {children}
+      </div>
+    );
   }
 
   return (
