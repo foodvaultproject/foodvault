@@ -9,6 +9,7 @@ import {
   type BlogRotationCategory,
 } from "@/lib/cron/generate-blog";
 import { unescapeArticleEntities } from "@/lib/discover/article-inline";
+import { parseMetaTags } from "@/lib/discover/meta-tags";
 
 export const GEMINI_BLOG_MODEL = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
 const GEMINI_BLOG_MODEL_FALLBACK = "gemini-3.6-flash";
@@ -43,7 +44,16 @@ const BLOG_RESPONSE_SCHEMA: ResponseSchema = {
     },
     meta_description: {
       type: SchemaType.STRING,
-      description: "Search engine description, 140-160 characters.",
+      description:
+        "Dedicated SEO and social-preview description, 150-160 characters. Do not exceed 160 characters.",
+    },
+    tags: {
+      type: SchemaType.ARRAY,
+      description:
+        "Exactly 3 to 5 high-intent SEO keywords, e.g. Partner Spotlight, Independent NZ, Pantry Savings.",
+      items: { type: SchemaType.STRING },
+      minItems: 3,
+      maxItems: 5,
     },
   },
   required: [
@@ -54,6 +64,7 @@ const BLOG_RESPONSE_SCHEMA: ResponseSchema = {
     "category",
     "meta_title",
     "meta_description",
+    "tags",
   ],
 };
 
@@ -65,6 +76,19 @@ export type GeneratedBlogDraft = {
   category: BlogRotationCategory;
   meta_title: string;
   meta_description: string;
+  tags: string[];
+};
+
+const MIN_META_DESCRIPTION_LENGTH = 150;
+const MAX_META_DESCRIPTION_LENGTH = 160;
+const MIN_SEO_TAGS = 3;
+const MAX_SEO_TAGS = 5;
+
+const FALLBACK_TAGS_BY_CATEGORY: Record<BlogRotationCategory, string[]> = {
+  savings: ["Pantry Savings", "Member Pricing", "Independent NZ"],
+  partners: ["Partner Spotlight", "Independent NZ", "Member Savings"],
+  recipes: ["Kiwi Recipes", "Member Savings", "Weeknight Meals"],
+  news: ["NZ Grocery News", "Member Savings", "FoodVault"],
 };
 
 const ROTATION_CATEGORY_ALIASES: Record<string, BlogRotationCategory> = {
@@ -84,7 +108,8 @@ function categoryPromptBrief(payload: BlogGenerationPayload): string {
       return [
         "Write a savings article that shows how FoodVault members spend less on everyday Kiwi groceries.",
         "Use the essential category and any featured partner offer exactly as provided — do not invent discounts.",
-        "Make the FoodVault basket ROI concrete: membership cost versus typical savings on that shop.",
+        "Make the FoodVault basket ROI concrete: membership cost versus typical FoodVault member savings on that shop.",
+        "Describe FoodVault savings in their own right. Do not mention or compare against New Zealand supermarkets.",
       ].join(" ");
     case "partners":
       return [
@@ -102,7 +127,7 @@ function categoryPromptBrief(payload: BlogGenerationPayload): string {
       return [
         payload.context.openaiInstruction,
         payload.context.foodVaultAngle,
-        "Frame supermarket pricing pressure against FoodVault basket ROI. Do not invent specific CPI or inflation statistics.",
+        "Keep the story on FoodVault member savings and independent Kiwi brands. Do not invent specific CPI or inflation statistics.",
       ].join(" ");
   }
 }
@@ -147,6 +172,8 @@ function buildPrompt(payload: BlogGenerationPayload): string {
     "You are the FoodVault Discover editor. FoodVault is a New Zealand membership that unlocks exclusive pricing from independent food and household brands.",
     "Tone: inviting, local Kiwi — warm, practical, and confident. Write as Mark, Kiwi & Piggy.",
     "Always emphasise FoodVault basket ROI: how exclusive member pricing pays back the membership fee across a typical shop.",
+    "It is fine to talk about saving money and how FoodVault helps Kiwi consumers save, including what those savings are.",
+    "Never mention, criticise, or compare FoodVault with New Zealand supermarkets or grocery chains. Do not name Countdown, Woolworths, Pak'nSave, New World, FreshChoice, SuperValue, Four Square, The Warehouse, Foodstuffs, or any other NZ supermarket. Do not use framing such as cheaper than the supermarket, instead of supermarket prices, supermarket specials, supermarket inflation, duopoly, or full retail supermarket prices. Speak only about FoodVault member pricing, independent Kiwi brands, and the value of membership.",
     "",
     categoryPromptBrief(payload),
     "",
@@ -155,7 +182,9 @@ function buildPrompt(payload: BlogGenerationPayload): string {
     "Return only JSON matching the schema.",
     "title: SEO-optimised blog headline.",
     "slug: clean, URL-friendly kebab-case.",
-    "excerpt: exactly two sentences.",
+    "excerpt: exactly two sentences for the article card.",
+    "meta_description: a dedicated search-engine and social-preview description, 150-160 characters maximum. Lead with the search intent and include FoodVault. Do not exceed 160 characters.",
+    "tags: exactly 3 to 5 highly relevant, high-intent keywords, e.g. [\"Partner Spotlight\", \"Independent NZ\", \"Pantry Savings\"]. No generic filler and no more than 5 tags.",
     "content: 600-800 words of standard Markdown with ## / ### subheadings, **bold highlights**, bullet points, and a FoodVault CTA.",
     "When referencing FoodVault routes, always write standard Markdown hyperlinked text using valid absolute or root relative URLs, e.g., [Join FoodVault](https://www.foodvault.co.nz/signup) or [Grove Avocado Oil](/brands/grove-avocado-oil). Never print raw unlinked paths.",
     "Use a literal & character in titles and body text. Do not emit HTML entities such as &amp; or &amp;amp;.",
@@ -166,6 +195,44 @@ function buildPrompt(payload: BlogGenerationPayload): string {
     "Context payload:",
     JSON.stringify(contextForPrompt(payload), null, 2),
   ].join("\n");
+}
+
+export function clampMetaDescription(text: string, fallback: string): string {
+  const source =
+    unescapeArticleEntities(text).trim() || unescapeArticleEntities(fallback).trim();
+  if (source.length <= MAX_META_DESCRIPTION_LENGTH) {
+    return source;
+  }
+
+  const sliced = source.slice(0, MAX_META_DESCRIPTION_LENGTH);
+  const lastSpace = sliced.lastIndexOf(" ");
+  const trimmed =
+    lastSpace >= MIN_META_DESCRIPTION_LENGTH ? sliced.slice(0, lastSpace) : sliced;
+  return trimmed.replace(/[.,;:]\s*$/, "").trim();
+}
+
+export function normalizeGeneratedTags(
+  raw: unknown,
+  category: BlogRotationCategory
+): string[] {
+  const parsed = parseMetaTags(raw)
+    .map((tag) => unescapeArticleEntities(tag))
+    .filter(Boolean);
+  const unique: string[] = [];
+  for (const tag of parsed) {
+    if (!unique.some((existing) => existing.toLowerCase() === tag.toLowerCase())) {
+      unique.push(tag);
+    }
+  }
+
+  for (const fallback of FALLBACK_TAGS_BY_CATEGORY[category]) {
+    if (unique.length >= MIN_SEO_TAGS) break;
+    if (!unique.some((existing) => existing.toLowerCase() === fallback.toLowerCase())) {
+      unique.push(fallback);
+    }
+  }
+
+  return unique.slice(0, MAX_SEO_TAGS);
 }
 
 function parseGeneratedBlog(
@@ -214,7 +281,8 @@ function parseGeneratedBlog(
     content,
     category: mappedCategory,
     meta_title: metaTitle || title,
-    meta_description: metaDescription || excerpt,
+    meta_description: clampMetaDescription(metaDescription, excerpt),
+    tags: normalizeGeneratedTags(row.tags ?? row.meta_tags, mappedCategory),
   };
 }
 

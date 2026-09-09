@@ -66,8 +66,9 @@ function NotifyLaunchModal({
       setError(result.error);
       return;
     }
+    const isAlreadySubscribed = "alreadySubscribed" in result && Boolean(result.alreadySubscribed);
     setSuccess(
-      result.alreadySubscribed
+      isAlreadySubscribed
         ? "You're already on the Vault Market launch list."
         : "We'll email you when Vault Market launches."
     );

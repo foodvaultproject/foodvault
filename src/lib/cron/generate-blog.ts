@@ -496,9 +496,9 @@ function buildSavingsAngle(
   const label = savingsCategoryLabel(category);
   const membership = `FoodVault membership is $${membershipPriceMonthly.toFixed(2)}/month`;
   if (!partner) {
-    return `${membership}. Use this post to show how members stretch that fee across everyday ${label} by shopping independent FoodVault brands instead of full supermarket prices.`;
+    return `${membership}. Use this post to show how members stretch that fee across everyday ${label} by shopping independent FoodVault brands at exclusive member prices. Talk about FoodVault savings only — do not mention, criticise, or compare against New Zealand supermarkets.`;
   }
-  return `${membership}. Feature ${partner.businessName} (${partner.offer.discountLabel}) to show how members save on ${label} — the membership fee is typically recovered in a single shop when that exclusive offer is used.`;
+  return `${membership}. Feature ${partner.businessName} (${partner.offer.discountLabel}) to show how members save on ${label} — the membership fee is typically recovered in a single shop when that exclusive offer is used. Stay on FoodVault member savings only; do not mention or compare against New Zealand supermarkets.`;
 }
 
 async function loadMembership(admin: SupabaseClient) {
@@ -618,11 +618,11 @@ export async function buildBlogGenerationPayload(
     cmsCategory: "News",
     selectionReason: reason,
     context: {
-      topic: "NZ food inflation and supermarket pricing trends",
+      topic: "How FoodVault helps Kiwi households save on everyday groceries",
       foodVaultAngle:
-        "Position FoodVault membership as a practical buffer: exclusive independent-brand pricing that offsets supermarket inflation without waiting for weekly specials.",
+        "Position FoodVault membership as a practical way to lock in exclusive independent-brand pricing and recover the membership fee across a typical shop.",
       openaiInstruction:
-        "Write a Discover news post framed around recent New Zealand grocery inflation and the supermarket duopoly (Foodstuffs / Woolworths). Use current public context if you are confident it is accurate; do not invent specific CPI figures. Explain how FoodVault's member pricing on independent Kiwi brands acts as a buffer against supermarket price rises. Keep the tone practical and local, not political.",
+        "Write a Discover news post about how FoodVault helps Kiwi consumers save on everyday food. Focus on membership value, exclusive partner pricing, and what those savings look like on a typical shop. Use current public context only if you are confident it is accurate; do not invent specific CPI figures. Do not mention, criticise, or compare FoodVault to any New Zealand supermarket or grocery chain. Keep the tone practical, positive, and local — not political.",
       membershipPriceMonthly: membership.membershipPriceMonthly,
       recentPartners,
     },
