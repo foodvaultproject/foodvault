@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatAdminDate } from "@/components/admin/AdminUi";
 import { saveInventoryBatchAction } from "@/lib/admin/pantry-actions";
-import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultInventoryBatch, FoodVaultProduct } from "@/types/commerce";
 
 type BatchRow = FoodVaultInventoryBatch & {
@@ -58,9 +57,10 @@ export function InventoryClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Batch inventory</h1>
+          <h1 className="text-2xl font-bold text-foreground">Inventory</h1>
           <p className="mt-1 text-sm text-muted">
-            Log stock arrivals, unit cost, and expiry. Product SOH updates automatically.
+            Add stock quantity to make products live on Vault Market. Product SOH updates
+            automatically.
           </p>
         </div>
         <button
@@ -68,19 +68,16 @@ export function InventoryClient({
           onClick={openCreate}
           className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground"
         >
-          Log stock intake
+          Add inventory
         </button>
       </div>
 
       <div className="overflow-x-auto rounded border border-border bg-white">
-        <table className="w-full min-w-[56rem] text-left text-sm">
+        <table className="w-full min-w-[40rem] text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
               <th className="px-4 py-3 font-semibold">Product</th>
-              <th className="px-4 py-3 font-semibold">Batch</th>
               <th className="px-4 py-3 font-semibold">Qty received</th>
-              <th className="px-4 py-3 font-semibold">Unit cost</th>
-              <th className="px-4 py-3 font-semibold">Expiry</th>
               <th className="px-4 py-3 font-semibold">Logged</th>
               <th className="px-4 py-3 font-semibold" />
             </tr>
@@ -88,8 +85,8 @@ export function InventoryClient({
           <tbody>
             {batches.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted">
-                  No inventory batches yet.
+                <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted">
+                  No inventory recorded yet.
                 </td>
               </tr>
             ) : (
@@ -99,10 +96,7 @@ export function InventoryClient({
                     <p className="font-semibold text-foreground">{batch.product_name ?? "Unknown"}</p>
                     <p className="text-xs text-muted">{batch.product_sku}</p>
                   </td>
-                  <td className="px-4 py-3">{batch.batch_number}</td>
                   <td className="px-4 py-3 tabular-nums">{batch.quantity_received}</td>
-                  <td className="px-4 py-3">{formatNzPrice(batch.unit_cost_price)}</td>
-                  <td className="px-4 py-3">{batch.expiry_date ?? "—"}</td>
                   <td className="px-4 py-3 text-muted">
                     {batch.created_at ? formatAdminDate(batch.created_at) : "—"}
                   </td>
@@ -126,7 +120,7 @@ export function InventoryClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-lg border border-border bg-white p-6 shadow-xl">
             <h2 className="text-lg font-bold text-foreground">
-              {editing ? "Edit stock batch" : "Log stock intake"}
+              {editing ? "Edit inventory" : "Add inventory"}
             </h2>
             <form action={handleSubmit} className="mt-4 space-y-4">
               {editing ? <input type="hidden" name="id" value={editing.id} /> : null}
@@ -147,54 +141,17 @@ export function InventoryClient({
                   ))}
                 </select>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className={labelClass} htmlFor="quantity_received">Quantity received</label>
-                  <input
-                    id="quantity_received"
-                    name="quantity_received"
-                    type="number"
-                    min="1"
-                    required
-                    defaultValue={editing?.quantity_received ?? ""}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="unit_cost_price">Unit cost price</label>
-                  <input
-                    id="unit_cost_price"
-                    name="unit_cost_price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    defaultValue={editing?.unit_cost_price ?? ""}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className={labelClass} htmlFor="batch_number">Batch number</label>
-                  <input
-                    id="batch_number"
-                    name="batch_number"
-                    required
-                    defaultValue={editing?.batch_number ?? ""}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="expiry_date">Expiry date</label>
-                  <input
-                    id="expiry_date"
-                    name="expiry_date"
-                    type="date"
-                    defaultValue={editing?.expiry_date ?? ""}
-                    className={inputClass}
-                  />
-                </div>
+              <div>
+                <label className={labelClass} htmlFor="quantity_received">Quantity received</label>
+                <input
+                  id="quantity_received"
+                  name="quantity_received"
+                  type="number"
+                  min="1"
+                  required
+                  defaultValue={editing?.quantity_received ?? ""}
+                  className={inputClass}
+                />
               </div>
               {error ? (
                 <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -214,7 +171,7 @@ export function InventoryClient({
                   disabled={pending}
                   className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                 >
-                  {pending ? "Saving..." : "Save batch"}
+                  {pending ? "Saving..." : "Save inventory"}
                 </button>
               </div>
             </form>

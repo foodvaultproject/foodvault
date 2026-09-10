@@ -119,20 +119,14 @@ export async function saveInventoryBatchAction(formData: FormData) {
   if (!admin) return { error: "Unauthorized" };
 
   const productId = String(formData.get("product_id") ?? "").trim();
-  const batchNumber = String(formData.get("batch_number") ?? "").trim();
   const quantity = Math.trunc(readNumber(formData, "quantity_received"));
   if (!productId) return { error: "Select a product." };
-  if (!batchNumber) return { error: "Batch number is required." };
   if (quantity < 1) return { error: "Quantity received must be at least 1." };
 
-  const expiryRaw = String(formData.get("expiry_date") ?? "").trim();
   const result = await writeInventoryBatch({
     id: String(formData.get("id") ?? "").trim() || undefined,
     product_id: productId,
     quantity_received: quantity,
-    unit_cost_price: readNumber(formData, "unit_cost_price"),
-    batch_number: batchNumber,
-    expiry_date: expiryRaw || null,
   });
 
   if (result.error) return { error: result.error };

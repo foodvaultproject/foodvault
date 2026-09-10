@@ -328,7 +328,11 @@ export function productWritePayload(input: {
     wholesale_cost: input.wholesale_cost,
     updated_at: new Date().toISOString(),
   };
-  if (input.id) payload.id = input.id;
+  if (input.id) {
+    payload.id = input.id;
+  } else {
+    payload.stock_quantity = 0;
+  }
   return payload;
 }
 
@@ -367,9 +371,9 @@ export async function writeInventoryBatch(input: {
   id?: string;
   product_id: string;
   quantity_received: number;
-  unit_cost_price: number;
-  batch_number: string;
-  expiry_date: string | null;
+  unit_cost_price?: number;
+  batch_number?: string;
+  expiry_date?: string | null;
 }): Promise<{ data: FoodVaultInventoryBatch | null; error: string | null; previousQty: number }> {
   const supabase = await pantryClient();
   if (!supabase) {
@@ -391,11 +395,23 @@ export async function writeInventoryBatch(input: {
   const payload: Record<string, unknown> = {
     product_id: input.product_id,
     quantity_received: input.quantity_received,
-    unit_cost_price: input.unit_cost_price,
-    batch_number: input.batch_number,
-    expiry_date: input.expiry_date,
     updated_at: new Date().toISOString(),
   };
+
+  if (!input.id) {
+    let unitCost = input.unit_cost_price;
+    if (unitCost == null) {
+      const { data: product } = await supabase
+        .from("foodvault_products")
+        .select("wholesale_cost")
+        .eq("id", input.product_id)
+        .maybeSingle();
+      unitCost = asNumber((product as { wholesale_cost?: unknown } | null)?.wholesale_cost);
+    }
+    payload.unit_cost_price = unitCost;
+    payload.batch_number = input.batch_number?.trim() || "-";
+    payload.expiry_date = input.expiry_date ?? null;
+  }
 
   const attempt = async (body: Record<string, unknown>) => {
     const query = input.id

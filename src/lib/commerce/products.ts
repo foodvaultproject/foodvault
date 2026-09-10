@@ -102,6 +102,10 @@ function isActiveRow(row: Record<string, unknown>): boolean {
   return true;
 }
 
+function isStorefrontVisible(product: FoodVaultProduct): boolean {
+  return product.is_active && product.stock_quantity > 0;
+}
+
 function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
   const sku = asString(row.sku);
   const name = asString(row.name);
@@ -213,5 +217,5 @@ export async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]
   return (data ?? [])
     .map((row) => mapProduct(row as Record<string, unknown>))
     .filter((product): product is FoodVaultProduct => product !== null)
-    .filter((product) => product.is_active);
+    .filter(isStorefrontVisible);
 }

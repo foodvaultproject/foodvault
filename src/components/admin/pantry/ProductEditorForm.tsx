@@ -361,14 +361,19 @@ export function ProductEditorForm({
             />
             Natural flavours or colours
           </label>
-          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <label className="flex items-start gap-2 text-sm font-medium text-foreground">
             <input
               type="checkbox"
               name="is_active"
               defaultChecked={product?.is_active ?? true}
-              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
             />
-            Active in Vault Market
+            <span>
+              Active in Vault Market
+              <span className="mt-0.5 block text-xs font-normal text-muted">
+                Listed on the storefront only after inventory quantity is added.
+              </span>
+            </span>
           </label>
         </div>
       </section>
