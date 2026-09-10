@@ -381,6 +381,7 @@ export async function writeInventoryBatch(input: {
   }
 
   let previousQty = 0;
+  let existingRemaining: number | null = null;
   if (input.id) {
     const { data: existing } = await supabase
       .from("foodvault_inventory_batches")
@@ -388,13 +389,19 @@ export async function writeInventoryBatch(input: {
       .eq("id", input.id)
       .maybeSingle();
     if (existing) {
-      previousQty = mapInventoryBatch(existing as Record<string, unknown>).quantity_received;
+      const row = existing as Record<string, unknown>;
+      previousQty = mapInventoryBatch(row).quantity_received;
+      existingRemaining =
+        row.quantity_remaining == null ? previousQty : asNumber(row.quantity_remaining);
     }
   }
 
   const payload: Record<string, unknown> = {
     product_id: input.product_id,
     quantity_received: input.quantity_received,
+    quantity_remaining: input.id
+      ? Math.max(0, (existingRemaining ?? previousQty) + (input.quantity_received - previousQty))
+      : input.quantity_received,
     updated_at: new Date().toISOString(),
   };
 
@@ -423,8 +430,7 @@ export async function writeInventoryBatch(input: {
   let body = { ...payload };
   let { data, error } = await attempt(body);
   for (let i = 0; i < 6 && error; i += 1) {
-    const column = error.message.match(/Could not find the '([^']+)' column/i)?.[1]
-      ?? error.message.match(/column "([^"]+)"/i)?.[1];
+    const column = error.message.match(/Could not find the '([^']+)' column/i)?.[1];
     if (!column || !(column in body)) break;
     const next = { ...body };
     delete next[column];

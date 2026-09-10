@@ -597,6 +597,7 @@ export async function completePurchaseOrderReceiving(poId: string): Promise<{
     const { error: batchError } = await supabase.from("foodvault_inventory_batches").insert({
       product_id: item.productId,
       quantity_received: item.quantityReceived,
+      quantity_remaining: item.quantityReceived,
       unit_cost_price: item.costPrice,
       batch_number: item.batchNumber || `PO-${po.poNumber}`,
       expiry_date: item.expiryDate || null,
