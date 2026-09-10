@@ -1,14 +1,23 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   PARTNER_CATEGORY_TAXONOMY,
   PRIMARY_DEPARTMENTS,
   type PrimaryDepartment,
 } from "@/data/partner-categories";
-import { saveVaultMarketProductAction, uploadVaultMarketImageAction } from "@/lib/admin/pantry-actions";
-import { NIP_NUTRIENTS, nipFromFacts, unitPriceLabelFromProduct } from "@/lib/admin/pantry-shared";
+import {
+  parseVaultMarketNipImageAction,
+  saveVaultMarketProductAction,
+  uploadVaultMarketImageAction,
+} from "@/lib/admin/pantry-actions";
+import {
+  NIP_NUTRIENTS,
+  nipFromFacts,
+  unitPriceLabelFromProduct,
+  type NipNutrientKey,
+} from "@/lib/admin/pantry-shared";
 import { slugifyTitle } from "@/lib/admin/types";
 import type { FoodVaultProduct } from "@/types/commerce";
 
@@ -16,8 +25,10 @@ const inputClass =
   "w-full rounded-md border border-border bg-white px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted";
 const sectionClass = "rounded border border-border bg-white p-5 sm:p-6";
+const thumbClass = "h-16 w-16 rounded border border-border object-cover";
 
 const HEALTH_STARS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+const MAX_GALLERY_IMAGES = 6;
 
 export function ProductEditorForm({
   product,
@@ -35,8 +46,17 @@ export function ProductEditorForm({
   const [category, setCategory] = useState(product?.category ?? "Pantry");
   const [subcategory, setSubcategory] = useState(product?.subcategory ?? "");
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
-  const [uploading, setUploading] = useState(false);
-  const nip = useMemo(() => nipFromFacts(product?.nutrition_facts), [product]);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>(() =>
+    (product?.gallery_urls ?? []).slice(0, MAX_GALLERY_IMAGES)
+  );
+  const [uploadingSlot, setUploadingSlot] = useState<"primary" | number | null>(null);
+  const [readingNip, setReadingNip] = useState(false);
+  const [nip, setNip] = useState(() => nipFromFacts(product?.nutrition_facts));
+  const nipPhotoRef = useRef<HTMLInputElement>(null);
+  const primaryFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
+
+  const uploading = uploadingSlot !== null;
 
   const subcategories = useMemo(() => {
     const department = (
@@ -52,18 +72,56 @@ export function ProductEditorForm({
     if (!slugTouched) setSlug(slugifyTitle(value));
   }
 
-  async function handleUpload(file: File) {
-    setUploading(true);
+  async function handleNipPhoto(file: File) {
+    setReadingNip(true);
     setError(null);
     const fd = new FormData();
     fd.set("file", file);
-    const result = await uploadVaultMarketImageAction(fd);
-    setUploading(false);
+    const result = await parseVaultMarketNipImageAction(fd);
+    setReadingNip(false);
+    if (nipPhotoRef.current) nipPhotoRef.current.value = "";
     if (result.error) {
       setError(result.error);
       return;
     }
-    if (result.url) setImageUrl(result.url);
+    if (result.nip) setNip(result.nip);
+  }
+
+  async function handleUpload(file: File, slot: "primary" | "gallery") {
+    if (slot === "gallery" && galleryUrls.length >= MAX_GALLERY_IMAGES) return;
+    setUploadingSlot(slot === "primary" ? "primary" : galleryUrls.length);
+    setError(null);
+    const fd = new FormData();
+    fd.set("file", file);
+    const result = await uploadVaultMarketImageAction(fd);
+    setUploadingSlot(null);
+    if (slot === "primary" && primaryFileRef.current) primaryFileRef.current.value = "";
+    if (slot === "gallery" && galleryFileRef.current) galleryFileRef.current.value = "";
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    if (!result.url) return;
+    if (slot === "primary") {
+      setImageUrl(result.url);
+      return;
+    }
+    const url = result.url;
+    setGalleryUrls((prev) => (prev.length >= MAX_GALLERY_IMAGES ? prev : [...prev, url]));
+  }
+
+  function updateNipField(field: "serving_size" | "servings_per_pack", value: string) {
+    setNip((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateNipValue(key: NipNutrientKey, field: "per_serve" | "per_100g", value: string) {
+    setNip((prev) => ({
+      ...prev,
+      values: {
+        ...prev.values,
+        [key]: { ...prev.values[key], [field]: value },
+      },
+    }));
   }
 
   function handleSubmit(formData: FormData) {
@@ -280,14 +338,50 @@ export function ProductEditorForm({
 
       <section className={sectionClass}>
         <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Nutrition information panel</h2>
+        <div className="mt-4">
+          <label className={labelClass} htmlFor="nip_photo">NIP photo</label>
+          <input
+            id="nip_photo"
+            ref={nipPhotoRef}
+            type="file"
+            accept="image/*"
+            disabled={readingNip}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleNipPhoto(file);
+            }}
+            className="block w-full text-sm text-muted"
+          />
+          {readingNip ? (
+            <p className="mt-2 text-sm text-muted">Reading panel...</p>
+          ) : (
+            <p className="mt-2 text-xs text-muted">
+              Photo is used only to fill the panel below. It is not saved as a product image.
+            </p>
+          )}
+        </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
             <label className={labelClass} htmlFor="serving_size">Serving size</label>
-            <input id="serving_size" name="serving_size" placeholder="25g" defaultValue={nip.serving_size} className={inputClass} />
+            <input
+              id="serving_size"
+              name="serving_size"
+              placeholder="25g"
+              value={nip.serving_size}
+              onChange={(e) => updateNipField("serving_size", e.target.value)}
+              className={inputClass}
+            />
           </div>
           <div>
             <label className={labelClass} htmlFor="servings_per_pack">Servings per pack</label>
-            <input id="servings_per_pack" name="servings_per_pack" placeholder="6" defaultValue={nip.servings_per_pack} className={inputClass} />
+            <input
+              id="servings_per_pack"
+              name="servings_per_pack"
+              placeholder="6"
+              value={nip.servings_per_pack}
+              onChange={(e) => updateNipField("servings_per_pack", e.target.value)}
+              className={inputClass}
+            />
           </div>
         </div>
         <div className="mt-4 overflow-x-auto">
@@ -306,14 +400,16 @@ export function ProductEditorForm({
                   <td className="py-2 pr-3">
                     <input
                       name={`${nutrient.key}_per_serve`}
-                      defaultValue={nip.values[nutrient.key].per_serve}
+                      value={nip.values[nutrient.key].per_serve}
+                      onChange={(e) => updateNipValue(nutrient.key, "per_serve", e.target.value)}
                       className={inputClass}
                     />
                   </td>
                   <td className="py-2">
                     <input
                       name={`${nutrient.key}_per_100g`}
-                      defaultValue={nip.values[nutrient.key].per_100g}
+                      value={nip.values[nutrient.key].per_100g}
+                      onChange={(e) => updateNipValue(nutrient.key, "per_100g", e.target.value)}
                       className={inputClass}
                     />
                   </td>
@@ -326,41 +422,116 @@ export function ProductEditorForm({
 
       <section className={sectionClass}>
         <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Media</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <label className={labelClass} htmlFor="image_url">Image URL</label>
-            <input
-              id="image_url"
-              name="image_url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className={inputClass}
-            />
-          </div>
+        <div className="mt-4 space-y-6">
           <div>
-            <label className={labelClass} htmlFor="image_file">Or upload an image</label>
-            <input
-              id="image_file"
-              type="file"
-              accept="image/*"
-              disabled={uploading}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleUpload(file);
-              }}
-              className="block w-full text-sm text-muted"
-            />
+            <label className={labelClass} htmlFor="image_file">Primary image</label>
+            <input type="hidden" name="image_url" value={imageUrl} />
+            <div className="flex flex-wrap items-start gap-4">
+              {imageUrl ? (
+                <div className="relative shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageUrl} alt="Primary product" className={thumbClass} />
+                  {uploadingSlot === "primary" ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40 text-[10px] font-semibold text-white">
+                      Uploading...
+                    </div>
+                  ) : null}
+                </div>
+              ) : uploadingSlot === "primary" ? (
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded border border-border bg-surface text-[10px] font-semibold text-muted">
+                  Uploading...
+                </div>
+              ) : null}
+              <div className="min-w-0 flex-1 space-y-2">
+                <input
+                  id="image_file"
+                  ref={primaryFileRef}
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleUpload(file, "primary");
+                  }}
+                  className="block w-full text-sm text-muted"
+                />
+                <input
+                  id="image_url_paste"
+                  type="text"
+                  placeholder="Or paste an image URL"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className={inputClass}
+                />
+                {imageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageUrl("");
+                      if (primaryFileRef.current) primaryFileRef.current.value = "";
+                    }}
+                    disabled={uploading}
+                    className="text-xs font-semibold text-red-600 disabled:opacity-60"
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </div>
+
           <div>
-            <label className={labelClass} htmlFor="gallery_urls">Extra gallery URLs</label>
-            <textarea
-              id="gallery_urls"
-              name="gallery_urls"
-              rows={3}
-              placeholder="One URL per line"
-              defaultValue={product?.gallery_urls?.join("\n") ?? ""}
-              className={inputClass}
-            />
+            <label className={labelClass} htmlFor="gallery_file">Additional images</label>
+            <input type="hidden" name="gallery_urls" value={galleryUrls.join("\n")} />
+            <div className="flex flex-wrap items-start gap-3">
+              {galleryUrls.map((url, index) => (
+                <div key={`${url}-${index}`} className="space-y-1">
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Gallery image ${index + 1}`} className={thumbClass} />
+                    {uploadingSlot === index ? (
+                      <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40 text-[10px] font-semibold text-white">
+                        Uploading...
+                      </div>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setGalleryUrls((prev) => prev.filter((_, i) => i !== index))}
+                    disabled={uploading}
+                    className="text-xs font-semibold text-red-600 disabled:opacity-60"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {typeof uploadingSlot === "number" && uploadingSlot === galleryUrls.length ? (
+                <div className="flex h-16 w-16 items-center justify-center rounded border border-border bg-surface text-[10px] font-semibold text-muted">
+                  Uploading...
+                </div>
+              ) : null}
+            </div>
+            {galleryUrls.length < MAX_GALLERY_IMAGES ? (
+              <div className="mt-3">
+                <input
+                  id="gallery_file"
+                  ref={galleryFileRef}
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleUpload(file, "gallery");
+                  }}
+                  className="block w-full text-sm text-muted"
+                />
+                <p className="mt-2 text-xs text-muted">
+                  Up to {MAX_GALLERY_IMAGES} extra images. {MAX_GALLERY_IMAGES - galleryUrls.length} remaining.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-muted">Maximum of {MAX_GALLERY_IMAGES} extra images.</p>
+            )}
           </div>
         </div>
       </section>
@@ -379,7 +550,7 @@ export function ProductEditorForm({
         </button>
         <button
           type="submit"
-          disabled={pending || uploading}
+          disabled={pending || uploading || readingNip}
           className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
         >
           {pending ? "Saving..." : product ? "Save product" : "Create product"}

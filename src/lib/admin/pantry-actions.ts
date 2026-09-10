@@ -17,6 +17,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/auth";
+import { parseNipMatrixFromImage } from "@/lib/admin/parse-nip-image";
 import { slugifyTitle } from "@/lib/admin/types";
 
 function revalidatePantry() {
@@ -171,4 +172,31 @@ export async function uploadVaultMarketImageAction(formData: FormData) {
 
   const { data } = supabase.storage.from("article-images").getPublicUrl(path);
   return { url: data.publicUrl };
+}
+
+const MAX_NIP_IMAGE_BYTES = 10 * 1024 * 1024;
+
+export async function parseVaultMarketNipImageAction(formData: FormData) {
+  const admin = await getAdminUser();
+  if (!admin) return { error: "Unauthorized" };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose a photo of the nutrition information panel." };
+  }
+  if (file.size > MAX_NIP_IMAGE_BYTES) {
+    return { error: "Use a nutrition panel photo smaller than 10MB." };
+  }
+
+  try {
+    const nip = await parseNipMatrixFromImage(file);
+    return { nip };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Could not read the nutrition information panel.",
+    };
+  }
 }
