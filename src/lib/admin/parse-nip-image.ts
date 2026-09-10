@@ -12,6 +12,7 @@ import {
 
 const NIP_MODEL = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
 const NIP_MODEL_FALLBACK = "gemini-3.6-flash";
+const MAX_NIP_TEXT_CHARS = 20_000;
 
 const PAIR_SCHEMA: ResponseSchema = {
   type: SchemaType.OBJECT,
@@ -42,6 +43,10 @@ const NIP_RESPONSE_SCHEMA: ResponseSchema = {
     ...NIP_NUTRIENTS.map((nutrient) => nutrient.key),
   ],
 };
+
+type NipPart =
+  | { text: string }
+  | { inlineData: { mimeType: string; data: string } };
 
 function asPair(value: unknown): { per_serve: string; per_100g: string } {
   if (!value || typeof value !== "object") {
@@ -85,11 +90,31 @@ function createNipModel(apiKey: string, model: string) {
   });
 }
 
-export async function parseNipMatrixFromImage(file: File): Promise<NipMatrix> {
+async function generateNipJson(apiKey: string, parts: NipPart[]): Promise<string> {
+  let result;
+  try {
+    result = await createNipModel(apiKey, NIP_MODEL).generateContent(parts);
+  } catch (error) {
+    if (NIP_MODEL !== NIP_MODEL_FALLBACK && isMissingModelError(error)) {
+      result = await createNipModel(apiKey, NIP_MODEL_FALLBACK).generateContent(parts);
+    } else {
+      throw error;
+    }
+  }
+
+  return result.response.text().trim();
+}
+
+function requireGeminiKey() {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured.");
   }
+  return apiKey;
+}
+
+export async function parseNipMatrixFromImage(file: File): Promise<NipMatrix> {
+  const apiKey = requireGeminiKey();
 
   const bytes = Buffer.from(await file.arrayBuffer()).toString("base64");
   const mimeType = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
@@ -104,23 +129,10 @@ export async function parseNipMatrixFromImage(file: File): Promise<NipMatrix> {
     "per_serve is Quantity per serving. per_100g is Quantity per 100g or 100mL.",
   ].join(" ");
 
-  const parts = [
+  const text = await generateNipJson(apiKey, [
     { text: prompt },
     { inlineData: { mimeType, data: bytes } },
-  ];
-
-  let result;
-  try {
-    result = await createNipModel(apiKey, NIP_MODEL).generateContent(parts);
-  } catch (error) {
-    if (NIP_MODEL !== NIP_MODEL_FALLBACK && isMissingModelError(error)) {
-      result = await createNipModel(apiKey, NIP_MODEL_FALLBACK).generateContent(parts);
-    } else {
-      throw error;
-    }
-  }
-
-  const text = result.response.text().trim();
+  ]);
   if (!text) {
     throw new Error("Could not read nutrition values from that image.");
   }
@@ -129,5 +141,40 @@ export async function parseNipMatrixFromImage(file: File): Promise<NipMatrix> {
     return parseNipPayload(text);
   } catch {
     throw new Error("Could not interpret the nutrition panel. Try a clearer photo.");
+  }
+}
+
+export async function parseNipMatrixFromText(pastedText: string): Promise<NipMatrix> {
+  const apiKey = requireGeminiKey();
+  const pasted = pastedText.trim();
+  if (!pasted) {
+    throw new Error("Paste the nutrition information panel text first.");
+  }
+  if (pasted.length > MAX_NIP_TEXT_CHARS) {
+    throw new Error("Paste a shorter nutrition panel — that text is too long.");
+  }
+
+  const prompt = [
+    "This is pasted text from a New Zealand / Australia Nutrition Information Panel.",
+    "Return only the structured NIP values. Keep units in the strings (kJ, kcal, g, mg).",
+    "Use empty strings when a value is not present. Do not invent numbers.",
+    "servings_per_pack should be the number of servings, serving_size the labelled serving (e.g. 25g).",
+    "Map Energy kJ to energy_kj, Energy Cal/kcal to energy_kcal, Protein to protein,",
+    "Fat total to fat_total, Saturated to fat_saturated, Carbohydrate to carbs,",
+    "Sugars to sugars, Sodium to sodium.",
+    "per_serve is Quantity per serving. per_100g is Quantity per 100g or 100mL.",
+    "Pasted text:",
+    pasted,
+  ].join("\n");
+
+  const text = await generateNipJson(apiKey, [{ text: prompt }]);
+  if (!text) {
+    throw new Error("Could not read nutrition values from that text.");
+  }
+
+  try {
+    return parseNipPayload(text);
+  } catch {
+    throw new Error("Could not interpret the nutrition panel text. Check the paste and try again.");
   }
 }

@@ -17,7 +17,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/auth";
-import { parseNipMatrixFromImage } from "@/lib/admin/parse-nip-image";
+import { parseNipMatrixFromImage, parseNipMatrixFromText } from "@/lib/admin/parse-nip-image";
 import { slugifyTitle } from "@/lib/admin/types";
 
 function revalidatePantry() {
@@ -151,37 +151,83 @@ export async function saveInventoryBatchAction(formData: FormData) {
   return { success: true };
 }
 
-export async function uploadVaultMarketImageAction(formData: FormData) {
-  const admin = await getAdminUser();
-  if (!admin) return { error: "Unauthorized" };
-  if (!isSupabaseConfigured()) return { error: "Supabase is not configured." };
+const MAX_PRODUCT_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_NIP_IMAGE_BYTES = 10 * 1024 * 1024;
 
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Choose an image to upload." };
-  }
-
-  const supabase = createAdminClient() ?? (await createClient());
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `vault-market/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage.from("article-images").upload(path, file, {
-    upsert: false,
-    contentType: file.type || "image/jpeg",
-  });
-  if (error) return { error: error.message };
-
-  const { data } = supabase.storage.from("article-images").getPublicUrl(path);
-  return { url: data.publicUrl };
+function isUploadFile(value: FormDataEntryValue | null): value is File {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as File;
+  return (
+    typeof candidate.arrayBuffer === "function" &&
+    typeof candidate.size === "number" &&
+    candidate.size > 0
+  );
 }
 
-const MAX_NIP_IMAGE_BYTES = 10 * 1024 * 1024;
+function uploadFileName(file: File): string {
+  if (file.name.trim()) return file.name;
+  return "image.webp";
+}
+
+function uploadContentType(file: File): string {
+  if (file.type && file.type.startsWith("image/")) return file.type;
+  const name = uploadFileName(file).toLowerCase();
+  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+  if (name.endsWith(".png")) return "image/png";
+  return "image/webp";
+}
+
+function extensionForContentType(contentType: string): string {
+  if (contentType === "image/jpeg") return "jpg";
+  if (contentType === "image/png") return "png";
+  return "webp";
+}
+
+export async function uploadVaultMarketImageAction(formData: FormData) {
+  try {
+    const admin = await getAdminUser();
+    if (!admin) return { error: "Unauthorized" };
+    if (!isSupabaseConfigured()) return { error: "Supabase is not configured." };
+
+    const file = formData.get("file");
+    if (!isUploadFile(file)) {
+      return { error: "Choose an image to upload." };
+    }
+    if (file.size > MAX_PRODUCT_IMAGE_BYTES) {
+      return { error: "Use an image smaller than 8MB." };
+    }
+
+    const supabase = createAdminClient() ?? (await createClient());
+    const contentType = uploadContentType(file);
+    const ext = extensionForContentType(contentType);
+    const path = `vault-market/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    // Buffer avoids a Next.js server-action File/Blob stream that never ends in supabase-js.
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const { error } = await supabase.storage.from("article-images").upload(path, bytes, {
+      upsert: false,
+      contentType,
+      cacheControl: "31536000",
+    });
+    if (error) return { error: error.message };
+
+    const { data } = supabase.storage.from("article-images").getPublicUrl(path);
+    if (!data?.publicUrl) {
+      return { error: "Upload succeeded but no public URL was returned." };
+    }
+    return { url: data.publicUrl };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Could not upload that image.",
+    };
+  }
+}
 
 export async function parseVaultMarketNipImageAction(formData: FormData) {
   const admin = await getAdminUser();
   if (!admin) return { error: "Unauthorized" };
 
   const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
+  if (!isUploadFile(file)) {
     return { error: "Choose a photo of the nutrition information panel." };
   }
   if (file.size > MAX_NIP_IMAGE_BYTES) {
@@ -197,6 +243,23 @@ export async function parseVaultMarketNipImageAction(formData: FormData) {
         error instanceof Error
           ? error.message
           : "Could not read the nutrition information panel.",
+    };
+  }
+}
+
+export async function parseVaultMarketNipTextAction(pastedText: string) {
+  const admin = await getAdminUser();
+  if (!admin) return { error: "Unauthorized" };
+
+  try {
+    const nip = await parseNipMatrixFromText(pastedText);
+    return { nip };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Could not read the nutrition information panel text.",
     };
   }
 }

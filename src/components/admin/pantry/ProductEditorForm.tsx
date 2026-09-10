@@ -7,8 +7,10 @@ import {
   PRIMARY_DEPARTMENTS,
   type PrimaryDepartment,
 } from "@/data/partner-categories";
+import { convertImageToWebpFile } from "@/lib/admin/compress-image-webp";
 import {
   parseVaultMarketNipImageAction,
+  parseVaultMarketNipTextAction,
   saveVaultMarketProductAction,
   uploadVaultMarketImageAction,
 } from "@/lib/admin/pantry-actions";
@@ -25,10 +27,18 @@ const inputClass =
   "w-full rounded-md border border-border bg-white px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted";
 const sectionClass = "rounded border border-border bg-white p-5 sm:p-6";
-const thumbClass = "h-16 w-16 rounded border border-border object-cover";
+const thumbClass = "h-20 w-20 rounded-md border border-border object-cover";
+const addImageBtnClass =
+  "inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#10B981] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#047857] disabled:cursor-not-allowed disabled:opacity-50";
 
 const HEALTH_STARS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
 const MAX_GALLERY_IMAGES = 6;
+const PRODUCT_IMAGE_MAX_PX = 1800;
+const NIP_IMAGE_MAX_PX = 2000;
+
+function actionErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export function ProductEditorForm({
   product,
@@ -51,12 +61,15 @@ export function ProductEditorForm({
   );
   const [uploadingSlot, setUploadingSlot] = useState<"primary" | number | null>(null);
   const [readingNip, setReadingNip] = useState(false);
+  const [nipText, setNipText] = useState("");
   const [nip, setNip] = useState(() => nipFromFacts(product?.nutrition_facts));
   const nipPhotoRef = useRef<HTMLInputElement>(null);
   const primaryFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
 
   const uploading = uploadingSlot !== null;
+  const extrasFull = galleryUrls.length >= MAX_GALLERY_IMAGES;
+  const canAddImage = imageUrl ? !extrasFull : true;
 
   const subcategories = useMemo(() => {
     const department = (
@@ -75,39 +88,86 @@ export function ProductEditorForm({
   async function handleNipPhoto(file: File) {
     setReadingNip(true);
     setError(null);
-    const fd = new FormData();
-    fd.set("file", file);
-    const result = await parseVaultMarketNipImageAction(fd);
-    setReadingNip(false);
-    if (nipPhotoRef.current) nipPhotoRef.current.value = "";
-    if (result.error) {
-      setError(result.error);
+    try {
+      const compressed = await convertImageToWebpFile(file, { maxDimension: NIP_IMAGE_MAX_PX });
+      const fd = new FormData();
+      fd.set("file", compressed);
+      const result = await parseVaultMarketNipImageAction(fd);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      if (result.nip) setNip(result.nip);
+    } catch (err) {
+      setError(actionErrorMessage(err, "Could not read the nutrition information panel."));
+    } finally {
+      setReadingNip(false);
+      if (nipPhotoRef.current) nipPhotoRef.current.value = "";
+    }
+  }
+
+  async function handleNipText() {
+    const pasted = nipText.trim();
+    if (!pasted) {
+      setError("Paste the nutrition information panel text first.");
       return;
     }
-    if (result.nip) setNip(result.nip);
+    setReadingNip(true);
+    setError(null);
+    try {
+      const result = await parseVaultMarketNipTextAction(pasted);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      if (result.nip) setNip(result.nip);
+    } catch (err) {
+      setError(actionErrorMessage(err, "Could not read the nutrition information panel text."));
+    } finally {
+      setReadingNip(false);
+    }
   }
 
   async function handleUpload(file: File, slot: "primary" | "gallery") {
     if (slot === "gallery" && galleryUrls.length >= MAX_GALLERY_IMAGES) return;
     setUploadingSlot(slot === "primary" ? "primary" : galleryUrls.length);
     setError(null);
-    const fd = new FormData();
-    fd.set("file", file);
-    const result = await uploadVaultMarketImageAction(fd);
-    setUploadingSlot(null);
-    if (slot === "primary" && primaryFileRef.current) primaryFileRef.current.value = "";
-    if (slot === "gallery" && galleryFileRef.current) galleryFileRef.current.value = "";
-    if (result.error) {
-      setError(result.error);
+    try {
+      const compressed = await convertImageToWebpFile(file, { maxDimension: PRODUCT_IMAGE_MAX_PX });
+      const fd = new FormData();
+      fd.set("file", compressed);
+      const result = await uploadVaultMarketImageAction(fd);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      if (!result.url) {
+        setError("Upload finished without an image URL.");
+        return;
+      }
+      if (slot === "primary") {
+        setImageUrl(result.url);
+        return;
+      }
+      const url = result.url;
+      setGalleryUrls((prev) => (prev.length >= MAX_GALLERY_IMAGES ? prev : [...prev, url]));
+    } catch (err) {
+      setError(actionErrorMessage(err, "Could not upload that image."));
+    } finally {
+      setUploadingSlot(null);
+      if (slot === "primary" && primaryFileRef.current) primaryFileRef.current.value = "";
+      if (slot === "gallery" && galleryFileRef.current) galleryFileRef.current.value = "";
+    }
+  }
+
+  function openImagePicker() {
+    if (uploading) return;
+    if (!imageUrl) {
+      primaryFileRef.current?.click();
       return;
     }
-    if (!result.url) return;
-    if (slot === "primary") {
-      setImageUrl(result.url);
-      return;
-    }
-    const url = result.url;
-    setGalleryUrls((prev) => (prev.length >= MAX_GALLERY_IMAGES ? prev : [...prev, url]));
+    if (extrasFull) return;
+    galleryFileRef.current?.click();
   }
 
   function updateNipField(field: "serving_size" | "servings_per_pack", value: string) {
@@ -136,6 +196,8 @@ export function ProductEditorForm({
       router.refresh();
     });
   }
+
+  const showMediaThumbs = Boolean(imageUrl) || uploadingSlot === "primary" || galleryUrls.length > 0;
 
   return (
     <form action={handleSubmit} className="space-y-6">
@@ -338,8 +400,7 @@ export function ProductEditorForm({
 
       <section className={sectionClass}>
         <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Nutrition information panel</h2>
-        <div className="mt-4">
-          <label className={labelClass} htmlFor="nip_photo">NIP photo</label>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <input
             id="nip_photo"
             ref={nipPhotoRef}
@@ -350,15 +411,47 @@ export function ProductEditorForm({
               const file = e.target.files?.[0];
               if (file) void handleNipPhoto(file);
             }}
-            className="block w-full text-sm text-muted"
+            className="sr-only"
           />
+          <button
+            type="button"
+            onClick={() => nipPhotoRef.current?.click()}
+            disabled={readingNip}
+            className="fv-btn-primary inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.25A2.25 2.25 0 0 1 5.25 6h2.086a1.5 1.5 0 0 0 1.06-.44l.828-.828A1.5 1.5 0 0 1 10.288 4.5h3.424a1.5 1.5 0 0 1 1.06.44l.829.828A1.5 1.5 0 0 0 16.664 6H18.75A2.25 2.25 0 0 1 21 8.25v8.5A2.25 2.25 0 0 1 18.75 19H5.25A2.25 2.25 0 0 1 3 16.75v-8.5Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+            </svg>
+            Add image of NIP
+          </button>
           {readingNip ? (
-            <p className="mt-2 text-sm text-muted">Reading panel...</p>
+            <p className="text-sm text-muted">Reading panel...</p>
           ) : (
-            <p className="mt-2 text-xs text-muted">
+            <p className="text-xs text-muted">
               Photo is used only to fill the panel below. It is not saved as a product image.
             </p>
           )}
+        </div>
+        <div className="mt-5">
+          <label className={labelClass} htmlFor="nip_text">Paste NIP text</label>
+          <textarea
+            id="nip_text"
+            rows={4}
+            value={nipText}
+            onChange={(e) => setNipText(e.target.value)}
+            placeholder="Paste the full nutrition information panel as text, then fill the fields below."
+            disabled={readingNip}
+            className={inputClass}
+          />
+          <button
+            type="button"
+            onClick={() => void handleNipText()}
+            disabled={readingNip || !nipText.trim()}
+            className="fv-btn-primary mt-3 inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            Fill from text
+          </button>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
@@ -422,48 +515,51 @@ export function ProductEditorForm({
 
       <section className={sectionClass}>
         <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">Media</h2>
-        <div className="mt-4 space-y-6">
-          <div>
-            <label className={labelClass} htmlFor="image_file">Primary image</label>
-            <input type="hidden" name="image_url" value={imageUrl} />
-            <div className="flex flex-wrap items-start gap-4">
+        <input type="hidden" name="image_url" value={imageUrl} />
+        <input type="hidden" name="gallery_urls" value={galleryUrls.join("\n")} />
+        <input
+          id="image_file"
+          ref={primaryFileRef}
+          type="file"
+          accept="image/*"
+          disabled={uploading}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void handleUpload(file, "primary");
+          }}
+          className="sr-only"
+        />
+        <input
+          id="gallery_file"
+          ref={galleryFileRef}
+          type="file"
+          accept="image/*"
+          disabled={uploading || extrasFull}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void handleUpload(file, "gallery");
+          }}
+          className="sr-only"
+        />
+
+        <div className="mt-4">
+          {showMediaThumbs ? (
+            <div className="flex flex-wrap items-end gap-3">
               {imageUrl ? (
-                <div className="relative shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl} alt="Primary product" className={thumbClass} />
-                  {uploadingSlot === "primary" ? (
-                    <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40 text-[10px] font-semibold text-white">
-                      Uploading...
-                    </div>
-                  ) : null}
-                </div>
-              ) : uploadingSlot === "primary" ? (
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded border border-border bg-surface text-[10px] font-semibold text-muted">
-                  Uploading...
-                </div>
-              ) : null}
-              <div className="min-w-0 flex-1 space-y-2">
-                <input
-                  id="image_file"
-                  ref={primaryFileRef}
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void handleUpload(file, "primary");
-                  }}
-                  className="block w-full text-sm text-muted"
-                />
-                <input
-                  id="image_url_paste"
-                  type="text"
-                  placeholder="Or paste an image URL"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className={inputClass}
-                />
-                {imageUrl ? (
+                <div className="space-y-1">
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imageUrl} alt="Primary product" className={thumbClass} />
+                    {uploadingSlot === "primary" ? (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/40 text-[10px] font-semibold text-white">
+                        Uploading...
+                      </div>
+                    ) : (
+                      <span className="absolute left-1 top-1 rounded bg-black/65 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                        Primary
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -475,22 +571,20 @@ export function ProductEditorForm({
                   >
                     Remove
                   </button>
-                ) : null}
-              </div>
-            </div>
-          </div>
+                </div>
+              ) : uploadingSlot === "primary" ? (
+                <div className="flex h-20 w-20 items-center justify-center rounded-md border border-border bg-surface text-[10px] font-semibold text-muted">
+                  Uploading...
+                </div>
+              ) : null}
 
-          <div>
-            <label className={labelClass} htmlFor="gallery_file">Additional images</label>
-            <input type="hidden" name="gallery_urls" value={galleryUrls.join("\n")} />
-            <div className="flex flex-wrap items-start gap-3">
               {galleryUrls.map((url, index) => (
                 <div key={`${url}-${index}`} className="space-y-1">
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={url} alt={`Gallery image ${index + 1}`} className={thumbClass} />
                     {uploadingSlot === index ? (
-                      <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40 text-[10px] font-semibold text-white">
+                      <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/40 text-[10px] font-semibold text-white">
                         Uploading...
                       </div>
                     ) : null}
@@ -505,34 +599,62 @@ export function ProductEditorForm({
                   </button>
                 </div>
               ))}
+
               {typeof uploadingSlot === "number" && uploadingSlot === galleryUrls.length ? (
-                <div className="flex h-16 w-16 items-center justify-center rounded border border-border bg-surface text-[10px] font-semibold text-muted">
+                <div className="flex h-20 w-20 items-center justify-center rounded-md border border-border bg-surface text-[10px] font-semibold text-muted">
                   Uploading...
                 </div>
               ) : null}
+
+              <button
+                type="button"
+                onClick={openImagePicker}
+                disabled={uploading || !canAddImage}
+                className={addImageBtnClass}
+              >
+                Add image
+              </button>
             </div>
-            {galleryUrls.length < MAX_GALLERY_IMAGES ? (
-              <div className="mt-3">
-                <input
-                  id="gallery_file"
-                  ref={galleryFileRef}
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void handleUpload(file, "gallery");
-                  }}
-                  className="block w-full text-sm text-muted"
-                />
-                <p className="mt-2 text-xs text-muted">
-                  Up to {MAX_GALLERY_IMAGES} extra images. {MAX_GALLERY_IMAGES - galleryUrls.length} remaining.
-                </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-4 rounded-lg border border-dashed border-border bg-surface/60 px-4 py-5">
+              <div className="flex h-20 w-20 items-center justify-center rounded-md border border-border bg-white text-muted">
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 6.75h.007v.008H3.75V6.75Zm16.5 0A2.25 2.25 0 0 0 18 4.5H6A2.25 2.25 0 0 0 3.75 6.75v10.5A2.25 2.25 0 0 0 6 19.5h12a2.25 2.25 0 0 0 2.25-2.25V6.75Z" />
+                </svg>
               </div>
-            ) : (
-              <p className="mt-2 text-xs text-muted">Maximum of {MAX_GALLERY_IMAGES} extra images.</p>
-            )}
-          </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Product images</p>
+                <p className="mt-0.5 text-xs text-muted">Add a primary photo first, then up to {MAX_GALLERY_IMAGES} extras.</p>
+                <button
+                  type="button"
+                  onClick={openImagePicker}
+                  disabled={uploading}
+                  className={`${addImageBtnClass} mt-2`}
+                >
+                  Add image
+                </button>
+              </div>
+            </div>
+          )}
+          <p className="mt-2 text-xs text-muted">
+            {imageUrl
+              ? extrasFull
+                ? `Maximum of ${MAX_GALLERY_IMAGES} extra images.`
+                : `Up to ${MAX_GALLERY_IMAGES} extra images. ${MAX_GALLERY_IMAGES - galleryUrls.length} remaining.`
+              : "Images are compressed to WEBP before upload."}
+          </p>
+        </div>
+
+        <div className="mt-4 max-w-xl">
+          <label className={labelClass} htmlFor="image_url_paste">Or paste a primary image URL</label>
+          <input
+            id="image_url_paste"
+            type="text"
+            placeholder="https://"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            className={inputClass}
+          />
         </div>
       </section>
 
