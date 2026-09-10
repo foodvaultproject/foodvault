@@ -81,7 +81,7 @@ export function GroceryListDrawer({
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" aria-hidden="true" />
+            <Heart className="h-5 w-5 text-vm-primary" aria-hidden="true" />
             <h2 id={titleId} className="text-lg font-bold text-foreground">
               My Grocery List
             </h2>
@@ -100,7 +100,7 @@ export function GroceryListDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-vm-primary/10 text-vm-primary">
                 <Heart className="h-7 w-7" aria-hidden="true" />
               </span>
               <p className="mt-4 text-base font-bold text-foreground">
@@ -124,7 +124,7 @@ export function GroceryListDrawer({
                       onChange={(event) =>
                         onSelectedChange(item.product_id, event.target.checked)
                       }
-                      className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      className="mt-1 h-4 w-4 rounded border-border text-vm-primary focus:ring-vm-primary"
                       aria-label={`Select ${item.name}`}
                     />
                   </label>
@@ -141,11 +141,11 @@ export function GroceryListDrawer({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-primary">{item.brand}</p>
+                    <p className="text-xs font-semibold text-vm-primary">{item.brand}</p>
                     <p className="mt-0.5 line-clamp-2 text-sm font-bold text-foreground">
                       {item.name}
                     </p>
-                    <p className="mt-1 text-sm font-bold text-primary">
+                    <p className="mt-1 text-sm font-bold text-vm-primary">
                       {formatNzPrice(item.member_price)}
                       <span className="ml-2 text-xs font-medium text-muted-light line-through">
                         {formatNzPrice(item.retail_price)}
@@ -204,7 +204,7 @@ export function GroceryListDrawer({
                 const next = !allSelected;
                 items.forEach((item) => onSelectedChange(item.product_id, next));
               }}
-              className="mb-3 text-sm font-semibold text-primary hover:text-primary-hover"
+              className="mb-3 text-sm font-semibold text-vm-primary hover:text-vm-surface"
             >
               {allSelected ? "Clear selection" : "Select all"}
             </button>
@@ -214,7 +214,7 @@ export function GroceryListDrawer({
             type="button"
             disabled={selected.length === 0}
             onClick={onAddSelectedToCart}
-            className="fv-btn-primary inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm px-4 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             <ShoppingBag className="h-4 w-4" aria-hidden="true" />
             {selected.length === 0

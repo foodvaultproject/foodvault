@@ -25,7 +25,7 @@ function HealthStarBadge({ rating }: { rating: number }) {
       className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1"
       title={`${display} Health Star Rating`}
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-vm-primary text-xs font-bold text-white">
         {display}
       </span>
       <span className="text-[11px] font-semibold leading-tight text-foreground">
@@ -110,7 +110,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
         <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
           {crumbs.map((crumb) => (
             <li key={crumb.href} className="flex items-center gap-1.5">
-              <Link href={crumb.href} className="hover:text-primary">
+              <Link href={crumb.href} className="hover:text-vm-primary">
                 {crumb.label}
               </Link>
               <span aria-hidden="true">/</span>
@@ -148,7 +148,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
                   onClick={() => setActiveImage(index)}
                   aria-label={`View image ${index + 1}`}
                   className={`relative h-16 w-16 overflow-hidden rounded-md border ${
-                    index === activeImage ? "border-primary" : "border-border"
+                    index === activeImage ? "border-vm-primary" : "border-border"
                   }`}
                 >
                   <SafeImage
@@ -166,7 +166,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
         </div>
 
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+          <p className="text-sm font-semibold uppercase tracking-wide text-vm-primary">
             {product.brand}
           </p>
           <div className="mt-2 flex items-start justify-between gap-3">
@@ -182,15 +182,15 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
                   ? `Remove ${product.name} from grocery list`
                   : `Save ${product.name} to grocery list`
               }
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-primary transition-colors hover:bg-primary/10"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border text-vm-primary transition-colors hover:bg-vm-primary/10"
             >
-              <Heart className={`h-5 w-5 ${saved ? "fill-primary" : ""}`} />
+              <Heart className={`h-5 w-5 ${saved ? "fill-vm-primary" : ""}`} />
             </button>
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {savePercent > 0 ? (
-              <span className="rounded-sm bg-primary px-2 py-1 text-xs font-bold uppercase tracking-wide text-primary-foreground">
+              <span className="rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-2 py-1 text-xs font-bold uppercase tracking-wide text-vm-secondary">
                 {savePercent}% off
               </span>
             ) : null}
@@ -206,10 +206,10 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
 
           <div className="mt-6 flex flex-wrap items-end gap-4">
             <div>
-              <span className="inline-flex items-center rounded-sm bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+              <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
                 Member Price
               </span>
-              <p className="mt-1 text-3xl font-bold text-primary">
+              <p className="mt-1 text-3xl font-bold text-vm-primary">
                 {formatNzPrice(product.member_price)}
               </p>
             </div>
@@ -254,7 +254,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
               type="button"
               disabled={outOfStock}
               onClick={() => addToCart(product, quantity)}
-              className="fv-btn-primary inline-flex h-12 flex-1 items-center justify-center rounded-sm px-4 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-12 flex-1 items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
             >
               {outOfStock ? "Out of stock" : added ? "Added to cart" : "Add to Cart"}
             </button>

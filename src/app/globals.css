@@ -21,6 +21,11 @@
   --color-primary-accent: #6f5ce8;
   --color-primary-foreground: #ffffff;
 
+  /* Vault Market only — do not use on global chrome */
+  --color-vm-primary: #10b981;
+  --color-vm-secondary: #a3e635;
+  --color-vm-surface: #064e3b;
+
   /* Surfaces */
   --color-surface: #f5f2ff;
   --color-surface-lavender: #eee9ff;
@@ -50,6 +55,34 @@
   --shadow-card: 0 8px 30px rgba(111, 92, 232, 0.06);
   --shadow-card-hover: 0 12px 40px rgba(111, 92, 232, 0.1);
   --shadow-button: 0 8px 20px rgba(139, 124, 246, 0.25);
+}
+
+/* Force Vault Market hex utilities — Tailwind token names were not winning at runtime */
+@layer utilities {
+  .bg-vm-primary { background-color: #10b981 !important; }
+  .hover\:bg-vm-primary:hover { background-color: #10b981 !important; }
+  .bg-vm-surface { background-color: #064e3b !important; }
+  .hover\:bg-vm-surface:hover { background-color: #064e3b !important; }
+  .text-vm-primary { color: #10b981 !important; }
+  .hover\:text-vm-primary:hover { color: #10b981 !important; }
+  .text-vm-secondary { color: #a3e635 !important; }
+  .text-vm-surface { color: #064e3b !important; }
+  .hover\:text-vm-surface:hover { color: #064e3b !important; }
+  .border-vm-primary { border-color: #10b981 !important; }
+  .hover\:border-vm-primary:hover { border-color: #10b981 !important; }
+  .border-vm-secondary { border-color: #a3e635 !important; }
+  .fill-vm-primary { fill: #10b981 !important; }
+  .bg-vm-primary\/10 { background-color: rgb(16 185 129 / 0.1) !important; }
+  .hover\:bg-vm-primary\/10:hover { background-color: rgb(16 185 129 / 0.1) !important; }
+  .bg-vm-secondary\/10 { background-color: rgb(163 230 53 / 0.1) !important; }
+  .border-vm-primary\/30 { border-color: rgb(16 185 129 / 0.3) !important; }
+  .border-vm-secondary\/30 { border-color: rgb(163 230 53 / 0.3) !important; }
+  .focus\:border-vm-primary:focus { border-color: #10b981 !important; }
+  .focus\:ring-vm-primary:focus { --tw-ring-color: #10b981; }
+  .focus\:ring-vm-primary\/20:focus {
+    --tw-ring-color: rgb(16 185 129 / 0.2);
+    box-shadow: 0 0 0 2px rgb(16 185 129 / 0.2);
+  }
 }
 
 :root {
@@ -199,8 +232,8 @@ body {
 
   /* Primary CTA — gradient, lift, button shadow */
   :is(a, button, span).fv-btn-primary,
-  :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]),
-  :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]) {
+  :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):not([class*="vm-"]),
+  :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):not([class*="vm-"]) {
     border-radius: var(--radius-button);
     background: var(--primary-gradient) !important;
     background-color: transparent !important;
@@ -213,8 +246,8 @@ body {
 
   :is(a, button, span).fv-btn-primary:hover,
   a:hover :is(span).fv-btn-primary,
-  :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):hover,
-  :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):hover {
+  :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):not([class*="vm-"]):hover,
+  :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):not([class*="vm-"]):hover {
     background: var(--primary-gradient-hover) !important;
     background-color: transparent !important;
     transform: translateY(-2px);
@@ -222,8 +255,8 @@ body {
   }
 
   :is(a, button, span).fv-btn-primary:active,
-  :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):active,
-  :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):active {
+  :is(a, button)[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="bg-primary/"]):not([class*="vm-"]):active,
+  :is(a, button)[class*="bg-primary"][class*="text-white"]:not([class*="bg-primary/"]):not([class*="vm-"]):active {
     transform: translateY(0);
     background: var(--primary-pressed) !important;
     background-color: var(--primary-pressed) !important;

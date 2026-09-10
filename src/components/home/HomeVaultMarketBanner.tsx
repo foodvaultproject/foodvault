@@ -88,10 +88,10 @@ function NotifyLaunchModal({
         aria-labelledby={titleId}
         className="relative w-full max-w-md overflow-hidden rounded-2xl bg-background shadow-2xl"
       >
-        <div className="bg-primary px-5 py-4 text-primary-foreground">
+        <div className="bg-[#064E3B] px-5 py-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-primary-foreground/80">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-white/80">
                 Vault Market
               </p>
               <h2 id={titleId} className="mt-1 text-xl font-bold leading-snug">
@@ -126,13 +126,13 @@ function NotifyLaunchModal({
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@email.com"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-vm-primary focus:outline-none focus:ring-2 focus:ring-vm-primary/20"
               />
               {error ? <p className="text-sm text-red-700">{error}</p> : null}
               <button
                 type="submit"
                 disabled={saving}
-                className="fv-btn-primary inline-flex h-11 w-full items-center justify-center rounded-sm px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                className="inline-flex h-11 w-full items-center justify-center rounded-sm bg-[#10B981] px-4 text-sm font-semibold text-white hover:bg-[#064E3B] disabled:opacity-60"
               >
                 {saving ? "Saving..." : "Notify Me at Launch"}
               </button>
@@ -166,14 +166,14 @@ export function HomeVaultMarketBanner({
   return (
     <section className={compactSpacing ? "py-8 sm:py-10" : "py-10 sm:py-14"}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-2xl bg-primary px-6 py-8 text-primary-foreground shadow-sm sm:px-10 sm:py-10">
-          <span className="inline-flex items-center rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
+        <div className="overflow-hidden rounded-2xl border border-[#10B981]/30 bg-[#064E3B] px-6 py-8 text-white shadow-sm sm:px-10 sm:py-10">
+          <span className="inline-flex items-center rounded-full border border-[#A3E635]/30 bg-[#A3E635]/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[#A3E635]">
             Vault Market — COMING SOON
           </span>
           <h2 className="mt-4 max-w-3xl text-2xl font-bold tracking-tight sm:text-3xl">
             Vault Market: FoodVault’s Own Direct Fulfilment
           </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-primary-foreground/90 sm:text-base">
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/90 sm:text-base">
             Distinct from our direct partner brand deals, Vault Market is FoodVault&apos;s upcoming
             in-house warehouse store. Get shelf-stable staples and household essentials packed into
             one single delivery.
@@ -183,10 +183,10 @@ export function HomeVaultMarketBanner({
             {PILLARS.map((pillar) => (
               <div
                 key={pillar.title}
-                className="rounded-xl bg-white/10 px-4 py-4 backdrop-blur-sm"
+                className="rounded-xl border border-[#10B981]/30 bg-white/10 px-4 py-4 backdrop-blur-sm"
               >
                 <p className="text-sm font-bold">{pillar.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-primary-foreground/85">
+                <p className="mt-1.5 text-sm leading-relaxed text-white/85">
                   {pillar.body}
                 </p>
               </div>
@@ -197,13 +197,13 @@ export function HomeVaultMarketBanner({
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="inline-flex h-11 items-center justify-center rounded-sm bg-white px-5 text-sm font-semibold text-primary transition-opacity hover:opacity-90"
+              className="inline-flex h-11 items-center justify-center rounded-sm bg-[#10B981] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#064E3B]"
             >
               Notify Me at Launch
             </button>
             <Link
               href="/pantry"
-              className="inline-flex h-11 items-center justify-center rounded-sm border border-white/40 px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-white/10"
+              className="inline-flex h-11 items-center justify-center rounded-sm border border-[#10B981]/30 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               Preview Upcoming Market
             </Link>

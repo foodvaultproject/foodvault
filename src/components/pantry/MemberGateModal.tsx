@@ -59,10 +59,10 @@ export function MemberGateModal({
         aria-labelledby={titleId}
         className="relative w-full max-w-md overflow-hidden rounded-2xl bg-background shadow-2xl"
       >
-        <div className="bg-primary px-5 py-4 text-primary-foreground">
+        <div className="bg-vm-surface px-5 py-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-primary-foreground/80">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-white/80">
                 Vault Market
               </p>
               <h2 id={titleId} className="mt-1 text-xl font-bold leading-snug">
@@ -100,7 +100,7 @@ export function MemberGateModal({
           <div className="mt-5 space-y-2">
             <Link
               href={signupHref}
-              className="fv-btn-primary inline-flex h-12 w-full items-center justify-center rounded-sm px-4 text-sm font-semibold text-primary-foreground"
+              className="inline-flex h-12 w-full items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white hover:bg-vm-surface"
             >
               Sign Up / Reactivate Membership
             </Link>

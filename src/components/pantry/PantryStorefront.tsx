@@ -56,7 +56,7 @@ export function PantryStorefront({
 
       <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="section-label">Vault Market</p>
+          <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">Vault Market</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {heading}
           </h1>
@@ -69,9 +69,13 @@ export function PantryStorefront({
 
       {filtered.length === 0 ? (
         <div className="mt-8 rounded-lg border border-dashed border-border bg-background px-6 py-16 text-center">
-          <h2 className="text-xl font-bold text-foreground">No products found</h2>
+          <h2 className="text-xl font-bold text-foreground">
+            {products.length === 0 ? "Vault Market is getting ready" : "No products found"}
+          </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Try another search, or browse a different category from the menu above.
+            {products.length === 0
+              ? "Real pantry products will appear here once they are uploaded."
+              : "Try another search, or browse a different category from the menu above."}
           </p>
         </div>
       ) : (

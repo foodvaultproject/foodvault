@@ -118,7 +118,7 @@ export function PantryMarketHeader() {
             onMouseEnter={() => {
               if (window.matchMedia("(hover: hover)").matches) setBrowseOpen(true);
             }}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover lg:w-auto"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface lg:w-auto"
           >
             <Menu className="h-4 w-4" aria-hidden="true" />
             Browse
@@ -157,13 +157,13 @@ export function PantryMarketHeader() {
                         }}
                         className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm ${
                           index === activeDepartment
-                            ? "bg-primary/10 font-semibold text-primary"
-                            : "text-foreground hover:bg-surface-lavender/60"
+                            ? "bg-vm-primary/10 font-semibold text-vm-primary"
+                            : "text-foreground hover:bg-surface"
                         }`}
                       >
                         {department.department}
                         {inStock ? (
-                          <span className="ml-2 h-1.5 w-1.5 rounded-full bg-primary" />
+                          <span className="ml-2 h-1.5 w-1.5 rounded-full bg-vm-primary" />
                         ) : null}
                       </button>
                     </li>
@@ -190,7 +190,7 @@ export function PantryMarketHeader() {
                             setBrowseOpen(false);
                             setLiveQuery("");
                           }}
-                          className={`block rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-primary/10 hover:text-primary ${
+                          className={`block rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-vm-primary/10 hover:text-vm-primary ${
                             inStock ? "font-medium text-foreground" : "text-muted"
                           }`}
                         >
@@ -224,7 +224,7 @@ export function PantryMarketHeader() {
             value={liveQuery}
             onChange={(event) => handleSearchChange(event.target.value)}
             placeholder="Search products, brands or SKU"
-            className="h-11 w-full rounded-md border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-light transition-[border-color,box-shadow] duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="h-11 w-full rounded-md border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-light transition-[border-color,box-shadow] duration-200 focus:border-vm-primary focus:outline-none focus:ring-2 focus:ring-vm-primary/20"
           />
         </form>
 

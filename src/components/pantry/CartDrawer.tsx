@@ -121,7 +121,7 @@ export function CartDrawer({
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5 text-primary" aria-hidden="true" />
+            <ShoppingBag className="h-5 w-5 text-vm-primary" aria-hidden="true" />
             <h2 id={titleId} className="text-lg font-bold text-foreground">
               Your cart
             </h2>
@@ -140,7 +140,7 @@ export function CartDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-vm-primary/10 text-vm-primary">
                 <ShoppingBag className="h-7 w-7" aria-hidden="true" />
               </span>
               <p className="mt-4 text-base font-bold text-foreground">
@@ -169,11 +169,11 @@ export function CartDrawer({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-primary">{item.brand}</p>
+                    <p className="text-xs font-semibold text-vm-primary">{item.brand}</p>
                     <p className="mt-0.5 line-clamp-2 text-sm font-bold text-foreground">
                       {item.name}
                     </p>
-                    <p className="mt-1 text-sm font-bold text-primary">
+                    <p className="mt-1 text-sm font-bold text-vm-primary">
                       {formatNzPrice(item.member_price)}
                       <span className="ml-2 text-xs font-medium text-muted-light line-through">
                         {formatNzPrice(item.retail_price)}
@@ -250,7 +250,7 @@ export function CartDrawer({
             type="button"
             disabled={items.length === 0 || checkoutLoading}
             onClick={() => void handleCheckout()}
-            className="fv-btn-primary mt-4 inline-flex h-12 w-full items-center justify-center rounded-sm px-4 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             {checkoutLoading
               ? "Redirecting to Stripe..."

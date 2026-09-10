@@ -1,4 +1,3 @@
-import { VAULT_MARKET_SEED_PRODUCTS } from "@/lib/commerce/seed-products";
 import { createPublicReadClient } from "@/lib/supabase/public-read";
 import type {
   FoodVaultNutritionFacts,
@@ -103,43 +102,12 @@ function isActiveRow(row: Record<string, unknown>): boolean {
   return true;
 }
 
-function enrichFromSeed(product: FoodVaultProduct): FoodVaultProduct {
-  const seed = VAULT_MARKET_SEED_PRODUCTS.find((item) => item.sku === product.sku);
-  if (!seed) return product;
-
-  return {
-    ...seed,
-    ...product,
-    subcategory: product.subcategory || seed.subcategory,
-    slug: product.slug || seed.slug,
-    image_url: product.image_url || seed.image_url,
-    gallery_urls: product.gallery_urls?.length ? product.gallery_urls : seed.gallery_urls,
-    description: product.description || seed.description,
-    ingredients: product.ingredients || seed.ingredients,
-    allergens: product.allergens || seed.allergens,
-    nutrition_facts: product.nutrition_facts || seed.nutrition_facts,
-    origin_label: product.origin_label || seed.origin_label,
-    unit_pricing: product.unit_pricing || seed.unit_pricing,
-    net_weight_g: product.net_weight_g ?? seed.net_weight_g,
-    health_star_rating: product.health_star_rating ?? seed.health_star_rating,
-  };
-}
-
-function mergeSeedCatalog(products: FoodVaultProduct[]): FoodVaultProduct[] {
-  const enriched = products.map(enrichFromSeed);
-  const seedSkus = new Set(VAULT_MARKET_SEED_PRODUCTS.map((item) => item.sku));
-  if (!enriched.every((item) => seedSkus.has(item.sku))) return enriched;
-
-  const bySku = new Map(enriched.map((item) => [item.sku, item]));
-  return VAULT_MARKET_SEED_PRODUCTS.map((seed) => bySku.get(seed.sku) ?? seed);
-}
-
 function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
   const sku = asString(row.sku);
   const name = asString(row.name);
   if (!sku || !name) return null;
 
-  return enrichFromSeed({
+  return {
     id: asString(row.id, sku),
     sku,
     name,
@@ -169,7 +137,7 @@ function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
     bin_location: asOptionalString(row.bin_location),
     created_at: asString(row.created_at) || undefined,
     updated_at: asString(row.updated_at) || null,
-  });
+  };
 }
 
 function uniqueIds(ids: string[]): string[] {
@@ -216,17 +184,13 @@ export async function getVaultMarketProductsByIds(
   const seen = new Set<string>();
 
   for (const id of requested) {
-    const product =
-      lookupAliases(id)
-        .map((alias) => found.get(alias))
-        .find(Boolean) ??
-      VAULT_MARKET_SEED_PRODUCTS.find(
-        (item) => item.id === id || item.sku === id
-      );
+    const product = lookupAliases(id)
+      .map((alias) => found.get(alias))
+      .find(Boolean);
 
     if (!product || seen.has(product.id)) continue;
     seen.add(product.id);
-    products.push(enrichFromSeed(product));
+    products.push(product);
   }
 
   return products;
@@ -234,7 +198,7 @@ export async function getVaultMarketProductsByIds(
 
 export async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]> {
   const supabase = createPublicReadClient();
-  if (!supabase) return VAULT_MARKET_SEED_PRODUCTS;
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("foodvault_products")
@@ -243,13 +207,11 @@ export async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]
 
   if (error) {
     console.error("[vault-market] failed to load foodvault_products", error.message);
-    return VAULT_MARKET_SEED_PRODUCTS;
+    return [];
   }
 
-  const products = (data ?? [])
+  return (data ?? [])
     .map((row) => mapProduct(row as Record<string, unknown>))
     .filter((product): product is FoodVaultProduct => product !== null)
     .filter((product) => product.is_active);
-
-  return products.length > 0 ? mergeSeedCatalog(products) : VAULT_MARKET_SEED_PRODUCTS;
 }

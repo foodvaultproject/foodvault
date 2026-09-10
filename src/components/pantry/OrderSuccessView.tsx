@@ -68,7 +68,7 @@ export function OrderSuccessView({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <p className="section-label">Vault Market</p>
+      <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">Vault Market</p>
       <h1 className={`${heading1} mt-2`}>Order confirmed</h1>
       <p className="mt-3 text-base text-muted-foreground">
         Thanks for shopping the pantry. Your member price is locked in on this order.
@@ -99,7 +99,7 @@ export function OrderSuccessView({
                         {item.sku ? ` · ${item.sku}` : ""}
                       </p>
                     </div>
-                    <p className="text-sm font-bold text-primary">
+                    <p className="text-sm font-bold text-vm-primary">
                       {formatNzPrice(item.line_total)}
                     </p>
                   </li>
@@ -145,7 +145,7 @@ export function OrderSuccessView({
 
       <Link
         href="/pantry"
-        className="fv-btn-primary mt-8 inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground"
+        className="mt-8 inline-flex items-center justify-center rounded-sm bg-vm-primary px-6 py-3 text-sm font-semibold text-white hover:bg-vm-surface"
       >
         Back to the pantry
       </Link>
