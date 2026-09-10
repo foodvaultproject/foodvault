@@ -173,6 +173,7 @@ function SafeImageInner({
         height={fill ? undefined : typeof height === "number" ? height : undefined}
         className={className}
         style={nativeStyle}
+        decoding="async"
         onError={handleError as ReactEventHandler<HTMLImageElement>}
       />
     );
@@ -189,6 +190,7 @@ function SafeImageInner({
       priority={priority}
       className={className}
       style={style}
+      decoding="async"
       onError={handleError}
       {...rest}
     />

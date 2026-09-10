@@ -2,9 +2,11 @@ import Image from "next/image";
 
 const LOGO_SRC = "/foodvault-logo.png";
 const LOGO_MENU_SRC = "/foodvault-logo-menu.png";
-const VAULT_MARKET_LOGO_SRC = "/vaultmarket/VaultMarket_LOGO.png";
+const VAULT_MARKET_LOGO_SRC = "/vaultmarket/vault-market-logo.webp";
 const LOGO_WIDTH = 1024;
 const LOGO_HEIGHT = 256;
+const VAULT_MARKET_LOGO_WIDTH = 720;
+const VAULT_MARKET_LOGO_HEIGHT = 169;
 
 type FoodVaultLogoSize = "nav" | "footer";
 type FoodVaultLogoVariant = "default" | "menu" | "vault-market";
@@ -17,9 +19,9 @@ const SIZE_CLASSES: Record<FoodVaultLogoSize, string> = {
 /** Menu nav logo: 30% larger than standard nav sizing. */
 const MENU_SIZE_CLASSES = "h-[2.145rem] w-auto sm:h-[2.34rem]";
 
-const VAULT_MARKET_CROP: Record<FoodVaultLogoSize, string> = {
-  nav: "h-11 w-[13.2rem] sm:h-[3.025rem] sm:w-[15.4rem]",
-  footer: "h-[3.6rem] w-[17.28rem] sm:h-[3.96rem] sm:w-[20.16rem]",
+const VAULT_MARKET_SIZE_CLASSES: Record<FoodVaultLogoSize, string> = {
+  nav: "h-8 w-auto max-w-[9.5rem] sm:h-10 sm:max-w-[13rem]",
+  footer: "h-10 w-auto max-w-[12rem] sm:h-12 sm:max-w-[16rem]",
 };
 
 type FoodVaultLogoProps = {
@@ -40,18 +42,15 @@ export function FoodVaultLogo({
 
   if (variant === "vault-market") {
     return (
-      <span className={`relative block overflow-hidden ${VAULT_MARKET_CROP[size]}${className ? ` ${className}` : ""}`}>
-        <Image
-          src={VAULT_MARKET_LOGO_SRC}
-          alt="Vault Market"
-          width={LOGO_WIDTH}
-          height={LOGO_HEIGHT}
-          sizes={size === "footer" ? "324px" : "247px"}
-          className="absolute left-0 top-1/2 h-[220%] w-[220%] max-w-none -translate-y-1/2 object-contain object-left mix-blend-screen"
-          priority={priority}
-          unoptimized
-        />
-      </span>
+      <Image
+        src={VAULT_MARKET_LOGO_SRC}
+        alt="Vault Market"
+        width={VAULT_MARKET_LOGO_WIDTH}
+        height={VAULT_MARKET_LOGO_HEIGHT}
+        sizes={size === "footer" ? "192px" : "152px"}
+        className={`block shrink-0 object-contain object-left${className ? ` ${className}` : ""} ${VAULT_MARKET_SIZE_CLASSES[size]}`}
+        priority={priority}
+      />
     );
   }
 
@@ -64,8 +63,6 @@ export function FoodVaultLogo({
       sizes={size === "nav" ? "180px" : "140px"}
       className={`shrink-0 object-contain object-left${className ? ` ${className}` : ""} ${sizeClass}`}
       priority={priority}
-      unoptimized
     />
   );
 }
-

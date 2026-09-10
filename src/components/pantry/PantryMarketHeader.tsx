@@ -134,7 +134,7 @@ export function PantryMarketHeader() {
             onMouseLeave={() => {
               if (window.matchMedia("(hover: hover)").matches) setBrowseOpen(false);
             }}
-            className="absolute left-0 z-40 mt-2 w-[min(100vw-2rem,42rem)] overflow-hidden rounded-lg border border-border bg-background shadow-xl"
+            className="absolute left-0 right-0 z-40 mt-2 max-h-[min(24rem,70vh)] overflow-hidden rounded-lg border border-border bg-background shadow-xl sm:right-auto sm:w-[min(42rem,calc(100vw-2rem))]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-[13rem_1fr]">
               <ul className="max-h-[24rem] overflow-y-auto border-b border-border bg-surface sm:border-b-0 sm:border-r">
@@ -228,7 +228,7 @@ export function PantryMarketHeader() {
           />
         </form>
 
-        <div className="flex shrink-0 items-center justify-end gap-2">
+        <div className="hidden shrink-0 items-center justify-end gap-2 lg:flex">
           <GroceryListButton />
           <VaultMarketCartButton />
         </div>

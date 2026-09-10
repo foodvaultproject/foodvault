@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createPublicReadClient } from "@/lib/supabase/public-read";
 import {
   applyInventoryStock,
@@ -210,7 +211,18 @@ export async function getVaultMarketProductsByIds(
   return products;
 }
 
-export async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]> {
+function toCatalogProduct(product: FoodVaultProduct): FoodVaultProduct {
+  return {
+    ...product,
+    description: null,
+    ingredients: null,
+    allergens: null,
+    nutrition_facts: null,
+    gallery_urls: undefined,
+  };
+}
+
+export const getActiveVaultMarketProducts = cache(async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]> {
   const supabase = createPublicReadClient();
   if (!supabase) return [];
 
@@ -229,5 +241,30 @@ export async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]
     .filter((product): product is FoodVaultProduct => product !== null);
 
   const stock = await fetchInventoryStockByProductId();
-  return applyInventoryStock(products, stock).filter(isStorefrontVisible);
-}
+  return applyInventoryStock(products, stock)
+    .filter(isStorefrontVisible)
+    .map(toCatalogProduct);
+});
+
+export const getVaultMarketProductById = cache(async function getVaultMarketProductById(
+  id: string
+): Promise<FoodVaultProduct | null> {
+  const supabase = createPublicReadClient();
+  if (!supabase || !id) return null;
+
+  const { data, error } = await supabase
+    .from("foodvault_products")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error("[vault-market] failed to load product detail", error.message);
+    return null;
+  }
+
+  const product = mapProduct(data as Record<string, unknown>);
+  if (!product) return null;
+  const stock = await fetchInventoryStockByProductId();
+  return applyInventoryStock([product], stock)[0] ?? null;
+});

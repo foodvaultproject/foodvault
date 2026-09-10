@@ -8,7 +8,7 @@ import {
   resolveProductSlug,
   resolveProductSubcategory,
 } from "@/lib/commerce/catalog";
-import { getActiveVaultMarketProducts } from "@/lib/commerce/products";
+import { getActiveVaultMarketProducts, getVaultMarketProductById } from "@/lib/commerce/products";
 import { PAGE_PY } from "@/lib/section-spacing";
 
 export const dynamic = "force-dynamic";
@@ -52,13 +52,13 @@ export async function generateStaticParams() {
 export default async function PantryProductPage({ params }: ProductPageProps) {
   const { category, subcategory, slug } = await params;
   const products = await getActiveVaultMarketProducts();
-  const product = findCatalogProduct(products, { category, subcategory, slug });
-
-  if (!product) notFound();
+  const listed = findCatalogProduct(products, { category, subcategory, slug });
+  if (!listed) notFound();
+  const product = (await getVaultMarketProductById(listed.id)) ?? listed;
 
   return (
-    <section className="bg-page">
-      <div className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
+    <section className="min-w-0 overflow-x-clip bg-page">
+      <div className={`mx-auto min-w-0 max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
         <PantryProductDetail product={product} />
       </div>
     </section>

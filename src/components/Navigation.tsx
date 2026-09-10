@@ -389,7 +389,7 @@ export function Navigation() {
     >
       {!menuPreview && !vaultMarket ? <NzAnnouncementBar /> : null}
       <nav
-        className={`mx-auto flex h-[4.25rem] max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 ${
+        className={`mx-auto flex h-[4.25rem] max-w-[1200px] min-w-0 items-center justify-between gap-2 overflow-x-clip px-4 sm:gap-4 sm:px-6 lg:px-8 ${
           menuPreview || vaultMarket
             ? `border-b border-white/15 ${chromeBg}`
             : "border-b border-border bg-white"
@@ -398,7 +398,7 @@ export function Navigation() {
       >
         <Link
           href={vaultMarket ? "/pantry" : "/"}
-          className="shrink-0 transition-opacity hover:opacity-80"
+          className="min-w-0 shrink transition-opacity hover:opacity-80"
           aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
         >
           <FoodVaultLogo
@@ -413,14 +413,16 @@ export function Navigation() {
           <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview} />
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {showVaultMarketCart ? (
             <>
               <GroceryListButton variant="nav" menuPreview={menuPreview || vaultMarket} />
               <VaultMarketCartButton variant="nav" menuPreview={menuPreview || vaultMarket} />
             </>
           ) : null}
-          <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
+          <div className={vaultMarket ? "hidden md:contents" : undefined}>
+            <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
+          </div>
           <MobileMenu
             auth={auth}
             menuPreview={menuPreview}

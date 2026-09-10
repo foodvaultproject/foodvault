@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicReadClient } from "@/lib/supabase/public-read";
 
@@ -26,7 +27,7 @@ async function inventoryClient() {
 }
 
 /** Stock on hand keyed by product id, summed from inventory intake rows. */
-export async function fetchInventoryStockByProductId(): Promise<Map<string, number>> {
+export const fetchInventoryStockByProductId = cache(async function fetchInventoryStockByProductId(): Promise<Map<string, number>> {
   const stock = new Map<string, number>();
   const supabase = await inventoryClient();
   if (!supabase) return stock;
@@ -45,7 +46,7 @@ export async function fetchInventoryStockByProductId(): Promise<Map<string, numb
   }
 
   return stock;
-}
+});
 
 export function applyInventoryStock<T extends { id: string; stock_quantity: number }>(
   products: T[],

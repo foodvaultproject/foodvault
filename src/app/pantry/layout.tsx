@@ -12,10 +12,12 @@ export default async function PantryLayout({
 
   return (
     <PantryMarketProvider products={products}>
-      <Suspense fallback={null}>
-        <PantryMarketHeader />
-      </Suspense>
-      {children}
+      <div className="min-w-0 overflow-x-clip">
+        <Suspense fallback={null}>
+          <PantryMarketHeader />
+        </Suspense>
+        {children}
+      </div>
     </PantryMarketProvider>
   );
 }

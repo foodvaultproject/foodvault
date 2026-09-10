@@ -22,8 +22,8 @@ export default async function PantryPage({ searchParams }: PantryPageProps) {
   const { q, department, subcategory } = await searchParams;
 
   return (
-    <section className="bg-page">
-      <div className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
+    <section className="min-w-0 overflow-x-clip bg-page">
+      <div className={`mx-auto min-w-0 max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
         <PantryStorefront
           query={q ?? ""}
           department={department ?? ""}
