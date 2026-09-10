@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
-import { NAV_MENU_PREVIEW_ENABLED, navChromeBgClass } from "@/lib/nav-menu-preview";
+import { NAV_MENU_PREVIEW_ENABLED, VAULT_MARKET_FOOTER_BG, navChromeBgClass } from "@/lib/nav-menu-preview";
 
 const FOOTER_BANNER = "/footer/footer-banner.png";
 
@@ -154,7 +154,7 @@ export function Footer({
 }) {
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
   const branded = menuPreview || vaultMarket;
-  const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
+  const chromeBg = vaultMarket ? VAULT_MARKET_FOOTER_BG : navChromeBgClass(false, menuPreview);
   const logoVariant = vaultMarket ? "vault-market" : menuPreview ? "menu" : "default";
 
   return (

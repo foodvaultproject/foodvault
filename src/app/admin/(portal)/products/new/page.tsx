@@ -12,7 +12,7 @@ export default async function AdminNewProductPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">New Vault Market product</h1>
         <p className="mt-1 text-sm text-muted">
-          Capture full Woolworths-style PDP attributes before publishing to the pantry.
+          Set family pricing and category once, then add flavour variants. Each variant is saved as its own product card.
         </p>
       </div>
       <ProductEditorForm product={null} vendors={vendors.map((vendor) => ({ id: vendor.id, name: vendor.name }))} />

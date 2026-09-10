@@ -143,6 +143,7 @@ function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
         ? row.natural_flavours_or_colours
         : undefined,
     bin_location: asOptionalString(row.bin_location),
+    product_family_id: asOptionalString(row.product_family_id),
     created_at: asString(row.created_at) || undefined,
     updated_at: asString(row.updated_at) || null,
   };

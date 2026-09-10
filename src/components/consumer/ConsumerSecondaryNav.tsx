@@ -42,21 +42,8 @@ const NAV_ITEMS = [
     shortLabel: "Market",
     Icon: ShoppingBag,
     isActive: isVaultMarketPath,
-    badge: "Pantry",
   },
 ] as const;
-
-function PantryBadge({ compact = false }: { compact?: boolean }) {
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center rounded-full bg-emerald-400 font-bold uppercase tracking-wide text-emerald-950 ${
-        compact ? "px-1 py-px text-[8px] leading-none" : "px-1.5 py-0.5 text-[10px] leading-none"
-      }`}
-    >
-      Pantry
-    </span>
-  );
-}
 
 function navItemClass(active: boolean, mobile: boolean, vaultMarket: boolean): string {
   const activeBg = vaultMarket ? "bg-[#10B981]" : "bg-primary";
@@ -96,9 +83,8 @@ export function ConsumerSecondaryNav() {
       >
         <div className="mx-auto flex max-w-[1200px] justify-center px-4 py-2.5 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/60 p-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl">
-            {NAV_ITEMS.map(({ href, label, Icon, isActive, ...item }) => {
+            {NAV_ITEMS.map(({ href, label, Icon, isActive }) => {
               const active = isActive(pathname);
-              const badge = "badge" in item ? item.badge : null;
               return (
                 <Link
                   key={href}
@@ -110,7 +96,6 @@ export function ConsumerSecondaryNav() {
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.75} />
                   {label}
-                  {badge ? <PantryBadge /> : null}
                 </Link>
               );
             })}
@@ -125,9 +110,8 @@ export function ConsumerSecondaryNav() {
           aria-label="Consumer sections"
           className="pointer-events-auto grid w-full max-w-md grid-cols-4 gap-1 rounded-full border border-white/15 bg-black/60 px-1.5 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl"
         >
-          {NAV_ITEMS.map(({ href, shortLabel, Icon, isActive, ...item }) => {
+          {NAV_ITEMS.map(({ href, shortLabel, Icon, isActive }) => {
             const active = isActive(pathname);
-            const badge = "badge" in item ? item.badge : null;
             return (
               <Link
                 key={href}
@@ -138,10 +122,7 @@ export function ConsumerSecondaryNav() {
                 className={`flex flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[10px] transition-colors ${navItemClass(active, true, vaultMarket)}`}
               >
                 <Icon className="h-5 w-5 shrink-0" strokeWidth={2.75} />
-                <span className="inline-flex max-w-full items-center gap-0.5">
-                  <span className="truncate">{shortLabel}</span>
-                  {badge ? <PantryBadge compact /> : null}
-                </span>
+                <span className="truncate">{shortLabel}</span>
               </Link>
             );
           })}

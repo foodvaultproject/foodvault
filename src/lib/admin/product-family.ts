@@ -1,0 +1,87 @@
+import { emptyNipMatrix, type NipMatrix } from "@/lib/admin/pantry-shared";
+
+export type ProductFamilyVariantInput = {
+  name: string;
+  sku: string;
+  barcode: string;
+  slug: string;
+  description: string;
+  ingredients: string;
+  allergens: string;
+  nip: NipMatrix;
+  image_url: string;
+  gallery_urls: string[];
+};
+
+export type ProductFamilySaveInput = {
+  brand: string;
+  category: string;
+  subcategory: string;
+  retail_price: number;
+  member_price: number;
+  wholesale_cost: number;
+  vendor_id: string;
+  unit_price_label: string;
+  origin_label: string;
+  bin_location: string;
+  health_star_rating: number | null;
+  natural_flavours_or_colours: boolean;
+  is_active: boolean;
+  variants: ProductFamilyVariantInput[];
+};
+
+export type ProductVariantDraft = ProductFamilyVariantInput & {
+  key: string;
+  slugTouched: boolean;
+  nipText: string;
+};
+
+export function emptyVariantDraft(key = crypto.randomUUID()): ProductVariantDraft {
+  return {
+    key,
+    name: "",
+    sku: "",
+    barcode: "",
+    slug: "",
+    slugTouched: false,
+    description: "",
+    ingredients: "",
+    allergens: "",
+    nip: emptyNipMatrix(),
+    nipText: "",
+    image_url: "",
+    gallery_urls: [],
+  };
+}
+
+export function variantTabLabel(variant: ProductVariantDraft, index: number): string {
+  const name = variant.name.trim();
+  if (!name) return `Variant ${index + 1}`;
+  return name.length > 28 ? `${name.slice(0, 26)}…` : name;
+}
+
+export function validateProductFamilyInput(input: ProductFamilySaveInput): string | null {
+  if (!input.brand.trim()) return "Brand is required.";
+  if (!input.category.trim()) return "Category is required.";
+  if (!Number.isFinite(input.retail_price) || input.retail_price < 0) {
+    return "Retail price is required.";
+  }
+  if (!Number.isFinite(input.member_price) || input.member_price < 0) {
+    return "Member price is required.";
+  }
+  if (input.variants.length < 1) return "Add at least one variant.";
+
+  const skus = new Set<string>();
+  for (let index = 0; index < input.variants.length; index += 1) {
+    const variant = input.variants[index];
+    const label = variant.name.trim() || `Variant ${index + 1}`;
+    if (!variant.name.trim()) return `${label}: product name is required.`;
+    if (!variant.sku.trim()) return `${label}: SKU is required.`;
+    const skuKey = variant.sku.trim().toLowerCase();
+    if (skus.has(skuKey)) {
+      return `SKU “${variant.sku.trim()}” is used on more than one variant.`;
+    }
+    skus.add(skuKey);
+  }
+  return null;
+}

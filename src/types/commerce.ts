@@ -51,6 +51,7 @@ export interface FoodVaultProduct {
   barcode?: string | null;
   vendor_id?: string | null;
   wholesale_cost?: number | null;
+  product_family_id?: string | null;
   created_at?: string;
   updated_at?: string | null;
 }

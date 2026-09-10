@@ -19,6 +19,10 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { parseNipMatrixFromImage, parseNipMatrixFromText } from "@/lib/admin/parse-nip-image";
 import { slugifyTitle } from "@/lib/admin/types";
+import {
+  validateProductFamilyInput,
+  type ProductFamilySaveInput,
+} from "@/lib/admin/product-family";
 
 function revalidatePantry() {
   revalidatePath("/admin/products");
@@ -99,6 +103,7 @@ export async function saveVaultMarketProductAction(formData: FormData) {
     barcode: String(formData.get("barcode") ?? "").trim(),
     vendor_id: String(formData.get("vendor_id") ?? "").trim(),
     wholesale_cost: readNumber(formData, "wholesale_cost"),
+    product_family_id: String(formData.get("product_family_id") ?? "").trim() || null,
   });
 
   const result = await writeProductRow(payload);
@@ -112,6 +117,67 @@ export async function saveVaultMarketProductAction(formData: FormData) {
   );
   revalidatePantry();
   return { success: true, id: result.data?.id ?? null };
+}
+
+export async function saveVaultMarketProductFamilyAction(input: ProductFamilySaveInput) {
+  const admin = await getAdminUser();
+  if (!admin) return { error: "Unauthorized", createdIds: [] as string[] };
+
+  const validationError = validateProductFamilyInput(input);
+  if (validationError) return { error: validationError, createdIds: [] as string[] };
+
+  const familyId = crypto.randomUUID();
+  const createdIds: string[] = [];
+
+  for (const variant of input.variants) {
+    const name = variant.name.trim();
+    const sku = variant.sku.trim();
+    const payload = productWritePayload({
+      sku,
+      name,
+      brand: input.brand.trim() || "FoodVault",
+      category: input.category.trim() || "Pantry",
+      subcategory: input.subcategory.trim(),
+      slug: variant.slug.trim() || slugifyTitle(name),
+      retail_price: input.retail_price,
+      member_price: input.member_price,
+      unit_price_label: input.unit_price_label.trim(),
+      origin_label: input.origin_label.trim(),
+      health_star_rating: input.health_star_rating,
+      natural_flavours_or_colours: input.natural_flavours_or_colours,
+      description: variant.description.trim(),
+      ingredients: variant.ingredients.trim(),
+      allergens: variant.allergens.trim(),
+      nutrition_facts: factsFromNip(variant.nip),
+      image_url: variant.image_url.trim(),
+      gallery_urls: variant.gallery_urls.map((url) => url.trim()).filter(Boolean),
+      is_active: input.is_active,
+      bin_location: input.bin_location.trim(),
+      barcode: variant.barcode.trim(),
+      vendor_id: input.vendor_id.trim(),
+      wholesale_cost: input.wholesale_cost,
+      product_family_id: familyId,
+    });
+
+    const result = await writeProductRow(payload);
+    if (result.error) {
+      if (createdIds.length > 0) revalidatePantry();
+      return {
+        error: `${name || sku}: ${result.error}`,
+        createdIds,
+      };
+    }
+    if (result.data?.id) createdIds.push(result.data.id);
+  }
+
+  await logAuditAction(
+    "create_vault_market_product_family",
+    "foodvault_product",
+    createdIds[0],
+    { familyId, skuCount: createdIds.length, createdIds }
+  );
+  revalidatePantry();
+  return { success: true, familyId, createdIds };
 }
 
 export async function saveInventoryBatchAction(formData: FormData) {

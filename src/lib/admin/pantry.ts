@@ -102,6 +102,7 @@ export function mapAdminProduct(row: Record<string, unknown>): FoodVaultProduct 
     barcode: asString(row.barcode) || null,
     vendor_id: asString(row.vendor_id) || null,
     wholesale_cost: row.wholesale_cost == null ? null : asNumber(row.wholesale_cost),
+    product_family_id: asString(row.product_family_id) || null,
     created_at: asString(row.created_at) || undefined,
     updated_at: asString(row.updated_at) || null,
   };
@@ -337,6 +338,7 @@ export function productWritePayload(input: {
   barcode: string;
   vendor_id: string;
   wholesale_cost: number;
+  product_family_id?: string | null;
 }): Record<string, unknown> {
   const unitPricing = parseUnitPriceLabel(input.unit_price_label);
   const payload: Record<string, unknown> = {
@@ -366,6 +368,9 @@ export function productWritePayload(input: {
     wholesale_cost: input.wholesale_cost,
     updated_at: new Date().toISOString(),
   };
+  if (input.product_family_id) {
+    payload.product_family_id = input.product_family_id;
+  }
   if (input.id) {
     payload.id = input.id;
   } else {
