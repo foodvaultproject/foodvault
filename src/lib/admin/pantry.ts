@@ -459,9 +459,24 @@ export async function applyStockDelta(productId: string, delta: number): Promise
 
   if (error || !data) return error?.message ?? "Product not found.";
   const next = Math.max(0, Math.trunc(asNumber((data as { stock_quantity?: unknown }).stock_quantity) + delta));
-  const { error: updateError } = await supabase
+  let fields: Record<string, unknown> = {
+    stock_quantity: next,
+    updated_at: new Date().toISOString(),
+  };
+  let { error: updateError } = await supabase
     .from("foodvault_products")
-    .update({ stock_quantity: next, updated_at: new Date().toISOString() })
+    .update(fields)
     .eq("id", productId);
+  for (let i = 0; i < 4 && updateError; i += 1) {
+    const column = updateError.message.match(/Could not find the '([^']+)' column/i)?.[1];
+    if (!column || !(column in fields)) break;
+    const nextFields = { ...fields };
+    delete nextFields[column];
+    fields = nextFields;
+    ({ error: updateError } = await supabase
+      .from("foodvault_products")
+      .update(fields)
+      .eq("id", productId));
+  }
   return updateError?.message ?? null;
 }

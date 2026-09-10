@@ -610,10 +610,21 @@ export async function completePurchaseOrderReceiving(poId: string): Promise<{
       .eq("id", item.productId)
       .maybeSingle();
     const current = Math.max(0, Math.trunc(asNumber((product as { stock_quantity?: unknown } | null)?.stock_quantity)));
-    const { error: stockError } = await supabase
+    let stockFields: Record<string, unknown> = {
+      stock_quantity: current + item.quantityReceived,
+      updated_at: now,
+    };
+    let { error: stockError } = await supabase
       .from("foodvault_products")
-      .update({ stock_quantity: current + item.quantityReceived, updated_at: now })
+      .update(stockFields)
       .eq("id", item.productId);
+    if (stockError?.message.match(/Could not find the 'updated_at' column/i)) {
+      delete stockFields.updated_at;
+      ({ error: stockError } = await supabase
+        .from("foodvault_products")
+        .update(stockFields)
+        .eq("id", item.productId));
+    }
     if (stockError) return { creditNoteId: null, error: stockError.message };
   }
 
