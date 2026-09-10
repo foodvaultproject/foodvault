@@ -152,6 +152,49 @@ function giftsHampersBrowseHref() {
   return `/browse-brands?department=${encodeURIComponent(GIFTS_HAMPERS_DEPARTMENT)}`;
 }
 
+function HomePromoBannerCard({
+  href,
+  scroll,
+  ariaLabel,
+  src,
+  compactSpacing = false,
+  children,
+}: {
+  href: string;
+  scroll: boolean;
+  ariaLabel: string;
+  src: string;
+  compactSpacing?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <section className={compactSpacing ? "py-8 sm:py-10" : "py-10 sm:py-14"}>
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <Link
+          href={href}
+          scroll={scroll}
+          className="group relative block overflow-hidden rounded-2xl shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-label={ariaLabel}
+        >
+          <div className="relative aspect-[32/10] w-full min-h-[9rem] max-h-[22rem] sm:min-h-[10rem] sm:max-h-[26rem]">
+            <Image
+              src={src}
+              alt=""
+              fill
+              sizes="(max-width: 1280px) 100vw, 1200px"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+            <div aria-hidden="true" className="absolute inset-0 bg-black/35" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full px-6 text-center sm:px-10">{children}</div>
+            </div>
+          </div>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function HomeGiftsHampersBanner({
   keepBrowseOnHomepage = false,
   compactSpacing = false,
@@ -163,38 +206,20 @@ export function HomeGiftsHampersBanner({
   const href = keepBrowseOnHomepage ? toHomepageBrowseHref(browseHref) : browseHref;
 
   return (
-    <section className="w-full">
-      <Link
-        href={href}
-        scroll={!keepBrowseOnHomepage}
-        className="group relative block w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        aria-label="Browse Gift Boxes and Hampers"
-      >
-        <div className="relative aspect-[32/10] w-full min-h-[9rem] max-h-[22rem] sm:min-h-[10rem] sm:max-h-[26rem]">
-          <Image
-            src={GIFTS_HAMPERS_BANNER_SRC}
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-black/35"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="mx-auto w-full max-w-[1200px] px-4 text-center sm:px-6 lg:px-8">
-              <h2 className="mx-auto max-w-5xl text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
-                Thoughtful Gifts &amp; Hampers They&apos;ll Love
-              </h2>
-              <span className="fv-btn-primary mt-5 inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 group-hover:-translate-y-0.5 sm:px-8 sm:py-3.5 sm:text-base">
-                View Offers
-              </span>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </section>
+    <HomePromoBannerCard
+      href={href}
+      scroll={!keepBrowseOnHomepage}
+      ariaLabel="Browse Gift Boxes and Hampers"
+      src={GIFTS_HAMPERS_BANNER_SRC}
+      compactSpacing={compactSpacing}
+    >
+      <h2 className="mx-auto max-w-5xl text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
+        Thoughtful Gifts &amp; Hampers They&apos;ll Love
+      </h2>
+      <span className="fv-btn-primary mt-5 inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 group-hover:-translate-y-0.5 sm:px-8 sm:py-3.5 sm:text-base">
+        View Offers
+      </span>
+    </HomePromoBannerCard>
   );
 }
 
@@ -205,7 +230,7 @@ function meatPoultryBrowseHref() {
   return `/browse-brands?department=${encodeURIComponent(MEAT_POULTRY_DEPARTMENT)}`;
 }
 
-/** Full-width Meat & Poultry promo directly under trending department cards. */
+/** Contained Meat & Poultry promo card, matching Vault Market card width. */
 export function HomeMeatPoultryBanner({
   keepBrowseOnHomepage = false,
   compactSpacing = false,
@@ -217,41 +242,23 @@ export function HomeMeatPoultryBanner({
   const href = keepBrowseOnHomepage ? toHomepageBrowseHref(browseHref) : browseHref;
 
   return (
-    <section className="w-full">
-      <Link
-        href={href}
-        scroll={!keepBrowseOnHomepage}
-        className="group relative block w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        aria-label="Browse Meat and Poultry"
-      >
-        <div className="relative aspect-[32/10] w-full min-h-[9rem] max-h-[22rem] sm:min-h-[10rem] sm:max-h-[26rem]">
-          <Image
-            src={MEAT_POULTRY_BANNER_SRC}
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-black/35"
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="mx-auto w-full max-w-[1200px] px-4 text-center sm:px-6 lg:px-8">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#d4c9ff] sm:mb-2.5 sm:text-sm">
-                New Zealand
-              </p>
-              <h2 className="mx-auto max-w-5xl text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
-                Meat &amp; Poultry
-              </h2>
-              <span className="fv-btn-primary mt-5 inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 group-hover:-translate-y-0.5 sm:px-8 sm:py-3.5 sm:text-base">
-                View Offers
-              </span>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </section>
+    <HomePromoBannerCard
+      href={href}
+      scroll={!keepBrowseOnHomepage}
+      ariaLabel="Browse Meat and Poultry"
+      src={MEAT_POULTRY_BANNER_SRC}
+      compactSpacing={compactSpacing}
+    >
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#d4c9ff] sm:mb-2.5 sm:text-sm">
+        New Zealand
+      </p>
+      <h2 className="mx-auto max-w-5xl text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
+        Meat &amp; Poultry
+      </h2>
+      <span className="fv-btn-primary mt-5 inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 group-hover:-translate-y-0.5 sm:px-8 sm:py-3.5 sm:text-base">
+        View Offers
+      </span>
+    </HomePromoBannerCard>
   );
 }
 
