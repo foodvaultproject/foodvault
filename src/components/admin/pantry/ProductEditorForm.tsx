@@ -3,9 +3,9 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  PARTNER_CATEGORY_TAXONOMY,
+  getSubcategoriesForDepartment,
+  getSubcategoryGroupsForDepartment,
   PRIMARY_DEPARTMENTS,
-  type PrimaryDepartment,
 } from "@/data/partner-categories";
 import { convertImageToWebpFile } from "@/lib/admin/compress-image-webp";
 import {
@@ -71,14 +71,17 @@ export function ProductEditorForm({
   const extrasFull = galleryUrls.length >= MAX_GALLERY_IMAGES;
   const canAddImage = imageUrl ? !extrasFull : true;
 
+  const subcategoryGroups = useMemo(
+    () => getSubcategoryGroupsForDepartment(category),
+    [category]
+  );
   const subcategories = useMemo(() => {
-    const department = (
-      PRIMARY_DEPARTMENTS.includes(category as PrimaryDepartment)
-        ? category
-        : "Pantry"
-    ) as PrimaryDepartment;
-    return PARTNER_CATEGORY_TAXONOMY[department] ?? [];
-  }, [category]);
+    const labels = getSubcategoriesForDepartment(category);
+    if (subcategory && !labels.includes(subcategory)) {
+      return [subcategory, ...labels];
+    }
+    return [...labels];
+  }, [category, subcategory]);
 
   function handleNameChange(value: string) {
     setName(value);
@@ -249,9 +252,27 @@ export function ProductEditorForm({
               className={inputClass}
             >
               <option value="">Select subcategory</option>
-              {subcategories.map((label) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
+              {subcategoryGroups
+                ? (
+                    <>
+                      {subcategory &&
+                      !subcategoryGroups.some((group) =>
+                        group.subcategories.includes(subcategory)
+                      ) ? (
+                        <option value={subcategory}>{subcategory}</option>
+                      ) : null}
+                      {subcategoryGroups.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.subcategories.map((label) => (
+                            <option key={label} value={label}>{label}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </>
+                  )
+                : subcategories.map((label) => (
+                    <option key={label} value={label}>{label}</option>
+                  ))}
             </select>
           </div>
           <div className="md:col-span-2">

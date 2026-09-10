@@ -1,4 +1,8 @@
 import { createPublicReadClient } from "@/lib/supabase/public-read";
+import {
+  applyInventoryStock,
+  fetchInventoryStockByProductId,
+} from "@/lib/commerce/stock-on-hand";
 import type {
   FoodVaultNutritionFacts,
   FoodVaultProduct,
@@ -184,6 +188,11 @@ export async function getVaultMarketProductsByIds(
     }
   }
 
+  const stock = await fetchInventoryStockByProductId();
+  for (const [key, product] of found) {
+    found.set(key, applyInventoryStock([product], stock)[0]);
+  }
+
   const products: FoodVaultProduct[] = [];
   const seen = new Set<string>();
 
@@ -214,8 +223,10 @@ export async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]
     return [];
   }
 
-  return (data ?? [])
+  const products = (data ?? [])
     .map((row) => mapProduct(row as Record<string, unknown>))
-    .filter((product): product is FoodVaultProduct => product !== null)
-    .filter(isStorefrontVisible);
+    .filter((product): product is FoodVaultProduct => product !== null);
+
+  const stock = await fetchInventoryStockByProductId();
+  return applyInventoryStock(products, stock).filter(isStorefrontVisible);
 }

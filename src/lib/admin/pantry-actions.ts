@@ -133,7 +133,9 @@ export async function saveInventoryBatchAction(formData: FormData) {
 
   const delta = quantity - result.previousQty;
   const stockError = await applyStockDelta(productId, delta);
-  if (stockError) return { error: stockError };
+  if (stockError) {
+    console.error("[admin-pantry] stock overlay persist failed", stockError);
+  }
 
   await logAuditAction(
     result.previousQty ? "update_inventory_batch" : "create_inventory_batch",

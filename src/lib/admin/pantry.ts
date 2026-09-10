@@ -3,6 +3,11 @@ import {
   parseUnitPriceLabel,
   type PantryReportData,
 } from "@/lib/admin/pantry-shared";
+import {
+  applyInventoryStock,
+  fetchInventoryStockByProductId,
+  persistProductStockQuantity,
+} from "@/lib/commerce/stock-on-hand";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -38,6 +43,25 @@ function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim() ? value : fallback;
 }
 
+function parseGalleryUrls(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    const urls = value.filter((entry): entry is string => typeof entry === "string" && Boolean(entry.trim()));
+    return urls.length > 0 ? urls : undefined;
+  }
+  if (typeof value === "string" && value.trim()) {
+    try {
+      return parseGalleryUrls(JSON.parse(value));
+    } catch {
+      const urls = value
+        .split(/\r?\n|,/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+      return urls.length > 0 ? urls : undefined;
+    }
+  }
+  return undefined;
+}
+
 async function pantryClient() {
   return createAdminClient() ?? (isSupabaseConfigured() ? await createClient() : null);
 }
@@ -55,9 +79,7 @@ export function mapAdminProduct(row: Record<string, unknown>): FoodVaultProduct 
     subcategory: asString(row.subcategory) || null,
     slug: asString(row.slug) || null,
     image_url: asString(row.image_url) || null,
-    gallery_urls: Array.isArray(row.gallery_urls)
-      ? row.gallery_urls.filter((url): url is string => typeof url === "string")
-      : undefined,
+    gallery_urls: parseGalleryUrls(row.gallery_urls),
     is_active: row.is_active !== false,
     description: asString(row.description) || null,
     ingredients: asString(row.ingredients) || null,
@@ -112,7 +134,22 @@ export async function listAdminProducts(): Promise<FoodVaultProduct[]> {
     return [];
   }
 
-  return (data ?? []).map((row) => mapAdminProduct(row as Record<string, unknown>));
+  const products = (data ?? []).map((row) => mapAdminProduct(row as Record<string, unknown>));
+  return overlayAdminStock(products);
+}
+
+async function overlayAdminStock(products: FoodVaultProduct[]): Promise<FoodVaultProduct[]> {
+  const stock = await fetchInventoryStockByProductId();
+  const next = applyInventoryStock(products, stock);
+  for (const product of next) {
+    const soh = stock.get(product.id);
+    if (soh == null) continue;
+    const stored = products.find((row) => row.id === product.id)?.stock_quantity ?? 0;
+    if (soh !== stored) {
+      await persistProductStockQuantity(product.id, soh);
+    }
+  }
+  return next;
 }
 
 export async function getAdminProductById(id: string): Promise<FoodVaultProduct | null> {
@@ -126,7 +163,8 @@ export async function getAdminProductById(id: string): Promise<FoodVaultProduct 
     .maybeSingle();
 
   if (error || !data) return null;
-  return mapAdminProduct(data as Record<string, unknown>);
+  const [product] = await overlayAdminStock([mapAdminProduct(data as Record<string, unknown>)]);
+  return product ?? null;
 }
 
 export async function listInventoryBatches(): Promise<
@@ -354,8 +392,7 @@ export async function writeProductRow(
   let { data, error } = await attempt(body);
 
   for (let i = 0; i < 8 && error; i += 1) {
-    const column = error.message.match(/Could not find the '([^']+)' column/i)?.[1]
-      ?? error.message.match(/column "([^"]+)"/i)?.[1];
+    const column = error.message.match(/Could not find the '([^']+)' column/i)?.[1];
     if (!column || !(column in body)) break;
     const next = { ...body };
     delete next[column];
@@ -447,52 +484,11 @@ export async function writeInventoryBatch(input: {
 }
 
 export async function applyStockDelta(productId: string, delta = 0): Promise<string | null> {
-  const supabase = await pantryClient();
-  if (!supabase) return "Supabase is not configured.";
-
-  const { data: batches, error: batchError } = await supabase
-    .from("foodvault_inventory_batches")
-    .select("quantity_received")
-    .eq("product_id", productId);
-
-  let next: number;
-  if (batchError) {
-    const { data, error } = await supabase
-      .from("foodvault_products")
-      .select("id, stock_quantity")
-      .eq("id", productId)
-      .maybeSingle();
-    if (error || !data) return error?.message ?? "Product not found.";
-    if (!delta) return null;
-    next = Math.max(0, Math.trunc(asNumber((data as { stock_quantity?: unknown }).stock_quantity) + delta));
-  } else {
-    next = Math.max(
-      0,
-      (batches ?? []).reduce(
-        (sum, row) => sum + Math.trunc(asNumber((row as { quantity_received?: unknown }).quantity_received)),
-        0
-      )
-    );
-  }
-
-  let fields: Record<string, unknown> = {
-    stock_quantity: next,
-    updated_at: new Date().toISOString(),
-  };
-  let { error: updateError } = await supabase
-    .from("foodvault_products")
-    .update(fields)
-    .eq("id", productId);
-  for (let i = 0; i < 4 && updateError; i += 1) {
-    const column = updateError.message.match(/Could not find the '([^']+)' column/i)?.[1];
-    if (!column || !(column in fields)) break;
-    const nextFields = { ...fields };
-    delete nextFields[column];
-    fields = nextFields;
-    ({ error: updateError } = await supabase
-      .from("foodvault_products")
-      .update(fields)
-      .eq("id", productId));
-  }
-  return updateError?.message ?? null;
+  const stock = await fetchInventoryStockByProductId();
+  const fromBatches = stock.get(productId);
+  const next =
+    fromBatches != null
+      ? fromBatches
+      : Math.max(0, delta);
+  return persistProductStockQuantity(productId, next);
 }

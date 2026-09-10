@@ -140,7 +140,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
             ) : null}
           </div>
           {gallery.length > 1 ? (
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {gallery.map((url, index) => (
                 <button
                   key={url}
