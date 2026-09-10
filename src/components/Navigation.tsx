@@ -389,11 +389,7 @@ export function Navigation() {
     >
       {!menuPreview && !vaultMarket ? <NzAnnouncementBar /> : null}
       <nav
-        className={`flex h-[4.25rem] w-full items-center justify-between gap-4 ${
-          vaultMarket
-            ? "pl-2 pr-4 sm:pl-3 sm:pr-6 lg:pr-8"
-            : "mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8"
-        } ${
+        className={`mx-auto flex h-[4.25rem] max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 ${
           menuPreview || vaultMarket
             ? `border-b border-white/15 ${chromeBg}`
             : "border-b border-border bg-white"
@@ -402,9 +398,7 @@ export function Navigation() {
       >
         <Link
           href={vaultMarket ? "/pantry" : "/"}
-          className={`shrink-0 transition-opacity hover:opacity-80 ${
-            vaultMarket ? "-ml-1 sm:-ml-1.5" : ""
-          }`}
+          className="shrink-0 transition-opacity hover:opacity-80"
           aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
         >
           <FoodVaultLogo
