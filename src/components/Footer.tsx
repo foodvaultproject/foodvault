@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
-import { NAV_MENU_PREVIEW_ENABLED } from "@/lib/nav-menu-preview";
+import { NAV_MENU_PREVIEW_ENABLED, navChromeBgClass } from "@/lib/nav-menu-preview";
 
 const FOOTER_BANNER = "/footer/footer-banner.png";
 
@@ -147,20 +147,25 @@ function FooterBottomBar({
 
 export function Footer({
   mobileBottomNavInset = false,
+  vaultMarket = false,
 }: {
   mobileBottomNavInset?: boolean;
+  vaultMarket?: boolean;
 }) {
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
+  const branded = menuPreview || vaultMarket;
+  const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
+  const logoVariant = vaultMarket ? "vault-market" : menuPreview ? "menu" : "default";
 
   return (
     <footer
       className={
-        menuPreview
-          ? "relative overflow-hidden border-t border-white/15 bg-primary"
+        branded
+          ? `relative overflow-hidden border-t border-white/15 ${chromeBg}`
           : "border-t border-border bg-background"
       }
     >
-      {menuPreview ? (
+      {menuPreview && !vaultMarket ? (
         <div
           className="pointer-events-none absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat"
           style={{ backgroundImage: `url('${FOOTER_BANNER}')` }}
@@ -169,18 +174,18 @@ export function Footer({
       ) : null}
       <div
         className={`relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
-          menuPreview ? "py-5" : "py-7"
+          branded ? "py-5" : "py-7"
         }`}
       >
-        {menuPreview ? (
+        {branded ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(0,1fr))] lg:gap-x-6 lg:gap-y-5">
             <div className="space-y-3 sm:col-span-2 lg:col-span-1">
               <Link
-                href="/"
+                href={vaultMarket ? "/pantry" : "/"}
                 className="inline-block transition-opacity hover:opacity-80"
-                aria-label="FoodVault home"
+                aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
               >
-                <FoodVaultLogo size="nav" variant="menu" />
+                <FoodVaultLogo size="footer" variant={logoVariant} />
               </Link>
               <p className="text-sm leading-relaxed text-white">
                   {FOOTER_DESCRIPTION}
@@ -207,7 +212,7 @@ export function Footer({
         )}
 
         <FooterBottomBar
-          menuPreview={menuPreview}
+          menuPreview={branded}
           mobileBottomNavInset={mobileBottomNavInset}
         />
       </div>

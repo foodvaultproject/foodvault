@@ -23,7 +23,7 @@ import {
 import {
   NAV_MENU_CTA_BLOCK_CLASS,
   NAV_MENU_CTA_CLASS,
-  NAV_MENU_PREVIEW_GRADIENT,
+  navChromeBgClass,
 } from "@/lib/nav-menu-preview";
 
 function getNavLinks() {
@@ -322,11 +322,13 @@ function MobileLogoutButton({
 export function MobileMenu({
   auth,
   menuPreview = false,
+  vaultMarket = false,
   open: controlledOpen,
   onOpenChange,
 }: {
   auth: NavAuthState;
   menuPreview?: boolean;
+  vaultMarket?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
@@ -334,7 +336,8 @@ export function MobileMenu({
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const pathname = usePathname();
-  const navOffset = menuPreview ? "4.25rem" : "calc(4.25rem + 1.5rem)";
+  const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
+  const navOffset = menuPreview || vaultMarket ? "4.25rem" : "calc(4.25rem + 1.5rem)";
 
   useEffect(() => {
     setOpen(false);
@@ -391,8 +394,8 @@ export function MobileMenu({
           <div
             id="mobile-nav"
             className={`absolute inset-x-0 bottom-0 flex min-h-0 flex-col ${
-              menuPreview
-                ? `border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}`
+              menuPreview || vaultMarket
+                ? `border-white/15 ${chromeBg}`
                 : "border-border bg-white"
             }`}
             style={{ top: navOffset }}
@@ -411,7 +414,7 @@ export function MobileMenu({
             {isAuthenticatedNavState(auth) ? (
               <div
                 className={`shrink-0 border-t px-4 py-3 sm:px-6 ${
-                  menuPreview ? "border-white/15 bg-[#8B7CF6]" : "border-border bg-white"
+                  menuPreview || vaultMarket ? `border-white/15 ${chromeBg}` : "border-border bg-white"
                 }`}
               >
                 <MobileLogoutButton menuPreview={menuPreview} onNavigate={closeMenu} />

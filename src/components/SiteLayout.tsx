@@ -7,12 +7,13 @@ import { Footer } from "@/components/Footer";
 import { MemberSignupCtaProvider } from "@/components/member/MemberSignupCtaProvider";
 import { Navigation } from "@/components/Navigation";
 import { NavigationPrefetch } from "@/components/navigation/NavigationPrefetch";
-import { shouldShowConsumerSecondaryNav } from "@/lib/consumer-nav-restructure";
+import { shouldShowConsumerSecondaryNav, isVaultMarketPath } from "@/lib/consumer-nav-restructure";
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
   const showConsumerSecondaryNav = shouldShowConsumerSecondaryNav(pathname);
+  const vaultMarket = isVaultMarketPath(pathname);
 
   if (isAdmin) {
     const isPackingSlip = pathname.includes("/packing-slip");
@@ -38,7 +39,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       >
         {children}
       </main>
-      <Footer mobileBottomNavInset={showConsumerSecondaryNav} />
+      <Footer mobileBottomNavInset={showConsumerSecondaryNav} vaultMarket={vaultMarket} />
     </MemberSignupCtaProvider>
   );
 }

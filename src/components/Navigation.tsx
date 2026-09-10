@@ -37,8 +37,9 @@ import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
 import {
   NAV_MENU_CTA_CLASS,
   NAV_MENU_PREVIEW_ENABLED,
-  NAV_MENU_PREVIEW_GRADIENT,
+  navChromeBgClass,
 } from "@/lib/nav-menu-preview";
+import { isVaultMarketPath } from "@/lib/consumer-nav-restructure";
 
 export type { NavAuthState } from "@/lib/nav-auth";
 
@@ -375,49 +376,55 @@ export function Navigation() {
   const auth = useNavAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const vaultMarket = isVaultMarketPath(pathname);
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
-  const showVaultMarketCart = pathname === "/pantry" || pathname.startsWith("/pantry/");
+  const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
+  const showVaultMarketCart = vaultMarket;
+  const logoVariant = vaultMarket ? "vault-market" : menuPreview ? "menu" : "default";
   return (
     <header
       className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
-        menuPreview ? NAV_MENU_PREVIEW_GRADIENT : "bg-white"
+        menuPreview || vaultMarket ? chromeBg : "bg-white"
       }`}
     >
-      {!menuPreview ? <NzAnnouncementBar /> : null}
+      {!menuPreview && !vaultMarket ? <NzAnnouncementBar /> : null}
       <nav
         className={`mx-auto flex h-[4.25rem] max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 ${
-          menuPreview ? `border-b border-white/15 ${NAV_MENU_PREVIEW_GRADIENT}` : "border-b border-border bg-white"
+          menuPreview || vaultMarket
+            ? `border-b border-white/15 ${chromeBg}`
+            : "border-b border-border bg-white"
         }`}
         aria-label="Main navigation"
       >
         <Link
-          href="/"
+          href={vaultMarket ? "/pantry" : "/"}
           className="shrink-0 transition-opacity hover:opacity-80"
-          aria-label="FoodVault home"
+          aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
         >
           <FoodVaultLogo
             size="nav"
-            variant={menuPreview ? "menu" : "default"}
+            variant={logoVariant}
             priority
           />
         </Link>
 
         <div className="hidden min-w-0 flex-1 items-center justify-end gap-6 xl:flex">
-          {!menuPreview ? <NavSearch /> : null}
+          {!menuPreview && !vaultMarket ? <NavSearch /> : null}
           <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview} />
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
           {showVaultMarketCart ? (
             <>
-              <GroceryListButton variant="nav" />
-              <VaultMarketCartButton variant="nav" menuPreview={menuPreview} />
+              <GroceryListButton variant="nav" menuPreview={menuPreview || vaultMarket} />
+              <VaultMarketCartButton variant="nav" menuPreview={menuPreview || vaultMarket} />
             </>
           ) : null}
           <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
           <MobileMenu
             auth={auth}
             menuPreview={menuPreview}
+            vaultMarket={vaultMarket}
             open={mobileMenuOpen}
             onOpenChange={setMobileMenuOpen}
           />

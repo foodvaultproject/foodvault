@@ -58,20 +58,22 @@ function PantryBadge({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function navItemClass(active: boolean, mobile: boolean): string {
+function navItemClass(active: boolean, mobile: boolean, vaultMarket: boolean): string {
+  const activeBg = vaultMarket ? "bg-[#10B981]" : "bg-primary";
   if (mobile) {
     return active
-      ? "bg-primary font-bold text-white shadow-sm"
+      ? `${activeBg} font-bold text-white shadow-sm`
       : "font-bold text-white/85";
   }
 
   return active
-    ? "bg-primary font-bold text-white shadow-sm"
+    ? `${activeBg} font-bold text-white shadow-sm`
     : "font-bold text-white/85 hover:bg-white/10 hover:text-white";
 }
 
 export function ConsumerSecondaryNav() {
   const pathname = usePathname();
+  const vaultMarket = isVaultMarketPath(pathname);
 
   function handleNavClick(
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -104,7 +106,7 @@ export function ConsumerSecondaryNav() {
                   prefetch
                   onClick={(event) => handleNavClick(event, href)}
                   aria-current={active ? "page" : undefined}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition-colors sm:px-4 sm:text-sm ${navItemClass(active, false)}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition-colors sm:px-4 sm:text-sm ${navItemClass(active, false, vaultMarket)}`}
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.75} />
                   {label}
@@ -133,7 +135,7 @@ export function ConsumerSecondaryNav() {
                 prefetch
                 onClick={(event) => handleNavClick(event, href)}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[10px] transition-colors ${navItemClass(active, true)}`}
+                className={`flex flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[10px] transition-colors ${navItemClass(active, true, vaultMarket)}`}
               >
                 <Icon className="h-5 w-5 shrink-0" strokeWidth={2.75} />
                 <span className="inline-flex max-w-full items-center gap-0.5">

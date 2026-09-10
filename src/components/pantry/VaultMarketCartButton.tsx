@@ -27,7 +27,9 @@ export function VaultMarketCartButton({
       >
         <ShoppingBag className="h-5 w-5" aria-hidden="true" />
         {ready && count > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-4 text-primary-foreground">
+          <span className={`absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-4 ${
+            menuPreview ? "bg-[#064E3B] text-white" : "bg-primary text-primary-foreground"
+          }`}>
             {count > 99 ? "99+" : count}
           </span>
         ) : null}
