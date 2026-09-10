@@ -19,7 +19,7 @@ const MENU_SIZE_CLASSES = "h-[2.145rem] w-auto sm:h-[2.34rem]";
 
 const VAULT_MARKET_CROP: Record<FoodVaultLogoSize, string> = {
   nav: "h-11 w-[13.2rem] sm:h-[3.025rem] sm:w-[15.4rem]",
-  footer: "h-12 w-[14.4rem] sm:h-[3.3rem] sm:w-[16.8rem]",
+  footer: "h-[3.6rem] w-[17.28rem] sm:h-[3.96rem] sm:w-[20.16rem]",
 };
 
 type FoodVaultLogoProps = {
@@ -46,8 +46,8 @@ export function FoodVaultLogo({
           alt="Vault Market"
           width={LOGO_WIDTH}
           height={LOGO_HEIGHT}
-          sizes="224px"
-          className="absolute left-1/2 top-[48%] h-[230%] w-[230%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain mix-blend-screen"
+          sizes={size === "footer" ? "324px" : "247px"}
+          className="absolute left-0 top-1/2 h-[220%] w-[220%] max-w-none -translate-y-1/2 object-contain object-left mix-blend-screen"
           priority={priority}
           unoptimized
         />

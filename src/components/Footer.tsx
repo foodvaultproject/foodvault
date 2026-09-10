@@ -173,16 +173,20 @@ export function Footer({
         />
       ) : null}
       <div
-        className={`relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
-          branded ? "py-5" : "py-7"
-        }`}
+        className={`relative z-10 ${
+          vaultMarket
+            ? "w-full pl-2 pr-4 sm:pl-3 sm:pr-6 lg:pr-8"
+            : "mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8"
+        } ${branded ? "py-5" : "py-7"}`}
       >
         {branded ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(0,1fr))] lg:gap-x-6 lg:gap-y-5">
             <div className="space-y-3 sm:col-span-2 lg:col-span-1">
               <Link
                 href={vaultMarket ? "/pantry" : "/"}
-                className="inline-block transition-opacity hover:opacity-80"
+                className={`inline-block transition-opacity hover:opacity-80 ${
+                  vaultMarket ? "-ml-1 sm:-ml-1.5" : ""
+                }`}
                 aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
               >
                 <FoodVaultLogo size="footer" variant={logoVariant} />
