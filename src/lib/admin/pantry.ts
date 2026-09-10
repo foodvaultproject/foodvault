@@ -168,6 +168,24 @@ export async function getAdminProductById(id: string): Promise<FoodVaultProduct 
   return product ?? null;
 }
 
+export async function listAdminProductsByFamilyId(familyId: string): Promise<FoodVaultProduct[]> {
+  const supabase = await pantryClient();
+  if (!supabase || !familyId) return [];
+
+  const { data, error } = await supabase
+    .from("foodvault_products")
+    .select("*")
+    .eq("product_family_id", familyId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("[admin-pantry] failed to list family products", error.message);
+    return [];
+  }
+
+  return overlayAdminStock((data ?? []).map((row) => mapAdminProduct(row as Record<string, unknown>)));
+}
+
 export async function listInventoryBatches(): Promise<
   (FoodVaultInventoryBatch & { product_name?: string; product_sku?: string })[]
 > {

@@ -1,6 +1,7 @@
 import { emptyNipMatrix, type NipMatrix } from "@/lib/admin/pantry-shared";
 
 export type ProductFamilyVariantInput = {
+  id?: string;
   name: string;
   sku: string;
   barcode: string;
@@ -14,6 +15,7 @@ export type ProductFamilyVariantInput = {
 };
 
 export type ProductFamilySaveInput = {
+  product_family_id?: string | null;
   brand: string;
   category: string;
   subcategory: string;

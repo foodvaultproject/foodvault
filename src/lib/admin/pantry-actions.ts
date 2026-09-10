@@ -121,18 +121,23 @@ export async function saveVaultMarketProductAction(formData: FormData) {
 
 export async function saveVaultMarketProductFamilyAction(input: ProductFamilySaveInput) {
   const admin = await getAdminUser();
-  if (!admin) return { error: "Unauthorized", createdIds: [] as string[] };
+  if (!admin) return { error: "Unauthorized", createdIds: [] as string[], updatedIds: [] as string[] };
 
   const validationError = validateProductFamilyInput(input);
-  if (validationError) return { error: validationError, createdIds: [] as string[] };
+  if (validationError) {
+    return { error: validationError, createdIds: [] as string[], updatedIds: [] as string[] };
+  }
 
-  const familyId = crypto.randomUUID();
+  const familyId = input.product_family_id?.trim() || crypto.randomUUID();
   const createdIds: string[] = [];
+  const updatedIds: string[] = [];
 
   for (const variant of input.variants) {
     const name = variant.name.trim();
     const sku = variant.sku.trim();
+    const existingId = variant.id?.trim() || undefined;
     const payload = productWritePayload({
+      id: existingId,
       sku,
       name,
       brand: input.brand.trim() || "FoodVault",
@@ -161,23 +166,27 @@ export async function saveVaultMarketProductFamilyAction(input: ProductFamilySav
 
     const result = await writeProductRow(payload);
     if (result.error) {
-      if (createdIds.length > 0) revalidatePantry();
+      if (createdIds.length > 0 || updatedIds.length > 0) revalidatePantry();
       return {
         error: `${name || sku}: ${result.error}`,
         createdIds,
+        updatedIds,
       };
     }
-    if (result.data?.id) createdIds.push(result.data.id);
+    if (result.data?.id) {
+      if (existingId) updatedIds.push(result.data.id);
+      else createdIds.push(result.data.id);
+    }
   }
 
   await logAuditAction(
-    "create_vault_market_product_family",
+    updatedIds.length > 0 ? "save_vault_market_product_family" : "create_vault_market_product_family",
     "foodvault_product",
-    createdIds[0],
-    { familyId, skuCount: createdIds.length, createdIds }
+    updatedIds[0] ?? createdIds[0],
+    { familyId, createdIds, updatedIds }
   );
   revalidatePantry();
-  return { success: true, familyId, createdIds };
+  return { success: true, familyId, createdIds, updatedIds };
 }
 
 export async function saveInventoryBatchAction(formData: FormData) {

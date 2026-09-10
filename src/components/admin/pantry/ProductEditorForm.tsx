@@ -11,7 +11,6 @@ import { convertImageToWebpFile } from "@/lib/admin/compress-image-webp";
 import {
   parseVaultMarketNipImageAction,
   parseVaultMarketNipTextAction,
-  saveVaultMarketProductAction,
   saveVaultMarketProductFamilyAction,
   uploadVaultMarketImageAction,
 } from "@/lib/admin/pantry-actions";
@@ -50,6 +49,7 @@ function actionErrorMessage(error: unknown, fallback: string) {
 function draftFromProduct(product: FoodVaultProduct): ProductVariantDraft {
   return {
     key: product.id,
+    id: product.id,
     name: product.name ?? "",
     sku: product.sku ?? "",
     barcode: product.barcode ?? product.sku ?? "",
@@ -67,13 +67,14 @@ function draftFromProduct(product: FoodVaultProduct): ProductVariantDraft {
 
 export function ProductEditorForm({
   product,
+  familyProducts = [],
   vendors = [],
 }: {
   product: FoodVaultProduct | null;
+  familyProducts?: FoodVaultProduct[];
   vendors?: Array<{ id: string; name: string }>;
 }) {
   const router = useRouter();
-  const familyMode = !product;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [brand, setBrand] = useState(product?.brand ?? "");
@@ -93,9 +94,11 @@ export function ProductEditorForm({
   );
   const [naturalFlavours, setNaturalFlavours] = useState(Boolean(product?.natural_flavours_or_colours));
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
-  const [variants, setVariants] = useState<ProductVariantDraft[]>(() =>
-    product ? [draftFromProduct(product)] : [emptyVariantDraft()]
-  );
+  const [variants, setVariants] = useState<ProductVariantDraft[]>(() => {
+    if (familyProducts.length > 0) return familyProducts.map(draftFromProduct);
+    if (product) return [draftFromProduct(product)];
+    return [emptyVariantDraft()];
+  });
   const [activeIndex, setActiveIndex] = useState(0);
   const [uploadingSlot, setUploadingSlot] = useState<"primary" | number | null>(null);
   const [readingNip, setReadingNip] = useState(false);
@@ -140,6 +143,7 @@ export function ProductEditorForm({
 
   function removeVariant(index: number) {
     if (variants.length < 2) return;
+    if (variants[index]?.id) return;
     setVariants((prev) => prev.filter((_, i) => i !== index));
     setActiveIndex((current) => {
       if (current === index) return Math.max(0, index - 1);
@@ -259,6 +263,7 @@ export function ProductEditorForm({
   function familyPayload() {
     const health = healthStarRating ? Number(healthStarRating) : null;
     return {
+      product_family_id: product?.product_family_id ?? null,
       brand: brand.trim() || "FoodVault",
       category: category.trim() || "Pantry",
       subcategory: subcategory.trim(),
@@ -274,6 +279,7 @@ export function ProductEditorForm({
       natural_flavours_or_colours: naturalFlavours,
       is_active: isActive,
       variants: variants.map((entry) => ({
+        id: entry.id,
         name: entry.name,
         sku: entry.sku,
         barcode: entry.barcode,
@@ -299,54 +305,15 @@ export function ProductEditorForm({
     }
 
     startTransition(async () => {
-      if (product) {
-        const only = payload.variants[0];
-        const formData = new FormData();
-        formData.set("id", product.id);
-        if (product.product_family_id) formData.set("product_family_id", product.product_family_id);
-        formData.set("name", only.name);
-        formData.set("sku", only.sku);
-        formData.set("barcode", only.barcode);
-        formData.set("brand", payload.brand);
-        formData.set("category", payload.category);
-        formData.set("subcategory", payload.subcategory);
-        formData.set("slug", only.slug);
-        formData.set("retail_price", String(payload.retail_price));
-        formData.set("member_price", String(payload.member_price));
-        formData.set("wholesale_cost", String(payload.wholesale_cost));
-        formData.set("vendor_id", payload.vendor_id);
-        formData.set("unit_price_label", payload.unit_price_label);
-        formData.set("origin_label", payload.origin_label);
-        formData.set("bin_location", payload.bin_location);
-        formData.set("health_star_rating", healthStarRating);
-        if (payload.natural_flavours_or_colours) formData.set("natural_flavours_or_colours", "on");
-        if (payload.is_active) formData.set("is_active", "on");
-        formData.set("description", only.description);
-        formData.set("ingredients", only.ingredients);
-        formData.set("allergens", only.allergens);
-        formData.set("image_url", only.image_url);
-        formData.set("gallery_urls", only.gallery_urls.join("\n"));
-        formData.set("serving_size", only.nip.serving_size);
-        formData.set("servings_per_pack", only.nip.servings_per_pack);
-        for (const nutrient of NIP_NUTRIENTS) {
-          formData.set(`${nutrient.key}_per_serve`, only.nip.values[nutrient.key].per_serve);
-          formData.set(`${nutrient.key}_per_100g`, only.nip.values[nutrient.key].per_100g);
-        }
-        const result = await saveVaultMarketProductAction(formData);
-        if (result.error) {
-          setError(result.error);
-          return;
-        }
-      } else {
-        const result = await saveVaultMarketProductFamilyAction(payload);
-        if (result.error) {
-          setError(
-            result.createdIds.length > 0
-              ? `${result.error} ${result.createdIds.length} variant${result.createdIds.length === 1 ? "" : "s"} were created.`
-              : result.error
-          );
-          return;
-        }
+      const result = await saveVaultMarketProductFamilyAction(payload);
+      if (result.error) {
+        const saved = result.createdIds.length + result.updatedIds.length;
+        setError(
+          saved > 0
+            ? `${result.error} ${saved} variant${saved === 1 ? "" : "s"} were saved.`
+            : result.error
+        );
+        return;
       }
       router.push("/admin/products");
       router.refresh();
@@ -363,9 +330,7 @@ export function ProductEditorForm({
           Product family & categorization
         </h2>
         <p className="mt-1 text-xs text-muted">
-          {familyMode
-            ? "Set once for every flavour or pack variant created in this submission."
-            : "Shared category for this product. Line-priced family variants are created from New Product."}
+          Set once for every flavour or pack variant in this family.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
@@ -571,31 +536,29 @@ export function ProductEditorForm({
         </div>
       </section>
 
-      {familyMode ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {variants.map((entry, index) => (
-            <button
-              key={entry.key}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                index === activeIndex
-                  ? "bg-[#10B981] text-white"
-                  : "border border-border bg-white text-foreground hover:bg-surface"
-              }`}
-            >
-              Variant {index + 1}: {variantTabLabel(entry, index)}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center gap-2">
+        {variants.map((entry, index) => (
           <button
+            key={entry.key}
             type="button"
-            onClick={addVariant}
-            className="rounded-full border border-dashed border-[#10B981] px-3 py-1.5 text-xs font-semibold text-[#047857] hover:bg-[#10B981]/10"
+            onClick={() => setActiveIndex(index)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              index === activeIndex
+                ? "bg-[#10B981] text-white"
+                : "border border-border bg-white text-foreground hover:bg-surface"
+            }`}
           >
-            + Add Variant
+            Variant {index + 1}: {variantTabLabel(entry, index)}
           </button>
-        </div>
-      ) : null}
+        ))}
+        <button
+          type="button"
+          onClick={addVariant}
+          className="rounded-full border border-dashed border-[#10B981] px-3 py-1.5 text-xs font-semibold text-[#047857] hover:bg-[#10B981]/10"
+        >
+          + Add Variant
+        </button>
+      </div>
 
       <section className={sectionClass}>
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -605,26 +568,24 @@ export function ProductEditorForm({
               Flavour and identifier fields apply only to this variant.
             </p>
           </div>
-          {familyMode ? (
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={addVariant}
+              className="rounded-sm border border-[#10B981] px-3 py-1.5 text-xs font-semibold text-[#047857] hover:bg-[#10B981]/10"
+            >
+              + Add Variant
+            </button>
+            {!variant.id && variants.length > 1 ? (
               <button
                 type="button"
-                onClick={addVariant}
-                className="rounded-sm border border-[#10B981] px-3 py-1.5 text-xs font-semibold text-[#047857] hover:bg-[#10B981]/10"
+                onClick={() => removeVariant(activeIndex)}
+                className="rounded-sm border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
               >
-                + Add Variant
+                Remove Variant
               </button>
-              {variants.length > 1 ? (
-                <button
-                  type="button"
-                  onClick={() => removeVariant(activeIndex)}
-                  className="rounded-sm border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
-                >
-                  Remove Variant
-                </button>
-              ) : null}
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
@@ -985,7 +946,11 @@ export function ProductEditorForm({
           {pending
             ? "Saving..."
             : product
-              ? "Save product"
+              ? variants.some((entry) => !entry.id)
+                ? `Save and add ${variants.filter((entry) => !entry.id).length} variant${
+                    variants.filter((entry) => !entry.id).length === 1 ? "" : "s"
+                  }`
+                : "Save product"
               : variants.length > 1
                 ? `Create ${variants.length} products`
                 : "Create product"}
