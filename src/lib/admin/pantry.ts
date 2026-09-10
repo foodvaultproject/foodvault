@@ -446,19 +446,35 @@ export async function writeInventoryBatch(input: {
   };
 }
 
-export async function applyStockDelta(productId: string, delta: number): Promise<string | null> {
-  if (!delta) return null;
+export async function applyStockDelta(productId: string, delta = 0): Promise<string | null> {
   const supabase = await pantryClient();
   if (!supabase) return "Supabase is not configured.";
 
-  const { data, error } = await supabase
-    .from("foodvault_products")
-    .select("id, stock_quantity")
-    .eq("id", productId)
-    .maybeSingle();
+  const { data: batches, error: batchError } = await supabase
+    .from("foodvault_inventory_batches")
+    .select("quantity_received")
+    .eq("product_id", productId);
 
-  if (error || !data) return error?.message ?? "Product not found.";
-  const next = Math.max(0, Math.trunc(asNumber((data as { stock_quantity?: unknown }).stock_quantity) + delta));
+  let next: number;
+  if (batchError) {
+    const { data, error } = await supabase
+      .from("foodvault_products")
+      .select("id, stock_quantity")
+      .eq("id", productId)
+      .maybeSingle();
+    if (error || !data) return error?.message ?? "Product not found.";
+    if (!delta) return null;
+    next = Math.max(0, Math.trunc(asNumber((data as { stock_quantity?: unknown }).stock_quantity) + delta));
+  } else {
+    next = Math.max(
+      0,
+      (batches ?? []).reduce(
+        (sum, row) => sum + Math.trunc(asNumber((row as { quantity_received?: unknown }).quantity_received)),
+        0
+      )
+    );
+  }
+
   let fields: Record<string, unknown> = {
     stock_quantity: next,
     updated_at: new Date().toISOString(),
