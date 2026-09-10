@@ -5,9 +5,13 @@ export type FoodVaultOrderStatus =
   | "cancelled"
   | "refunded";
 
+export type FoodVaultUnitKind = "solid" | "liquid";
+
 export interface FoodVaultUnitPricing {
   price: number;
   basis: string;
+  pack_amount?: number;
+  kind?: FoodVaultUnitKind;
 }
 
 export interface FoodVaultNutritionRow {

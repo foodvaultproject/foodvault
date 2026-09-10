@@ -16,9 +16,13 @@ import {
 } from "@/lib/admin/pantry-actions";
 import {
   NIP_NUTRIENTS,
+  calcGrossProfit,
+  formatAutoUnitPriceLabel,
+  inferPackAmount,
+  inferUnitKind,
   nipFromFacts,
-  unitPriceLabelFromProduct,
   type NipNutrientKey,
+  type UnitKind,
 } from "@/lib/admin/pantry-shared";
 import {
   emptyVariantDraft,
@@ -84,9 +88,8 @@ export function ProductEditorForm({
   const [memberPrice, setMemberPrice] = useState(product ? String(product.member_price) : "");
   const [wholesaleCost, setWholesaleCost] = useState(String(product?.wholesale_cost ?? 0));
   const [vendorId, setVendorId] = useState(product?.vendor_id ?? "");
-  const [unitPriceLabel, setUnitPriceLabel] = useState(
-    product ? unitPriceLabelFromProduct(product) : ""
-  );
+  const [unitKind, setUnitKind] = useState<UnitKind>(() => inferUnitKind(product));
+  const [packAmount, setPackAmount] = useState(() => inferPackAmount(product, inferUnitKind(product)));
   const [originLabel, setOriginLabel] = useState(product?.origin_label ?? "");
   const [binLocation, setBinLocation] = useState(product?.bin_location ?? "");
   const [healthStarRating, setHealthStarRating] = useState(
@@ -107,6 +110,13 @@ export function ProductEditorForm({
   const galleryFileRef = useRef<HTMLInputElement>(null);
 
   const variant = variants[activeIndex] ?? variants[0];
+  const packAmountValue = Number(packAmount);
+  const unitPriceLabel = formatAutoUnitPriceLabel(
+    Number(memberPrice),
+    unitKind,
+    Number.isFinite(packAmountValue) ? packAmountValue : 0
+  );
+  const grossProfit = calcGrossProfit(Number(memberPrice), Number(wholesaleCost));
   const uploading = uploadingSlot !== null;
   const extrasFull = variant.gallery_urls.length >= MAX_GALLERY_IMAGES;
   const canAddImage = variant.image_url ? !extrasFull : true;
@@ -272,6 +282,8 @@ export function ProductEditorForm({
       wholesale_cost: Number(wholesaleCost) || 0,
       vendor_id: vendorId.trim(),
       unit_price_label: unitPriceLabel.trim(),
+      unit_kind: unitKind,
+      pack_amount: Number.isFinite(packAmountValue) ? packAmountValue : 0,
       origin_label: originLabel.trim(),
       bin_location: binLocation.trim(),
       health_star_rating:
@@ -425,6 +437,7 @@ export function ProductEditorForm({
               onChange={(e) => setMemberPrice(e.target.value)}
               className={inputClass}
             />
+            <p className="mt-1 text-[11px] text-muted">Includes 15% GST.</p>
           </div>
           <div>
             <label className={labelClass} htmlFor="wholesale_cost">Wholesale cost</label>
@@ -437,6 +450,25 @@ export function ProductEditorForm({
               onChange={(e) => setWholesaleCost(e.target.value)}
               className={inputClass}
             />
+            <p className="mt-1 text-[11px] text-muted">Excluding GST.</p>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="gross_profit">Gross profit</label>
+            <div
+              id="gross_profit"
+              className={`${inputClass} cursor-default bg-surface text-foreground`}
+              aria-live="polite"
+            >
+              {grossProfit.profit == null
+                ? "—"
+                : `${grossProfit.profit < 0 ? "-" : ""}$${Math.abs(grossProfit.profit).toFixed(2)}${
+                    grossProfit.margin == null ? "" : `  ·  ${grossProfit.margin.toFixed(1)}%`
+                  }`}
+            </div>
+            <p className="mt-1 text-[11px] text-muted">
+              Member price includes 15% GST. GP uses member price excluding GST
+              {grossProfit.exGst != null ? ` (${`$${grossProfit.exGst.toFixed(2)}`})` : ""}.
+            </p>
           </div>
           <div>
             <label className={labelClass} htmlFor="vendor_id">Vendor</label>
@@ -452,15 +484,60 @@ export function ProductEditorForm({
               ))}
             </select>
           </div>
+          <div className="md:col-span-3">
+            <p className={labelClass}>Unit price type</p>
+            <div className="flex flex-wrap gap-3">
+              <label className="inline-flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground">
+                <input
+                  type="radio"
+                  name="unit_kind"
+                  checked={unitKind === "solid"}
+                  onChange={() => setUnitKind("solid")}
+                  className="h-4 w-4 border-border text-primary focus:ring-primary"
+                />
+                Solid foods
+              </label>
+              <label className="inline-flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground">
+                <input
+                  type="radio"
+                  name="unit_kind"
+                  checked={unitKind === "liquid"}
+                  onChange={() => setUnitKind("liquid")}
+                  className="h-4 w-4 border-border text-primary focus:ring-primary"
+                />
+                Liquids &amp; beverages
+              </label>
+            </div>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="pack_amount">
+              {unitKind === "solid" ? "Total grams" : "Total litres"}
+            </label>
+            <input
+              id="pack_amount"
+              type="number"
+              min="0"
+              step={unitKind === "solid" ? "1" : "0.01"}
+              placeholder={unitKind === "solid" ? "140" : "1.00"}
+              value={packAmount}
+              onChange={(e) => setPackAmount(e.target.value)}
+              className={inputClass}
+            />
+          </div>
           <div>
             <label className={labelClass} htmlFor="unit_price_label">Unit price label</label>
             <input
               id="unit_price_label"
-              placeholder="$1.56 / 100g"
+              readOnly
+              tabIndex={-1}
+              placeholder={unitKind === "solid" ? "$1.56 / 100g" : "$4.50 / 1L"}
               value={unitPriceLabel}
-              onChange={(e) => setUnitPriceLabel(e.target.value)}
-              className={inputClass}
+              className={`${inputClass} cursor-default bg-surface`}
             />
+            <p className="mt-1 text-[11px] text-muted">
+              Calculated from member price
+              {unitKind === "solid" ? " per 100g" : " per 1L"}.
+            </p>
           </div>
         </div>
       </section>

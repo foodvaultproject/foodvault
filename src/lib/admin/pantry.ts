@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import {
+  buildUnitPricing,
   parseUnitPriceLabel,
   type PantryReportData,
 } from "@/lib/admin/pantry-shared";
@@ -342,6 +343,8 @@ export function productWritePayload(input: {
   retail_price: number;
   member_price: number;
   unit_price_label: string;
+  unit_kind?: "solid" | "liquid";
+  pack_amount?: number;
   origin_label: string;
   health_star_rating: number | null;
   natural_flavours_or_colours: boolean;
@@ -358,7 +361,10 @@ export function productWritePayload(input: {
   wholesale_cost: number;
   product_family_id?: string | null;
 }): Record<string, unknown> {
-  const unitPricing = parseUnitPriceLabel(input.unit_price_label);
+  const unitPricing =
+    input.unit_kind && input.pack_amount && input.pack_amount > 0
+      ? buildUnitPricing(input.member_price, input.unit_kind, input.pack_amount)
+      : parseUnitPriceLabel(input.unit_price_label);
   const payload: Record<string, unknown> = {
     sku: input.sku,
     name: input.name,
@@ -386,6 +392,11 @@ export function productWritePayload(input: {
     wholesale_cost: input.wholesale_cost,
     updated_at: new Date().toISOString(),
   };
+  if (input.unit_kind === "solid" && input.pack_amount && input.pack_amount > 0) {
+    payload.net_weight_g = input.pack_amount;
+  } else if (input.unit_kind === "liquid") {
+    payload.net_weight_g = null;
+  }
   if (input.product_family_id) {
     payload.product_family_id = input.product_family_id;
   }

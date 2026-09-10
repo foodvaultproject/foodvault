@@ -3,8 +3,8 @@
 import { ChevronDown, Heart, Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
-import { SafeImage } from "@/components/media/SafeImage";
 import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
+import { PantryProductGallery } from "@/components/pantry/PantryProductGallery";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import {
   formatUnitPrice,
@@ -70,7 +70,6 @@ function AccordionBlock({
 export function PantryProductDetail({ product }: { product: FoodVaultProduct }) {
   const { addToCart, toggleGrocery, isSaved, addedIds } = usePantryMarket();
   const gallery = productGallery(product);
-  const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const saved = isSaved(product.id);
   const added = Boolean(addedIds[product.id]);
@@ -79,7 +78,6 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
   const savePercent = productDiscountPercent(product);
   const unitPrice = formatUnitPrice(product);
   const outOfStock = product.stock_quantity <= 0;
-  const image = gallery[activeImage] ?? product.image_url;
 
   const crumbs = useMemo(
     () => [
@@ -123,47 +121,11 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
       </nav>
 
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div>
-          <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-surface">
-            <SafeImage
-              src={image ?? ""}
-              alt={product.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-              fallbackVariant="muted"
-            />
-            {product.origin_label ? (
-              <span className="absolute bottom-3 left-3 z-10 rounded-sm bg-background/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-foreground shadow-sm">
-                {product.origin_label}
-              </span>
-            ) : null}
-          </div>
-          {gallery.length > 1 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {gallery.map((url, index) => (
-                <button
-                  key={url}
-                  type="button"
-                  onClick={() => setActiveImage(index)}
-                  aria-label={`View image ${index + 1}`}
-                  className={`relative h-16 w-16 overflow-hidden rounded-md border ${
-                    index === activeImage ? "border-vm-primary" : "border-border"
-                  }`}
-                >
-                  <SafeImage
-                    src={url}
-                    alt=""
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                    fallbackVariant="muted"
-                  />
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <PantryProductGallery
+          images={gallery}
+          alt={product.name}
+          badge={product.origin_label}
+        />
 
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-vm-primary">

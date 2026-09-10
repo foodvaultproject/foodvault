@@ -147,6 +147,8 @@ export async function saveVaultMarketProductFamilyAction(input: ProductFamilySav
       retail_price: input.retail_price,
       member_price: input.member_price,
       unit_price_label: input.unit_price_label.trim(),
+      unit_kind: input.unit_kind,
+      pack_amount: input.pack_amount,
       origin_label: input.origin_label.trim(),
       health_star_rating: input.health_star_rating,
       natural_flavours_or_colours: input.natural_flavours_or_colours,

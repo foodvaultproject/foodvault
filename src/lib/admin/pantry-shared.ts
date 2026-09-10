@@ -121,3 +121,83 @@ export function unitPriceLabelFromProduct(product: FoodVaultProduct): string {
   }
   return "";
 }
+
+export const NZ_GST_RATE = 0.15;
+
+export function memberPriceExGst(memberPriceIncGst: number): number {
+  return memberPriceIncGst / (1 + NZ_GST_RATE);
+}
+
+export function calcGrossProfit(memberPriceIncGst: number, wholesaleExGst: number) {
+  if (!Number.isFinite(memberPriceIncGst) || memberPriceIncGst <= 0) {
+    return { exGst: null as number | null, profit: null as number | null, margin: null as number | null };
+  }
+  const cost = Number.isFinite(wholesaleExGst) ? wholesaleExGst : 0;
+  const exGst = memberPriceExGst(memberPriceIncGst);
+  const profit = exGst - cost;
+  const margin = exGst > 0 ? (profit / exGst) * 100 : null;
+  return { exGst, profit, margin };
+}
+
+export type UnitKind = "solid" | "liquid";
+
+export function buildUnitPricing(
+  memberPrice: number,
+  kind: UnitKind,
+  packAmount: number
+): FoodVaultUnitPricing | null {
+  if (!(memberPrice > 0) || !(packAmount > 0)) return null;
+  if (kind === "solid") {
+    return {
+      price: memberPrice / (packAmount / 100),
+      basis: "100g",
+      pack_amount: packAmount,
+      kind,
+    };
+  }
+  return {
+    price: memberPrice / packAmount,
+    basis: "1L",
+    pack_amount: packAmount,
+    kind,
+  };
+}
+
+export function formatAutoUnitPriceLabel(
+  memberPrice: number,
+  kind: UnitKind,
+  packAmount: number
+): string {
+  const unit = buildUnitPricing(memberPrice, kind, packAmount);
+  if (!unit) return "";
+  return `${formatNzPrice(unit.price)} / ${unit.basis}`;
+}
+
+export function inferUnitKind(product?: FoodVaultProduct | null): UnitKind {
+  const stored = product?.unit_pricing?.kind;
+  if (stored === "liquid" || stored === "solid") return stored;
+  const basis = `${product?.unit_pricing?.basis ?? ""} ${product?.unit_price_label ?? ""}`.toLowerCase();
+  if (/\b1\s*l\b|\blitre|\bliter|\bml\b/.test(basis)) return "liquid";
+  const name = product?.name ?? "";
+  if (/\d+(?:\.\d+)?\s*ml\b/i.test(name) || /\d+(?:\.\d+)?\s*l\b/i.test(name)) {
+    if (!/\d+(?:\.\d+)?\s*g\b/i.test(name)) return "liquid";
+  }
+  return "solid";
+}
+
+export function inferPackAmount(product?: FoodVaultProduct | null, kind?: UnitKind): string {
+  const resolved = kind ?? inferUnitKind(product);
+  const stored = product?.unit_pricing?.pack_amount;
+  if (stored && stored > 0) return String(stored);
+  if (resolved === "solid" && product?.net_weight_g && product.net_weight_g > 0) {
+    return String(product.net_weight_g);
+  }
+  const name = product?.name ?? "";
+  if (resolved === "solid") {
+    return name.match(/(\d+(?:\.\d+)?)\s*g\b/i)?.[1] ?? "";
+  }
+  const litres = name.match(/(\d+(?:\.\d+)?)\s*l\b/i)?.[1];
+  if (litres) return litres;
+  const ml = name.match(/(\d+(?:\.\d+)?)\s*ml\b/i)?.[1];
+  return ml ? String(Number(ml) / 1000) : "";
+}

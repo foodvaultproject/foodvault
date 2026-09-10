@@ -24,6 +24,8 @@ export type ProductFamilySaveInput = {
   wholesale_cost: number;
   vendor_id: string;
   unit_price_label: string;
+  unit_kind: "solid" | "liquid";
+  pack_amount: number;
   origin_label: string;
   bin_location: string;
   health_star_rating: number | null;
