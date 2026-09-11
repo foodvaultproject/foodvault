@@ -31,6 +31,9 @@ export type ProductFamilySaveInput = {
   health_star_rating: number | null;
   natural_flavours_or_colours: boolean;
   is_active: boolean;
+  is_multibuy: boolean;
+  multibuy_quantity: number;
+  multibuy_price: number;
   variants: ProductFamilyVariantInput[];
 };
 
@@ -72,6 +75,14 @@ export function validateProductFamilyInput(input: ProductFamilySaveInput): strin
   }
   if (!Number.isFinite(input.member_price) || input.member_price < 0) {
     return "Member price is required.";
+  }
+  if (input.is_multibuy) {
+    if (!Number.isInteger(input.multibuy_quantity) || input.multibuy_quantity < 2) {
+      return "Multi-buy quantity must be at least 2.";
+    }
+    if (!Number.isFinite(input.multibuy_price) || input.multibuy_price <= 0) {
+      return "Multi-buy total price is required.";
+    }
   }
   if (input.variants.length < 1) return "Add at least one variant.";
 

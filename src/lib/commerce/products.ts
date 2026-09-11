@@ -147,6 +147,9 @@ function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
           : undefined,
     bin_location: asOptionalString(row.bin_location),
     product_family_id: asOptionalString(row.product_family_id),
+    is_multibuy: Boolean(row.is_multibuy),
+    multibuy_quantity: asOptionalNumber(row.multibuy_quantity),
+    multibuy_price: asOptionalNumber(row.multibuy_price),
     created_at: asString(row.created_at) || undefined,
     updated_at: asString(row.updated_at) || null,
   };

@@ -56,6 +56,9 @@ export interface FoodVaultProduct {
   vendor_id?: string | null;
   wholesale_cost?: number | null;
   product_family_id?: string | null;
+  is_multibuy?: boolean;
+  multibuy_quantity?: number | null;
+  multibuy_price?: number | null;
   created_at?: string;
   updated_at?: string | null;
 }

@@ -106,6 +106,9 @@ export function mapAdminProduct(row: Record<string, unknown>): FoodVaultProduct 
     vendor_id: asString(row.vendor_id) || null,
     wholesale_cost: row.wholesale_cost == null ? null : asNumber(row.wholesale_cost),
     product_family_id: asString(row.product_family_id) || null,
+    is_multibuy: Boolean(row.is_multibuy),
+    multibuy_quantity: row.multibuy_quantity == null ? null : Math.trunc(asNumber(row.multibuy_quantity)),
+    multibuy_price: row.multibuy_price == null ? null : asNumber(row.multibuy_price),
     created_at: asString(row.created_at) || undefined,
     updated_at: asString(row.updated_at) || null,
   };
@@ -362,6 +365,9 @@ export function productWritePayload(input: {
   vendor_id: string;
   wholesale_cost: number;
   product_family_id?: string | null;
+  is_multibuy?: boolean;
+  multibuy_quantity?: number | null;
+  multibuy_price?: number | null;
 }): Record<string, unknown> {
   const unitPricing =
     input.unit_kind && input.pack_amount && input.pack_amount > 0
@@ -393,6 +399,15 @@ export function productWritePayload(input: {
     barcode: input.barcode || null,
     vendor_id: input.vendor_id || null,
     wholesale_cost: input.wholesale_cost,
+    is_multibuy: Boolean(input.is_multibuy),
+    multibuy_quantity:
+      input.is_multibuy && input.multibuy_quantity && input.multibuy_quantity >= 2
+        ? Math.trunc(input.multibuy_quantity)
+        : null,
+    multibuy_price:
+      input.is_multibuy && input.multibuy_price && input.multibuy_price > 0
+        ? input.multibuy_price
+        : null,
     updated_at: new Date().toISOString(),
   };
   if (input.unit_kind === "solid" && input.pack_amount && input.pack_amount > 0) {

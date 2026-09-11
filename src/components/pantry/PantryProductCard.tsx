@@ -4,8 +4,10 @@ import { Heart } from "lucide-react";
 import Link from "next/link";
 import { SafeImage } from "@/components/media/SafeImage";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
+import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
   formatUnitPrice,
+  isMultibuyDeal,
   pantryProductPath,
   productDiscountPercent,
 } from "@/lib/commerce/catalog";
@@ -17,6 +19,7 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
   const saved = isSaved(product.id);
   const savePercent = productDiscountPercent(product);
   const unitPrice = formatUnitPrice(product);
+  const multibuy = isMultibuyDeal(product);
   const outOfStock = product.stock_quantity <= 0;
   const added = Boolean(addedIds[product.id]);
   const href = pantryProductPath(product);
@@ -34,10 +37,15 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
             fallbackVariant="muted"
           />
         </Link>
-        {savePercent > 0 ? (
-          <span className="absolute left-2 top-2 z-10 rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-            {savePercent}% off
-          </span>
+        {multibuy || savePercent > 0 ? (
+          <div className="absolute left-2 top-2 z-10 flex flex-col items-start gap-1">
+            <MultibuyBadge product={product} className="px-2 py-1 text-[11px] shadow-md" />
+            {savePercent > 0 ? (
+              <span className="rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
+                {savePercent}% off
+              </span>
+            ) : null}
+          </div>
         ) : null}
         <button
           type="button"
@@ -62,9 +70,12 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
         ) : null}
 
         <div className="mt-2">
-          <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-            Member
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
+              Member
+            </span>
+            {multibuy ? <MultibuyBadge product={product} /> : null}
+          </div>
           <p className="mt-1 text-base font-bold leading-none text-vm-primary">
             {formatNzPrice(product.member_price)}
           </p>

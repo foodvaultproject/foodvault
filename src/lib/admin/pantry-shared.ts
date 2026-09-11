@@ -139,6 +139,21 @@ export function calcGrossProfit(memberPriceIncGst: number, wholesaleExGst: numbe
   return { exGst, profit, margin };
 }
 
+export function calcMultibuyGrossProfit(
+  multibuyPriceIncGst: number,
+  wholesaleExGst: number,
+  quantity: number
+) {
+  if (!Number.isFinite(multibuyPriceIncGst) || multibuyPriceIncGst <= 0 || !(quantity > 0)) {
+    return { exGst: null as number | null, profit: null as number | null, margin: null as number | null };
+  }
+  const cost = (Number.isFinite(wholesaleExGst) ? wholesaleExGst : 0) * quantity;
+  const exGst = memberPriceExGst(multibuyPriceIncGst);
+  const profit = exGst - cost;
+  const margin = exGst > 0 ? (profit / exGst) * 100 : null;
+  return { exGst, profit, margin };
+}
+
 export type UnitKind = "solid" | "liquid";
 
 export function buildUnitPricing(

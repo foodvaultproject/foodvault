@@ -30,6 +30,7 @@ function revalidatePantry() {
   revalidatePath("/admin/pantry");
   revalidatePath("/admin/pantry/reports");
   revalidatePath("/pantry");
+  revalidatePath("/pantry", "layout");
 }
 
 function readNumber(formData: FormData, key: string): number {
@@ -104,6 +105,9 @@ export async function saveVaultMarketProductAction(formData: FormData) {
     vendor_id: String(formData.get("vendor_id") ?? "").trim(),
     wholesale_cost: readNumber(formData, "wholesale_cost"),
     product_family_id: String(formData.get("product_family_id") ?? "").trim() || null,
+    is_multibuy: formData.get("is_multibuy") === "on",
+    multibuy_quantity: Math.trunc(readNumber(formData, "multibuy_quantity")),
+    multibuy_price: readNumber(formData, "multibuy_price"),
   });
 
   const result = await writeProductRow(payload);
@@ -164,6 +168,9 @@ export async function saveVaultMarketProductFamilyAction(input: ProductFamilySav
       vendor_id: input.vendor_id.trim(),
       wholesale_cost: input.wholesale_cost,
       product_family_id: familyId,
+      is_multibuy: input.is_multibuy,
+      multibuy_quantity: input.multibuy_quantity,
+      multibuy_price: input.multibuy_price,
     });
 
     const result = await writeProductRow(payload);

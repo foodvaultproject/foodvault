@@ -17,6 +17,7 @@ import {
 import {
   NIP_NUTRIENTS,
   calcGrossProfit,
+  calcMultibuyGrossProfit,
   formatAutoUnitPriceLabel,
   inferPackAmount,
   inferUnitKind,
@@ -97,6 +98,13 @@ export function ProductEditorForm({
   );
   const [naturalFlavours, setNaturalFlavours] = useState(Boolean(product?.natural_flavours_or_colours));
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
+  const [isMultibuy, setIsMultibuy] = useState(Boolean(product?.is_multibuy));
+  const [multibuyQuantity, setMultibuyQuantity] = useState(
+    product?.multibuy_quantity != null ? String(product.multibuy_quantity) : "3"
+  );
+  const [multibuyPrice, setMultibuyPrice] = useState(
+    product?.multibuy_price != null ? String(product.multibuy_price) : ""
+  );
   const [variants, setVariants] = useState<ProductVariantDraft[]>(() => {
     if (familyProducts.length > 0) return familyProducts.map(draftFromProduct);
     if (product) return [draftFromProduct(product)];
@@ -117,6 +125,11 @@ export function ProductEditorForm({
     Number.isFinite(packAmountValue) ? packAmountValue : 0
   );
   const grossProfit = calcGrossProfit(Number(memberPrice), Number(wholesaleCost));
+  const multibuyGp = calcMultibuyGrossProfit(
+    Number(multibuyPrice),
+    Number(wholesaleCost),
+    Number(multibuyQuantity)
+  );
   const uploading = uploadingSlot !== null;
   const extrasFull = variant.gallery_urls.length >= MAX_GALLERY_IMAGES;
   const canAddImage = variant.image_url ? !extrasFull : true;
@@ -290,6 +303,9 @@ export function ProductEditorForm({
         health != null && Number.isFinite(health) && health >= 1 && health <= 5 ? health : null,
       natural_flavours_or_colours: naturalFlavours,
       is_active: isActive,
+      is_multibuy: isMultibuy,
+      multibuy_quantity: Math.trunc(Number(multibuyQuantity)) || 0,
+      multibuy_price: Number(multibuyPrice) || 0,
       variants: variants.map((entry) => ({
         id: entry.id,
         name: entry.name,
@@ -469,6 +485,82 @@ export function ProductEditorForm({
               Member price includes 15% GST. GP uses member price excluding GST
               {grossProfit.exGst != null ? ` (${`$${grossProfit.exGst.toFixed(2)}`})` : ""}.
             </p>
+          </div>
+          <div className="md:col-span-3 rounded-md border border-amber-200 bg-amber-50/70 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Multi-Buy Promotion</p>
+                <p className="mt-0.5 text-xs text-muted">
+                  Offer a bundle price on the storefront, e.g. 3 for $5.00. Total includes 15% GST.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isMultibuy}
+                aria-label="Multi-Buy Promotion"
+                onClick={() => setIsMultibuy((current) => !current)}
+                className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                  isMultibuy ? "bg-amber-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    isMultibuy ? "translate-x-5" : "translate-x-0.5"
+                  }`}
+                />
+              </button>
+            </div>
+            {isMultibuy ? (
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className={labelClass} htmlFor="multibuy_quantity">Multi-Buy Quantity</label>
+                  <input
+                    id="multibuy_quantity"
+                    type="number"
+                    min="2"
+                    step="1"
+                    required={isMultibuy}
+                    value={multibuyQuantity}
+                    onChange={(e) => setMultibuyQuantity(e.target.value)}
+                    className={inputClass}
+                    placeholder="3"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass} htmlFor="multibuy_price">Multi-Buy Total Price</label>
+                  <input
+                    id="multibuy_price"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    required={isMultibuy}
+                    value={multibuyPrice}
+                    onChange={(e) => setMultibuyPrice(e.target.value)}
+                    className={inputClass}
+                    placeholder="5.00"
+                  />
+                  <p className="mt-1 text-[11px] text-muted">Includes 15% GST.</p>
+                </div>
+                <div>
+                  <label className={labelClass} htmlFor="multibuy_gp">Multi-Buy Gross Profit %</label>
+                  <div
+                    id="multibuy_gp"
+                    className={`${inputClass} cursor-default bg-white text-foreground`}
+                    aria-live="polite"
+                  >
+                    {multibuyGp.margin == null
+                      ? "—"
+                      : `${multibuyGp.margin.toFixed(1)}%`}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted">
+                    GP uses multi-buy price excluding GST
+                    {multibuyGp.exGst != null ? ` (${`$${multibuyGp.exGst.toFixed(2)}`})` : ""}
+                    {` minus wholesale × ${Number(multibuyQuantity) > 0 ? multibuyQuantity : "qty"}.`}
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
           <div>
             <label className={labelClass} htmlFor="vendor_id">Vendor</label>

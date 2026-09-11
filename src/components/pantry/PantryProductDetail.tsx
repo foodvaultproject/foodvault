@@ -6,8 +6,12 @@ import { useMemo, useState, type ReactNode } from "react";
 import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
 import { PantryProductGallery } from "@/components/pantry/PantryProductGallery";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
+import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
+  formatMultibuyBadge,
   formatUnitPrice,
+  isMultibuyDeal,
+  multibuyBundleSavings,
   pantryDepartmentPath,
   productDiscountPercent,
   productGallery,
@@ -78,6 +82,9 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
   const savePercent = productDiscountPercent(product);
   const unitPrice = formatUnitPrice(product);
   const outOfStock = product.stock_quantity <= 0;
+  const multibuy = isMultibuyDeal(product);
+  const multibuyLabel = formatMultibuyBadge(product);
+  const multibuySavings = multibuyBundleSavings(product);
 
   const crumbs = useMemo(
     () => [
@@ -151,6 +158,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
+            <MultibuyBadge product={product} className="px-2 py-1 text-xs" />
             {savePercent > 0 ? (
               <span className="rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-2 py-1 text-xs font-bold uppercase tracking-wide text-vm-secondary">
                 {savePercent}% off
@@ -185,6 +193,18 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
             </div>
           </div>
           {unitPrice ? <p className="mt-2 text-sm text-muted">{unitPrice}</p> : null}
+
+          {multibuy && multibuyLabel && product.multibuy_quantity != null && product.multibuy_price != null ? (
+            <div className="mt-6 rounded-lg border-2 border-[#F59E0B] bg-gradient-to-r from-[#F59E0B] to-[#EAB308] px-4 py-3 text-[#78350F] shadow-sm">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em]">Multi-Buy Deal</p>
+              <p className="mt-1 text-2xl font-black tracking-tight">{multibuyLabel}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {multibuySavings > 0
+                  ? `Save ${formatNzPrice(multibuySavings)} when you buy ${product.multibuy_quantity} versus the member unit price.`
+                  : `Buy ${product.multibuy_quantity} for ${formatNzPrice(product.multibuy_price)} instead of paying each item separately.`}
+              </p>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <div className="inline-flex h-12 items-center rounded-md border border-border">

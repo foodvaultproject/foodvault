@@ -122,6 +122,28 @@ export function productDiscountPercent(product: FoodVaultProduct): number {
   );
 }
 
+export function isMultibuyDeal(product: FoodVaultProduct): boolean {
+  return Boolean(
+    product.is_multibuy &&
+      (product.multibuy_quantity ?? 0) >= 2 &&
+      (product.multibuy_price ?? 0) > 0
+  );
+}
+
+export function formatMultibuyBadge(product: FoodVaultProduct): string | null {
+  if (!isMultibuyDeal(product) || product.multibuy_quantity == null || product.multibuy_price == null) {
+    return null;
+  }
+  return `${product.multibuy_quantity} FOR ${formatNzPrice(product.multibuy_price)}`;
+}
+
+export function multibuyBundleSavings(product: FoodVaultProduct): number {
+  if (!isMultibuyDeal(product) || product.multibuy_quantity == null || product.multibuy_price == null) {
+    return 0;
+  }
+  return Math.max(0, product.member_price * product.multibuy_quantity - product.multibuy_price);
+}
+
 export function matchesCatalogQuery(product: FoodVaultProduct, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
