@@ -52,7 +52,9 @@ export function VaultMarketCartButton({
           </span>
         ) : null}
       </span>
-      {ready ? `Cart · ${count} ${count === 1 ? "item" : "items"}` : "Cart"}
+      <span className="hidden sm:inline">
+        {ready ? `Cart · ${count} ${count === 1 ? "item" : "items"}` : "Cart"}
+      </span>
     </button>
   );
 }

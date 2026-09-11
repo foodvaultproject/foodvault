@@ -4,6 +4,7 @@ import { ChevronDown, Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { SafeImage } from "@/components/media/SafeImage";
 import { GroceryListButton } from "@/components/pantry/GroceryListButton";
 import { VaultMarketCartButton } from "@/components/pantry/VaultMarketCartButton";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
@@ -11,9 +12,13 @@ import {
   catalogSlug,
   getVaultMarketBrowseDepartments,
   pantryDepartmentPath,
+  pantryProductPath,
   resolveProductDepartment,
   resolveProductSubcategory,
+  suggestCatalogSearch,
 } from "@/lib/commerce/catalog";
+import { formatNzPrice } from "@/lib/partner-offer";
+import type { FoodVaultProduct } from "@/types/commerce";
 
 function departmentHasProducts(
   departmentSlug: string,
@@ -33,10 +38,17 @@ export function PantryMarketHeader() {
   const browseId = useId();
   const searchId = useId();
   const browseRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLFormElement>(null);
   const replaceTimer = useRef<number | null>(null);
   const [browseOpen, setBrowseOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [activeDepartment, setActiveDepartment] = useState(0);
   const departments = useMemo(() => getVaultMarketBrowseDepartments(), []);
+  const suggestions = useMemo(
+    () => suggestCatalogSearch(products, liveQuery),
+    [liveQuery, products]
+  );
 
   const productCounts = useMemo(() => {
     const counts = new Map<string, Set<string>>();
@@ -59,13 +71,20 @@ export function PantryMarketHeader() {
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
-      if (!browseRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!browseRef.current?.contains(target)) {
         setBrowseOpen(false);
+      }
+      if (!searchRef.current?.contains(target)) {
+        setSearchOpen(false);
       }
     }
 
     function handleKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setBrowseOpen(false);
+      if (event.key === "Escape") {
+        setBrowseOpen(false);
+        setSearchOpen(false);
+      }
     }
 
     document.addEventListener("mousedown", handleClick);
@@ -77,6 +96,10 @@ export function PantryMarketHeader() {
     };
   }, []);
 
+  useEffect(() => {
+    setActiveSuggestion(0);
+  }, [liveQuery]);
+
   function goToCatalog(nextQuery: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
@@ -87,6 +110,7 @@ export function PantryMarketHeader() {
 
   function handleSearchChange(value: string) {
     setLiveQuery(value);
+    setSearchOpen(value.trim().length > 0);
     if (pathname !== "/pantry") return;
     if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
     replaceTimer.current = window.setTimeout(() => {
@@ -98,17 +122,59 @@ export function PantryMarketHeader() {
     }, 250);
   }
 
+  function applyBrandSearch(brand: string) {
+    if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
+    setLiveQuery(brand);
+    goToCatalog(brand);
+    setSearchOpen(false);
+    setBrowseOpen(false);
+  }
+
+  function applyProductSearch(product: FoodVaultProduct) {
+    if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
+    setSearchOpen(false);
+    setBrowseOpen(false);
+    router.push(pantryProductPath(product));
+  }
+
   function handleSearchSubmit(event: React.FormEvent) {
     event.preventDefault();
+    const selected = suggestions[activeSuggestion];
+    if (searchOpen && selected) {
+      if (selected.kind === "brand") applyBrandSearch(selected.brand);
+      else applyProductSearch(selected.product);
+      return;
+    }
     goToCatalog(liveQuery);
+    setSearchOpen(false);
     setBrowseOpen(false);
+  }
+
+  function handleSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (!suggestions.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setSearchOpen(true);
+      setActiveSuggestion((current) => (current + 1) % suggestions.length);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setSearchOpen(true);
+      setActiveSuggestion((current) =>
+        current === 0 ? suggestions.length - 1 : current - 1
+      );
+    }
   }
 
   const active = departments[activeDepartment];
 
+  const suggestionListId = `${searchId}-suggestions`;
+  const showSuggestions = searchOpen && suggestions.length > 0;
+
   return (
-    <div className="border-b border-border bg-background">
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:gap-4 lg:px-8">
+    <div className="sticky top-[4.25rem] z-40 border-b border-border bg-background shadow-sm">
+      <div className="mx-auto flex max-w-[1200px] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
         <div className="relative shrink-0" ref={browseRef}>
           <button
             type="button"
@@ -118,7 +184,7 @@ export function PantryMarketHeader() {
             onMouseEnter={() => {
               if (window.matchMedia("(hover: hover)").matches) setBrowseOpen(true);
             }}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface lg:w-auto"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-vm-primary px-3 text-sm font-semibold text-white transition-colors hover:bg-vm-surface sm:px-4"
           >
             <Menu className="h-4 w-4" aria-hidden="true" />
             Browse
@@ -206,6 +272,7 @@ export function PantryMarketHeader() {
         </div>
 
         <form
+          ref={searchRef}
           onSubmit={handleSearchSubmit}
           className="relative min-w-0 flex-1"
           role="search"
@@ -214,21 +281,117 @@ export function PantryMarketHeader() {
           <label htmlFor={searchId} className="sr-only">
             Search products by name, brand, or SKU
           </label>
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-            aria-hidden="true"
-          />
-          <input
-            id={searchId}
-            type="search"
-            value={liveQuery}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            placeholder="Search products, brands or SKU"
-            className="h-11 w-full rounded-md border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-light transition-[border-color,box-shadow] duration-200 focus:border-vm-primary focus:outline-none focus:ring-2 focus:ring-vm-primary/20"
-          />
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+              aria-hidden="true"
+            />
+            <input
+              id={searchId}
+              type="search"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={showSuggestions}
+              aria-controls={suggestionListId}
+              aria-activedescendant={
+                showSuggestions ? `${suggestionListId}-${activeSuggestion}` : undefined
+              }
+              autoComplete="off"
+              value={liveQuery}
+              onChange={(event) => handleSearchChange(event.target.value)}
+              onFocus={() => {
+                if (suggestions.length > 0) setSearchOpen(true);
+              }}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search products, brands or SKU"
+              className="h-11 w-full rounded-md border border-border bg-background py-2 pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-light transition-[border-color,box-shadow] duration-200 focus:border-vm-primary focus:outline-none focus:ring-2 focus:ring-vm-primary/20"
+            />
+          </div>
+          {showSuggestions ? (
+            <ul
+              id={suggestionListId}
+              role="listbox"
+              aria-label="Search suggestions"
+              className="absolute left-0 right-0 z-50 mt-1 max-h-[min(22rem,60vh)] overflow-y-auto rounded-lg border border-border bg-background py-1 shadow-xl"
+            >
+              {suggestions.map((suggestion, index) => {
+                const active = index === activeSuggestion;
+                if (suggestion.kind === "brand") {
+                  return (
+                    <li
+                      key={`brand-${suggestion.brand}`}
+                      id={`${suggestionListId}-${index}`}
+                      role="option"
+                      aria-selected={active}
+                    >
+                      <button
+                        type="button"
+                        onMouseEnter={() => setActiveSuggestion(index)}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => applyBrandSearch(suggestion.brand)}
+                        className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm ${
+                          active ? "bg-vm-primary/10 text-vm-primary" : "text-foreground"
+                        }`}
+                      >
+                        <Search className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                        <span>
+                          Search <span className="font-semibold">{suggestion.brand}</span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                }
+
+                return (
+                  <li
+                    key={suggestion.product.id}
+                    id={`${suggestionListId}-${index}`}
+                    role="option"
+                    aria-selected={active}
+                  >
+                    <Link
+                      href={pantryProductPath(suggestion.product)}
+                      onMouseEnter={() => setActiveSuggestion(index)}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
+                        setSearchOpen(false);
+                        setBrowseOpen(false);
+                      }}
+                      className={`flex w-full items-center gap-3 px-3 py-2 text-left ${
+                        active ? "bg-vm-primary/10" : "bg-background"
+                      }`}
+                    >
+                      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-surface">
+                        <SafeImage
+                          src={suggestion.product.image_url ?? ""}
+                          alt=""
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                          fallbackVariant="muted"
+                        />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {suggestion.product.name}
+                        </span>
+                        <span className="block truncate text-xs text-muted">
+                          {suggestion.product.brand}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-vm-primary">
+                        {formatNzPrice(suggestion.product.member_price)}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
         </form>
 
-        <div className="hidden shrink-0 items-center justify-end gap-2 lg:flex">
+        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <GroceryListButton />
           <VaultMarketCartButton />
         </div>

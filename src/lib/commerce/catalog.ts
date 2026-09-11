@@ -152,6 +152,71 @@ export function matchesCatalogQuery(product: FoodVaultProduct, query: string): b
     .some((value) => String(value).toLowerCase().includes(needle));
 }
 
+function catalogMatchScore(value: string | null | undefined, needle: string): number {
+  if (!value) return 0;
+  const hay = value.trim().toLowerCase();
+  if (!hay) return 0;
+  if (hay === needle) return 100;
+  if (hay.startsWith(needle)) return 80;
+  if (hay.split(/[^a-z0-9]+/).some((word) => word.startsWith(needle))) return 65;
+  if (hay.includes(needle)) return 40;
+  return 0;
+}
+
+export type CatalogSearchSuggestion =
+  | { kind: "brand"; brand: string; score: number }
+  | { kind: "product"; product: FoodVaultProduct; score: number };
+
+export function suggestCatalogSearch(
+  products: FoodVaultProduct[],
+  query: string,
+  limit = 8
+): CatalogSearchSuggestion[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle || limit <= 0) return [];
+
+  const brands = new Map<string, number>();
+  const productHits: Extract<CatalogSearchSuggestion, { kind: "product" }>[] = [];
+
+  for (const product of products) {
+    const brandScore = catalogMatchScore(product.brand, needle);
+    if (brandScore > 0 && product.brand.trim()) {
+      const brand = product.brand.trim();
+      brands.set(brand, Math.max(brands.get(brand) ?? 0, brandScore));
+    }
+
+    const score = Math.max(
+      catalogMatchScore(product.name, needle),
+      brandScore * 0.9,
+      catalogMatchScore(product.sku, needle) * 0.75,
+      catalogMatchScore(product.category, needle) * 0.45,
+      catalogMatchScore(product.subcategory, needle) * 0.45
+    );
+    if (score > 0) {
+      productHits.push({ kind: "product", product, score });
+    }
+  }
+
+  productHits.sort(
+    (a, b) => b.score - a.score || a.product.name.localeCompare(b.product.name)
+  );
+
+  const brandHits = [...brands.entries()]
+    .map(([brand, score]) => ({ kind: "brand" as const, brand, score }))
+    .sort((a, b) => b.score - a.score || a.brand.localeCompare(b.brand));
+
+  const suggestions: CatalogSearchSuggestion[] = [];
+  for (const brand of brandHits) {
+    if (suggestions.length >= Math.min(2, limit)) break;
+    suggestions.push(brand);
+  }
+  for (const product of productHits) {
+    if (suggestions.length >= limit) break;
+    suggestions.push(product);
+  }
+  return suggestions;
+}
+
 export function filterCatalogProducts(
   products: FoodVaultProduct[],
   filters: { query?: string; department?: string; subcategory?: string }

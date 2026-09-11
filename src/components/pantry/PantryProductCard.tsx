@@ -37,14 +37,11 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
             fallbackVariant="muted"
           />
         </Link>
-        {multibuy || savePercent > 0 ? (
-          <div className="absolute left-2 top-2 z-10 flex flex-col items-start gap-1">
-            <MultibuyBadge product={product} className="px-2 py-1 text-[11px] shadow-md" />
-            {savePercent > 0 ? (
-              <span className="rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-                {savePercent}% off
-              </span>
-            ) : null}
+        {savePercent > 0 ? (
+          <div className="absolute left-2 top-2 z-10">
+            <span className="rounded-sm border border-[#ffdf40] bg-[#fff6b3] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
+              {savePercent}% off
+            </span>
           </div>
         ) : null}
         <button

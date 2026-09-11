@@ -79,7 +79,9 @@ export function ConsumerSecondaryNav() {
     <>
       <nav
         aria-label="Consumer sections"
-        className="sticky top-[4.25rem] z-40 hidden border-b border-border/60 bg-white/85 backdrop-blur-md md:block"
+        className={`sticky top-[4.25rem] z-40 border-b border-border/60 bg-white/85 backdrop-blur-md ${
+          vaultMarket ? "hidden" : "hidden md:block"
+        }`}
       >
         <div className="mx-auto flex max-w-[1200px] justify-center px-4 py-2.5 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/60 p-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl">

@@ -25,8 +25,6 @@ import {
   type NavAuthState,
 } from "@/lib/nav-auth";
 import { FavoritesNavLink } from "@/components/favorites/FavoritesNavLink";
-import { GroceryListButton } from "@/components/pantry/GroceryListButton";
-import { VaultMarketCartButton } from "@/components/pantry/VaultMarketCartButton";
 import { isCurrentUserAdminAction } from "@/lib/admin/auth";
 import { isPartnerAccount } from "@/lib/partner-data";
 import { isAffiliateAccount } from "@/lib/affiliate/auth";
@@ -316,7 +314,7 @@ function DesktopAuthActions({
   // Admins browsing the public site use the same marketing chrome as visitors.
   if (auth.status === "guest" || auth.status === "admin") {
     return (
-      <>
+      <div className="flex items-center gap-5 xl:gap-6">
         {auth.status === "admin" ? (
           <Link
             href="/admin/dashboard"
@@ -350,7 +348,7 @@ function DesktopAuthActions({
         >
           Unlock Discounts
         </MemberSignupCtaLink>
-      </>
+      </div>
     );
   }
 
@@ -379,7 +377,6 @@ export function Navigation() {
   const vaultMarket = isVaultMarketPath(pathname);
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
   const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
-  const showVaultMarketCart = vaultMarket;
   const logoVariant = vaultMarket ? "vault-market" : menuPreview ? "menu" : "default";
   return (
     <header
@@ -389,7 +386,7 @@ export function Navigation() {
     >
       {!menuPreview && !vaultMarket ? <NzAnnouncementBar /> : null}
       <nav
-        className={`mx-auto flex h-[4.25rem] max-w-[1200px] min-w-0 items-center justify-between gap-2 overflow-x-clip px-4 sm:gap-4 sm:px-6 lg:px-8 ${
+        className={`mx-auto flex h-[4.25rem] max-w-[1200px] min-w-0 items-center justify-between gap-2 overflow-x-clip px-4 sm:gap-4 sm:px-6 lg:px-8 xl:gap-6 ${
           menuPreview || vaultMarket
             ? `border-b border-white/15 ${chromeBg}`
             : "border-b border-border bg-white"
@@ -413,13 +410,7 @@ export function Navigation() {
           <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview} />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-          {showVaultMarketCart ? (
-            <>
-              <GroceryListButton variant="nav" menuPreview={menuPreview || vaultMarket} />
-              <VaultMarketCartButton variant="nav" menuPreview={menuPreview || vaultMarket} />
-            </>
-          ) : null}
+        <div className="flex shrink-0 items-center gap-4 sm:gap-6">
           <div className={vaultMarket ? "hidden md:contents" : undefined}>
             <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
           </div>
