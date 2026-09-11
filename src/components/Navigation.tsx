@@ -32,6 +32,7 @@ import { createClient } from "@/lib/supabase/client";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
+import { ArrowLeft } from "lucide-react";
 import {
   NAV_MENU_CTA_CLASS,
   NAV_MENU_PREVIEW_ENABLED,
@@ -393,17 +394,31 @@ export function Navigation() {
         }`}
         aria-label="Main navigation"
       >
-        <Link
-          href={vaultMarket ? "/pantry" : "/"}
-          className="min-w-0 shrink transition-opacity hover:opacity-80"
-          aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
-        >
-          <FoodVaultLogo
-            size="nav"
-            variant={logoVariant}
-            priority
-          />
-        </Link>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          {vaultMarket ? (
+            <Link
+              href="/"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1.5 text-white/90 transition-colors hover:bg-white/10 hover:text-white sm:px-2.5"
+              aria-label="Back to FoodVault"
+            >
+              <ArrowLeft className="h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+              <span className="hidden text-xs font-semibold sm:inline xl:text-sm">
+                Back to FoodVault
+              </span>
+            </Link>
+          ) : null}
+          <Link
+            href={vaultMarket ? "/pantry" : "/"}
+            className="min-w-0 shrink transition-opacity hover:opacity-80"
+            aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
+          >
+            <FoodVaultLogo
+              size="nav"
+              variant={logoVariant}
+              priority
+            />
+          </Link>
+        </div>
 
         <div className="hidden min-w-0 flex-1 items-center justify-end gap-6 xl:flex">
           {!menuPreview && !vaultMarket ? <NavSearch /> : null}

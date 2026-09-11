@@ -173,7 +173,7 @@ export function PantryMarketHeader() {
   const showSuggestions = searchOpen && suggestions.length > 0;
 
   return (
-    <div className="sticky top-[4.25rem] z-40 border-b border-border bg-background shadow-sm">
+    <div className="sticky top-[4.25rem] z-30 border-b border-border bg-background shadow-sm md:top-[8rem]">
       <div className="mx-auto flex max-w-[1200px] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
         <div className="relative shrink-0" ref={browseRef}>
           <button
