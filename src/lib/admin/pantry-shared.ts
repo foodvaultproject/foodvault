@@ -154,6 +154,63 @@ export function calcMultibuyGrossProfit(
   return { exGst, profit, margin };
 }
 
+export const MULTIBUY_SAVE_BLOCKED_MESSAGE = "Fix invalid Multi-Buy pricing before saving.";
+
+function moneyCents(value: number): number {
+  return Math.round(value * 100);
+}
+
+export function memberBundleTotal(memberPrice: number, quantity: number): number {
+  return memberPrice * quantity;
+}
+
+export function maxAllowedMultibuyPrice(memberPrice: number, quantity: number): number {
+  return memberBundleTotal(memberPrice, quantity) - 0.01;
+}
+
+/** True when a multi-buy total is not strictly cheaper than buying that quantity at member price. */
+export function isMultibuyPriceAtOrAboveMemberTotal(
+  memberPrice: number,
+  quantity: number,
+  multibuyPrice: number
+): boolean {
+  if (!Number.isFinite(memberPrice) || !Number.isFinite(quantity) || !Number.isFinite(multibuyPrice)) {
+    return false;
+  }
+  const qty = Math.trunc(quantity);
+  if (qty < 2 || memberPrice <= 0 || multibuyPrice <= 0) return false;
+  return moneyCents(multibuyPrice) >= moneyCents(memberPrice) * qty;
+}
+
+export function invalidMultibuyPriceMessage(memberPrice: number, quantity: number): string {
+  return `Invalid Multi-Buy Price: Total must be less than the standard Member Price total ($${memberBundleTotal(memberPrice, quantity).toFixed(2)}).`;
+}
+
+export function multibuyPricingIssue(input: {
+  is_multibuy: boolean;
+  member_price: number;
+  multibuy_quantity: number;
+  multibuy_price: number;
+}): string | null {
+  if (!input.is_multibuy) return null;
+  if (!Number.isInteger(input.multibuy_quantity) || input.multibuy_quantity < 2) {
+    return "Multi-buy quantity must be at least 2.";
+  }
+  if (!Number.isFinite(input.multibuy_price) || input.multibuy_price <= 0) {
+    return "Multi-buy total price is required.";
+  }
+  if (
+    isMultibuyPriceAtOrAboveMemberTotal(
+      input.member_price,
+      input.multibuy_quantity,
+      input.multibuy_price
+    )
+  ) {
+    return invalidMultibuyPriceMessage(input.member_price, input.multibuy_quantity);
+  }
+  return null;
+}
+
 export type UnitKind = "solid" | "liquid";
 
 export function buildUnitPricing(

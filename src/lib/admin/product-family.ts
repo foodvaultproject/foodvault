@@ -1,4 +1,4 @@
-import { emptyNipMatrix, type NipMatrix } from "@/lib/admin/pantry-shared";
+import { emptyNipMatrix, multibuyPricingIssue, type NipMatrix } from "@/lib/admin/pantry-shared";
 
 export type ProductFamilyVariantInput = {
   id?: string;
@@ -77,12 +77,11 @@ export function validateProductFamilyInput(input: ProductFamilySaveInput): strin
     return "Member price is required.";
   }
   if (input.is_multibuy) {
-    if (!Number.isInteger(input.multibuy_quantity) || input.multibuy_quantity < 2) {
-      return "Multi-buy quantity must be at least 2.";
+    if (!Number.isFinite(input.member_price) || input.member_price <= 0) {
+      return "Member price is required before setting a multi-buy deal.";
     }
-    if (!Number.isFinite(input.multibuy_price) || input.multibuy_price <= 0) {
-      return "Multi-buy total price is required.";
-    }
+    const multibuyError = multibuyPricingIssue(input);
+    if (multibuyError) return multibuyError;
   }
   if (input.variants.length < 1) return "Add at least one variant.";
 

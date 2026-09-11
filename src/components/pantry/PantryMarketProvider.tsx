@@ -49,6 +49,7 @@ type PantryMarketContextValue = {
   isSaved: (productId: string) => boolean;
   openCart: () => void;
   openGrocery: () => void;
+  memberUnlocked: boolean;
 };
 
 const PantryMarketContext = createContext<PantryMarketContextValue | null>(null);
@@ -206,6 +207,7 @@ export function PantryMarketProvider({
       isSaved,
       openCart,
       openGrocery,
+      memberUnlocked: isActiveMember,
     }),
     [
       products,
@@ -218,6 +220,7 @@ export function PantryMarketProvider({
       isSaved,
       openCart,
       openGrocery,
+      isActiveMember,
     ]
   );
 

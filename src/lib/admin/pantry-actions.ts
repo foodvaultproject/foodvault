@@ -11,6 +11,7 @@ import {
 import {
   emptyNipMatrix,
   factsFromNip,
+  multibuyPricingIssue,
   type NipMatrix,
   type NipNutrientKey,
 } from "@/lib/admin/pantry-shared";
@@ -109,6 +110,14 @@ export async function saveVaultMarketProductAction(formData: FormData) {
     multibuy_quantity: Math.trunc(readNumber(formData, "multibuy_quantity")),
     multibuy_price: readNumber(formData, "multibuy_price"),
   });
+
+  const multibuyError = multibuyPricingIssue({
+    is_multibuy: Boolean(payload.is_multibuy),
+    member_price: Number(payload.member_price) || 0,
+    multibuy_quantity: Number(payload.multibuy_quantity) || 0,
+    multibuy_price: Number(payload.multibuy_price) || 0,
+  });
+  if (multibuyError) return { error: multibuyError };
 
   const result = await writeProductRow(payload);
   if (result.error) return { error: result.error };

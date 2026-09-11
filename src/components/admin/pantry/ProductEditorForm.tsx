@@ -21,6 +21,9 @@ import {
   formatAutoUnitPriceLabel,
   inferPackAmount,
   inferUnitKind,
+  invalidMultibuyPriceMessage,
+  isMultibuyPriceAtOrAboveMemberTotal,
+  MULTIBUY_SAVE_BLOCKED_MESSAGE,
   nipFromFacts,
   type NipNutrientKey,
   type UnitKind,
@@ -130,6 +133,19 @@ export function ProductEditorForm({
     Number(wholesaleCost),
     Number(multibuyQuantity)
   );
+  const memberPriceValue = Number(memberPrice);
+  const multibuyQtyValue = Math.trunc(Number(multibuyQuantity));
+  const multibuyPriceValue = Number(multibuyPrice);
+  const multibuyPriceInvalid =
+    isMultibuy &&
+    isMultibuyPriceAtOrAboveMemberTotal(
+      memberPriceValue,
+      multibuyQtyValue,
+      multibuyPriceValue
+    );
+  const multibuyPriceError = multibuyPriceInvalid
+    ? invalidMultibuyPriceMessage(memberPriceValue, multibuyQtyValue)
+    : null;
   const uploading = uploadingSlot !== null;
   const extrasFull = variant.gallery_urls.length >= MAX_GALLERY_IMAGES;
   const canAddImage = variant.image_url ? !extrasFull : true;
@@ -324,6 +340,10 @@ export function ProductEditorForm({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (multibuyPriceInvalid) {
+      setError(MULTIBUY_SAVE_BLOCKED_MESSAGE);
+      return;
+    }
     setError(null);
     const payload = familyPayload();
     const validationError = validateProductFamilyInput(payload);
@@ -353,6 +373,11 @@ export function ProductEditorForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {error ? (
+        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+          {error}
+        </p>
+      ) : null}
       <section className={sectionClass}>
         <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">
           Product family & categorization
@@ -450,7 +475,12 @@ export function ProductEditorForm({
               step="0.01"
               required
               value={memberPrice}
-              onChange={(e) => setMemberPrice(e.target.value)}
+              onChange={(e) => {
+                setMemberPrice(e.target.value);
+                setError((current) =>
+                  current === MULTIBUY_SAVE_BLOCKED_MESSAGE ? null : current
+                );
+              }}
               className={inputClass}
             />
             <p className="mt-1 text-[11px] text-muted">Includes 15% GST.</p>
@@ -492,6 +522,7 @@ export function ProductEditorForm({
                 <p className="text-sm font-semibold text-foreground">Multi-Buy Promotion</p>
                 <p className="mt-0.5 text-xs text-muted">
                   Offer a bundle price on the storefront, e.g. 3 for $5.00. Total includes 15% GST.
+                  Multi-Buy deals are exclusive to FoodVault Members.
                 </p>
               </div>
               <button
@@ -499,7 +530,12 @@ export function ProductEditorForm({
                 role="switch"
                 aria-checked={isMultibuy}
                 aria-label="Multi-Buy Promotion"
-                onClick={() => setIsMultibuy((current) => !current)}
+                onClick={() => {
+                  setIsMultibuy((current) => !current);
+                  setError((current) =>
+                    current === MULTIBUY_SAVE_BLOCKED_MESSAGE ? null : current
+                  );
+                }}
                 className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
                   isMultibuy ? "bg-amber-500" : "bg-border"
                 }`}
@@ -522,7 +558,12 @@ export function ProductEditorForm({
                     step="1"
                     required={isMultibuy}
                     value={multibuyQuantity}
-                    onChange={(e) => setMultibuyQuantity(e.target.value)}
+                    onChange={(e) => {
+                      setMultibuyQuantity(e.target.value);
+                      setError((current) =>
+                        current === MULTIBUY_SAVE_BLOCKED_MESSAGE ? null : current
+                      );
+                    }}
                     className={inputClass}
                     placeholder="3"
                   />
@@ -535,12 +576,29 @@ export function ProductEditorForm({
                     min="0.01"
                     step="0.01"
                     required={isMultibuy}
+                    aria-invalid={multibuyPriceInvalid}
+                    aria-describedby={multibuyPriceInvalid ? "multibuy_price_error" : undefined}
                     value={multibuyPrice}
-                    onChange={(e) => setMultibuyPrice(e.target.value)}
-                    className={inputClass}
+                    onChange={(e) => {
+                      setMultibuyPrice(e.target.value);
+                      setError((current) =>
+                        current === MULTIBUY_SAVE_BLOCKED_MESSAGE ? null : current
+                      );
+                    }}
+                    className={
+                      multibuyPriceInvalid
+                        ? "w-full rounded-md border-2 border-red-500 bg-red-50/50 px-3 py-2.5 text-sm text-foreground focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                        : inputClass
+                    }
                     placeholder="5.00"
                   />
-                  <p className="mt-1 text-[11px] text-muted">Includes 15% GST.</p>
+                  {multibuyPriceError ? (
+                    <p id="multibuy_price_error" role="alert" className="mt-1 text-[11px] font-semibold text-red-600">
+                      {multibuyPriceError}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted">Includes 15% GST.</p>
+                  )}
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="multibuy_gp">Multi-Buy Gross Profit %</label>
@@ -1096,7 +1154,9 @@ export function ProductEditorForm({
       </section>
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+          {error}
+        </p>
       ) : null}
 
       <div className="flex justify-end gap-3">
@@ -1107,11 +1167,16 @@ export function ProductEditorForm({
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={pending || uploading || readingNip}
-          className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+        <div
+          onClick={() => {
+            if (multibuyPriceInvalid) setError(MULTIBUY_SAVE_BLOCKED_MESSAGE);
+          }}
         >
+          <button
+            type="submit"
+            disabled={pending || uploading || readingNip || multibuyPriceInvalid}
+            className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          >
           {pending
             ? "Saving..."
             : product
@@ -1123,7 +1188,8 @@ export function ProductEditorForm({
               : variants.length > 1
                 ? `Create ${variants.length} products`
                 : "Create product"}
-        </button>
+          </button>
+        </div>
       </div>
     </form>
   );
