@@ -130,13 +130,6 @@ export function isMultibuyDeal(product: FoodVaultProduct): boolean {
   );
 }
 
-export function canRevealMultibuyDeal(
-  product: FoodVaultProduct,
-  memberUnlocked: boolean
-): boolean {
-  return memberUnlocked && isMultibuyDeal(product);
-}
-
 export function formatMultibuyBadge(product: FoodVaultProduct): string | null {
   if (!isMultibuyDeal(product) || product.multibuy_quantity == null || product.multibuy_price == null) {
     return null;

@@ -5,9 +5,7 @@ import Link from "next/link";
 import { SafeImage } from "@/components/media/SafeImage";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
-import { MultibuyMemberPrompt } from "@/components/pantry/MultibuyMemberPrompt";
 import {
-  canRevealMultibuyDeal,
   formatUnitPrice,
   isMultibuyDeal,
   pantryProductPath,
@@ -17,12 +15,11 @@ import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
 
 export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
-  const { addToCart, toggleGrocery, isSaved, addedIds, memberUnlocked } = usePantryMarket();
+  const { addToCart, toggleGrocery, isSaved, addedIds } = usePantryMarket();
   const saved = isSaved(product.id);
   const savePercent = productDiscountPercent(product);
   const unitPrice = formatUnitPrice(product);
-  const hasMultibuy = isMultibuyDeal(product);
-  const showMultibuy = canRevealMultibuyDeal(product, memberUnlocked);
+  const multibuy = isMultibuyDeal(product);
   const outOfStock = product.stock_quantity <= 0;
   const added = Boolean(addedIds[product.id]);
   const href = pantryProductPath(product);
@@ -40,12 +37,10 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
             fallbackVariant="muted"
           />
         </Link>
-        {showMultibuy || (savePercent > 0 && !hasMultibuy) ? (
+        {multibuy || savePercent > 0 ? (
           <div className="absolute left-2 top-2 z-10 flex flex-col items-start gap-1">
-            {showMultibuy ? (
-              <MultibuyBadge product={product} className="px-2 py-1 text-[11px] shadow-md" />
-            ) : null}
-            {savePercent > 0 && (showMultibuy || !hasMultibuy) ? (
+            <MultibuyBadge product={product} className="px-2 py-1 text-[11px] shadow-md" />
+            {savePercent > 0 ? (
               <span className="rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
                 {savePercent}% off
               </span>
@@ -70,37 +65,23 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
         <Link href={href} className="mt-0.5 line-clamp-2 text-sm font-bold leading-snug text-foreground hover:text-vm-primary">
           {product.name}
         </Link>
-        {unitPrice && (showMultibuy || !hasMultibuy) ? (
+        {unitPrice ? (
           <p className="mt-1 text-[11px] text-muted">{unitPrice}</p>
         ) : null}
 
         <div className="mt-2">
-          {hasMultibuy && !showMultibuy ? (
-            <>
-              <span className="inline-flex items-center rounded-sm border border-border bg-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted">
-                Retail
-              </span>
-              <p className="mt-1 text-base font-bold leading-none text-foreground">
-                {formatNzPrice(product.retail_price)}
-              </p>
-              <MultibuyMemberPrompt nextPath={href} className="mt-1.5 block" />
-            </>
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-                  Member
-                </span>
-                {showMultibuy ? <MultibuyBadge product={product} /> : null}
-              </div>
-              <p className="mt-1 text-base font-bold leading-none text-vm-primary">
-                {formatNzPrice(product.member_price)}
-              </p>
-              <p className="mt-1 text-xs text-muted-light line-through">
-                {formatNzPrice(product.retail_price)}
-              </p>
-            </>
-          )}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
+              Member
+            </span>
+            {multibuy ? <MultibuyBadge product={product} /> : null}
+          </div>
+          <p className="mt-1 text-base font-bold leading-none text-vm-primary">
+            {formatNzPrice(product.member_price)}
+          </p>
+          <p className="mt-1 text-xs text-muted-light line-through">
+            {formatNzPrice(product.retail_price)}
+          </p>
         </div>
 
         <button
