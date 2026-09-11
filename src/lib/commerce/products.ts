@@ -142,7 +142,9 @@ function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
     natural_flavours_or_colours:
       typeof row.natural_flavours_or_colours === "boolean"
         ? row.natural_flavours_or_colours
-        : undefined,
+        : typeof row.is_natural_flavors_colors === "boolean"
+          ? row.is_natural_flavors_colors
+          : undefined,
     bin_location: asOptionalString(row.bin_location),
     product_family_id: asOptionalString(row.product_family_id),
     created_at: asString(row.created_at) || undefined,
@@ -218,7 +220,6 @@ function toCatalogProduct(product: FoodVaultProduct): FoodVaultProduct {
     ingredients: null,
     allergens: null,
     nutrition_facts: null,
-    gallery_urls: undefined,
   };
 }
 

@@ -98,7 +98,9 @@ export function mapAdminProduct(row: Record<string, unknown>): FoodVaultProduct 
     net_weight_g: row.net_weight_g == null ? null : asNumber(row.net_weight_g),
     health_star_rating:
       row.health_star_rating == null ? null : asNumber(row.health_star_rating),
-    natural_flavours_or_colours: Boolean(row.natural_flavours_or_colours),
+    natural_flavours_or_colours: Boolean(
+      row.natural_flavours_or_colours ?? row.is_natural_flavors_colors
+    ),
     bin_location: asString(row.bin_location) || null,
     barcode: asString(row.barcode) || null,
     vendor_id: asString(row.vendor_id) || null,
@@ -379,6 +381,7 @@ export function productWritePayload(input: {
     origin_label: input.origin_label || null,
     health_star_rating: input.health_star_rating,
     natural_flavours_or_colours: input.natural_flavours_or_colours,
+    is_natural_flavors_colors: input.natural_flavours_or_colours,
     description: input.description || null,
     ingredients: input.ingredients || null,
     allergens: input.allergens || null,
