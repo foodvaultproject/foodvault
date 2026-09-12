@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const HOME_BANNER_SRC = "/vault market/pantry_banner.png";
+const HOME_BANNER_SRC = "/vault market/home_vaultmarket.png";
+const HOME_BANNER_WIDTH = 2555;
+const HOME_BANNER_HEIGHT = 956;
 
 const PILLARS = [
   {
@@ -27,19 +29,19 @@ export function HomeVaultMarketBanner({
     <section className={compactSpacing ? "py-8 sm:py-10" : "py-10 sm:py-14"}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-2xl bg-[#064E3B] text-white shadow-sm">
-          <div className="relative md:flex md:min-h-[22rem] md:items-center">
-            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-1/2 items-center overflow-hidden md:flex">
+          <div className="relative md:flex md:min-h-[38rem] md:items-center">
+            <div className="pointer-events-none absolute inset-y-0 right-0 hidden items-center justify-end md:flex">
               <Image
                 src={HOME_BANNER_SRC}
                 alt=""
-                width={2414}
-                height={457}
-                sizes="80vw"
-                className="h-[21rem] w-auto max-w-none -translate-x-[32.3%] object-contain object-left"
+                width={HOME_BANNER_WIDTH}
+                height={HOME_BANNER_HEIGHT}
+                sizes="120vw"
+                className="h-[39rem] w-auto max-w-none object-contain object-right"
               />
             </div>
 
-            <div className="relative z-10 ml-auto px-6 pt-8 sm:px-10 sm:pt-10 md:w-1/2 md:py-10">
+            <div className="relative z-10 px-6 pt-8 sm:px-10 sm:pt-10 md:w-[46%] md:bg-gradient-to-r md:from-[#064E3B] md:from-65% md:to-transparent md:py-10">
               <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                 Vault Market is Live
               </h2>
@@ -62,8 +64,8 @@ export function HomeVaultMarketBanner({
             <Image
               src={HOME_BANNER_SRC}
               alt=""
-              width={2414}
-              height={457}
+              width={HOME_BANNER_WIDTH}
+              height={HOME_BANNER_HEIGHT}
               sizes="100vw"
               className="h-auto w-full object-contain object-center"
             />
