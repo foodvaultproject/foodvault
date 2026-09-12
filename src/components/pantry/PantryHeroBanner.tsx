@@ -29,8 +29,8 @@ export function PantryHeroBanner() {
         <Image
           src={PANTRY_BANNER_SRC}
           alt=""
-          width={2556}
-          height={484}
+          width={2414}
+          height={457}
           sizes="100vw"
           className="h-auto w-full object-contain object-bottom"
         />
