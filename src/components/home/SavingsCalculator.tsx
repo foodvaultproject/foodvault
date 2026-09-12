@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
@@ -9,11 +10,17 @@ const SAVINGS_RATE = 0.15;
 const MEMBERSHIP_COST = 8.99;
 
 const CATEGORIES = [
-  { key: "petFood", label: "Pet Food", defaultValue: 50, max: 400 },
   { key: "meatProduce", label: "Meat, Fruit & Veges", defaultValue: 220, max: 800 },
   { key: "cafes", label: "Cafes & Restaurants", defaultValue: 100, max: 600 },
   { key: "gifts", label: "Gifts & Hampers", defaultValue: 30, max: 300 },
-  { key: "pantry", label: "Artisan & Specialty Pantry", defaultValue: 45, max: 400 },
+  {
+    key: "vaultMarket",
+    label: "Vault Market",
+    description: "Shop Vault Market — pantry staples & more",
+    href: "/pantry",
+    defaultValue: 45,
+    max: 400,
+  },
 ] as const;
 
 type CategoryKey = (typeof CATEGORIES)[number]["key"];
@@ -35,14 +42,17 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getSignupScore(netMonthlySavings: number) {
-  if (netMonthlySavings > 50) {
-    return { label: "Crazy not to! 🔥", className: "bg-warning text-navy" };
+function getSavingsMessage(monthlySavings: number) {
+  if (monthlySavings >= 150) {
+    return { label: "No-brainer savings for your household.", className: "bg-warning text-navy" };
   }
-  if (netMonthlySavings >= 0.01) {
-    return { label: "Pays for itself & then some! ☕", className: "bg-success-light text-success" };
+  if (monthlySavings >= 50) {
+    return {
+      label: "Serious savings month after month.",
+      className: "bg-success-light text-success",
+    };
   }
-  return { label: "Damn, living on the noodles cuz! 🍜", className: "bg-white/15 text-white" };
+  return { label: "Every bit back in your pocket.", className: "bg-white/15 text-white" };
 }
 
 const defaultSpend = Object.fromEntries(
@@ -65,7 +75,7 @@ export function SavingsCalculator({ compactSpacing = false }: { compactSpacing?:
     };
   }, [spend]);
 
-  const score = getSignupScore(totals.netMonthlySavings);
+  const score = getSavingsMessage(totals.netMonthlySavings);
 
   function updateSpend(key: CategoryKey, value: number, max: number) {
     setSpend((current) => ({
@@ -82,30 +92,47 @@ export function SavingsCalculator({ compactSpacing = false }: { compactSpacing?:
         <div className={compactSpacing ? "mb-2.5" : "mb-5"}>
           <h2 className={heading2}>How much could you save?</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Estimate your FoodVault savings from everyday Kiwi spending.
+            Estimate your FoodVault and Vault Market savings from everyday Kiwi spending.
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-stretch">
-          <div className="rounded-xl border border-border bg-white p-5 shadow-sm sm:p-6">
+        <div className="grid gap-4 md:grid-cols-12 md:gap-6 md:items-stretch">
+          <div className="rounded-xl border border-border bg-white p-4 shadow-sm sm:p-5 md:col-span-7">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Monthly spend
             </p>
-            <div className="mt-4 space-y-5">
+            <div className="mt-2">
               {CATEGORIES.map((category) => {
                 const value = spend[category.key];
                 const percent = category.max > 0 ? (value / category.max) * 100 : 0;
+                const href = "href" in category ? category.href : undefined;
+                const description = "description" in category ? category.description : undefined;
 
                 return (
-                  <div key={category.key}>
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                      <label
-                        htmlFor={`savings-${category.key}`}
-                        className="text-sm font-medium text-foreground"
-                      >
-                        {category.label}
-                      </label>
-                      <div className="relative">
+                  <div key={category.key} className="py-2">
+                    <div className="mb-1.5 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label
+                            htmlFor={`savings-${category.key}`}
+                            className="text-sm font-medium text-foreground"
+                          >
+                            {category.label}
+                          </label>
+                          {href ? (
+                            <Link
+                              href={href}
+                              className="inline-flex items-center rounded-sm bg-[#10B981] px-2 py-0.5 text-[11px] font-semibold text-white transition-colors hover:bg-[#34d399]"
+                            >
+                              Shop
+                            </Link>
+                          ) : null}
+                        </div>
+                        {description ? (
+                          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+                        ) : null}
+                      </div>
+                      <div className="relative shrink-0">
                         <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                           $
                         </span>
@@ -147,7 +174,7 @@ export function SavingsCalculator({ compactSpacing = false }: { compactSpacing?:
                 );
               })}
             </div>
-            <p className="mt-5 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
               Total monthly spend{" "}
               <span className="font-semibold text-foreground">
                 {formatDollars(totals.totalMonthlySpend)}
@@ -155,27 +182,27 @@ export function SavingsCalculator({ compactSpacing = false }: { compactSpacing?:
             </p>
           </div>
 
-          <div className="flex flex-col rounded-xl bg-navy p-5 text-white shadow-sm sm:p-6">
+          <div className="flex flex-col rounded-xl bg-navy p-4 text-white shadow-sm sm:p-5 md:col-span-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
               Your estimated savings
             </p>
             <p
-              className={`mt-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${score.className}`}
+              className={`mt-2 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${score.className}`}
             >
               {score.label}
             </p>
-            <p className="mt-4 text-lg font-bold leading-snug sm:text-xl">
+            <p className="mt-3 text-base font-bold leading-snug sm:text-lg">
               You could save {formatDollars(totals.netMonthlySavings)}/month (after $
               {MEMBERSHIP_COST.toFixed(2)} membership) or {formatDollars(totals.netYearlySavings)} a
               year!
             </p>
             <MemberSignupCtaLink
               variant="start-saving-now"
-              className="fv-btn-primary mt-6 inline-flex w-full items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 sm:w-auto"
+              className="fv-btn-primary mt-4 inline-flex w-full items-center justify-center rounded-sm px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 sm:w-auto"
             >
               Start Saving Now
             </MemberSignupCtaLink>
-            <p className="mt-auto pt-5 text-xs leading-relaxed text-white/60">
+            <p className="mt-auto pt-4 text-xs leading-relaxed text-white/60">
               *Savings based on an average 15% discount across participating FoodVault brands and
               venues.
             </p>
