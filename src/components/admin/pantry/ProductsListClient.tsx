@@ -54,6 +54,7 @@ export function ProductsListClient({ products }: { products: FoodVaultProduct[] 
                   <td className="px-4 py-3 text-muted">
                     {product.category}
                     {product.subcategory ? ` / ${product.subcategory}` : ""}
+                    {product.specific ? ` / ${product.specific}` : ""}
                   </td>
                   <td className="px-4 py-3">{formatNzPrice(product.member_price)}</td>
                   <td className="px-4 py-3 tabular-nums">{product.stock_quantity}</td>

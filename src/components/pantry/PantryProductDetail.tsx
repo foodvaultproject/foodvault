@@ -16,6 +16,7 @@ import {
   productDiscountPercent,
   productGallery,
   resolveProductDepartment,
+  resolveProductSpecific,
   resolveProductSubcategory,
 } from "@/lib/commerce/catalog";
 import { formatNzPrice } from "@/lib/partner-offer";
@@ -79,6 +80,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
   const added = Boolean(addedIds[product.id]);
   const department = resolveProductDepartment(product);
   const subcategory = resolveProductSubcategory(product);
+  const specific = resolveProductSpecific(product);
   const savePercent = productDiscountPercent(product);
   const unitPrice = formatUnitPrice(product);
   const outOfStock = product.stock_quantity <= 0;
@@ -92,8 +94,11 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
       { href: "/pantry", label: "Pantry" },
       { href: pantryDepartmentPath(department), label: department },
       { href: pantryDepartmentPath(department, subcategory), label: subcategory },
+      ...(specific
+        ? [{ href: pantryDepartmentPath(department, subcategory, specific), label: specific }]
+        : []),
     ],
-    [department, subcategory]
+    [department, subcategory, specific]
   );
 
   return (

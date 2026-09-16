@@ -78,6 +78,7 @@ export function mapAdminProduct(row: Record<string, unknown>): FoodVaultProduct 
     stock_quantity: Math.max(0, Math.trunc(asNumber(row.stock_quantity))),
     category: asString(row.category, "Pantry"),
     subcategory: asString(row.subcategory) || null,
+    specific: asString(row.specific) || null,
     slug: asString(row.slug) || null,
     image_url: asString(row.image_url) || null,
     gallery_urls: parseGalleryUrls(row.gallery_urls),
@@ -344,6 +345,7 @@ export function productWritePayload(input: {
   brand: string;
   category: string;
   subcategory: string;
+  specific?: string;
   slug: string;
   retail_price: number;
   member_price: number;
@@ -379,6 +381,7 @@ export function productWritePayload(input: {
     brand: input.brand,
     category: input.category,
     subcategory: input.subcategory || null,
+    specific: input.specific?.trim() || null,
     slug: input.slug || null,
     retail_price: input.retail_price,
     member_price: input.member_price,

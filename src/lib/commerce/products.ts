@@ -126,6 +126,7 @@ function mapProduct(row: Record<string, unknown>): FoodVaultProduct | null {
     stock_quantity: Math.max(0, Math.trunc(asNumber(row.stock_quantity))),
     category: asString(row.category, "Pantry"),
     subcategory: asOptionalString(row.subcategory),
+    specific: asOptionalString(row.specific),
     slug: asOptionalString(row.slug),
     image_url: asString(row.image_url) || null,
     gallery_urls: asStringArray(row.gallery_urls),
@@ -216,10 +217,16 @@ export async function getVaultMarketProductsByIds(
   return products;
 }
 
+function catalogDescriptionSnippet(description: string | null | undefined): string | null {
+  const text = description?.replace(/\s+/g, " ").trim() ?? "";
+  if (!text) return null;
+  return text.length > 160 ? `${text.slice(0, 157)}…` : text;
+}
+
 function toCatalogProduct(product: FoodVaultProduct): FoodVaultProduct {
   return {
     ...product,
-    description: null,
+    description: catalogDescriptionSnippet(product.description),
     ingredients: null,
     allergens: null,
     nutrition_facts: null,

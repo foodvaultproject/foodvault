@@ -48,14 +48,14 @@ export function HomeVaultMarketBanner({
               </div>
             </div>
 
-            <div className="flex h-[200px] w-full items-center justify-end overflow-hidden md:h-[320px] md:w-1/2">
+            <div className="flex w-full items-center justify-center p-4 md:w-1/2 md:p-6">
               <Image
                 src={HOME_BANNER_SRC}
                 alt="Vault Market box with member pantry staples"
                 width={HOME_BANNER_WIDTH}
                 height={HOME_BANNER_HEIGHT}
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="h-full w-auto max-h-[320px] max-w-none object-contain object-right"
+                className="h-auto w-full max-h-[380px] object-contain"
               />
             </div>
           </div>

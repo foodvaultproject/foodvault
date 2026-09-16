@@ -1,16 +1,23 @@
 import {
-  PARTNER_CATEGORY_TAXONOMY,
-  PRIMARY_DEPARTMENTS,
-  type PrimaryDepartment,
-} from "@/data/partner-categories";
+  VAULT_MARKET_DEPARTMENTS,
+  getVaultMarketDepartmentNode,
+  getVaultMarketSpecifics,
+  getVaultMarketSubcategories,
+  isVaultMarketDepartment,
+  type VaultMarketDepartment,
+} from "@/data/vault-market-categories";
 import { partnerProfileSlug } from "@/lib/member/favorites-utils";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct, FoodVaultUnitPricing } from "@/types/commerce";
 
 export type VaultMarketBrowseDepartment = {
-  department: PrimaryDepartment;
+  department: VaultMarketDepartment;
   slug: string;
-  subcategories: { label: string; slug: string }[];
+  subcategories: {
+    label: string;
+    slug: string;
+    specifics: { label: string; slug: string }[];
+  }[];
 };
 
 export function catalogSlug(value: string): string {
@@ -19,19 +26,20 @@ export function catalogSlug(value: string): string {
 
 export function resolveProductDepartment(
   product: FoodVaultProduct
-): PrimaryDepartment {
+): VaultMarketDepartment {
   const category = product.category.trim();
-  if ((PRIMARY_DEPARTMENTS as readonly string[]).includes(category)) {
-    return category as PrimaryDepartment;
-  }
+  if (isVaultMarketDepartment(category)) return category;
 
-  for (const department of PRIMARY_DEPARTMENTS) {
-    if (PARTNER_CATEGORY_TAXONOMY[department].includes(category)) {
+  const aliased = getVaultMarketDepartmentNode(category)?.department;
+  if (aliased) return aliased;
+
+  for (const department of VAULT_MARKET_DEPARTMENTS) {
+    if (getVaultMarketSubcategories(department).includes(category)) {
       return department;
     }
     if (
       product.subcategory &&
-      PARTNER_CATEGORY_TAXONOMY[department].includes(product.subcategory)
+      getVaultMarketSubcategories(department).includes(product.subcategory)
     ) {
       return department;
     }
@@ -44,7 +52,7 @@ export function resolveProductSubcategory(product: FoodVaultProduct): string {
   if (product.subcategory?.trim()) return product.subcategory.trim();
 
   const department = resolveProductDepartment(product);
-  const taxonomy = PARTNER_CATEGORY_TAXONOMY[department];
+  const taxonomy = getVaultMarketSubcategories(department);
   if (taxonomy.includes(product.category)) return product.category;
 
   const fallback: Record<string, string> = {
@@ -53,6 +61,10 @@ export function resolveProductSubcategory(product: FoodVaultProduct): string {
     Tea: "Tea & Milk Drinks",
   };
   return fallback[product.category] ?? taxonomy[0] ?? product.category;
+}
+
+export function resolveProductSpecific(product: FoodVaultProduct): string {
+  return product.specific?.trim() ?? "";
 }
 
 export function resolveProductSlug(product: FoodVaultProduct): string {
@@ -65,20 +77,29 @@ export function pantryProductPath(product: FoodVaultProduct): string {
   return `/pantry/${catalogSlug(department)}/${catalogSlug(subcategory)}/${resolveProductSlug(product)}`;
 }
 
-export function pantryDepartmentPath(department: string, subcategory?: string): string {
+export function pantryDepartmentPath(
+  department: string,
+  subcategory?: string,
+  specific?: string
+): string {
   const params = new URLSearchParams();
   params.set("department", catalogSlug(department));
   if (subcategory) params.set("subcategory", catalogSlug(subcategory));
+  if (specific) params.set("specific", catalogSlug(specific));
   return `/pantry?${params.toString()}`;
 }
 
 export function getVaultMarketBrowseDepartments(): VaultMarketBrowseDepartment[] {
-  return PRIMARY_DEPARTMENTS.map((department) => ({
+  return VAULT_MARKET_DEPARTMENTS.map((department) => ({
     department,
     slug: catalogSlug(department),
-    subcategories: PARTNER_CATEGORY_TAXONOMY[department].map((label) => ({
+    subcategories: getVaultMarketSubcategories(department).map((label) => ({
       label,
       slug: catalogSlug(label),
+      specifics: getVaultMarketSpecifics(department, label).map((specific) => ({
+        label: specific,
+        slug: catalogSlug(specific),
+      })),
     })),
   }));
 }
@@ -147,7 +168,15 @@ export function multibuyBundleSavings(product: FoodVaultProduct): number {
 export function matchesCatalogQuery(product: FoodVaultProduct, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
-  return [product.name, product.brand, product.sku, product.category, product.subcategory]
+  return [
+    product.name,
+    product.brand,
+    product.sku,
+    product.category,
+    product.subcategory,
+    product.specific,
+    product.description,
+  ]
     .filter(Boolean)
     .some((value) => String(value).toLowerCase().includes(needle));
 }
@@ -190,7 +219,9 @@ export function suggestCatalogSearch(
       brandScore * 0.9,
       catalogMatchScore(product.sku, needle) * 0.75,
       catalogMatchScore(product.category, needle) * 0.45,
-      catalogMatchScore(product.subcategory, needle) * 0.45
+      catalogMatchScore(product.subcategory, needle) * 0.45,
+      catalogMatchScore(product.specific, needle) * 0.45,
+      catalogMatchScore(product.description, needle) * 0.35
     );
     if (score > 0) {
       productHits.push({ kind: "product", product, score });
@@ -219,10 +250,11 @@ export function suggestCatalogSearch(
 
 export function filterCatalogProducts(
   products: FoodVaultProduct[],
-  filters: { query?: string; department?: string; subcategory?: string }
+  filters: { query?: string; department?: string; subcategory?: string; specific?: string }
 ): FoodVaultProduct[] {
   const departmentSlug = filters.department?.trim().toLowerCase() ?? "";
   const subcategorySlug = filters.subcategory?.trim().toLowerCase() ?? "";
+  const specificSlug = filters.specific?.trim().toLowerCase() ?? "";
 
   return products.filter((product) => {
     if (!matchesCatalogQuery(product, filters.query ?? "")) return false;
@@ -236,6 +268,9 @@ export function filterCatalogProducts(
       subcategorySlug &&
       catalogSlug(resolveProductSubcategory(product)) !== subcategorySlug
     ) {
+      return false;
+    }
+    if (specificSlug && catalogSlug(resolveProductSpecific(product)) !== specificSlug) {
       return false;
     }
     return true;

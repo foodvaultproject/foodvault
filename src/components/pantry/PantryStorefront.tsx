@@ -13,10 +13,12 @@ export function PantryStorefront({
   query = "",
   department = "",
   subcategory = "",
+  specific = "",
 }: {
   query?: string;
   department?: string;
   subcategory?: string;
+  specific?: string;
 }) {
   const { products, liveQuery } = usePantryMarket();
   const departments = getVaultMarketBrowseDepartments();
@@ -24,10 +26,12 @@ export function PantryStorefront({
   const activeSubcategory = activeDepartment?.subcategories.find(
     (entry) => entry.slug === subcategory
   );
+  const activeSpecific = activeSubcategory?.specifics.find((entry) => entry.slug === specific);
   const filtered = filterCatalogProducts(products, {
     query: liveQuery || query,
     department,
     subcategory,
+    specific,
   });
 
   const searchTerm = liveQuery || query;
@@ -45,7 +49,8 @@ export function PantryStorefront({
         }))
     : [];
 
-  const heading = activeSubcategory?.label
+  const heading = activeSpecific?.label
+    ?? activeSubcategory?.label
     ?? activeDepartment?.department
     ?? "The Pantry";
 

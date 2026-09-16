@@ -19,6 +19,7 @@ export type ProductFamilySaveInput = {
   brand: string;
   category: string;
   subcategory: string;
+  specific: string;
   retail_price: number;
   member_price: number;
   wholesale_cost: number;

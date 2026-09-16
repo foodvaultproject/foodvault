@@ -3,10 +3,11 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getSubcategoriesForDepartment,
-  getSubcategoryGroupsForDepartment,
-  PRIMARY_DEPARTMENTS,
-} from "@/data/partner-categories";
+  VAULT_MARKET_DEPARTMENTS,
+  getVaultMarketDepartmentNode,
+  getVaultMarketSpecifics,
+  getVaultMarketSubcategories,
+} from "@/data/vault-market-categories";
 import { convertImageToWebpFile } from "@/lib/admin/compress-image-webp";
 import {
   parseVaultMarketNipImageAction,
@@ -86,8 +87,13 @@ export function ProductEditorForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [brand, setBrand] = useState(product?.brand ?? "");
-  const [category, setCategory] = useState(product?.category ?? "Pantry");
+  const [category, setCategory] = useState(
+    getVaultMarketDepartmentNode(product?.category ?? "Pantry")?.department
+      ?? product?.category
+      ?? "Pantry"
+  );
   const [subcategory, setSubcategory] = useState(product?.subcategory ?? "");
+  const [specific, setSpecific] = useState(product?.specific ?? "");
   const [retailPrice, setRetailPrice] = useState(product ? String(product.retail_price) : "");
   const [memberPrice, setMemberPrice] = useState(product ? String(product.member_price) : "");
   const [wholesaleCost, setWholesaleCost] = useState(String(product?.wholesale_cost ?? 0));
@@ -150,17 +156,27 @@ export function ProductEditorForm({
   const extrasFull = variant.gallery_urls.length >= MAX_GALLERY_IMAGES;
   const canAddImage = variant.image_url ? !extrasFull : true;
 
-  const subcategoryGroups = useMemo(
-    () => getSubcategoryGroupsForDepartment(category),
-    [category]
-  );
+  const categoryOptions = useMemo(() => {
+    const labels = [...VAULT_MARKET_DEPARTMENTS];
+    if (category && !labels.includes(category as (typeof VAULT_MARKET_DEPARTMENTS)[number])) {
+      return [category, ...labels];
+    }
+    return labels;
+  }, [category]);
   const subcategories = useMemo(() => {
-    const labels = getSubcategoriesForDepartment(category);
+    const labels = [...getVaultMarketSubcategories(category)];
     if (subcategory && !labels.includes(subcategory)) {
       return [subcategory, ...labels];
     }
-    return [...labels];
+    return labels;
   }, [category, subcategory]);
+  const specifics = useMemo(() => {
+    const labels = [...getVaultMarketSpecifics(category, subcategory)];
+    if (specific && !labels.includes(specific)) {
+      return [specific, ...labels];
+    }
+    return labels;
+  }, [category, subcategory, specific]);
 
   function updateVariant(index: number, patch: Partial<ProductVariantDraft>) {
     setVariants((prev) =>
@@ -306,6 +322,7 @@ export function ProductEditorForm({
       brand: brand.trim() || "FoodVault",
       category: category.trim() || "Pantry",
       subcategory: subcategory.trim(),
+      specific: specific.trim(),
       retail_price: Number(retailPrice),
       member_price: Number(memberPrice),
       wholesale_cost: Number(wholesaleCost) || 0,
@@ -404,44 +421,45 @@ export function ProductEditorForm({
               onChange={(e) => {
                 setCategory(e.target.value);
                 setSubcategory("");
+                setSpecific("");
               }}
               className={inputClass}
             >
-              {PRIMARY_DEPARTMENTS.map((department) => (
+              {categoryOptions.map((department) => (
                 <option key={department} value={department}>{department}</option>
               ))}
             </select>
           </div>
-          <div className="md:col-span-2">
+          <div>
             <label className={labelClass} htmlFor="subcategory">Subcategory</label>
             <select
               id="subcategory"
               value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
+              onChange={(e) => {
+                setSubcategory(e.target.value);
+                setSpecific("");
+              }}
               className={inputClass}
             >
               <option value="">Select subcategory</option>
-              {subcategoryGroups ? (
-                <>
-                  {subcategory &&
-                  !subcategoryGroups.some((group) =>
-                    group.subcategories.includes(subcategory)
-                  ) ? (
-                    <option value={subcategory}>{subcategory}</option>
-                  ) : null}
-                  {subcategoryGroups.map((group) => (
-                    <optgroup key={group.label} label={group.label}>
-                      {group.subcategories.map((label) => (
-                        <option key={label} value={label}>{label}</option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </>
-              ) : (
-                subcategories.map((label) => (
-                  <option key={label} value={label}>{label}</option>
-                ))
-              )}
+              {subcategories.map((label) => (
+                <option key={label} value={label}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className={labelClass} htmlFor="specific">Specific</label>
+            <select
+              id="specific"
+              value={specific}
+              onChange={(e) => setSpecific(e.target.value)}
+              disabled={!subcategory}
+              className={inputClass}
+            >
+              <option value="">{subcategory ? "Select specific" : "Select a subcategory first"}</option>
+              {specifics.map((label) => (
+                <option key={label} value={label}>{label}</option>
+              ))}
             </select>
           </div>
         </div>

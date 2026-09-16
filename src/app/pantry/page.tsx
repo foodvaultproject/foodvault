@@ -15,11 +15,12 @@ type PantryPageProps = {
     q?: string;
     department?: string;
     subcategory?: string;
+    specific?: string;
   }>;
 };
 
 export default async function PantryPage({ searchParams }: PantryPageProps) {
-  const { q, department, subcategory } = await searchParams;
+  const { q, department, subcategory, specific } = await searchParams;
 
   return (
     <section className="min-w-0 overflow-x-clip bg-page">
@@ -28,6 +29,7 @@ export default async function PantryPage({ searchParams }: PantryPageProps) {
           query={q ?? ""}
           department={department ?? ""}
           subcategory={subcategory ?? ""}
+          specific={specific ?? ""}
         />
       </div>
     </section>

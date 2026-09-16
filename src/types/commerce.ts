@@ -37,6 +37,7 @@ export interface FoodVaultProduct {
   stock_quantity: number;
   category: string;
   subcategory?: string | null;
+  specific?: string | null;
   slug?: string | null;
   image_url: string | null;
   gallery_urls?: string[];
