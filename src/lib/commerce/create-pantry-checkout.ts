@@ -1,4 +1,10 @@
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
+import {
+  formatDeliveryAddress,
+  parseVaultMarketDelivery,
+  vaultMarketFreight,
+  type VaultMarketDeliveryDetails,
+} from "@/lib/commerce/shipping";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import {
   getStripeClient,
@@ -111,6 +117,19 @@ export function pantryCheckoutSavings(
   }, 0);
 }
 
+export function pantryCheckoutSubtotal(items: ValidatedPantryCheckoutItem[]): number {
+  return items.reduce(
+    (sum, item) => sum + item.product.member_price * item.quantity,
+    0
+  );
+}
+
+export { parseVaultMarketDelivery };
+
+function metaValue(value: string, max = 500) {
+  return value.trim().slice(0, max);
+}
+
 export function getCheckoutOrigin(request: Request): string {
   const forwardedHost = request.headers.get("x-forwarded-host");
   const host = forwardedHost ?? request.headers.get("host");
@@ -130,23 +149,62 @@ export function getCheckoutOrigin(request: Request): string {
 
 export async function createPantryCheckoutSession(input: {
   items: ValidatedPantryCheckoutItem[];
+  delivery: VaultMarketDeliveryDetails;
   userId?: string | null;
+  membershipId?: string | null;
   customerEmail?: string | null;
   stripeCustomerId?: string | null;
   origin: string;
 }) {
   const stripe = getStripeClient();
   const totalSavings = pantryCheckoutSavings(input.items);
+  const subtotal = pantryCheckoutSubtotal(input.items);
+  const freight = vaultMarketFreight(subtotal);
   const origin = input.origin.replace(/\/$/, "");
   const stripeCustomerId = input.stripeCustomerId?.trim() || null;
+  const membershipId = input.membershipId?.trim() || input.userId?.trim() || "";
+  const recipientEmail = input.delivery.email || input.customerEmail?.trim() || "";
+  const deliveryAddress = formatDeliveryAddress(input.delivery);
+  const shippingLabel =
+    freight === 0 ? "Free NZ Shipping" : "Standard NZ Freight";
+
+  const metadata = {
+    foodvault: "vault_market",
+    user_id: input.userId ?? "",
+    membership_id: membershipId,
+    recipient_name: metaValue(input.delivery.fullName),
+    recipient_phone: metaValue(input.delivery.phone),
+    recipient_email: metaValue(recipientEmail),
+    delivery_street: metaValue(input.delivery.street),
+    delivery_suburb: metaValue(input.delivery.suburb),
+    delivery_city: metaValue(input.delivery.city),
+    delivery_postcode: metaValue(input.delivery.postcode),
+    delivery_address: metaValue(deliveryAddress),
+    delivery_notes: metaValue(input.delivery.deliveryNotes),
+    shipping_cost: freight.toFixed(2),
+    cart_items: input.items
+      .map(({ product, quantity }) => `${product.id}:${quantity}`)
+      .join(",")
+      .slice(0, 500),
+    total_savings: totalSavings.toFixed(2),
+  };
 
   return stripe.checkout.sessions.create({
     mode: "payment",
     currency: "nzd",
     billing_address_collection: "required",
-    shipping_address_collection: {
-      allowed_countries: ["NZ", "AU"],
-    },
+    shipping_options: [
+      {
+        shipping_rate_data: {
+          display_name: shippingLabel,
+          type: "fixed_amount",
+          fixed_amount: {
+            amount: toStripeAmount(freight, "nzd"),
+            currency: "nzd",
+          },
+        },
+      },
+    ],
     line_items: input.items.map(({ product, quantity }) => ({
       quantity,
       price_data: {
@@ -166,28 +224,24 @@ export async function createPantryCheckoutSession(input: {
       },
     })),
     success_url: `${origin}/pantry/order-success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/pantry`,
+    cancel_url: `${origin}/pantry/checkout`,
+    payment_intent_data: {
+      description: "Vault Market order",
+      metadata,
+    },
     ...(input.userId ? { client_reference_id: input.userId } : {}),
     ...(stripeCustomerId
       ? {
           customer: stripeCustomerId,
-          customer_update: { shipping: "auto" as const, address: "auto" as const },
+          customer_update: { address: "auto" as const },
           saved_payment_method_options: {
             payment_method_save: "enabled",
             allow_redisplay_filters: ["always", "limited", "unspecified"],
           },
         }
-      : input.customerEmail
-        ? { customer_email: input.customerEmail }
+      : recipientEmail
+        ? { customer_email: recipientEmail }
         : {}),
-    metadata: {
-      foodvault: "vault_market",
-      user_id: input.userId ?? "",
-      cart_items: input.items
-        .map(({ product, quantity }) => `${product.id}:${quantity}`)
-        .join(",")
-        .slice(0, 500),
-      total_savings: totalSavings.toFixed(2),
-    },
+    metadata,
   } as Parameters<typeof stripe.checkout.sessions.create>[0]);
 }

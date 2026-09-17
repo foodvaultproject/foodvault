@@ -2,8 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 const HOME_BANNER_SRC = "/vault market/home_vaultmarket.png";
-const HOME_BANNER_WIDTH = 2555;
-const HOME_BANNER_HEIGHT = 956;
 
 const PILLARS = [
   {
@@ -28,13 +26,23 @@ export function HomeVaultMarketBanner({
   return (
     <section className={compactSpacing ? "py-8 sm:py-10" : "py-10 sm:py-14"}>
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-[#064E3B] px-6 py-8 text-white shadow-sm sm:px-10 sm:py-10">
-          <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
-            <div className="w-full min-w-0 md:w-1/2">
+        <div className="overflow-hidden rounded-2xl bg-[#064E3B] text-white shadow-sm">
+          <div className="relative min-h-[280px] sm:min-h-[420px]">
+            <div className="absolute inset-0 z-0">
+              <Image
+                src={HOME_BANNER_SRC}
+                alt=""
+                fill
+                sizes="100vw"
+                className="h-full w-full object-contain md:object-right"
+              />
+            </div>
+
+            <div className="relative z-10 flex min-h-[280px] flex-col justify-center bg-gradient-to-r from-[#064E3B] via-[#064E3B]/90 to-transparent px-6 py-8 sm:min-h-[420px] sm:px-10 sm:py-10 md:max-w-[52%]">
               <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                 Vault Market is Live
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-emerald-50 sm:text-base">
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-emerald-50 sm:text-base">
                 Direct savings on everyday items, packed and shipped straight from our
                 central Auckland facility.
               </p>
@@ -47,20 +55,9 @@ export function HomeVaultMarketBanner({
                 </Link>
               </div>
             </div>
-
-            <div className="flex w-full items-center justify-center p-4 md:w-1/2 md:p-6">
-              <Image
-                src={HOME_BANNER_SRC}
-                alt="Vault Market box with member pantry staples"
-                width={HOME_BANNER_WIDTH}
-                height={HOME_BANNER_HEIGHT}
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="h-auto w-full max-h-[380px] object-contain"
-              />
-            </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 px-6 pb-8 pt-2 sm:px-10 sm:pb-10 md:grid-cols-3">
             {PILLARS.map((pillar) => (
               <div
                 key={pillar.title}

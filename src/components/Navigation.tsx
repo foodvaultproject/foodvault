@@ -32,6 +32,7 @@ import { createClient } from "@/lib/supabase/client";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
+import { VaultMarketShippingBar } from "@/components/VaultMarketShippingBar";
 import { ArrowLeft } from "lucide-react";
 import {
   NAV_MENU_CTA_CLASS,
@@ -385,6 +386,7 @@ export function Navigation() {
         menuPreview || vaultMarket ? chromeBg : "bg-white"
       }`}
     >
+      {vaultMarket ? <VaultMarketShippingBar /> : null}
       {!menuPreview && !vaultMarket ? <NzAnnouncementBar /> : null}
       <nav
         className={`mx-auto flex h-[4.25rem] max-w-[1200px] min-w-0 items-center justify-between gap-2 overflow-x-clip px-4 sm:gap-4 sm:px-6 lg:px-8 xl:gap-6 ${

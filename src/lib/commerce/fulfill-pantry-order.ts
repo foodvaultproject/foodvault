@@ -129,6 +129,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
   const totalSavings = Number(session.metadata.total_savings ?? 0);
   const memberId = session.metadata.user_id?.trim() || null;
   const intentId = paymentIntentId(session);
+  const shippingCost = Number(session.metadata.shipping_cost ?? 0);
 
   const orderPayload = {
     member_id: memberId,
@@ -139,13 +140,18 @@ export async function fulfillPantryOrderFromCheckoutSession(
     stripe_session_id: session.id,
     stripe_payment_intent_id: intentId,
     total_savings: Number.isFinite(totalSavings) ? totalSavings : 0,
-    shipping_name: shipping.name,
-    shipping_line1: shipping.line1,
-    shipping_line2: shipping.line2,
-    shipping_city: shipping.city,
+    shipping_name: session.metadata.recipient_name?.trim() || shipping.name,
+    shipping_line1: session.metadata.delivery_street?.trim() || shipping.line1,
+    shipping_line2: session.metadata.delivery_suburb?.trim() || shipping.line2,
+    shipping_city: session.metadata.delivery_city?.trim() || shipping.city,
     shipping_state: shipping.state,
-    shipping_postal_code: shipping.postal_code,
-    shipping_country: shipping.country,
+    shipping_postal_code:
+      session.metadata.delivery_postcode?.trim() || shipping.postal_code,
+    shipping_country: shipping.country || "NZ",
+    shipping_phone: session.metadata.recipient_phone?.trim() || null,
+    shipping_email: session.metadata.recipient_email?.trim() || null,
+    delivery_notes: session.metadata.delivery_notes?.trim() || null,
+    shipping_cost: Number.isFinite(shippingCost) ? shippingCost : Math.max(0, total - subtotal),
   };
 
   let inserted = await admin
@@ -153,6 +159,31 @@ export async function fulfillPantryOrderFromCheckoutSession(
     .insert(orderPayload)
     .select("*")
     .single();
+
+  if (inserted.error || !inserted.data) {
+    const legacyPayload = {
+      member_id: orderPayload.member_id,
+      status: orderPayload.status,
+      subtotal: orderPayload.subtotal,
+      total: orderPayload.total,
+      currency: orderPayload.currency,
+      stripe_session_id: orderPayload.stripe_session_id,
+      stripe_payment_intent_id: orderPayload.stripe_payment_intent_id,
+      total_savings: orderPayload.total_savings,
+      shipping_name: orderPayload.shipping_name,
+      shipping_line1: orderPayload.shipping_line1,
+      shipping_line2: orderPayload.shipping_line2,
+      shipping_city: orderPayload.shipping_city,
+      shipping_state: orderPayload.shipping_state,
+      shipping_postal_code: orderPayload.shipping_postal_code,
+      shipping_country: orderPayload.shipping_country,
+    };
+    inserted = await admin
+      .from("foodvault_orders")
+      .insert(legacyPayload)
+      .select("*")
+      .single();
+  }
 
   if (inserted.error && memberId) {
     inserted = await admin

@@ -1,10 +1,17 @@
 "use client";
 
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SafeImage } from "@/components/media/SafeImage";
 import { cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
+import {
+  amountToFreeShipping,
+  qualifiesForFreeShipping,
+  vaultMarketFreight,
+} from "@/lib/commerce/shipping";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { CartItem } from "@/types/commerce";
 
@@ -31,46 +38,24 @@ export function CartDrawer({
 }: CartDrawerProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const savings = cartMemberSavings(items);
   const subtotal = cartMemberSubtotal(items);
+  const freight = vaultMarketFreight(subtotal);
+  const remainingToFree = amountToFreeShipping(subtotal);
+  const freeShipping = qualifiesForFreeShipping(subtotal);
+  const total = subtotal + freight;
 
-  async function handleCheckout() {
-    if (items.length === 0 || checkoutLoading) return;
+  function handleCheckout() {
+    if (items.length === 0) return;
     if (!memberUnlocked) {
       onMembershipRequired?.(savings);
       return;
     }
 
-    setCheckoutLoading(true);
-    setCheckoutError(null);
-
-    try {
-      const response = await fetch("/api/pantry/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            productId: item.product_id,
-            quantity: item.quantity,
-          })),
-        }),
-      });
-      const data = (await response.json()) as { url?: string; error?: string };
-
-      if (!response.ok || !data.url) {
-        setCheckoutError(data.error ?? "Unable to start checkout.");
-        setCheckoutLoading(false);
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch {
-      setCheckoutError("Unable to start checkout.");
-      setCheckoutLoading(false);
-    }
+    onClose();
+    router.push("/pantry/checkout");
   }
 
   useEffect(() => {
@@ -221,7 +206,37 @@ export function CartDrawer({
         </div>
 
         <div className="border-t border-border bg-background px-5 py-4">
-          <div className="rounded-lg border border-success/20 bg-success-light px-4 py-3">
+          {items.length > 0 ? (
+            freeShipping ? (
+              <div className="rounded-lg border border-success/20 bg-success-light px-4 py-3">
+                <p className="text-sm font-semibold text-success">
+                  Free NZ Shipping unlocked
+                </p>
+                <p className="mt-1 text-xs text-success/80">
+                  Your order is over $100.00, so freight is $0.00.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-[#10B981]/25 bg-[#10B981]/10 px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">
+                  Add{" "}
+                  <span className="font-bold text-[#059669]">
+                    ${remainingToFree.toFixed(2)}
+                  </span>{" "}
+                  more to claim Free Shipping!
+                </p>
+                <Link
+                  href="/pantry"
+                  onClick={onClose}
+                  className="mt-2 inline-flex text-sm font-semibold text-[#059669] underline-offset-2 hover:underline"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            )
+          ) : null}
+
+          <div className="mt-4 rounded-lg border border-success/20 bg-success-light px-4 py-3">
             <p className="text-[11px] font-bold uppercase tracking-wide text-success">
               Total Member Savings
             </p>
@@ -233,28 +248,32 @@ export function CartDrawer({
             </p>
           </div>
 
-          <div className="mt-4 flex items-baseline justify-between">
-            <p className="text-sm font-semibold text-muted">Member total</p>
-            <p className="text-lg font-bold text-foreground">
-              {formatNzPrice(subtotal)}
-            </p>
-          </div>
-
-          {checkoutError ? (
-            <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {checkoutError}
-            </p>
-          ) : null}
+          <dl className="mt-4 space-y-2 text-sm">
+            <div className="flex items-baseline justify-between">
+              <dt className="font-semibold text-muted">Subtotal</dt>
+              <dd className="font-bold text-foreground">{formatNzPrice(subtotal)}</dd>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <dt className="font-semibold text-muted">Freight</dt>
+              <dd className="font-bold text-foreground">
+                {freight === 0 ? "FREE" : formatNzPrice(freight)}
+              </dd>
+            </div>
+            <div className="flex items-baseline justify-between border-t border-border pt-2">
+              <dt className="font-semibold text-foreground">Total</dt>
+              <dd className="text-lg font-bold text-foreground">
+                {formatNzPrice(total)}
+              </dd>
+            </div>
+          </dl>
 
           <button
             type="button"
-            disabled={items.length === 0 || checkoutLoading}
-            onClick={() => void handleCheckout()}
+            disabled={items.length === 0}
+            onClick={handleCheckout}
             className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {checkoutLoading
-              ? "Redirecting to Stripe..."
-              : "Proceed to Member Checkout"}
+            Proceed to Member Checkout
           </button>
         </div>
       </aside>

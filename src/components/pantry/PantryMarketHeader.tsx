@@ -46,7 +46,7 @@ export function PantryMarketHeader() {
   const browseId = useId();
   const searchId = useId();
   const browseRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLFormElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
   const replaceTimer = useRef<number | null>(null);
   const [browseOpen, setBrowseOpen] = useState(false);
   const [browseStep, setBrowseStep] = useState<BrowseStep>("departments");
@@ -229,8 +229,9 @@ export function PantryMarketHeader() {
   const showSuggestions = searchOpen && suggestions.length > 0;
 
   return (
-    <div className="sticky top-[4.25rem] z-30 border-b border-border bg-background shadow-sm md:top-[8rem]">
-      <div className="relative mx-auto flex max-w-[1200px] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
+    <div className="sticky top-[calc(4.25rem+22px)] z-30 border-b border-border bg-background shadow-sm md:top-[calc(8rem+26px)]">
+      <div className="relative" ref={searchRef}>
+      <div className="mx-auto flex max-w-[1200px] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
         <div className="relative shrink-0" ref={browseRef}>
           <button
             type="button"
@@ -455,7 +456,6 @@ export function PantryMarketHeader() {
         </div>
 
         <form
-          ref={searchRef}
           onSubmit={handleSearchSubmit}
           className="relative min-w-0 flex-1"
           role="search"
@@ -490,12 +490,19 @@ export function PantryMarketHeader() {
               className="h-11 w-full rounded-md border border-border bg-background py-2 pl-10 pr-3 text-sm text-foreground shadow-sm placeholder:text-muted-light transition-[border-color,box-shadow] duration-200 focus:border-vm-primary focus:outline-none focus:ring-2 focus:ring-vm-primary/20 sm:pr-4"
             />
           </div>
+        </form>
+
+        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
+          <GroceryListButton />
+          <VaultMarketCartButton />
+        </div>
+      </div>
           {showSuggestions ? (
             <ul
               id={suggestionListId}
               role="listbox"
               aria-label="Search suggestions"
-              className="absolute left-0 right-0 z-50 mt-1 max-h-[min(22rem,60vh)] overflow-y-auto rounded-lg border border-border bg-background py-1 shadow-xl"
+              className="absolute left-0 right-0 z-50 mt-0 max-h-[min(22rem,60vh)] w-full max-w-full overflow-y-auto border-y border-border bg-background py-1 shadow-xl"
             >
               {suggestions.map((suggestion, index) => {
                 const activeItem = index === activeSuggestion;
@@ -512,12 +519,12 @@ export function PantryMarketHeader() {
                         onMouseEnter={() => setActiveSuggestion(index)}
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => applyBrandSearch(suggestion.brand)}
-                        className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm ${
+                        className={`flex w-full flex-row items-center gap-3 p-3 text-left text-sm ${
                           activeItem ? "bg-vm-primary/10 text-vm-primary" : "text-foreground"
                         }`}
                       >
                         <Search className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-                        <span className="whitespace-normal break-words">
+                        <span className="min-w-0 flex-1 break-words text-left">
                           Search <span className="font-semibold">{suggestion.brand}</span>
                         </span>
                       </button>
@@ -541,11 +548,11 @@ export function PantryMarketHeader() {
                         setSearchOpen(false);
                         setBrowseOpen(false);
                       }}
-                      className={`flex w-full items-start gap-3 px-3 py-2 text-left ${
+                      className={`flex w-full flex-row items-center gap-3 p-3 text-left ${
                         activeItem ? "bg-vm-primary/10" : "bg-background"
                       }`}
                     >
-                      <span className="relative mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-md bg-surface">
+                      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-surface">
                         <SafeImage
                           src={suggestion.product.image_url ?? ""}
                           alt=""
@@ -555,16 +562,16 @@ export function PantryMarketHeader() {
                           fallbackVariant="muted"
                         />
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block whitespace-normal break-words text-sm font-semibold leading-snug text-foreground">
+                      <span className="min-w-0 flex-1 break-words text-left">
+                        <span className="block text-sm font-semibold leading-snug text-foreground">
                           {suggestion.product.name}
                         </span>
-                        <span className="mt-0.5 block whitespace-normal break-words text-xs leading-snug text-muted">
+                        <span className="mt-0.5 block truncate text-xs leading-snug text-muted">
                           {suggestion.product.description?.trim()
                             || suggestion.product.brand}
                         </span>
                       </span>
-                      <span className="shrink-0 pt-0.5 text-sm font-semibold text-vm-primary">
+                      <span className="shrink-0 text-sm font-semibold tabular-nums text-vm-primary">
                         {formatNzPrice(suggestion.product.member_price)}
                       </span>
                     </Link>
@@ -573,12 +580,6 @@ export function PantryMarketHeader() {
               })}
             </ul>
           ) : null}
-        </form>
-
-        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <GroceryListButton />
-          <VaultMarketCartButton />
-        </div>
       </div>
     </div>
   );

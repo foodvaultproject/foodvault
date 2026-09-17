@@ -241,7 +241,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
               type="button"
               disabled={outOfStock}
               onClick={() => addToCart(product, quantity)}
-              className="inline-flex h-12 flex-1 items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-14 flex-1 items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60 sm:h-12 sm:py-0 sm:text-sm"
             >
               {outOfStock ? "Out of stock" : added ? "Added to cart" : "Add to Cart"}
             </button>

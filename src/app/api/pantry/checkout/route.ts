@@ -4,6 +4,7 @@ import {
   createPantryCheckoutSession,
   getCheckoutOrigin,
   parsePantryCheckoutItems,
+  parseVaultMarketDelivery,
   validatePantryCheckoutItems,
 } from "@/lib/commerce/create-pantry-checkout";
 import { resolveMemberBillingRow } from "@/lib/member/member-record";
@@ -30,9 +31,12 @@ export async function POST(request: Request) {
 
   const rawItems =
     body && typeof body === "object" && "items" in body ? body.items : body;
+  const rawDelivery =
+    body && typeof body === "object" && "delivery" in body ? body.delivery : null;
 
   try {
     const requested = parsePantryCheckoutItems(rawItems);
+    const delivery = parseVaultMarketDelivery(rawDelivery);
     const items = await validatePantryCheckoutItems(requested);
 
     const supabase = await createClient();
@@ -41,6 +45,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     let stripeCustomerId: string | null = null;
+    let membershipId: string | null = null;
     if (isSupabaseConfigured()) {
       if (!user) {
         return NextResponse.json(
@@ -63,6 +68,7 @@ export async function POST(request: Request) {
       }
 
       stripeCustomerId = membership?.stripeCustomerId?.trim() || billing?.stripe_customer_id?.trim() || null;
+      membershipId = user.id;
 
       const { data: vaultMembership } = await supabase
         .from("foodvault_memberships")
@@ -77,8 +83,10 @@ export async function POST(request: Request) {
 
     const session = await createPantryCheckoutSession({
       items,
+      delivery,
       userId: user?.id ?? null,
-      customerEmail: user?.email ?? null,
+      membershipId,
+      customerEmail: delivery.email || user?.email || null,
       stripeCustomerId,
       origin: getCheckoutOrigin(request),
     });
@@ -96,7 +104,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error.message : "Unable to start checkout";
     const isAuthError = /invalid api key/i.test(message);
     const isClientError =
-      /cart|product|quantity|stock|available|member price|required/i.test(
+      /cart|product|quantity|stock|available|member price|required|email|phone|postcode|street|suburb|city|delivery/i.test(
         message
       );
 
