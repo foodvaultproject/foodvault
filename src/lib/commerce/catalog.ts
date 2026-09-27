@@ -73,10 +73,17 @@ export function resolveProductSlug(product: FoodVaultProduct): string {
 }
 
 export function pantryProductPath(product: FoodVaultProduct): string {
-  const department = resolveProductDepartment(product);
-  const subcategory = resolveProductSubcategory(product);
+  const department = catalogSlug(resolveProductDepartment(product));
+  const subcategory = catalogSlug(resolveProductSubcategory(product));
+  const slug = resolveProductSlug(product);
   const prefix = CONSUMER_VAULT_MARKET_PATH === "/" ? "" : CONSUMER_VAULT_MARKET_PATH;
-  return `${prefix}/${catalogSlug(department)}/${catalogSlug(subcategory)}/${resolveProductSlug(product)}`;
+  // The Pantry department slug is "pantry", which is also the retired storefront
+  // prefix. Keep those products at /{subcategory}/{slug} so the prefix redirect
+  // cannot strip the department and 404 every product.
+  if (department === "pantry") {
+    return `${prefix}/${subcategory}/${slug}`;
+  }
+  return `${prefix}/${department}/${subcategory}/${slug}`;
 }
 
 export function pantryDepartmentPath(
@@ -288,6 +295,24 @@ export function findCatalogProduct(
     products.find((product) => {
       return (
         catalogSlug(resolveProductDepartment(product)) === params.category &&
+        catalogSlug(resolveProductSubcategory(product)) === params.subcategory &&
+        resolveProductSlug(product) === params.slug
+      );
+    }) ??
+    findCatalogProductBySubcategory(products, {
+      subcategory: params.subcategory,
+      slug: params.slug,
+    })
+  );
+}
+
+export function findCatalogProductBySubcategory(
+  products: FoodVaultProduct[],
+  params: { subcategory: string; slug: string }
+): FoodVaultProduct | null {
+  return (
+    products.find((product) => {
+      return (
         catalogSlug(resolveProductSubcategory(product)) === params.subcategory &&
         resolveProductSlug(product) === params.slug
       );

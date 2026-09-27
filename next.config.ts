@@ -52,12 +52,17 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        // Old catalog URLs were /pantry/{department}/{subcategory}/{slug}.
-        // Current Pantry-department products live at /pantry/{subcategory}/{slug},
-        // so a /pantry/:path* catch-all would strip that department and 404.
+        // Retired four-segment catalog URLs: /pantry/{department}/{subcategory}/{slug}.
         source: "/pantry/:department/:subcategory/:slug",
         destination: "/:department/:subcategory/:slug",
-        permanent: true,
+        permanent: false,
+      },
+      {
+        // Pantry-department products are /{subcategory}/{slug}. Keep the old
+        // /pantry/{subcategory}/{slug} address pointed at that page.
+        source: "/pantry/:subcategory/:slug",
+        destination: "/:subcategory/:slug",
+        permanent: false,
       },
       {
         source: "/partners",

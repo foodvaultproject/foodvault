@@ -121,7 +121,7 @@ export function isVaultMarketPath(pathname: string): boolean {
   }
 
   const segments = pathname.split("/").filter(Boolean);
-  if (segments.length !== 3) return false;
+  if (segments.length !== 2 && segments.length !== 3) return false;
   return !RESERVED_ROOT_SEGMENTS.has(segments[0]);
 }
 

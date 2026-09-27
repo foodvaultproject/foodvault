@@ -1,0 +1,69 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { PantryProductDetail } from "@/components/pantry/PantryProductDetail";
+import {
+  catalogSlug,
+  findCatalogProductBySubcategory,
+  resolveProductSlug,
+  resolveProductSubcategory,
+} from "@/lib/commerce/catalog";
+import { getActiveVaultMarketProducts, getVaultMarketProductById } from "@/lib/commerce/products";
+import { PAGE_PY } from "@/lib/section-spacing";
+
+export const dynamic = "force-dynamic";
+
+type ProductPageProps = {
+  params: Promise<{
+    category: string;
+    subcategory: string;
+  }>;
+};
+
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  const { category, subcategory } = await params;
+  const products = await getActiveVaultMarketProducts();
+  const product = findCatalogProductBySubcategory(products, {
+    subcategory: category,
+    slug: subcategory,
+  });
+
+  if (!product) {
+    return { title: "Product not found" };
+  }
+
+  return {
+    title: `${product.name} | FoodVault`,
+    description:
+      product.description ??
+      `Buy ${product.name} from ${product.brand} at FoodVault member pricing.`,
+  };
+}
+
+export async function generateStaticParams() {
+  const products = await getActiveVaultMarketProducts();
+  return products.map((product) => ({
+    category: catalogSlug(resolveProductSubcategory(product)),
+    subcategory: resolveProductSlug(product),
+  }));
+}
+
+export default async function StorefrontProductPage({ params }: ProductPageProps) {
+  const { category, subcategory } = await params;
+  const products = await getActiveVaultMarketProducts();
+  const listed = findCatalogProductBySubcategory(products, {
+    subcategory: category,
+    slug: subcategory,
+  });
+  if (!listed) notFound();
+  const product = (await getVaultMarketProductById(listed.id)) ?? listed;
+
+  return (
+    <section className="min-w-0 overflow-x-clip bg-page">
+      <div className={`mx-auto min-w-0 max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
+        <PantryProductDetail product={product} />
+      </div>
+    </section>
+  );
+}
