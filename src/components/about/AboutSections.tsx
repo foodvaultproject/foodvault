@@ -46,7 +46,7 @@ export function AboutHero() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <MemberSignupCtaLink variant="unlock-discounts" className={HERO_PRIMARY_CTA_CLASS} />
               <Link
-                href="/browse-brands"
+                href="/vault-market"
                 className="inline-flex w-full items-center justify-center rounded-sm border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
               >
                 Browse Listings

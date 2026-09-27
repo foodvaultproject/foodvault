@@ -19,6 +19,10 @@ import {
   suggestCatalogSearch,
   type VaultMarketBrowseDepartment,
 } from "@/lib/commerce/catalog";
+import {
+  CONSUMER_PARTNER_DIRECTORY_PATH,
+  CONSUMER_VAULT_MARKET_PATH,
+} from "@/lib/consumer-nav-restructure";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
 
@@ -125,25 +129,27 @@ export function PantryMarketHeader() {
     setLiveQuery("");
   }
 
+  function catalogHref(query: string) {
+    return query ? `${CONSUMER_VAULT_MARKET_PATH}?${query}` : CONSUMER_VAULT_MARKET_PATH;
+  }
+
   function goToCatalog(nextQuery: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (nextQuery.trim()) params.set("q", nextQuery.trim());
     else params.delete("q");
-    const query = params.toString();
-    router.push(query ? `/pantry?${query}` : "/pantry");
+    router.push(catalogHref(params.toString()));
   }
 
   function handleSearchChange(value: string) {
     setLiveQuery(value);
     setSearchOpen(value.trim().length > 0);
-    if (pathname !== "/pantry") return;
+    if (pathname !== CONSUMER_VAULT_MARKET_PATH) return;
     if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
     replaceTimer.current = window.setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
       if (value.trim()) params.set("q", value.trim());
       else params.delete("q");
-      const query = params.toString();
-      router.replace(query ? `/pantry?${query}` : "/pantry", { scroll: false });
+      router.replace(catalogHref(params.toString()), { scroll: false });
     }, 250);
   }
 
@@ -455,11 +461,18 @@ export function PantryMarketHeader() {
           </div>
         </div>
 
+        <Link
+          href={CONSUMER_PARTNER_DIRECTORY_PATH}
+          className="hidden h-11 shrink-0 items-center rounded-md px-3 text-sm font-semibold text-foreground transition-colors hover:text-vm-primary lg:inline-flex"
+        >
+          Vault Market
+        </Link>
+
         <form
           onSubmit={handleSearchSubmit}
           className="relative min-w-0 flex-1"
           role="search"
-          aria-label="Search Vault Market products"
+          aria-label="Search FoodVault products"
         >
           <label htmlFor={searchId} className="sr-only">
             Search products by name, brand, or SKU

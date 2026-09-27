@@ -15,9 +15,9 @@ const CATEGORIES = [
   { key: "gifts", label: "Gifts & Hampers", defaultValue: 30, max: 300 },
   {
     key: "vaultMarket",
-    label: "Vault Market",
-    description: "Shop Vault Market — pantry staples & more",
-    href: "/pantry",
+    label: "Supermarket",
+    description: "Shop FoodVault — member pricing on pantry staples",
+    href: "/",
     defaultValue: 45,
     max: 400,
   },

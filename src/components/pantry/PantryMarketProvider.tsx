@@ -155,6 +155,8 @@ export function PantryMarketProvider({
         return;
       }
       persistCart(addProductToCart(cart, product, quantity));
+      setGroceryOpen(false);
+      setCartOpen(true);
       setAddedIds((current) => ({ ...current, [product.id]: true }));
       window.setTimeout(() => {
         setAddedIds((current) => {

@@ -90,8 +90,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
 
   const crumbs = useMemo(
     () => [
-      { href: "/", label: "Home" },
-      { href: "/pantry", label: "Pantry" },
+      { href: "/", label: "FoodVault" },
       { href: pantryDepartmentPath(department), label: department },
       { href: pantryDepartmentPath(department, subcategory), label: subcategory },
       ...(specific

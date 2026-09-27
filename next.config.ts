@@ -31,6 +31,49 @@ const nextConfig: NextConfig = {
         destination: "/signup/membership",
         permanent: true,
       },
+      {
+        source: "/pantry/checkout",
+        destination: "/checkout",
+        permanent: false,
+      },
+      {
+        source: "/pantry/list",
+        destination: "/list",
+        permanent: true,
+      },
+      {
+        source: "/pantry/order-success",
+        destination: "/order-success",
+        permanent: true,
+      },
+      {
+        source: "/pantry",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        // Old catalog URLs were /pantry/{department}/{subcategory}/{slug}.
+        // Current Pantry-department products live at /pantry/{subcategory}/{slug},
+        // so a /pantry/:path* catch-all would strip that department and 404.
+        source: "/pantry/:department/:subcategory/:slug",
+        destination: "/:department/:subcategory/:slug",
+        permanent: true,
+      },
+      {
+        source: "/partners",
+        destination: "/vault-market",
+        permanent: true,
+      },
+      {
+        source: "/browse-brands",
+        destination: "/vault-market",
+        permanent: true,
+      },
+      {
+        source: "/browse-brands/:path*",
+        destination: "/vault-market",
+        permanent: true,
+      },
     ];
   },
   async headers() {

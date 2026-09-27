@@ -33,7 +33,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${product.name} | Vault Market`,
+    title: `${product.name} | FoodVault`,
     description:
       product.description ??
       `Buy ${product.name} from ${product.brand} at FoodVault member pricing.`,
@@ -49,7 +49,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function PantryProductPage({ params }: ProductPageProps) {
+export default async function StorefrontProductPage({ params }: ProductPageProps) {
   const { category, subcategory, slug } = await params;
   const products = await getActiveVaultMarketProducts();
   const listed = findCatalogProduct(products, { category, subcategory, slug });

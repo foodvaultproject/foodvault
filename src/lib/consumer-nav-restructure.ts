@@ -6,7 +6,12 @@ export function isConsumerNavRestructureEnabled(): boolean {
 export const CONSUMER_HOME_PATH = "/";
 export const CONSUMER_SEARCH_PATH = "/search";
 export const CONSUMER_EXPLORE_PATH = "/explore";
-export const CONSUMER_VAULT_MARKET_PATH = "/pantry";
+/** Direct supermarket storefront. `/` must not be used as a startsWith prefix. */
+export const CONSUMER_VAULT_MARKET_PATH = "/";
+export const CONSUMER_PARTNER_DIRECTORY_PATH = "/vault-market";
+export const STOREFRONT_CHECKOUT_PATH = "/checkout";
+export const STOREFRONT_GROCERY_LIST_PATH = "/list";
+export const STOREFRONT_ORDER_SUCCESS_PATH = "/order-success";
 export const LEGACY_BROWSE_PATH = "/browse-brands";
 
 export const CONSUMER_BROWSE_PATHS = new Set([
@@ -44,8 +49,80 @@ export function isConsumerHomePath(pathname: string): boolean {
   return pathname === CONSUMER_HOME_PATH;
 }
 
+export function isPartnerDirectoryPath(pathname: string): boolean {
+  return (
+    pathname === CONSUMER_PARTNER_DIRECTORY_PATH ||
+    pathname.startsWith(`${CONSUMER_PARTNER_DIRECTORY_PATH}/`)
+  );
+}
+
+const STOREFRONT_NESTED_PATHS = [
+  STOREFRONT_CHECKOUT_PATH,
+  STOREFRONT_GROCERY_LIST_PATH,
+  STOREFRONT_ORDER_SUCCESS_PATH,
+] as const;
+
+/** App routes that must not be treated as supermarket department slugs. */
+const RESERVED_ROOT_SEGMENTS = new Set([
+  "account",
+  "admin",
+  "affiliate",
+  "affiliate-program",
+  "affiliate-terms",
+  "about",
+  "api",
+  "auth",
+  "browse-brands",
+  "brands",
+  "checkout",
+  "contact",
+  "cookies",
+  "dashboard",
+  "discover",
+  "explore",
+  "faq",
+  "favorites",
+  "for-brands",
+  "forgot-password",
+  "go",
+  "how-it-works",
+  "list",
+  "login",
+  "membership",
+  "order-success",
+  "partner",
+  "partner-application",
+  "partner-login",
+  "partners",
+  "pricing",
+  "privacy",
+  "refund-policy",
+  "reset-password",
+  "search",
+  "signup",
+  "terms",
+  "vault-market",
+]);
+
 export function isVaultMarketPath(pathname: string): boolean {
-  return pathname === CONSUMER_VAULT_MARKET_PATH || pathname.startsWith(`${CONSUMER_VAULT_MARKET_PATH}/`);
+  if (isPartnerDirectoryPath(pathname)) return false;
+  if (pathname === CONSUMER_VAULT_MARKET_PATH) return true;
+
+  if (CONSUMER_VAULT_MARKET_PATH !== "/") {
+    return pathname.startsWith(`${CONSUMER_VAULT_MARKET_PATH}/`);
+  }
+
+  if (
+    STOREFRONT_NESTED_PATHS.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
+    )
+  ) {
+    return true;
+  }
+
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length !== 3) return false;
+  return !RESERVED_ROOT_SEGMENTS.has(segments[0]);
 }
 
 export function shouldShowConsumerSecondaryNav(pathname: string): boolean {

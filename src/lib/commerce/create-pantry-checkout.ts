@@ -223,8 +223,8 @@ export async function createPantryCheckoutSession(input: {
         },
       },
     })),
-    success_url: `${origin}/pantry/order-success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/pantry/checkout`,
+    success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/checkout`,
     payment_intent_data: {
       description: "Vault Market order",
       metadata,

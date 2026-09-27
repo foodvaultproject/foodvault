@@ -1,3 +1,4 @@
+import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import {
   VAULT_MARKET_DEPARTMENTS,
   getVaultMarketDepartmentNode,
@@ -74,7 +75,8 @@ export function resolveProductSlug(product: FoodVaultProduct): string {
 export function pantryProductPath(product: FoodVaultProduct): string {
   const department = resolveProductDepartment(product);
   const subcategory = resolveProductSubcategory(product);
-  return `/pantry/${catalogSlug(department)}/${catalogSlug(subcategory)}/${resolveProductSlug(product)}`;
+  const prefix = CONSUMER_VAULT_MARKET_PATH === "/" ? "" : CONSUMER_VAULT_MARKET_PATH;
+  return `${prefix}/${catalogSlug(department)}/${catalogSlug(subcategory)}/${resolveProductSlug(product)}`;
 }
 
 export function pantryDepartmentPath(
@@ -86,7 +88,8 @@ export function pantryDepartmentPath(
   params.set("department", catalogSlug(department));
   if (subcategory) params.set("subcategory", catalogSlug(subcategory));
   if (specific) params.set("specific", catalogSlug(specific));
-  return `/pantry?${params.toString()}`;
+  const base = CONSUMER_VAULT_MARKET_PATH === "/" ? "/" : CONSUMER_VAULT_MARKET_PATH;
+  return `${base}?${params.toString()}`;
 }
 
 export function getVaultMarketBrowseDepartments(): VaultMarketBrowseDepartment[] {

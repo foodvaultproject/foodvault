@@ -8,6 +8,10 @@ import { createPortal } from "react-dom";
 import { SafeImage } from "@/components/media/SafeImage";
 import { cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
 import {
+  CONSUMER_VAULT_MARKET_PATH,
+  STOREFRONT_CHECKOUT_PATH,
+} from "@/lib/consumer-nav-restructure";
+import {
   amountToFreeShipping,
   qualifiesForFreeShipping,
   vaultMarketFreight,
@@ -55,7 +59,7 @@ export function CartDrawer({
     }
 
     onClose();
-    router.push("/pantry/checkout");
+    router.push(STOREFRONT_CHECKOUT_PATH);
   }
 
   useEffect(() => {
@@ -226,7 +230,7 @@ export function CartDrawer({
                   more to claim Free Shipping!
                 </p>
                 <Link
-                  href="/pantry"
+                  href={CONSUMER_VAULT_MARKET_PATH}
                   onClick={onClose}
                   className="mt-2 inline-flex text-sm font-semibold text-[#059669] underline-offset-2 hover:underline"
                 >

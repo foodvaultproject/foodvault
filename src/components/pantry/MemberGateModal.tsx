@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useEffect, useId } from "react";
 import { createPortal } from "react-dom";
 import { LOGIN_PATH, SIGNUP_PATH } from "@/lib/auth";
+import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import { SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import { formatNzPrice } from "@/lib/partner-offer";
 
@@ -26,8 +27,8 @@ export function MemberGateModal({
   const titleId = useId();
   const signupHref = isLoggedIn
     ? SIGNUP_MEMBERSHIP_PATH
-    : `${SIGNUP_PATH}?next=${encodeURIComponent("/pantry")}`;
-  const loginHref = `${LOGIN_PATH}?next=${encodeURIComponent("/pantry")}`;
+    : `${SIGNUP_PATH}?next=${encodeURIComponent(CONSUMER_VAULT_MARKET_PATH)}`;
+  const loginHref = `${LOGIN_PATH}?next=${encodeURIComponent(CONSUMER_VAULT_MARKET_PATH)}`;
 
   useEffect(() => {
     if (!open) return;

@@ -144,7 +144,7 @@ export function OrderSuccessView({
       </article>
 
       <Link
-        href="/pantry"
+        href="/"
         className="mt-8 inline-flex items-center justify-center rounded-sm bg-vm-primary px-6 py-3 text-sm font-semibold text-white hover:bg-vm-surface"
       >
         Back to the pantry

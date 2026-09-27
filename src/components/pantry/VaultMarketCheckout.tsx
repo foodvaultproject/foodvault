@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { SafeImage } from "@/components/media/SafeImage";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
+import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import { cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
 import {
   amountToFreeShipping,
@@ -125,7 +126,7 @@ export function VaultMarketCheckout() {
           Add pantry items before continuing to checkout.
         </p>
         <Link
-          href="/pantry"
+          href={CONSUMER_VAULT_MARKET_PATH}
           className="mt-6 inline-flex h-12 items-center justify-center rounded-sm bg-vm-primary px-6 text-sm font-semibold text-white transition-colors hover:bg-vm-surface"
         >
           Continue Shopping
@@ -337,7 +338,7 @@ export function VaultMarketCheckout() {
               claim Free Shipping!{" "}
               <button
                 type="button"
-                onClick={() => router.push("/pantry")}
+                onClick={() => router.push(CONSUMER_VAULT_MARKET_PATH)}
                 className="font-semibold text-[#059669] underline-offset-2 hover:underline"
               >
                 Continue Shopping
@@ -380,7 +381,7 @@ export function VaultMarketCheckout() {
             {submitting ? "Redirecting to Stripe..." : "Pay with Stripe"}
           </button>
           <Link
-            href="/pantry"
+            href={CONSUMER_VAULT_MARKET_PATH}
             className="mt-3 inline-flex w-full items-center justify-center text-sm font-semibold text-muted hover:text-foreground"
           >
             Continue Shopping

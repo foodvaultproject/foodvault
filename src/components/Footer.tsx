@@ -12,10 +12,10 @@ const footerSections = [
       { href: "/about", label: "About FoodVault" },
       { href: "/for-brands", label: "Partner With Us" },
       { href: "/affiliate-program", label: "Affiliate Program" },
-      { href: "/partners", label: "Our Partners" },
+      { href: "/vault-market", label: "Vault Market" },
+      { href: "/", label: "Shop Supermarket" },
       { href: "/discover", label: "What's Happening?" },
-      { href: "/pantry", label: "Vault Market" },
-      { href: "/pantry/list", label: "My Grocery List" },
+      { href: "/list", label: "My Grocery List" },
       { href: "/contact", label: "Contact Us" },
     ],
   },
@@ -181,9 +181,9 @@ export function Footer({
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(0,1fr))] lg:gap-x-6 lg:gap-y-5">
             <div className="space-y-3 sm:col-span-2 lg:col-span-1">
               <Link
-                href={vaultMarket ? "/pantry" : "/"}
+                href="/"
                 className="inline-block transition-opacity hover:opacity-80"
-                aria-label={vaultMarket ? "Vault Market home" : "FoodVault home"}
+                aria-label="FoodVault home"
               >
                 <FoodVaultLogo size="footer" variant={logoVariant} />
               </Link>

@@ -49,18 +49,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
   });
 
   if (error || !data) {
-    return NextResponse.redirect(new URL("/browse-brands", request.url));
+    return NextResponse.redirect(new URL("/vault-market", request.url));
   }
 
   const result = data as ClickResult;
 
   if (result.rate_limited) {
-    return NextResponse.redirect(new URL("/browse-brands", request.url));
+    return NextResponse.redirect(new URL("/vault-market", request.url));
   }
   const destination = resolveRedirectUrl(result);
 
   if (!destination) {
-    return NextResponse.redirect(new URL("/browse-brands", request.url));
+    return NextResponse.redirect(new URL("/vault-market", request.url));
   }
 
   try {
@@ -83,6 +83,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return response;
   } catch {
-    return NextResponse.redirect(new URL("/browse-brands", request.url));
+    return NextResponse.redirect(new URL("/vault-market", request.url));
   }
 }

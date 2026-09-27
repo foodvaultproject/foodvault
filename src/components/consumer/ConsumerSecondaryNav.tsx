@@ -2,25 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Images, Search, ShoppingBag } from "lucide-react";
+import { Images, Search, ShoppingBag, Store } from "lucide-react";
 import {
   CONSUMER_EXPLORE_PATH,
-  CONSUMER_HOME_PATH,
+  CONSUMER_PARTNER_DIRECTORY_PATH,
   CONSUMER_SEARCH_PATH,
   CONSUMER_VAULT_MARKET_PATH,
-  isConsumerHomePath,
   isExplorePath,
+  isPartnerDirectoryPath,
   isSearchPath,
   isVaultMarketPath,
 } from "@/lib/consumer-nav-restructure";
 
 const NAV_ITEMS = [
   {
-    href: CONSUMER_HOME_PATH,
-    label: "Home",
-    shortLabel: "Home",
-    Icon: Home,
-    isActive: isConsumerHomePath,
+    href: CONSUMER_VAULT_MARKET_PATH,
+    label: "Shop",
+    shortLabel: "Shop",
+    Icon: ShoppingBag,
+    isActive: isVaultMarketPath,
   },
   {
     href: CONSUMER_SEARCH_PATH,
@@ -37,11 +37,11 @@ const NAV_ITEMS = [
     isActive: isExplorePath,
   },
   {
-    href: CONSUMER_VAULT_MARKET_PATH,
+    href: CONSUMER_PARTNER_DIRECTORY_PATH,
     label: "Vault Market",
     shortLabel: "Market",
-    Icon: ShoppingBag,
-    isActive: isVaultMarketPath,
+    Icon: Store,
+    isActive: isPartnerDirectoryPath,
   },
 ] as const;
 

@@ -25,7 +25,7 @@ export const STATIC_SITEMAP_ROUTES: StaticSitemapRoute[] = [
   { path: "/contact", changeFrequency: "monthly", priority: 0.6 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
   { path: "/discover", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/partners", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/vault-market", changeFrequency: "weekly", priority: 0.7 },
   { path: "/partner-application", changeFrequency: "monthly", priority: 0.6 },
   { path: "/affiliate-program", changeFrequency: "monthly", priority: 0.5 },
   { path: "/affiliate-program/faq", changeFrequency: "monthly", priority: 0.4 },

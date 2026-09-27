@@ -15,7 +15,7 @@ export function MemberVaultMarketCard({ lifetimeSavings }: { lifetimeSavings: nu
         </div>
         <div className="flex flex-col gap-2 sm:min-w-[11rem]">
           <Link
-            href="/pantry"
+            href="/"
             className="fv-btn-primary inline-flex h-11 items-center justify-center rounded-sm px-4 text-sm font-semibold text-primary-foreground"
           >
             Shop Pantry

@@ -48,6 +48,7 @@ export function revalidatePublicBrandDirectory(options?: { slug?: string | null 
   revalidatePath("/explore");
   revalidatePath("/partners");
   revalidatePath("/browse-brands");
+  revalidatePath("/vault-market");
   revalidatePath("/sitemap.xml");
 
   const slug = options?.slug?.trim().toLowerCase();

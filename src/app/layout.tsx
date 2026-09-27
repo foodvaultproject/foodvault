@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Hanken_Grotesk } from "next/font/google";
 import { SiteLayout } from "@/components/SiteLayout";
+import { getActiveVaultMarketProducts } from "@/lib/commerce/products";
 import { locale } from "@/lib/locale";
 import "./globals.css";
 
@@ -47,15 +48,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const products = await getActiveVaultMarketProducts();
+
   return (
     <html lang={locale.localeTag} className={`${hankenGrotesk.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
-        <SiteLayout>{children}</SiteLayout>
+        <SiteLayout products={products}>{children}</SiteLayout>
       </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>

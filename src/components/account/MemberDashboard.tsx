@@ -59,7 +59,7 @@ export function MemberDashboard({
           <section className="mt-7">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-[14px] font-bold text-foreground">New This Week</h2>
-              <Link href="/browse-brands" className="text-sm font-semibold text-primary hover:text-primary-hover">
+              <Link href="/vault-market" className="text-sm font-semibold text-primary hover:text-primary-hover">
                 View All
               </Link>
             </div>

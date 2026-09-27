@@ -24,7 +24,7 @@ export function ExploreMoreSection() {
 
         <div className="mt-10 text-center">
           <Link
-            href="/browse-brands"
+            href="/vault-market"
             className="inline-flex items-center justify-center rounded-sm border-2 border-primary px-8 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
           >
             View All Brands

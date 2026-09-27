@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Order confirmed",
-  description: "Your Vault Market order has been placed at member pricing.",
+  description: "Your FoodVault supermarket order has been placed at member pricing.",
 };
 
 type OrderSuccessPageProps = {

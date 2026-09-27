@@ -30,6 +30,7 @@ function revalidatePantry() {
   revalidatePath("/admin/inventory");
   revalidatePath("/admin/pantry");
   revalidatePath("/admin/pantry/reports");
+  revalidatePath("/");
   revalidatePath("/pantry");
   revalidatePath("/pantry", "layout");
 }

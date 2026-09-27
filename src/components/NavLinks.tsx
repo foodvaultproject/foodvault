@@ -15,10 +15,14 @@ import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
 import {
   CONSUMER_BROWSE_PATHS,
+  CONSUMER_PARTNER_DIRECTORY_PATH,
+  CONSUMER_VAULT_MARKET_PATH,
   consumerSearchLabel,
   consumerSearchPath,
   isConsumerNavRestructureEnabled,
+  isPartnerDirectoryPath,
   isSearchPath,
+  isVaultMarketPath,
 } from "@/lib/consumer-nav-restructure";
 import {
   NAV_MENU_CTA_BLOCK_CLASS,
@@ -28,8 +32,9 @@ import {
 
 function getNavLinks() {
   const links = [
+    { href: CONSUMER_VAULT_MARKET_PATH, label: "Shop Supermarket" },
+    { href: CONSUMER_PARTNER_DIRECTORY_PATH, label: "Vault Market" },
     { href: "/how-it-works", label: "How It Works" },
-    { href: "/for-brands", label: "For Businesses" },
     { href: "/pricing", label: "Pricing" },
   ];
 
@@ -56,6 +61,14 @@ const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE
 const ACTIVE_MEMBER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE_PATHS]);
 
 function isNavLinkActive(pathname: string, href: string): boolean {
+  if (href === CONSUMER_VAULT_MARKET_PATH) {
+    return isVaultMarketPath(pathname);
+  }
+
+  if (href === CONSUMER_PARTNER_DIRECTORY_PATH) {
+    return isPartnerDirectoryPath(pathname);
+  }
+
   if (CONSUMER_BROWSE_PATHS.has(href)) {
     return isSearchPath(pathname);
   }

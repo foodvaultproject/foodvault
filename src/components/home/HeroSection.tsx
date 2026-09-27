@@ -23,7 +23,7 @@ export function HeroSection() {
               className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-8 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:w-auto"
             />
             <Link
-              href="/browse-brands"
+              href="/vault-market"
               className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-transparent px-8 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5 sm:w-auto"
             >
               Browse Brands

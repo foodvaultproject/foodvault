@@ -50,7 +50,7 @@ export function MemberOrdersDashboard({
     }
     writeVaultMarketCart(next);
     requestVaultMarketCartOpen();
-    router.push("/pantry");
+    router.push("/");
   }
 
   return (
@@ -84,7 +84,7 @@ export function MemberOrdersDashboard({
               Member pricing starts as soon as you check out from Vault Market.
             </p>
             <Link
-              href="/pantry"
+              href="/"
               className="fv-btn-primary mt-4 inline-flex h-11 items-center justify-center rounded-sm px-4 text-sm font-semibold text-primary-foreground"
             >
               Shop Vault Market

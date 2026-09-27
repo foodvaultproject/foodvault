@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
 import { PantryHeroBanner } from "@/components/pantry/PantryHeroBanner";
 import { PantryProductCard } from "@/components/pantry/PantryProductCard";
@@ -8,6 +9,7 @@ import {
   filterCatalogProducts,
   getVaultMarketBrowseDepartments,
 } from "@/lib/commerce/catalog";
+import { CONSUMER_PARTNER_DIRECTORY_PATH } from "@/lib/consumer-nav-restructure";
 
 export function PantryStorefront({
   query = "",
@@ -52,7 +54,7 @@ export function PantryStorefront({
   const heading = activeSpecific?.label
     ?? activeSubcategory?.label
     ?? activeDepartment?.department
-    ?? "The Pantry";
+    ?? "Member Supermarket";
 
   return (
     <div>
@@ -61,7 +63,7 @@ export function PantryStorefront({
 
       <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">Vault Market</p>
+          <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">FoodVault</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {heading}
           </h1>
@@ -69,13 +71,19 @@ export function PantryStorefront({
             {filtered.length} {filtered.length === 1 ? "product" : "products"}
             {searchTerm ? ` matching “${searchTerm}”` : ""}
           </p>
+          <Link
+            href={CONSUMER_PARTNER_DIRECTORY_PATH}
+            className="mt-2 inline-flex text-sm font-semibold text-vm-primary underline-offset-2 hover:underline"
+          >
+            Partner brands and in-store deals
+          </Link>
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="mt-8 rounded-lg border border-dashed border-border bg-background px-6 py-16 text-center">
           <h2 className="text-xl font-bold text-foreground">
-            {products.length === 0 ? "Vault Market is getting ready" : "No products found"}
+            {products.length === 0 ? "The FoodVault supermarket is getting ready" : "No products found"}
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             {products.length === 0

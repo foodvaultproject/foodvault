@@ -367,30 +367,30 @@ const shopCategories: {
 }[] = [
   {
     label: "Protein",
-    href: "/browse-brands?department=Health%20%26%20Body&subcategory=Sports%20Nutrition%20%26%20Weight%20Management",
+    href: "/search?department=Health%20%26%20Body&subcategory=Sports%20Nutrition%20%26%20Weight%20Management",
     Icon: IconProtein,
   },
-  { label: "Pet Food", href: "/browse-brands?department=Pet", Icon: IconPetFood },
+  { label: "Pet Food", href: "/search?department=Pet", Icon: IconPetFood },
   {
     label: "Coffee",
-    href: "/browse-brands?department=Drinks&subcategory=Coffee",
+    href: "/search?department=Drinks&subcategory=Coffee",
     Icon: IconCoffee,
   },
-  { label: "Health", href: "/browse-brands?department=Health%20%26%20Body", Icon: IconHealth },
-  { label: "Drinks", href: "/browse-brands?department=Drinks", Icon: IconDrinks },
-  { label: "Bakery", href: "/browse-brands?department=Bakery", Icon: IconBakery },
-  { label: "Household", href: "/browse-brands?department=Household", Icon: IconHousehold },
+  { label: "Health", href: "/search?department=Health%20%26%20Body", Icon: IconHealth },
+  { label: "Drinks", href: "/search?department=Drinks", Icon: IconDrinks },
+  { label: "Bakery", href: "/search?department=Bakery", Icon: IconBakery },
+  { label: "Household", href: "/search?department=Household", Icon: IconHousehold },
   {
     label: "Supplements",
-    href: "/browse-brands?department=Health%20%26%20Body&subcategory=Vitamins%20%26%20Supplements",
+    href: "/search?department=Health%20%26%20Body&subcategory=Vitamins%20%26%20Supplements",
     Icon: IconSupplements,
   },
   {
     label: "Personal Care",
-    href: "/browse-brands?department=Health%20%26%20Body",
+    href: "/search?department=Health%20%26%20Body",
     Icon: IconPersonalCare,
   },
-  { label: "More", href: "/browse-brands", Icon: IconMore },
+  { label: "More", href: "/vault-market", Icon: IconMore },
 ];
 
 export function HomeCategories({
