@@ -45,6 +45,7 @@ export const VAULT_MARKET_TAXONOMY: readonly VaultMarketDepartmentNode[] = [
           "Rice crackers",
           "Cookies",
           "Digestives",
+          "Pretzels",
         ],
       },
       {
@@ -94,6 +95,7 @@ export const VAULT_MARKET_TAXONOMY: readonly VaultMarketDepartmentNode[] = [
           "Dressings",
           "Tomato sauce",
           "Hot sauce",
+          "Olives & antipasti",
         ],
       },
       {

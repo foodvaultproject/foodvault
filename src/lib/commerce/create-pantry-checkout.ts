@@ -93,7 +93,7 @@ export async function validatePantryCheckoutItems(
       throw new Error("One or more products are no longer available");
     }
     if (product.member_price <= 0) {
-      throw new Error(`${product.name} does not have a valid member price`);
+      throw new Error(`${product.name} does not have a valid saver price`);
     }
     if (product.stock_quantity <= 0) {
       throw new Error(`${product.name} is out of stock`);
@@ -212,7 +212,7 @@ export async function createPantryCheckoutSession(input: {
         unit_amount: toStripeAmount(product.member_price, "nzd"),
         product_data: {
           name: product.name,
-          description: product.brand ? `${product.brand} · Member price` : "Member price",
+          description: product.brand ? `${product.brand} · Saver price` : "Saver price",
           ...(product.image_url?.startsWith("https://")
             ? { images: [product.image_url] }
             : {}),

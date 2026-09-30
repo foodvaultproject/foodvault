@@ -34,8 +34,6 @@ function getNavLinks() {
   const links = [
     { href: CONSUMER_VAULT_MARKET_PATH, label: "Shop Supermarket" },
     { href: CONSUMER_PARTNER_DIRECTORY_PATH, label: "Vault Market" },
-    { href: "/how-it-works", label: "How It Works" },
-    { href: "/pricing", label: "Pricing" },
   ];
 
   if (!isConsumerNavRestructureEnabled()) {

@@ -22,8 +22,6 @@ import type { CartItem } from "@/types/commerce";
 type CartDrawerProps = {
   open: boolean;
   items: CartItem[];
-  memberUnlocked?: boolean;
-  onMembershipRequired?: (savings: number) => void;
   onClose: () => void;
   onIncrement: (productId: string) => void;
   onDecrement: (productId: string) => void;
@@ -33,8 +31,6 @@ type CartDrawerProps = {
 export function CartDrawer({
   open,
   items,
-  memberUnlocked = true,
-  onMembershipRequired,
   onClose,
   onIncrement,
   onDecrement,
@@ -53,11 +49,6 @@ export function CartDrawer({
 
   function handleCheckout() {
     if (items.length === 0) return;
-    if (!memberUnlocked) {
-      onMembershipRequired?.(savings);
-      return;
-    }
-
     onClose();
     router.push(STOREFRONT_CHECKOUT_PATH);
   }
@@ -136,7 +127,7 @@ export function CartDrawer({
                 Your cart is empty
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Add pantry items to see member pricing and savings here.
+                Add pantry items to see saver pricing and savings here.
               </p>
             </div>
           ) : (
@@ -242,13 +233,13 @@ export function CartDrawer({
 
           <div className="mt-4 rounded-lg border border-success/20 bg-success-light px-4 py-3">
             <p className="text-[11px] font-bold uppercase tracking-wide text-success">
-              Total Member Savings
+              Total Savings
             </p>
             <p className="mt-1 text-2xl font-bold text-success">
               {formatNzPrice(savings)}
             </p>
             <p className="mt-1 text-xs text-success/80">
-              The difference between retail and member price across your cart.
+              The difference between the retail price and the saver price across your cart.
             </p>
           </div>
 
@@ -257,8 +248,15 @@ export function CartDrawer({
               <dt className="font-semibold text-muted">Subtotal</dt>
               <dd className="font-bold text-foreground">{formatNzPrice(subtotal)}</dd>
             </div>
-            <div className="flex items-baseline justify-between">
-              <dt className="font-semibold text-muted">Freight</dt>
+            <div className="flex items-start justify-between gap-3">
+              <dt className="font-semibold text-muted">
+                Freight
+                <p className="mt-0.5 max-w-[16rem] text-xs font-normal leading-snug text-muted-foreground">
+                  {freeShipping
+                    ? "Orders over $100 ship free."
+                    : `Add ${formatNzPrice(remainingToFree)} more to unlock free freight on orders over $100.`}
+                </p>
+              </dt>
               <dd className="font-bold text-foreground">
                 {freight === 0 ? "FREE" : formatNzPrice(freight)}
               </dd>
@@ -277,7 +275,7 @@ export function CartDrawer({
             onClick={handleCheckout}
             className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Proceed to Member Checkout
+            Proceed to Checkout
           </button>
         </div>
       </aside>

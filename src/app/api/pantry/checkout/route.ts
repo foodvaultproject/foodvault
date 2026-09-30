@@ -8,7 +8,6 @@ import {
   validatePantryCheckoutItems,
 } from "@/lib/commerce/create-pantry-checkout";
 import { resolveMemberBillingRow } from "@/lib/member/member-record";
-import { isActiveMemberRow } from "@/lib/member/membership-status";
 import { getMembershipRecord } from "@/lib/member/queries";
 import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import { createClient } from "@/lib/supabase/server";
@@ -46,26 +45,11 @@ export async function POST(request: Request) {
 
     let stripeCustomerId: string | null = null;
     let membershipId: string | null = null;
-    if (isSupabaseConfigured()) {
-      if (!user) {
-        return NextResponse.json(
-          { error: "Log in with an active membership to use member checkout." },
-          { status: 401 }
-        );
-      }
-
+    if (isSupabaseConfigured() && user) {
       const [membership, billing] = await Promise.all([
         getMembershipRecord(user.id),
         resolveMemberBillingRow(supabase, user.id),
       ]);
-      const active =
-        isActiveMemberRow(billing) || membership?.status === "active";
-      if (!active) {
-        return NextResponse.json(
-          { error: "An active FoodVault membership is required for Vault Market checkout." },
-          { status: 403 }
-        );
-      }
 
       stripeCustomerId = membership?.stripeCustomerId?.trim() || billing?.stripe_customer_id?.trim() || null;
       membershipId = user.id;
@@ -104,7 +88,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error.message : "Unable to start checkout";
     const isAuthError = /invalid api key/i.test(message);
     const isClientError =
-      /cart|product|quantity|stock|available|member price|required|email|phone|postcode|street|suburb|city|delivery/i.test(
+      /cart|product|quantity|stock|available|saver price|required|email|phone|postcode|street|suburb|city|delivery/i.test(
         message
       );
 

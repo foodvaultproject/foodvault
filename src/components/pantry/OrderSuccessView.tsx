@@ -71,7 +71,7 @@ export function OrderSuccessView({
       <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">Vault Market</p>
       <h1 className={`${heading1} mt-2`}>Order confirmed</h1>
       <p className="mt-3 text-base text-muted-foreground">
-        Thanks for shopping the pantry. Your member price is locked in on this order.
+        Thanks for shopping the pantry. Your saver price is locked in on this order.
       </p>
 
       <article className="fv-card mt-8 rounded-lg border border-border bg-background p-6 sm:p-8">
@@ -122,7 +122,7 @@ export function OrderSuccessView({
 
             <div className="mt-6 rounded-lg border border-success/20 bg-success-light px-4 py-3">
               <p className="text-[11px] font-bold uppercase tracking-wide text-success">
-                Total Member Savings
+                Total Savings
               </p>
               <p className="mt-1 text-2xl font-bold text-success">
                 {formatNzPrice(savings)}

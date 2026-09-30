@@ -130,15 +130,7 @@ export function shouldShowConsumerSecondaryNav(pathname: string): boolean {
     return false;
   }
 
-  if (
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/partner/") ||
-    pathname.startsWith("/affiliate/")
-  ) {
-    return false;
-  }
-
-  return true;
+  return isPartnerDirectoryPath(pathname);
 }
 
 export function buildConsumerSearchHref(query?: {

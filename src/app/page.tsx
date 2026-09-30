@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { PantryStorefront } from "@/components/pantry/PantryStorefront";
-import { PAGE_PY } from "@/lib/section-spacing";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "FoodVault | Member-Only Direct Supermarket Pricing",
+    absolute: "FoodVault | Direct Supermarket Pricing",
   },
   description:
-    "Shop the FoodVault supermarket. Members pay a highlighted member price on condiments, biscuits, tea, and more, shipped from our warehouse.",
+    "Shop the FoodVault supermarket. Everyone gets saver pricing on condiments, biscuits, tea, and more, shipped from our warehouse.",
 };
 
 type StorefrontPageProps = {
@@ -26,7 +25,7 @@ export default async function StorefrontPage({ searchParams }: StorefrontPagePro
 
   return (
     <section className="min-w-0 overflow-x-clip bg-page">
-      <div className={`mx-auto min-w-0 max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
+      <div className="mx-auto min-w-0 max-w-[1200px] px-4 pb-10 pt-5 sm:px-6 sm:pb-12 sm:pt-6 md:pb-16 md:pt-8 lg:px-8">
         <PantryStorefront
           query={q ?? ""}
           department={department ?? ""}

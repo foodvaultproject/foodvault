@@ -11,11 +11,9 @@ const footerSections = [
     links: [
       { href: "/about", label: "About FoodVault" },
       { href: "/for-brands", label: "Partner With Us" },
-      { href: "/affiliate-program", label: "Affiliate Program" },
       { href: "/vault-market", label: "Vault Market" },
       { href: "/", label: "Shop Supermarket" },
-      { href: "/discover", label: "What's Happening?" },
-      { href: "/list", label: "My Grocery List" },
+      { href: "/discover", label: "News" },
       { href: "/contact", label: "Contact Us" },
     ],
   },
@@ -23,9 +21,9 @@ const footerSections = [
     title: "Help & Support",
     links: [
       { href: "/faq", label: "FAQs" },
-      { href: "/contact", label: "Member Support" },
-      { href: "/contact", label: "Partner Support" },
+      { href: "/contact", label: "Support" },
       { href: "/how-it-works", label: "How It Works" },
+      { href: "/pricing", label: "Pricing" },
     ],
   },
   {
@@ -35,7 +33,6 @@ const footerSections = [
       { href: "/privacy", label: "Privacy Policy" },
       { href: "/cookies", label: "Cookie Policy" },
       { href: "/refund-policy", label: "Refund Policy" },
-      { href: "/affiliate-terms", label: "Affiliate Terms" },
     ],
   },
 ];
@@ -155,7 +152,7 @@ export function Footer({
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
   const branded = menuPreview || vaultMarket;
   const chromeBg = vaultMarket ? VAULT_MARKET_FOOTER_BG : navChromeBgClass(false, menuPreview);
-  const logoVariant = vaultMarket ? "vault-market" : menuPreview ? "menu" : "default";
+  const logoVariant = vaultMarket ? (menuPreview ? "menu" : "default") : "vault-market";
 
   return (
     <footer

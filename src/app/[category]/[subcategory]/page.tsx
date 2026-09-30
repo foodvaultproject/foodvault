@@ -37,7 +37,7 @@ export async function generateMetadata({
     title: `${product.name} | FoodVault`,
     description:
       product.description ??
-      `Buy ${product.name} from ${product.brand} at FoodVault member pricing.`,
+      `Buy ${product.name} from ${product.brand} at FoodVault saver pricing.`,
   };
 }
 

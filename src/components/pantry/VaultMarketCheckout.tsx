@@ -44,7 +44,7 @@ const EMPTY_DELIVERY: DeliveryForm = {
 
 export function VaultMarketCheckout() {
   const router = useRouter();
-  const { cart, memberUnlocked } = usePantryMarket();
+  const { cart } = usePantryMarket();
   const [delivery, setDelivery] = useState<DeliveryForm>(EMPTY_DELIVERY);
   const [lookupValue, setLookupValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -79,11 +79,6 @@ export function VaultMarketCheckout() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!canSubmit || submitting) return;
-
-    if (!memberUnlocked) {
-      setError("An active FoodVault membership is required for Vault Market checkout.");
-      return;
-    }
 
     setSubmitting(true);
     setError(null);
@@ -299,7 +294,7 @@ export function VaultMarketCheckout() {
           </section>
         </div>
 
-        <aside className="h-fit rounded-lg border border-border bg-background p-5 sm:p-6 lg:sticky lg:top-[calc(8rem+26px)]">
+        <aside className="h-fit rounded-lg border border-border bg-background p-5 sm:p-6 lg:sticky lg:top-[calc(4.25rem+26px)]">
           <h2 className="text-lg font-bold text-foreground">Order summary</h2>
           <ul className="mt-4 space-y-3">
             {cart.map((item) => (
@@ -351,14 +346,21 @@ export function VaultMarketCheckout() {
               <dt className="text-muted">Subtotal</dt>
               <dd className="font-semibold">{formatNzPrice(subtotal)}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted">Freight</dt>
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-muted">
+                Freight
+                <p className="mt-0.5 max-w-[14rem] text-xs leading-snug">
+                  {freeShipping
+                    ? "Orders over $100 ship free."
+                    : `Add ${formatNzPrice(remainingToFree)} more to unlock free freight on orders over $100.`}
+                </p>
+              </dt>
               <dd className="font-semibold">
                 {freight === 0 ? "FREE" : formatNzPrice(freight)}
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted">Member savings</dt>
+              <dt className="text-muted">Savings</dt>
               <dd className="font-semibold text-success">{formatNzPrice(savings)}</dd>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-base">

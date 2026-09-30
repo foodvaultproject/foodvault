@@ -181,7 +181,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
           <div className="mt-6 flex flex-wrap items-end gap-4">
             <div>
               <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-                Member Price
+                Saver Price
               </span>
               <p className="mt-1 text-3xl font-bold text-vm-primary">
                 {formatNzPrice(product.member_price)}
@@ -204,7 +204,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
               <p className="mt-1 text-2xl font-black tracking-tight">{multibuyLabel}</p>
               <p className="mt-1 text-sm font-semibold">
                 {multibuySavings > 0
-                  ? `Save ${formatNzPrice(multibuySavings)} when you buy ${product.multibuy_quantity} versus the member unit price.`
+                  ? `Save ${formatNzPrice(multibuySavings)} when you buy ${product.multibuy_quantity} versus the saver unit price.`
                   : `Buy ${product.multibuy_quantity} for ${formatNzPrice(product.multibuy_price)} instead of paying each item separately.`}
               </p>
             </div>

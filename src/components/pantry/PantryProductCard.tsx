@@ -39,7 +39,7 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
         </Link>
         {savePercent > 0 ? (
           <div className="absolute left-2 top-2 z-10">
-            <span className="rounded-sm border border-[#ffdf40] bg-[#fff6b3] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
+            <span className="rounded-sm bg-[#F3F606] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
               {savePercent}% off
             </span>
           </div>
@@ -68,8 +68,8 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
 
         <div className="mt-2">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-              Member
+            <span className="inline-flex items-center rounded-sm bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              Saver
             </span>
             {multibuy ? <MultibuyBadge product={product} /> : null}
           </div>

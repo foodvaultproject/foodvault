@@ -2,26 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Images, Search, ShoppingBag, Store } from "lucide-react";
+import { Images, Search } from "lucide-react";
 import {
   CONSUMER_EXPLORE_PATH,
-  CONSUMER_PARTNER_DIRECTORY_PATH,
   CONSUMER_SEARCH_PATH,
-  CONSUMER_VAULT_MARKET_PATH,
   isExplorePath,
-  isPartnerDirectoryPath,
   isSearchPath,
-  isVaultMarketPath,
 } from "@/lib/consumer-nav-restructure";
 
 const NAV_ITEMS = [
-  {
-    href: CONSUMER_VAULT_MARKET_PATH,
-    label: "Shop",
-    shortLabel: "Shop",
-    Icon: ShoppingBag,
-    isActive: isVaultMarketPath,
-  },
   {
     href: CONSUMER_SEARCH_PATH,
     label: "Search",
@@ -36,31 +25,22 @@ const NAV_ITEMS = [
     Icon: Images,
     isActive: isExplorePath,
   },
-  {
-    href: CONSUMER_PARTNER_DIRECTORY_PATH,
-    label: "Vault Market",
-    shortLabel: "Market",
-    Icon: Store,
-    isActive: isPartnerDirectoryPath,
-  },
 ] as const;
 
-function navItemClass(active: boolean, mobile: boolean, vaultMarket: boolean): string {
-  const activeBg = vaultMarket ? "bg-[#10B981]" : "bg-primary";
+function navItemClass(active: boolean, mobile: boolean): string {
   if (mobile) {
     return active
-      ? `${activeBg} font-bold text-white shadow-sm`
+      ? "bg-primary font-bold text-white shadow-sm"
       : "font-bold text-white/85";
   }
 
   return active
-    ? `${activeBg} font-bold text-white shadow-sm`
+    ? "bg-primary font-bold text-white shadow-sm"
     : "font-bold text-white/85 hover:bg-white/10 hover:text-white";
 }
 
 export function ConsumerSecondaryNav() {
   const pathname = usePathname();
-  const vaultMarket = isVaultMarketPath(pathname);
 
   function handleNavClick(
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -79,9 +59,7 @@ export function ConsumerSecondaryNav() {
     <>
       <nav
         aria-label="Consumer sections"
-        className={`sticky z-40 hidden h-[3.75rem] items-center border-b border-border/60 bg-white/85 backdrop-blur-md md:flex ${
-          vaultMarket ? "top-[calc(4.25rem+22px)] md:top-[calc(4.25rem+26px)]" : "top-[4.25rem]"
-        }`}
+        className="sticky top-[4.25rem] z-40 hidden h-[3.75rem] items-center border-b border-border/60 bg-white/85 backdrop-blur-md md:flex"
       >
         <div className="mx-auto flex w-full max-w-[1200px] justify-center px-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/60 p-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-xl">
@@ -94,7 +72,7 @@ export function ConsumerSecondaryNav() {
                   prefetch
                   onClick={(event) => handleNavClick(event, href)}
                   aria-current={active ? "page" : undefined}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition-colors sm:px-4 sm:text-sm ${navItemClass(active, false, vaultMarket)}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs transition-colors sm:px-4 sm:text-sm ${navItemClass(active, false)}`}
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.75} />
                   {label}
@@ -110,7 +88,7 @@ export function ConsumerSecondaryNav() {
       >
         <nav
           aria-label="Consumer sections"
-          className="pointer-events-auto grid w-full max-w-md grid-cols-4 gap-1 rounded-full border border-white/15 bg-black/60 px-1.5 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+          className="pointer-events-auto grid w-full max-w-xs grid-cols-2 gap-1 rounded-full border border-white/15 bg-black/60 px-1.5 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl"
         >
           {NAV_ITEMS.map(({ href, shortLabel, Icon, isActive }) => {
             const active = isActive(pathname);
@@ -121,7 +99,7 @@ export function ConsumerSecondaryNav() {
                 prefetch
                 onClick={(event) => handleNavClick(event, href)}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[10px] transition-colors ${navItemClass(active, true, vaultMarket)}`}
+                className={`flex flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[10px] transition-colors ${navItemClass(active, true)}`}
               >
                 <Icon className="h-5 w-5 shrink-0" strokeWidth={2.75} />
                 <span className="truncate">{shortLabel}</span>

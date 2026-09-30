@@ -18,7 +18,7 @@ export function PantryHeroBanner() {
 
       <div className="relative z-10 px-5 py-6 sm:px-8 sm:py-8 md:max-w-[50%]">
         <p className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-          Real member savings on everyday items.
+          Real savings on everyday items.
         </p>
         <p className="mt-2 text-sm leading-relaxed text-white/90 sm:text-base">
           Great deals now. More stock as we grow.

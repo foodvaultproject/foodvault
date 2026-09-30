@@ -16,7 +16,7 @@ export default function GroceryListPage() {
         <p className="text-xs font-bold uppercase tracking-wide text-vm-primary">FoodVault</p>
         <h1 className="mt-2 text-2xl font-bold text-foreground">My Grocery List</h1>
         <p className="mt-2 max-w-xl text-sm text-muted">
-          Your saved supermarket staples open here. Add them to your cart when you are ready to check out at member price.
+          Your saved supermarket staples open here. Add them to your cart when you are ready to check out at the saver price.
         </p>
         <Link
           href={CONSUMER_VAULT_MARKET_PATH}

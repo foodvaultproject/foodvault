@@ -9,10 +9,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useMemberSignupCtaContext } from "@/components/member/MemberSignupCtaProvider";
 import { CartDrawer } from "@/components/pantry/CartDrawer";
 import { GroceryListDrawer } from "@/components/pantry/GroceryListDrawer";
-import { MemberGateModal } from "@/components/pantry/MemberGateModal";
 import {
   VAULT_MARKET_CART_CHANGE_EVENT,
   VAULT_MARKET_CART_OPEN_EVENT,
@@ -75,10 +73,6 @@ export function PantryMarketProvider({
   const [addedIds, setAddedIds] = useState<Record<string, true>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [groceryOpen, setGroceryOpen] = useState(false);
-  const [gateOpen, setGateOpen] = useState(false);
-  const [gateSavings, setGateSavings] = useState(0);
-  const [gateProductName, setGateProductName] = useState<string | undefined>();
-  const { isActiveMember, isMember, isLoading } = useMemberSignupCtaContext();
 
   const persistCart = useCallback((next: CartItem[]) => {
     setCart(next);
@@ -140,20 +134,8 @@ export function PantryMarketProvider({
     [products]
   );
 
-  const openMemberGate = useCallback((savings: number, productName?: string) => {
-    if (isLoading) return;
-    setGateSavings(savings);
-    setGateProductName(productName);
-    setGateOpen(true);
-  }, [isLoading]);
-
   const addToCart = useCallback(
     (product: FoodVaultProduct, quantity = 1) => {
-      if (!isActiveMember) {
-        const unitSave = Math.max(0, product.retail_price - product.member_price);
-        openMemberGate(unitSave * Math.max(1, quantity), product.name);
-        return;
-      }
       persistCart(addProductToCart(cart, product, quantity));
       setGroceryOpen(false);
       setCartOpen(true);
@@ -166,19 +148,14 @@ export function PantryMarketProvider({
         });
       }, 1600);
     },
-    [cart, isActiveMember, openMemberGate, persistCart]
+    [cart, persistCart]
   );
 
   const toggleGrocery = useCallback(
     (product: FoodVaultProduct) => {
-      const alreadySaved = groceryList.some((item) => item.product_id === product.id);
-      if (!alreadySaved && !isActiveMember) {
-        openMemberGate(Math.max(0, product.retail_price - product.member_price), product.name);
-        return;
-      }
       persistGrocery(toggleGroceryListItem(groceryList, product));
     },
-    [groceryList, isActiveMember, openMemberGate, persistGrocery]
+    [groceryList, persistGrocery]
   );
 
   const isSaved = useCallback(
@@ -209,7 +186,7 @@ export function PantryMarketProvider({
       isSaved,
       openCart,
       openGrocery,
-      memberUnlocked: isActiveMember,
+      memberUnlocked: true,
     }),
     [
       products,
@@ -222,7 +199,6 @@ export function PantryMarketProvider({
       isSaved,
       openCart,
       openGrocery,
-      isActiveMember,
     ]
   );
 
@@ -232,8 +208,6 @@ export function PantryMarketProvider({
       <CartDrawer
         open={cartOpen}
         items={cart}
-        memberUnlocked={isActiveMember}
-        onMembershipRequired={(savings) => openMemberGate(savings)}
         onClose={() => setCartOpen(false)}
         onIncrement={(productId) => {
           const item = cart.find((entry) => entry.product_id === productId);
@@ -268,25 +242,10 @@ export function PantryMarketProvider({
           persistGrocery(removeGroceryListItem(groceryList, productId))
         }
         onAddSelectedToCart={() => {
-          if (!isActiveMember) {
-            const selected = groceryList.filter((item) => item.selected);
-            const savings = selected.reduce((sum, item) => {
-              return sum + Math.max(0, item.retail_price - item.member_price) * item.quantity;
-            }, 0);
-            openMemberGate(savings);
-            return;
-          }
           persistCart(addGroceryItemsToCart(cart, groceryList, products));
           setGroceryOpen(false);
           setCartOpen(true);
         }}
-      />
-      <MemberGateModal
-        open={gateOpen}
-        onClose={() => setGateOpen(false)}
-        savings={gateSavings}
-        productName={gateProductName}
-        isLoggedIn={isMember}
       />
     </PantryMarketContext.Provider>
   );

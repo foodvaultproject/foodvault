@@ -378,7 +378,7 @@ export function Navigation() {
   const vaultMarket = isVaultMarketPath(pathname);
   const menuPreview = NAV_MENU_PREVIEW_ENABLED;
   const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
-  const logoVariant = vaultMarket ? "vault-market" : menuPreview ? "menu" : "default";
+  const logoVariant = vaultMarket ? (menuPreview ? "menu" : "default") : "vault-market";
   return (
     <header
       className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
