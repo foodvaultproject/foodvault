@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
+import { sendSupermarketOrderConfirmationEmail } from "@/lib/commerce/send-supermarket-order-email";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FoodVaultOrder, FoodVaultShippingAddress } from "@/types/commerce";
 
@@ -103,6 +104,13 @@ export async function fulfillPantryOrderFromCheckoutSession(
   session: Stripe.Checkout.Session
 ): Promise<FoodVaultOrder | null> {
   if (session.metadata?.foodvault !== "vault_market") {
+    return null;
+  }
+
+  if (
+    session.payment_status !== "paid" &&
+    session.payment_status !== "no_payment_required"
+  ) {
     return null;
   }
 
@@ -237,5 +245,25 @@ export async function fulfillPantryOrderFromCheckoutSession(
     await decrementStock(line.product_id, line.sku, line.quantity);
   }
 
-  return getPantryOrderByStripeSessionId(session.id);
+  const order = await getPantryOrderByStripeSessionId(session.id);
+  if (order) {
+    const recipient =
+      order.shipping_email?.trim() ||
+      session.metadata?.recipient_email?.trim() ||
+      session.customer_details?.email?.trim() ||
+      null;
+    try {
+      await sendSupermarketOrderConfirmationEmail({
+        ...order,
+        shipping_email: recipient,
+      });
+    } catch (error) {
+      console.error("[vault-market] Order confirmation email failed", {
+        orderId: order.id,
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  }
+
+  return order;
 }

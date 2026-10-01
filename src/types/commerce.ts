@@ -124,6 +124,8 @@ export interface FoodVaultOrder {
   shipping?: FoodVaultShippingAddress | null;
   tracking_number?: string | null;
   fulfilled_at?: string | null;
+  shipping_email?: string | null;
+  shipping_cost?: number;
   created_at: string;
   updated_at?: string | null;
   items?: FoodVaultOrderItem[];

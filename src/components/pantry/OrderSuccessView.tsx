@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { clearVaultMarketCart } from "@/lib/commerce/cart";
+import { formatOrderPlacedAt } from "@/lib/commerce/order-display";
 import { formatNzPrice } from "@/lib/partner-offer";
 import { heading1 } from "@/lib/ui-classes";
 import type { FoodVaultOrder, FoodVaultShippingAddress } from "@/types/commerce";
@@ -83,6 +84,9 @@ export function OrderSuccessView({
             <p className="mt-1 break-all font-mono text-sm font-bold text-foreground">
               {order.id}
             </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Placed {formatOrderPlacedAt(order.created_at)}
+            </p>
 
             <div className="mt-6">
               <h2 className="text-sm font-bold text-foreground">Items purchased</h2>
@@ -143,12 +147,20 @@ export function OrderSuccessView({
         )}
       </article>
 
-      <Link
-        href="/"
-        className="mt-8 inline-flex items-center justify-center rounded-sm bg-vm-primary px-6 py-3 text-sm font-semibold text-white hover:bg-vm-surface"
-      >
-        Back to the pantry
-      </Link>
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/account/orders"
+          className="inline-flex items-center justify-center rounded-sm bg-vm-primary px-6 py-3 text-sm font-semibold text-white hover:bg-vm-surface"
+        >
+          View order history
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center rounded-sm border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-surface"
+        >
+          Back to the supermarket
+        </Link>
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   writeVaultMarketCart,
 } from "@/lib/commerce/cart";
 import type { MemberOrderHistoryItem } from "@/lib/commerce/member-orders";
+import { formatOrderPlacedAt } from "@/lib/commerce/order-display";
 import { formatNzPrice } from "@/lib/partner-offer";
 
 const statusStyles: Record<string, string> = {
@@ -23,12 +24,7 @@ const statusStyles: Record<string, string> = {
 };
 
 function formatOrderDate(iso: string): string {
-  const date = new Date(iso);
-  if (!Number.isFinite(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-NZ", {
-    timeZone: "Pacific/Auckland",
-    dateStyle: "medium",
-  }).format(date);
+  return formatOrderPlacedAt(iso);
 }
 
 export function MemberOrdersDashboard({
@@ -62,14 +58,14 @@ export function MemberOrdersDashboard({
           </Link>
           <span className="text-muted"> / Orders</span>
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-foreground">Vault Market orders</h1>
+        <h1 className="mt-2 text-2xl font-bold text-foreground">Supermarket orders</h1>
         <p className="mt-1 text-sm text-muted">
-          Track pantry orders, savings, and reorder staples in one tap.
+          Review orders you placed while signed in, including the date and time.
         </p>
 
         <section className="mt-6 rounded-2xl bg-primary px-5 py-6 text-primary-foreground shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wide text-primary-foreground/80">
-            Lifetime member savings
+            Lifetime savings
           </p>
           <p className="mt-2 text-4xl font-bold">{formatNzPrice(lifetimeSavings)}</p>
           <p className="mt-1 text-sm text-primary-foreground/80">
@@ -81,7 +77,7 @@ export function MemberOrdersDashboard({
           <div className="mt-6 rounded-2xl border border-dashed border-border bg-white px-5 py-12 text-center">
             <p className="font-semibold text-foreground">No pantry orders yet</p>
             <p className="mt-1 text-sm text-muted">
-              Member pricing starts as soon as you check out from Vault Market.
+              Saver pricing is available as soon as you check out from the supermarket.
             </p>
             <Link
               href="/"
@@ -97,7 +93,7 @@ export function MemberOrdersDashboard({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-mono text-lg font-bold text-foreground">#{order.shortId}</p>
-                    <p className="text-sm text-muted">{formatOrderDate(order.createdAt)}</p>
+                    <p className="text-sm text-muted">Placed {formatOrderDate(order.createdAt)}</p>
                   </div>
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-bold ${

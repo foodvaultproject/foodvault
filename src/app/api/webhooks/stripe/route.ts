@@ -96,6 +96,13 @@ export async function POST(request: NextRequest) {
         }
         break;
       }
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.foodvault === "vault_market") {
+          await fulfillPantryOrderFromCheckoutSession(session);
+        }
+        break;
+      }
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {

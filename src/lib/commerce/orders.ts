@@ -67,6 +67,8 @@ function mapOrder(
     total_savings: asNumber(row.total_savings),
     shipping: mapShipping(row),
     tracking_number: asNullableString(row.tracking_number),
+    shipping_email: asNullableString(row.shipping_email),
+    shipping_cost: asNumber(row.shipping_cost),
     created_at: asString(row.created_at),
     updated_at: asNullableString(row.updated_at),
     items,
