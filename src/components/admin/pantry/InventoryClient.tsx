@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatAdminDate } from "@/components/admin/AdminUi";
 import { saveInventoryBatchAction } from "@/lib/admin/pantry-actions";
@@ -84,10 +85,12 @@ function movementsForProduct(
 }
 
 export function InventoryClient({
+  tab,
   products,
   batches,
   sales,
 }: {
+  tab: "stock" | "movements";
   products: FoodVaultProduct[];
   batches: BatchRow[];
   sales: InventorySaleRow[];
@@ -185,6 +188,29 @@ export function InventoryClient({
         </button>
       </div>
 
+      <div role="tablist" aria-label="Inventory" className="inline-flex rounded-md border border-border bg-white p-1">
+        <Link
+          href="/admin/inventory"
+          role="tab"
+          aria-selected={tab === "stock"}
+          className={`rounded-sm px-4 py-2 text-sm font-semibold ${
+            tab === "stock" ? "bg-primary text-primary-foreground" : "text-muted hover:text-foreground"
+          }`}
+        >
+          Inventory
+        </Link>
+        <Link
+          href="/admin/inventory?tab=movements"
+          role="tab"
+          aria-selected={tab === "movements"}
+          className={`rounded-sm px-4 py-2 text-sm font-semibold ${
+            tab === "movements" ? "bg-primary text-primary-foreground" : "text-muted hover:text-foreground"
+          }`}
+        >
+          Receipt and stock movement
+        </Link>
+      </div>
+
       <div className="flex flex-wrap items-end gap-4 rounded border border-border bg-white p-4">
         <div className="min-w-[12rem]">
           <label className={labelClass} htmlFor="brand-filter">
@@ -229,6 +255,7 @@ export function InventoryClient({
         </label>
       </div>
 
+      {tab === "stock" ? (
       <div className="overflow-x-auto rounded border border-border bg-white">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead>
@@ -274,7 +301,7 @@ export function InventoryClient({
           </tbody>
         </table>
       </div>
-
+      ) : (
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-bold text-foreground">Receipt and stock movement</h2>
@@ -346,6 +373,7 @@ export function InventoryClient({
           })
         )}
       </section>
+      )}
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
