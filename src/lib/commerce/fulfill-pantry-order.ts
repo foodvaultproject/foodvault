@@ -129,10 +129,11 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
   let leftToSell = sellQty;
   const batchRows = (batches ?? []) as Record<string, unknown>[];
   const applied: { id: string; previous: number }[] = [];
+  const db = admin;
 
   async function restoreBatches() {
     for (const change of applied) {
-      await admin
+      await db
         .from("foodvault_inventory_batches")
         .update({
           quantity_remaining: change.previous,
