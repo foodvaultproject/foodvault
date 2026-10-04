@@ -194,7 +194,12 @@ export async function listAdminProductsByFamilyId(familyId: string): Promise<Foo
 }
 
 export async function listInventoryBatches(): Promise<
-  (FoodVaultInventoryBatch & { product_name?: string; product_sku?: string })[]
+  (FoodVaultInventoryBatch & {
+    product_name?: string;
+    product_sku?: string;
+    product_brand?: string;
+    quantity_remaining?: number;
+  })[]
 > {
   const supabase = await pantryClient();
   if (!supabase) return [];
@@ -214,13 +219,80 @@ export async function listInventoryBatches(): Promise<
 
   const byId = new Map(products.map((product) => [product.id, product]));
   return (batches ?? []).map((row) => {
-    const batch = mapInventoryBatch(row as Record<string, unknown>);
+    const record = row as Record<string, unknown>;
+    const batch = mapInventoryBatch(record);
     const product = byId.get(batch.product_id);
+    const remaining =
+      record.quantity_remaining == null
+        ? batch.quantity_received
+        : Math.max(0, Math.trunc(asNumber(record.quantity_remaining)));
     return {
       ...batch,
+      quantity_remaining: remaining,
       product_name: product?.name,
       product_sku: product?.sku,
+      product_brand: product?.brand,
     };
+  });
+}
+
+export type InventorySaleMovement = {
+  id: string;
+  productId: string;
+  sku: string;
+  quantity: number;
+  at: string;
+  orderId: string;
+};
+
+export async function listInventorySales(): Promise<InventorySaleMovement[]> {
+  const supabase = await pantryClient();
+  if (!supabase) return [];
+
+  const { data: items, error } = await supabase.from("foodvault_order_items").select("*");
+
+  if (error) {
+    console.error("[admin-pantry] failed to list order items for stock log", error.message);
+    return [];
+  }
+
+  const rows = (items ?? []) as Record<string, unknown>[];
+  const orderIds = [...new Set(rows.map((row) => asString(row.order_id)).filter(Boolean))];
+  if (orderIds.length === 0) return [];
+
+  const { data: orders, error: orderError } = await supabase
+    .from("foodvault_orders")
+    .select("*")
+    .in("id", orderIds);
+
+  if (orderError) {
+    console.error("[admin-pantry] failed to list orders for stock log", orderError.message);
+    return [];
+  }
+
+  const orderById = new Map(
+    (orders ?? []).map((order) => {
+      const record = order as Record<string, unknown>;
+      return [asString(record.id), record] as const;
+    })
+  );
+
+  return rows.flatMap((row) => {
+    const order = orderById.get(asString(row.order_id));
+    const status = asString(order?.status);
+    if (!order || status === "cancelled" || status === "refunded") return [];
+    const at = asString(order.created_at);
+    if (!at) return [];
+    return [
+      {
+        id: asString(row.id),
+        productId: asString(row.product_id),
+        sku: asString(row.sku),
+        quantity: Math.max(0, Math.trunc(asNumber(row.quantity))),
+        at,
+        orderId: asString(row.order_id),
+      },
+    ];
   });
 }
 

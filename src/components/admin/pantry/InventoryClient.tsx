@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatAdminDate } from "@/components/admin/AdminUi";
 import { saveInventoryBatchAction } from "@/lib/admin/pantry-actions";
@@ -9,24 +9,137 @@ import type { FoodVaultInventoryBatch, FoodVaultProduct } from "@/types/commerce
 type BatchRow = FoodVaultInventoryBatch & {
   product_name?: string;
   product_sku?: string;
+  product_brand?: string;
+  quantity_remaining?: number;
+};
+
+type InventorySaleRow = {
+  id: string;
+  productId: string;
+  sku: string;
+  quantity: number;
+  at: string;
+  orderId: string;
+};
+
+type Movement = {
+  id: string;
+  at: string;
+  kind: "Receipt" | "Sale";
+  quantity: number;
+  detail: string;
 };
 
 const inputClass =
   "w-full rounded-md border border-border bg-white px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted";
 
+function brandOf(product: FoodVaultProduct): string {
+  return product.brand?.trim() || "Unbranded";
+}
+
+function latestReceiptAt(productId: string, batches: BatchRow[]): number {
+  let latest = 0;
+  for (const batch of batches) {
+    if (batch.product_id !== productId || !batch.created_at) continue;
+    const time = new Date(batch.created_at).getTime();
+    if (time > latest) latest = time;
+  }
+  return latest;
+}
+
+function movementsForProduct(
+  product: FoodVaultProduct,
+  batches: BatchRow[],
+  sales: InventorySaleRow[]
+): Movement[] {
+  const receipts: Movement[] = [];
+  for (const batch of batches) {
+    if (batch.product_id !== product.id || !batch.created_at) continue;
+    receipts.push({
+      id: `receipt-${batch.id}`,
+      at: batch.created_at,
+      kind: "Receipt",
+      quantity: batch.quantity_received,
+      detail: [
+        batch.batch_number ? `Batch ${batch.batch_number}` : null,
+        `Remaining ${batch.quantity_remaining ?? batch.quantity_received}`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    });
+  }
+
+  const sold: Movement[] = sales
+    .filter((sale) => sale.productId === product.id || (sale.sku && sale.sku === product.sku))
+    .map((sale) => ({
+      id: `sale-${sale.id}`,
+      at: sale.at,
+      kind: "Sale" as const,
+      quantity: -sale.quantity,
+      detail: `Order ${sale.orderId.slice(0, 8)}`,
+    }));
+
+  return [...receipts, ...sold].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}
+
 export function InventoryClient({
   products,
   batches,
+  sales,
 }: {
   products: FoodVaultProduct[];
   batches: BatchRow[];
+  sales: InventorySaleRow[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BatchRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [brand, setBrand] = useState("all");
+  const [newestFirst, setNewestFirst] = useState(true);
+  const [zeroStockOnly, setZeroStockOnly] = useState(false);
+
+  const brands = useMemo(() => {
+    const names = new Set(products.map(brandOf));
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const stockByProductId = useMemo(() => {
+    const stock = new Map<string, number>();
+    for (const product of products) stock.set(product.id, product.stock_quantity);
+    return stock;
+  }, [products]);
+
+  const visibleProducts = useMemo(() => {
+    const filtered = products.filter((product) => {
+      if (brand !== "all" && brandOf(product) !== brand) return false;
+      if (zeroStockOnly && product.stock_quantity > 0) return false;
+      return true;
+    });
+    return filtered.sort((a, b) => {
+      if (newestFirst) {
+        const byReceipt = latestReceiptAt(b.id, batches) - latestReceiptAt(a.id, batches);
+        if (byReceipt !== 0) return byReceipt;
+        return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [products, batches, brand, newestFirst, zeroStockOnly]);
+
+  const visibleProductIds = useMemo(
+    () => new Set(visibleProducts.map((product) => product.id)),
+    [visibleProducts]
+  );
+
+  const visibleBatches = useMemo(() => {
+    const rows = batches.filter((batch) => visibleProductIds.has(batch.product_id));
+    return [...rows].sort((a, b) => {
+      const delta = new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+      return newestFirst ? delta : -delta;
+    });
+  }, [batches, visibleProductIds, newestFirst]);
 
   function openCreate() {
     setEditing(null);
@@ -72,6 +185,50 @@ export function InventoryClient({
         </button>
       </div>
 
+      <div className="flex flex-wrap items-end gap-4 rounded border border-border bg-white p-4">
+        <div className="min-w-[12rem]">
+          <label className={labelClass} htmlFor="brand-filter">
+            Brand
+          </label>
+          <select
+            id="brand-filter"
+            value={brand}
+            onChange={(event) => setBrand(event.target.value)}
+            className={inputClass}
+          >
+            <option value="all">All brands</option>
+            {brands.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="min-w-[12rem]">
+          <label className={labelClass} htmlFor="newest-filter">
+            Newest
+          </label>
+          <select
+            id="newest-filter"
+            value={newestFirst ? "newest" : "name"}
+            onChange={(event) => setNewestFirst(event.target.value === "newest")}
+            className={inputClass}
+          >
+            <option value="newest">Newest receipts first</option>
+            <option value="name">Product name</option>
+          </select>
+        </div>
+        <label className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <input
+            type="checkbox"
+            checked={zeroStockOnly}
+            onChange={(event) => setZeroStockOnly(event.target.checked)}
+            className="size-4 accent-primary"
+          />
+          Zero stock on hand
+        </label>
+      </div>
+
       <div className="overflow-x-auto rounded border border-border bg-white">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead>
@@ -83,14 +240,16 @@ export function InventoryClient({
             </tr>
           </thead>
           <tbody>
-            {batches.length === 0 ? (
+            {visibleBatches.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted">
-                  No inventory recorded yet.
+                  {batches.length === 0
+                    ? "No inventory recorded yet."
+                    : "No inventory matches these filters."}
                 </td>
               </tr>
             ) : (
-              batches.map((batch) => (
+              visibleBatches.map((batch) => (
                 <tr key={batch.id} className="border-b border-border/70 last:border-0">
                   <td className="px-4 py-3">
                     <p className="font-semibold text-foreground">{batch.product_name ?? "Unknown"}</p>
@@ -115,6 +274,78 @@ export function InventoryClient({
           </tbody>
         </table>
       </div>
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Receipt and stock movement</h2>
+          <p className="mt-1 text-sm text-muted">
+            Each product lists every receipt and every sale, with the date and time stock moved.
+          </p>
+        </div>
+        {visibleProducts.length === 0 ? (
+          <p className="rounded border border-border bg-white px-4 py-8 text-center text-sm text-muted">
+            No products match these filters.
+          </p>
+        ) : (
+          visibleProducts.map((product) => {
+            const movements = movementsForProduct(product, batches, sales);
+            const onHand = stockByProductId.get(product.id) ?? 0;
+            return (
+              <details
+                key={product.id}
+                className="rounded border border-border bg-white"
+                open={zeroStockOnly || visibleProducts.length <= 8}
+              >
+                <summary className="cursor-pointer list-none px-4 py-3">
+                  <span className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span>
+                      <span className="font-semibold text-foreground">{product.name}</span>
+                      <span className="ml-2 text-xs text-muted">
+                        {brandOf(product)} · {product.sku}
+                      </span>
+                    </span>
+                    <span className="text-sm tabular-nums text-foreground">
+                      {onHand} on hand
+                    </span>
+                  </span>
+                </summary>
+                <div className="overflow-x-auto border-t border-border">
+                  <table className="w-full min-w-[36rem] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                        <th className="px-4 py-2 font-semibold">When</th>
+                        <th className="px-4 py-2 font-semibold">Movement</th>
+                        <th className="px-4 py-2 font-semibold">Qty</th>
+                        <th className="px-4 py-2 font-semibold">Detail</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {movements.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-6 text-sm text-muted">
+                            No receipts or sales recorded.
+                          </td>
+                        </tr>
+                      ) : (
+                        movements.map((movement) => (
+                          <tr key={movement.id} className="border-b border-border/70 last:border-0">
+                            <td className="px-4 py-2 text-muted">{formatAdminDate(movement.at)}</td>
+                            <td className="px-4 py-2 font-semibold text-foreground">{movement.kind}</td>
+                            <td className="px-4 py-2 tabular-nums">
+                              {movement.quantity > 0 ? `+${movement.quantity}` : movement.quantity}
+                            </td>
+                            <td className="px-4 py-2 text-muted">{movement.detail}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            );
+          })
+        )}
+      </section>
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
