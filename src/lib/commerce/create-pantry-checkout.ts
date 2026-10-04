@@ -189,15 +189,15 @@ export async function createPantryCheckoutSession(input: {
     total_savings: totalSavings.toFixed(2),
   };
 
-  return stripe.checkout.sessions.create({
-    mode: "payment",
+  const sessionInput = {
+    mode: "payment" as const,
     currency: "nzd",
-    billing_address_collection: "required",
+    billing_address_collection: "required" as const,
     shipping_options: [
       {
         shipping_rate_data: {
           display_name: shippingLabel,
-          type: "fixed_amount",
+          type: "fixed_amount" as const,
           fixed_amount: {
             amount: toStripeAmount(freight, "nzd"),
             currency: "nzd",
@@ -230,18 +230,30 @@ export async function createPantryCheckoutSession(input: {
       metadata,
     },
     ...(input.userId ? { client_reference_id: input.userId } : {}),
-    ...(stripeCustomerId
-      ? {
-          customer: stripeCustomerId,
-          customer_update: { address: "auto" as const },
-          saved_payment_method_options: {
-            payment_method_save: "enabled",
-            allow_redisplay_filters: ["always", "limited", "unspecified"],
-          },
-        }
-      : recipientEmail
-        ? { customer_email: recipientEmail }
-        : {}),
     metadata,
-  } as Parameters<typeof stripe.checkout.sessions.create>[0]);
+  };
+
+  if (!stripeCustomerId) {
+    return stripe.checkout.sessions.create({
+      ...sessionInput,
+      ...(recipientEmail ? { customer_email: recipientEmail } : {}),
+    });
+  }
+
+  try {
+    return await stripe.checkout.sessions.create({
+      ...sessionInput,
+      customer: stripeCustomerId,
+      customer_update: { address: "auto" },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!/no such customer|resource_missing|unknown parameter/i.test(message)) {
+      throw error;
+    }
+    return stripe.checkout.sessions.create({
+      ...sessionInput,
+      ...(recipientEmail ? { customer_email: recipientEmail } : {}),
+    });
+  }
 }

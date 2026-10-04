@@ -76,9 +76,37 @@ export function VaultMarketCheckout() {
     setDelivery((current) => ({ ...current, [key]: value }));
   }
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canSubmit || submitting) return;
+    if (cart.length === 0 || submitting) return;
+
+    const form = new FormData(event.currentTarget);
+    const nextDelivery: DeliveryForm = {
+      fullName: String(form.get("fullName") ?? "").trim(),
+      phone: String(form.get("phone") ?? "").trim(),
+      email: String(form.get("email") ?? "").trim(),
+      street: String(form.get("street") ?? "").trim(),
+      suburb: String(form.get("suburb") ?? "").trim(),
+      city: String(form.get("city") ?? "").trim(),
+      postcode: String(form.get("postcode") ?? "").trim(),
+      deliveryNotes: String(form.get("deliveryNotes") ?? "").trim(),
+    };
+    setDelivery(nextDelivery);
+
+    const missing = [
+      !nextDelivery.fullName ? "full name" : "",
+      !nextDelivery.phone ? "phone number" : "",
+      !nextDelivery.email ? "email address" : "",
+      !nextDelivery.street ? "street" : "",
+      !nextDelivery.suburb ? "suburb" : "",
+      !nextDelivery.city ? "city" : "",
+      !nextDelivery.postcode ? "postcode" : "",
+    ].filter(Boolean);
+
+    if (missing.length > 0) {
+      setError(`Enter your ${missing.join(", ")} to continue to payment.`);
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -92,7 +120,7 @@ export function VaultMarketCheckout() {
             productId: item.product_id,
             quantity: item.quantity,
           })),
-          delivery,
+          delivery: nextDelivery,
         }),
       });
       const data = (await response.json()) as { url?: string; error?: string };
@@ -206,15 +234,23 @@ export function VaultMarketCheckout() {
                 label="Find your street"
                 placeholder="Start typing a street, suburb, or city"
                 onSelectAddress={(formattedAddress, details) => {
-                  setLookupValue(formattedAddress);
-                  updateField("street", details?.street?.trim() || formattedAddress.split(",")[0]?.trim() || formattedAddress);
-                  updateField("suburb", details?.suburb?.trim() || "");
-                  updateField("city", details?.city?.trim() || details?.region?.trim() || "");
-                  updateField(
-                    "postcode",
+                  const street =
+                    details?.street?.trim() ||
+                    formattedAddress.split(",")[0]?.trim() ||
+                    formattedAddress;
+                  const city = details?.city?.trim() || details?.region?.trim() || "";
+                  const suburb = details?.suburb?.trim() || city;
+                  const postcode =
                     extractNzPostcode(formattedAddress) ||
-                      extractNzPostcode(details?.displayName ?? "")
-                  );
+                    extractNzPostcode(details?.displayName ?? "");
+                  setLookupValue(formattedAddress);
+                  setDelivery((current) => ({
+                    ...current,
+                    street,
+                    suburb,
+                    city,
+                    postcode,
+                  }));
                 }}
               />
               <div>
@@ -375,9 +411,15 @@ export function VaultMarketCheckout() {
             </p>
           ) : null}
 
+          {!canSubmit ? (
+            <p className="mt-4 text-xs text-muted">
+              Fill in every required field, then Pay with Stripe will open the payment page.
+            </p>
+          ) : null}
+
           <button
             type="submit"
-            disabled={!canSubmit || submitting}
+            disabled={submitting || cart.length === 0}
             className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-sm bg-vm-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Redirecting to Stripe..." : "Pay with Stripe"}

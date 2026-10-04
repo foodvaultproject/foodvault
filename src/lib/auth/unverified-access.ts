@@ -23,6 +23,9 @@ const PUBLIC_PREFIXES = [
   "/how-it-works",
   "/contact",
   "/about",
+  "/checkout",
+  "/order-success",
+  "/api/pantry",
 ];
 
 const PUBLIC_EXACT = new Set([

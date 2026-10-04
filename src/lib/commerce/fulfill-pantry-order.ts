@@ -172,15 +172,19 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
       .select("quantity_remaining, quantity_received")
       .eq("product_id", product.id);
 
-    if (refreshError) {
-      throw new Error(refreshError.message);
-    }
-
     const refreshedRows = (refreshed ?? []) as Record<string, unknown>[];
     const nextStock =
-      refreshedRows.length > 0
-        ? refreshedRows.reduce((sum, row) => sum + onHandFromBatch(row), 0)
-        : Math.max(0, Number(product.stock_quantity ?? 0) - sellQty);
+      refreshError && /quantity_remaining/i.test(refreshError.message)
+        ? Math.max(0, Number(product.stock_quantity ?? 0) - sellQty)
+        : refreshError
+          ? null
+          : refreshedRows.length > 0
+            ? refreshedRows.reduce((sum, row) => sum + onHandFromBatch(row), 0)
+            : Math.max(0, Number(product.stock_quantity ?? 0) - sellQty);
+
+    if (nextStock == null) {
+      throw new Error(refreshError?.message ?? "Unable to recalculate stock");
+    }
 
     const { error: productError } = await admin
       .from("foodvault_products")
