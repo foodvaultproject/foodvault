@@ -71,9 +71,12 @@ function amountFromCents(value: number | null | undefined): number {
   return typeof value === "number" ? value / 100 : 0;
 }
 
-async function decrementStock(productId: string, sku: string, quantity: number) {
+async function findProductStockRow(
+  productId: string,
+  sku: string
+): Promise<{ id: string; stock_quantity: number } | null> {
   const admin = createAdminClient();
-  if (!admin) return;
+  if (!admin) return null;
 
   const { data: byId } = await admin
     .from("foodvault_products")
@@ -91,13 +94,114 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
     row = bySku as { id: string; stock_quantity: number } | null;
   }
 
-  if (!row) return;
+  return row;
+}
 
-  const nextStock = Math.max(0, Number(row.stock_quantity ?? 0) - quantity);
-  await admin
-    .from("foodvault_products")
-    .update({ stock_quantity: nextStock })
-    .eq("id", row.id);
+function onHandFromBatch(row: Record<string, unknown>): number {
+  if (row.quantity_remaining != null && row.quantity_remaining !== "") {
+    return Math.max(0, Math.trunc(Number(row.quantity_remaining)));
+  }
+  return Math.max(0, Math.trunc(Number(row.quantity_received ?? 0)));
+}
+
+async function decrementStock(productId: string, sku: string, quantity: number) {
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error("Admin Supabase client unavailable for stock update");
+  }
+
+  const product = await findProductStockRow(productId, sku);
+  if (!product) {
+    throw new Error(`Unable to update stock for ${sku || productId}`);
+  }
+
+  const sellQty = Math.max(1, Math.trunc(quantity));
+  const { data: batches, error: batchError } = await admin
+    .from("foodvault_inventory_batches")
+    .select("id, quantity_remaining, quantity_received, created_at")
+    .eq("product_id", product.id)
+    .order("created_at", { ascending: true });
+
+  if (batchError) {
+    throw new Error(batchError.message);
+  }
+
+  let leftToSell = sellQty;
+  const batchRows = (batches ?? []) as Record<string, unknown>[];
+  const applied: { id: string; previous: number }[] = [];
+
+  async function restoreBatches() {
+    for (const change of applied) {
+      await admin
+        .from("foodvault_inventory_batches")
+        .update({
+          quantity_remaining: change.previous,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", change.id);
+    }
+  }
+
+  try {
+    for (const batch of batchRows) {
+      if (leftToSell <= 0) break;
+      const onHand = onHandFromBatch(batch);
+      if (onHand <= 0) continue;
+      const take = Math.min(onHand, leftToSell);
+      const nextRemaining = onHand - take;
+      const batchId = String(batch.id);
+      const { error: updateError } = await admin
+        .from("foodvault_inventory_batches")
+        .update({
+          quantity_remaining: nextRemaining,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", batchId);
+
+      if (updateError) {
+        if (/quantity_remaining/i.test(updateError.message)) break;
+        throw new Error(updateError.message);
+      }
+      applied.push({ id: batchId, previous: onHand });
+      leftToSell -= take;
+    }
+
+    const { data: refreshed, error: refreshError } = await admin
+      .from("foodvault_inventory_batches")
+      .select("quantity_remaining, quantity_received")
+      .eq("product_id", product.id);
+
+    if (refreshError) {
+      throw new Error(refreshError.message);
+    }
+
+    const refreshedRows = (refreshed ?? []) as Record<string, unknown>[];
+    const nextStock =
+      refreshedRows.length > 0
+        ? refreshedRows.reduce((sum, row) => sum + onHandFromBatch(row), 0)
+        : Math.max(0, Number(product.stock_quantity ?? 0) - sellQty);
+
+    const { error: productError } = await admin
+      .from("foodvault_products")
+      .update({ stock_quantity: nextStock })
+      .eq("id", product.id);
+
+    if (productError) {
+      throw new Error(productError.message);
+    }
+
+    if (leftToSell > 0 && refreshedRows.length > 0) {
+      console.error("[vault-market] Sale exceeded recorded batch stock", {
+        productId: product.id,
+        sku,
+        requested: sellQty,
+        shortfall: leftToSell,
+      });
+    }
+  } catch (error) {
+    await restoreBatches();
+    throw error;
+  }
 }
 
 export async function fulfillPantryOrderFromCheckoutSession(
@@ -241,8 +345,14 @@ export async function fulfillPantryOrderFromCheckoutSession(
     }
   }
 
-  for (const line of lineRows) {
-    await decrementStock(line.product_id, line.sku, line.quantity);
+  try {
+    for (const line of lineRows) {
+      await decrementStock(line.product_id, line.sku, line.quantity);
+    }
+  } catch (error) {
+    await admin.from("foodvault_order_items").delete().eq("order_id", orderId);
+    await admin.from("foodvault_orders").delete().eq("id", orderId);
+    throw error;
   }
 
   const order = await getPantryOrderByStripeSessionId(session.id);

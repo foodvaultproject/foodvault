@@ -16,10 +16,10 @@ function batchProductId(row: Record<string, unknown>): string {
 }
 
 function batchQuantity(row: Record<string, unknown>): number {
-  return Math.max(
-    0,
-    Math.trunc(asNumber(row.quantity_received ?? row.quantity ?? row.quantity_remaining))
-  );
+  if (row.quantity_remaining != null && row.quantity_remaining !== "") {
+    return Math.max(0, Math.trunc(asNumber(row.quantity_remaining)));
+  }
+  return Math.max(0, Math.trunc(asNumber(row.quantity_received ?? row.quantity ?? 0)));
 }
 
 async function inventoryClient() {
