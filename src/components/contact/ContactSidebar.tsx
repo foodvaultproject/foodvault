@@ -1,15 +1,21 @@
+import { getAppMode } from "@/lib/app-mode";
+
 export function ContactHero() {
+  const stockup = getAppMode() === "stockup";
+
   return (
     <section className="bg-gradient-to-b from-surface-lavender via-background to-background pt-7 sm:pt-10 md:pt-12">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
           How Can We Help?
         </h1>
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-          Whether you&apos;re a member looking for savings, a brand or hospitality venue
-          interested in partnering, or just have a general question, our team is ready to
-          assist.
-        </p>
+        {stockup ? null : (
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
+            Whether you&apos;re a member looking for savings, a brand or hospitality venue
+            interested in partnering, or just have a general question, our team is ready to
+            assist.
+          </p>
+        )}
       </div>
     </section>
   );

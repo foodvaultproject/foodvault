@@ -124,7 +124,57 @@
   --shadow-card-hover: 0 12px 40px rgba(111, 92, 232, 0.1);
   --shadow-button: 0 8px 20px rgba(139, 124, 246, 0.25);
   --shadow-button-hover: 0 12px 28px rgba(139, 124, 246, 0.32);
-  --ring: rgba(139, 124, 246, 0.15);
+}
+
+.stockup-contact {
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-pressed: #047857;
+  --color-primary-accent: #059669;
+  --color-surface-lavender: #ecfdf5;
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-pressed: #047857;
+  --primary-accent: #059669;
+  --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --primary-gradient-hover: linear-gradient(135deg, #059669 0%, #047857 100%);
+  --surface-lavender: #ecfdf5;
+  --shadow-button: 0 8px 20px rgba(16, 185, 129, 0.25);
+  --shadow-button-hover: 0 12px 28px rgba(16, 185, 129, 0.32);
+  --ring: rgba(16, 185, 129, 0.2);
+}
+
+.stockup-contact .text-primary,
+.stockup-contact .hover\:text-primary-hover:hover {
+  color: #10b981 !important;
+}
+
+.stockup-contact .border-primary {
+  border-color: #10b981 !important;
+}
+
+.stockup-contact .bg-primary\/5,
+.stockup-contact .hover\:bg-primary\/5:hover {
+  background-color: rgb(16 185 129 / 0.05) !important;
+}
+
+.stockup-contact .hover\:border-primary\/40:hover {
+  border-color: rgb(16 185 129 / 0.4) !important;
+}
+
+.stockup-contact .focus\:border-primary:focus {
+  border-color: #10b981 !important;
+}
+
+.stockup-contact .focus\:ring-primary:focus,
+.stockup-contact .focus\:ring-primary\/20:focus {
+  --tw-ring-color: rgb(16 185 129 / 0.2);
+  box-shadow: 0 0 0 2px rgb(16 185 129 / 0.2);
+}
+
+.stockup-contact .from-surface-lavender {
+  --tw-gradient-from: #ecfdf5;
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
 }
 
 body {
