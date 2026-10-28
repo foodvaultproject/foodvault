@@ -9,11 +9,13 @@ import {
   affiliateNavMenuItems,
   memberNavMenuItems,
   partnerNavMenuItems,
+  stockupMemberNavMenuItems,
 } from "@/lib/nav-auth";
 import { FavoritesNavLink } from "@/components/favorites/FavoritesNavLink";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { useIsActiveMember } from "@/components/member/MemberSignupCtaProvider";
 import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
+import { emitGroceryListOpen } from "@/lib/commerce/grocery-list";
 import {
   CONSUMER_BROWSE_PATHS,
   CONSUMER_PARTNER_DIRECTORY_PATH,
@@ -293,7 +295,9 @@ function MobileAuthSection({
       ? partnerNavMenuItems
       : auth.status === "affiliate"
         ? affiliateNavMenuItems
-        : memberNavMenuItems;
+        : stockup
+          ? stockupMemberNavMenuItems
+          : memberNavMenuItems;
 
   async function handleLogout() {
     onNavigate();
@@ -324,6 +328,22 @@ function MobileAuthSection({
           menuPreview={menuPreview}
           mobileMenu
         />
+      ) : null}
+      {stockup && auth.status === "member" ? (
+        <button
+          type="button"
+          onClick={() => {
+            onNavigate();
+            emitGroceryListOpen();
+          }}
+          className={`block w-full rounded-lg px-3 py-2.5 text-left text-base font-medium transition-colors ${
+            menuPreview
+              ? "text-white/90 hover:bg-white/10 hover:text-white"
+              : "text-foreground hover:bg-primary/5 hover:text-primary"
+          }`}
+        >
+          My Grocery List
+        </button>
       ) : null}
       {items.map((item) => (
         <Link

@@ -18,11 +18,19 @@ export type MemberOrderReorderLine = {
   quantity: number;
 };
 
+export type MemberOrderLine = {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+};
+
 export type MemberOrderHistoryItem = {
   id: string;
   shortId: string;
   createdAt: string;
   total: number;
+  subtotal: number;
   totalSavings: number;
   status: FoodVaultOrderStatus;
   displayStatus: MemberOrderDisplayStatus;
@@ -30,6 +38,9 @@ export type MemberOrderHistoryItem = {
   trackingUrl: string | null;
   thumbnails: string[];
   reorderLines: MemberOrderReorderLine[];
+  lines: MemberOrderLine[];
+  shippingName: string | null;
+  shippingAddress: string | null;
 };
 
 function asNumber(value: unknown, fallback = 0): number {
@@ -110,6 +121,20 @@ export async function getMemberVaultMarketOrders(
     const trackingNumber = asString(row.tracking_number) || null;
     const thumbnails: string[] = [];
     const reorderLines: MemberOrderReorderLine[] = [];
+    const lines: MemberOrderLine[] = lineRows.map((item) => ({
+      name: asString(item.name, "Item"),
+      quantity: Math.max(1, Math.trunc(asNumber(item.quantity, 1))),
+      unitPrice: asNumber(item.unit_price),
+      lineTotal: asNumber(item.line_total),
+    }));
+    const shippingParts = [
+      asString(row.shipping_line1),
+      asString(row.shipping_line2),
+      asString(row.shipping_city),
+      asString(row.shipping_state),
+      asString(row.shipping_postal_code),
+      asString(row.shipping_country),
+    ].filter(Boolean);
 
     for (const item of lineRows) {
       const product =
@@ -133,6 +158,7 @@ export async function getMemberVaultMarketOrders(
       shortId: shortOrderId(orderId),
       createdAt: asString(row.created_at),
       total: asNumber(row.total),
+      subtotal: asNumber(row.subtotal, asNumber(row.total)),
       totalSavings: asNumber(row.total_savings),
       status: asString(row.status, "paid") as FoodVaultOrderStatus,
       displayStatus: memberOrderDisplayStatus(asString(row.status, "paid"), trackingNumber),
@@ -140,6 +166,9 @@ export async function getMemberVaultMarketOrders(
       trackingUrl: trackingNumber ? courierTrackingUrl(trackingNumber) : null,
       thumbnails,
       reorderLines,
+      lines,
+      shippingName: asString(row.shipping_name) || null,
+      shippingAddress: shippingParts.join(", ") || null,
     };
   });
 }
@@ -149,4 +178,12 @@ export function lifetimeMemberSavings(orders: MemberOrderHistoryItem[]): number 
     if (order.status === "cancelled" || order.status === "refunded") return sum;
     return sum + Math.max(0, order.totalSavings);
   }, 0);
+}
+
+export async function getMemberVaultMarketOrder(
+  memberId: string,
+  orderId: string
+): Promise<MemberOrderHistoryItem | null> {
+  const orders = await getMemberVaultMarketOrders(memberId);
+  return orders.find((order) => order.id === orderId) ?? null;
 }

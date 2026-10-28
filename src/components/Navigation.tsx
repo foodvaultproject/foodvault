@@ -21,6 +21,7 @@ import {
   affiliateNavMenuItems,
   memberNavMenuItems,
   partnerNavMenuItems,
+  stockupMemberNavMenuItems,
   type NavAuthState,
 } from "@/lib/nav-auth";
 import { FavoritesNavLink } from "@/components/favorites/FavoritesNavLink";
@@ -35,6 +36,7 @@ import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
 import { VaultMarketShippingBar } from "@/components/VaultMarketShippingBar";
 import { linkVisibleInMode, type AppMode } from "@/lib/app-mode";
+import { emitGroceryListOpen } from "@/lib/commerce/grocery-list";
 import {
   NAV_MENU_CTA_CLASS,
   NAV_MENU_PREVIEW_ENABLED,
@@ -195,7 +197,9 @@ function AccountDropdown({
         ? affiliateNavMenuItems
       : auth.status === "admin"
         ? [{ href: "/admin/dashboard", label: "Admin Dashboard" }]
-        : memberNavMenuItems;
+        : stockup
+          ? stockupMemberNavMenuItems
+          : memberNavMenuItems;
   const items = sourceItems.filter((item) => linkVisibleInMode(item.href, appMode));
 
   useEffect(() => {
@@ -254,6 +258,19 @@ function AccountDropdown({
           role="menu"
           className="fv-dropdown absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-lg border border-border bg-background py-1 shadow-card"
         >
+          {stockup && auth.status === "member" ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                emitGroceryListOpen();
+              }}
+              className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+            >
+              My Grocery List
+            </button>
+          ) : null}
           {items.map((item) => (
             <Link
               key={item.label}

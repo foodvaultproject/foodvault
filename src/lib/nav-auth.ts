@@ -38,4 +38,11 @@ export const memberNavMenuItems = [
   { href: "/contact", label: "Help & Support" },
 ] as const;
 
+export const stockupMemberNavMenuItems = [
+  { href: "/", label: "Home" },
+  { href: "/account/history", label: "My History" },
+  { href: MEMBER_ACCOUNT_PATH, label: "My Account" },
+  { href: "/contact", label: "Help & Support" },
+] as const;
+
 export { MEMBER_FAVORITES_PATH };

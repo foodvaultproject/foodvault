@@ -6,11 +6,14 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { CartDrawer } from "@/components/pantry/CartDrawer";
 import { GroceryListDrawer } from "@/components/pantry/GroceryListDrawer";
+import { LOGIN_PATH, getAuthSession } from "@/lib/auth";
 import {
   VAULT_MARKET_CART_CHANGE_EVENT,
   VAULT_MARKET_CART_OPEN_EVENT,
@@ -60,6 +63,8 @@ export function usePantryMarket() {
   return value;
 }
 
+const PENDING_GROCERY_KEY = "stockup.pending-grocery";
+
 export function PantryMarketProvider({
   products,
   children,
@@ -67,6 +72,8 @@ export function PantryMarketProvider({
   products: FoodVaultProduct[];
   children: ReactNode;
 }) {
+  const router = useRouter();
+  const appliedGroceryIntent = useRef(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [groceryList, setGroceryList] = useState<GroceryListItem[]>([]);
   const [liveQuery, setLiveQuery] = useState("");
@@ -90,9 +97,6 @@ export function PantryMarketProvider({
     if (consumeVaultMarketCartOpenFlag()) {
       setGroceryOpen(false);
       setCartOpen(true);
-    } else if (consumeGroceryListOpenFlag()) {
-      setCartOpen(false);
-      setGroceryOpen(true);
     }
 
     function handleCartOpen() {
@@ -101,8 +105,11 @@ export function PantryMarketProvider({
     }
 
     function handleGroceryOpen() {
-      setCartOpen(false);
-      setGroceryOpen(true);
+      void (async () => {
+        if (!(await requireGroceryAccess())) return;
+        setCartOpen(false);
+        setGroceryOpen(true);
+      })();
     }
 
     function handleCartChange() {
@@ -151,11 +158,26 @@ export function PantryMarketProvider({
     [cart, persistCart]
   );
 
+  const requireGroceryAccess = useCallback(async (productId?: string) => {
+    const session = await getAuthSession();
+    if (session) return true;
+    if (productId) sessionStorage.setItem(PENDING_GROCERY_KEY, productId);
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set("openGrocery", "1");
+    router.push(
+      `${LOGIN_PATH}?next=${encodeURIComponent(`${nextUrl.pathname}${nextUrl.search}`)}`
+    );
+    return false;
+  }, [router]);
+
   const toggleGrocery = useCallback(
     (product: FoodVaultProduct) => {
-      persistGrocery(toggleGroceryListItem(groceryList, product));
+      void (async () => {
+        if (!(await requireGroceryAccess(product.id))) return;
+        persistGrocery(toggleGroceryListItem(groceryList, product));
+      })();
     },
-    [groceryList, persistGrocery]
+    [groceryList, persistGrocery, requireGroceryAccess]
   );
 
   const isSaved = useCallback(
@@ -169,9 +191,51 @@ export function PantryMarketProvider({
   }, []);
 
   const openGrocery = useCallback(() => {
-    setCartOpen(false);
-    setGroceryOpen(true);
-  }, []);
+    void (async () => {
+      if (!(await requireGroceryAccess())) return;
+      setCartOpen(false);
+      setGroceryOpen(true);
+    })();
+  }, [requireGroceryAccess]);
+
+  useEffect(() => {
+    if (!consumeGroceryListOpenFlag()) return;
+    openGrocery();
+  }, [openGrocery]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pendingId = sessionStorage.getItem(PENDING_GROCERY_KEY);
+    const shouldOpen = params.get("openGrocery") === "1";
+    if (!shouldOpen && !pendingId) return;
+
+    void (async () => {
+      if (appliedGroceryIntent.current) return;
+      const session = await getAuthSession();
+      if (!session) return;
+      if (pendingId) {
+        const product = products.find((item) => item.id === pendingId);
+        if (!product) return;
+        sessionStorage.removeItem(PENDING_GROCERY_KEY);
+        setGroceryList((current) => {
+          if (current.some((item) => item.product_id === pendingId)) return current;
+          const next = toggleGroceryListItem(current, product);
+          writeGroceryList(next);
+          return next;
+        });
+      }
+      appliedGroceryIntent.current = true;
+      if (shouldOpen) {
+        setCartOpen(false);
+        setGroceryOpen(true);
+        params.delete("openGrocery");
+        const search = params.toString();
+        router.replace(search ? `${window.location.pathname}?${search}` : window.location.pathname, {
+          scroll: false,
+        });
+      }
+    })();
+  }, [products, router]);
 
   const value = useMemo<PantryMarketContextValue>(
     () => ({

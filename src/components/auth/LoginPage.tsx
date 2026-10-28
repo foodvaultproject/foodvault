@@ -65,7 +65,7 @@ function GoogleIcon() {
   );
 }
 
-function LoginForm() {
+function LoginForm({ stockup }: { stockup: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
@@ -200,23 +200,24 @@ function LoginForm() {
   };
 
   return (
-    <section className="bg-surface-lavender py-7 sm:py-10 md:py-12">
+    <section className={stockup ? "bg-[#ecfdf5] py-7 sm:py-10 md:py-12" : "bg-surface-lavender py-7 sm:py-10 md:py-12"}>
       <div className="mx-auto max-w-lg px-4 sm:px-6">
         <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
           <div className="p-6 sm:p-8">
-          <LoginModeTabs active="member" />
+          {stockup ? null : <LoginModeTabs active="member" />}
           {checkingSession ? (
             <div className="flex min-h-[40vh] items-center justify-center">
               <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
           ) : (
             <>
-          <h1 className="mt-6 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Member Login
+          <h1 className={`${stockup ? "" : "mt-6"} text-3xl font-bold tracking-tight text-foreground sm:text-4xl`}>
+            {stockup ? "Log in" : "Member Login"}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Log in to access your FoodVault membership, browse participating brands
-            and local venues, save your favourites, and manage your account.
+            {stockup
+              ? "Log in to open your saved grocery list, then review the orders and invoices in My History."
+              : "Log in to access your FoodVault membership, browse participating brands and local venues, save your favourites, and manage your account."}
           </p>
 
           <button
@@ -250,7 +251,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className={`mt-2 ${inputClass}`}
+                className={`mt-2 ${inputClass} ${stockup ? "focus:border-vm-primary focus:ring-vm-primary/20" : ""}`}
               />
             </div>
 
@@ -267,7 +268,7 @@ function LoginForm() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`${inputClass} pr-11`}
+                  className={`${inputClass} pr-11 ${stockup ? "focus:border-vm-primary focus:ring-vm-primary/20" : ""}`}
                 />
                 <button
                   type="button"
@@ -301,7 +302,7 @@ function LoginForm() {
               </label>
               <Link
                 href={`${FORGOT_PASSWORD_PATH}${email ? `?email=${encodeURIComponent(email)}` : ""}`}
-                className="text-sm font-semibold text-primary hover:text-primary-hover"
+                className={`text-sm font-semibold ${stockup ? "text-vm-primary" : "text-primary hover:text-primary-hover"}`}
               >
                 Forgot your password?
               </Link>
@@ -341,13 +342,23 @@ function LoginForm() {
             <button
               type="submit"
               disabled={submitting}
-              className="fv-btn-primary flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+              className={
+                stockup
+                  ? "flex w-full items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#059669] disabled:cursor-not-allowed disabled:opacity-60"
+                  : "fv-btn-primary flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+              }
             >
               {submitting ? "Signing in..." : "Log In"}
             </button>
           </form>
 
           <div className="mt-8 border-t border-border pt-8">
+            {stockup ? (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Saving a product to My Grocery List, and viewing orders or invoices in My History, is available after you log in.
+              </p>
+            ) : (
+              <>
             <p className="text-sm leading-relaxed text-muted-foreground">
               New to FoodVault? Unlock exclusive member perks from participating
               Kiwi brands and local hospitality venues. Browse every offer for free,
@@ -357,6 +368,8 @@ function LoginForm() {
               variant="unlock-discounts"
               className="mt-4 inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-6 py-3.5 text-base font-semibold text-primary transition-colors hover:bg-primary/5"
             />
+              </>
+            )}
           </div>
             </>
           )}
@@ -367,16 +380,16 @@ function LoginForm() {
   );
 }
 
-export function LoginPage() {
+export function LoginPage({ stockup = false }: { stockup?: boolean }) {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[50vh] items-center justify-center bg-surface-lavender">
+        <div className={`flex min-h-[50vh] items-center justify-center ${stockup ? "bg-[#ecfdf5]" : "bg-surface-lavender"}`}>
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       }
     >
-      <LoginForm />
+      <LoginForm stockup={stockup} />
     </Suspense>
   );
 }
