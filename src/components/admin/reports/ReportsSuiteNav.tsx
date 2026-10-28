@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getAppMode, routeOwner } from "@/lib/app-mode";
 
 const tabs = [
   { href: "/admin/reports", label: "Brand reports", exact: true },
@@ -12,10 +13,15 @@ const tabs = [
 
 export function ReportsSuiteNav() {
   const pathname = usePathname();
+  const mode = getAppMode();
+  const visibleTabs = tabs.filter((tab) => {
+    const owner = routeOwner(tab.href);
+    return owner === "shared" || owner === mode;
+  });
 
   return (
     <div className="flex flex-wrap gap-2 rounded border border-border bg-white p-1">
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
         return (
           <Link

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
+import { STOCKUP_ORIGIN, type AppMode } from "@/lib/app-mode";
 import type { NavAuthState } from "@/lib/nav-auth";
 import {
   affiliateNavMenuItems,
@@ -36,8 +36,8 @@ type AppNavLink = {
   external?: boolean;
 };
 
-function getNavLinks(): AppNavLink[] {
-  if (getAppMode() === "stockup") {
+function getNavLinks(appMode: AppMode): AppNavLink[] {
+  if (appMode === "stockup") {
     return [
       { href: "/?categories=1", label: "Categories" },
       { href: "/?deals=1", label: "Deals" },
@@ -110,6 +110,7 @@ function isNavLinkActive(
 }
 
 export function NavLinks(props: {
+  appMode: AppMode;
   mobile?: boolean;
   isPartner?: boolean;
   menuPreview?: boolean;
@@ -122,10 +123,12 @@ export function NavLinks(props: {
 }
 
 function NavLinksContent({
+  appMode,
   mobile = false,
   isPartner = false,
   menuPreview = false,
 }: {
+  appMode: AppMode;
   mobile?: boolean;
   isPartner?: boolean;
   menuPreview?: boolean;
@@ -134,7 +137,7 @@ function NavLinksContent({
   const searchParams = useSearchParams();
   const isActiveMember = useIsActiveMember();
 
-  const navLinks = getNavLinks();
+  const navLinks = getNavLinks(appMode);
   const hiddenHrefs = isPartner
     ? PARTNER_HIDDEN_HREFS
     : isActiveMember
@@ -390,6 +393,7 @@ function MobileLogoutButton({
 }
 
 export function MobileMenu({
+  appMode,
   auth,
   menuPreview = false,
   vaultMarket = false,
@@ -397,6 +401,7 @@ export function MobileMenu({
   open: controlledOpen,
   onOpenChange,
 }: {
+  appMode: AppMode;
   auth: NavAuthState;
   menuPreview?: boolean;
   vaultMarket?: boolean;
@@ -474,7 +479,12 @@ export function MobileMenu({
           >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
               <nav className="space-y-1" aria-label="Mobile navigation">
-                <NavLinks mobile isPartner={auth.status === "partner"} menuPreview={menuPreview} />
+                <NavLinks
+                  appMode={appMode}
+                  mobile
+                  isPartner={auth.status === "partner"}
+                  menuPreview={menuPreview}
+                />
               </nav>
               <MobileAuthSection
                 auth={auth}

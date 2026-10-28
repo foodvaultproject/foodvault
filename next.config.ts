@@ -1,4 +1,13 @@
 import type { NextConfig } from "next";
+import {
+  FOODVAULT_EXACT_ROUTES,
+  FOODVAULT_GUARDED_PREFIXES,
+  FOODVAULT_HOSTS,
+  FOODVAULT_ORIGIN,
+  STOCKUP_GUARDED_PREFIXES,
+  STOCKUP_HOSTS,
+  STOCKUP_ORIGIN,
+} from "./src/lib/mode-routes";
 
 function supabaseStorageHostname(): string | null {
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,11 +26,18 @@ const supabaseStoragePattern = {
   pathname: "/storage/v1/object/public/**",
 };
 
-const STOCKUP_HOSTS = ["stockup.co.nz", "www.stockup.co.nz"];
-const FOODVAULT_HOSTS = ["foodvault.co.nz", "www.foodvault.co.nz"];
+function prefixRedirects(
+  prefixes: readonly string[],
+  origin: string
+): { source: string; destination: string }[] {
+  return prefixes.flatMap((prefix) => [
+    { source: prefix, destination: `${origin}${prefix}` },
+    { source: `${prefix}/:path*`, destination: `${origin}${prefix}/:path*` },
+  ]);
+}
 
 function hostRedirects(
-  hosts: string[],
+  hosts: readonly string[],
   rules: { source: string; destination: string }[]
 ): { source: string; destination: string; permanent: false; has: [{ type: "host"; value: string }] }[] {
   return hosts.flatMap((host) =>
@@ -44,21 +60,19 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       ...hostRedirects(STOCKUP_HOSTS, [
-        { source: "/vault-market", destination: "https://www.foodvault.co.nz/vault-market" },
-        { source: "/vault-market/:path*", destination: "https://www.foodvault.co.nz/vault-market/:path*" },
-        { source: "/brands", destination: "https://www.foodvault.co.nz/brands" },
-        { source: "/brands/:path*", destination: "https://www.foodvault.co.nz/brands/:path*" },
-        { source: "/partners", destination: "https://www.foodvault.co.nz/partners" },
-        { source: "/partners/:path*", destination: "https://www.foodvault.co.nz/partners/:path*" },
-        { source: "/browse-brands", destination: "https://www.foodvault.co.nz/browse-brands" },
-        { source: "/browse-brands/:path*", destination: "https://www.foodvault.co.nz/browse-brands/:path*" },
+        ...FOODVAULT_EXACT_ROUTES.map((source) => ({
+          source,
+          destination: `${FOODVAULT_ORIGIN}${source}`,
+        })),
+        ...prefixRedirects(FOODVAULT_GUARDED_PREFIXES, FOODVAULT_ORIGIN),
       ]),
       ...hostRedirects(FOODVAULT_HOSTS, [
-        { source: "/pantry", destination: "https://www.stockup.co.nz" },
-        { source: "/pantry/:path*", destination: "https://www.stockup.co.nz/:path*" },
-        { source: "/checkout", destination: "https://www.stockup.co.nz/checkout" },
-        { source: "/list", destination: "https://www.stockup.co.nz/list" },
-        { source: "/order-success", destination: "https://www.stockup.co.nz/order-success" },
+        { source: "/pantry", destination: STOCKUP_ORIGIN },
+        { source: "/pantry/:path*", destination: `${STOCKUP_ORIGIN}/:path*` },
+        ...prefixRedirects(
+          STOCKUP_GUARDED_PREFIXES.filter((prefix) => prefix !== "/pantry"),
+          STOCKUP_ORIGIN
+        ),
       ]),
       {
         source: "/signup/payment",

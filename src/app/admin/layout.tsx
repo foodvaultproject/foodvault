@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { getAppMode, siteDisplayName } from "@/lib/app-mode";
+
+const adminName = siteDisplayName(getAppMode());
 
 export const metadata: Metadata = {
-  title: "FoodVault OS",
-  description: "Internal administrative portal for FoodVault staff.",
+  title: `${adminName} OS`,
+  description: `Internal administrative portal for ${adminName} staff.`,
 };
 
 export default function AdminRootLayout({

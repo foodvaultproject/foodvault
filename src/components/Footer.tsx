@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { StockUpLogo } from "@/components/StockUpLogo";
-import { STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
+import { STOCKUP_ORIGIN, type AppMode } from "@/lib/app-mode";
 import { NAV_MENU_PREVIEW_ENABLED, VAULT_MARKET_FOOTER_BG, navChromeBgClass } from "@/lib/nav-menu-preview";
 
 const FOOTER_BANNER = "/footer/footer-banner.png";
@@ -34,8 +34,6 @@ const foodvaultFooterSections: { title: string; links: FooterLink[] }[] = [
     ],
   },
 ];
-
-const footerSections = getAppMode() === "stockup" ? stockupFooterSections : foodvaultFooterSections;
 
 const sharedFooterSections: { title: string; links: FooterLink[] }[] = [
   {
@@ -108,11 +106,21 @@ function FooterAnchor({
   );
 }
 
-function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
-  const stockup = getAppMode() === "stockup";
-  const sections = stockup
-    ? [...footerSections, ...sharedFooterSections.filter((section) => section.title !== "Help & Support")]
-    : [...footerSections, ...sharedFooterSections];
+function footerSectionsFor(appMode: AppMode) {
+  return appMode === "stockup" ? stockupFooterSections : foodvaultFooterSections;
+}
+
+function FooterLinkColumns({
+  appMode,
+  menuPreview,
+}: {
+  appMode: AppMode;
+  menuPreview: boolean;
+}) {
+  const sections =
+    appMode === "stockup"
+      ? [...footerSectionsFor(appMode), ...sharedFooterSections.filter((section) => section.title !== "Help & Support")]
+      : [...footerSectionsFor(appMode), ...sharedFooterSections];
   return (
     <>
       {sections.map((section) => (
@@ -148,9 +156,11 @@ function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
 }
 
 function FooterBottomBar({
+  appMode,
   menuPreview,
   mobileBottomNavInset = false,
 }: {
+  appMode: AppMode;
   menuPreview: boolean;
   mobileBottomNavInset?: boolean;
 }) {
@@ -168,7 +178,7 @@ function FooterBottomBar({
     >
       <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
         {socialLinks
-          .filter((social) => getAppMode() !== "stockup" || social.label !== "Facebook")
+          .filter((social) => appMode === "foodvault" || social.label !== "Facebook")
           .map((social) => (
           <a
             key={social.label}
@@ -193,19 +203,21 @@ function FooterBottomBar({
           menuPreview ? "text-white" : "text-muted-foreground"
         }`}
       >
-        &copy; {getAppMode() === "stockup" ? "StockUp" : "FoodVault"} {new Date().getFullYear()}. All rights reserved.
+        &copy; {appMode === "stockup" ? "StockUp" : "FoodVault"} {new Date().getFullYear()}. All rights reserved.
       </p>
     </div>
   );
 }
 
 export function Footer({
+  appMode,
   mobileBottomNavInset = false,
 }: {
+  appMode: AppMode;
   mobileBottomNavInset?: boolean;
   vaultMarket?: boolean;
 }) {
-  const stockup = getAppMode() === "stockup";
+  const stockup = appMode === "stockup";
   const menuPreview = !stockup && NAV_MENU_PREVIEW_ENABLED;
   const branded = menuPreview || stockup;
   const chromeBg = stockup ? VAULT_MARKET_FOOTER_BG : navChromeBgClass(false, menuPreview);
@@ -247,7 +259,7 @@ export function Footer({
               </Link>
               <p className="text-sm leading-relaxed text-white">{description}</p>
             </div>
-            <FooterLinkColumns menuPreview />
+            <FooterLinkColumns appMode={appMode} menuPreview />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
@@ -261,11 +273,12 @@ export function Footer({
               </Link>
               <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{description}</p>
             </div>
-            <FooterLinkColumns menuPreview={false} />
+            <FooterLinkColumns appMode={appMode} menuPreview={false} />
           </div>
         )}
 
         <FooterBottomBar
+          appMode={appMode}
           menuPreview={branded}
           mobileBottomNavInset={mobileBottomNavInset}
         />

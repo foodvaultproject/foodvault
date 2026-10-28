@@ -1,12 +1,21 @@
 import { isVaultMarketPath } from "@/lib/consumer-nav-restructure";
+import {
+  FOODVAULT_EXACT_ROUTES,
+  FOODVAULT_GUARDED_PREFIXES,
+  FOODVAULT_HOSTS,
+  FOODVAULT_ORIGIN,
+  STOCKUP_GUARDED_PREFIXES,
+  STOCKUP_HOSTS,
+  STOCKUP_ORIGIN,
+} from "@/lib/mode-routes";
 
 export type AppMode = "stockup" | "foodvault";
+export type RouteOwner = "shared" | AppMode;
 
-export const STOCKUP_ORIGIN = "https://www.stockup.co.nz";
-export const FOODVAULT_ORIGIN = "https://www.foodvault.co.nz";
+export { FOODVAULT_ORIGIN, STOCKUP_ORIGIN };
 
-const STOCKUP_HOSTS = new Set(["stockup.co.nz", "www.stockup.co.nz"]);
-const FOODVAULT_HOSTS = new Set(["foodvault.co.nz", "www.foodvault.co.nz"]);
+const STOCKUP_HOST_SET = new Set<string>(STOCKUP_HOSTS);
+const FOODVAULT_HOST_SET = new Set<string>(FOODVAULT_HOSTS);
 
 const DIRECTORY_PREFIXES = ["/vault-market", "/brands", "/partners", "/browse-brands"];
 
@@ -15,15 +24,15 @@ export function normalizeHost(host: string | null | undefined): string {
   return first.split(":")[0].trim().toLowerCase();
 }
 
-/** Site mode for this deployment. A known production host wins over the env var. */
+/** Site mode for this deployment. A known production host wins over APP_MODE. */
 export function getAppMode(host?: string | null): AppMode {
   const hostname = normalizeHost(host);
-  if (STOCKUP_HOSTS.has(hostname)) return "stockup";
-  if (FOODVAULT_HOSTS.has(hostname)) return "foodvault";
+  if (STOCKUP_HOST_SET.has(hostname)) return "stockup";
+  if (FOODVAULT_HOST_SET.has(hostname)) return "foodvault";
 
-  const configured = process.env.NEXT_PUBLIC_APP_MODE?.trim().toLowerCase();
-  if (configured === "foodvault" || configured === "stockup") return configured;
-  return "stockup";
+  const configured = process.env.APP_MODE?.toLowerCase();
+  if (configured === "stockup") return "stockup";
+  return "foodvault";
 }
 
 export function isStockupMode(host?: string | null): boolean {
@@ -70,29 +79,54 @@ export function legacyLocalRedirect(mode: AppMode, pathname: string): string | n
   return null;
 }
 
+function matchesPrefix(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+/** Which deployment may render this path. Shared routes stay on both hosts. */
+export function routeOwner(pathname: string): RouteOwner {
+  if (pathname.startsWith("/api")) return "shared";
+
+  if ((FOODVAULT_EXACT_ROUTES as readonly string[]).includes(pathname)) return "foodvault";
+
+  if (STOCKUP_GUARDED_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix))) {
+    return "stockup";
+  }
+
+  if (FOODVAULT_GUARDED_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix))) {
+    return "foodvault";
+  }
+
+  if (isSupermarketRoute(pathname)) return "stockup";
+
+  return "shared";
+}
+
+export function linkVisibleInMode(href: string, mode: AppMode = getAppMode()): boolean {
+  const path = href.split("?")[0] || "/";
+  const owner = routeOwner(path);
+  return owner === "shared" || owner === mode;
+}
+
 export function crossDomainRedirect(
   mode: AppMode,
   pathname: string,
   search = ""
 ): string | null {
-  if (pathname.startsWith("/api") || pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/api")) return null;
+
+  const owner = routeOwner(pathname);
+  if (owner === "shared" || owner === mode) return null;
 
   const query = search ? (search.startsWith("?") ? search : `?${search}`) : "";
+  const origin = owner === "stockup" ? STOCKUP_ORIGIN : FOODVAULT_ORIGIN;
 
-  if (mode === "stockup" && isDirectoryRoute(pathname)) {
-    return `${FOODVAULT_ORIGIN}${pathname}${query}`;
-  }
-
-  if (mode === "foodvault" && (pathname === "/pantry" || pathname.startsWith("/pantry/"))) {
+  if (owner === "stockup" && (pathname === "/pantry" || pathname.startsWith("/pantry/"))) {
     const stripped = pathname.replace(/^\/pantry/, "") || "/";
-    return `${STOCKUP_ORIGIN}${stripped}${query}`;
+    return `${origin}${stripped}${query}`;
   }
 
-  if (mode === "foodvault" && isSupermarketRoute(pathname)) {
-    return `${STOCKUP_ORIGIN}${pathname}${query}`;
-  }
-
-  return null;
+  return `${origin}${pathname}${query}`;
 }
 
 export function isSupermarketOrderMetadata<

@@ -73,12 +73,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const products = getAppMode() === "stockup" ? await getActiveVaultMarketProducts() : [];
+  const appMode = getAppMode();
+  const products = appMode === "stockup" ? await getActiveVaultMarketProducts() : [];
 
   return (
     <html lang={locale.localeTag} className={`${hankenGrotesk.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
-        <SiteLayout products={products}>{children}</SiteLayout>
+        <SiteLayout appMode={appMode} products={products}>
+          {children}
+        </SiteLayout>
       </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>

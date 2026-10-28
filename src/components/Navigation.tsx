@@ -34,7 +34,7 @@ import { VaultMarketCartButton } from "@/components/pantry/VaultMarketCartButton
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
 import { VaultMarketShippingBar } from "@/components/VaultMarketShippingBar";
-import { getAppMode } from "@/lib/app-mode";
+import { linkVisibleInMode, type AppMode } from "@/lib/app-mode";
 import {
   NAV_MENU_CTA_CLASS,
   NAV_MENU_PREVIEW_ENABLED,
@@ -178,13 +178,17 @@ function AccountMenuButton({ open, menuPreview = false }: { open: boolean; menuP
 function AccountDropdown({
   auth,
   menuPreview = false,
+  stockup = false,
+  appMode,
 }: {
   auth: Extract<NavAuthState, { status: "member" | "partner" | "affiliate" | "admin" }>;
   menuPreview?: boolean;
+  stockup?: boolean;
+  appMode: AppMode;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const items =
+  const sourceItems =
     auth.status === "partner"
       ? partnerNavMenuItems
       : auth.status === "affiliate"
@@ -192,6 +196,7 @@ function AccountDropdown({
       : auth.status === "admin"
         ? [{ href: "/admin/dashboard", label: "Admin Dashboard" }]
         : memberNavMenuItems;
+  const items = sourceItems.filter((item) => linkVisibleInMode(item.href, appMode));
 
   useEffect(() => {
     if (!open) return;
@@ -260,7 +265,7 @@ function AccountDropdown({
               {item.label}
             </Link>
           ))}
-          {auth.status === "member" && auth.canSwitchToPartner ? (
+          {auth.status === "member" && auth.canSwitchToPartner && !stockup ? (
             <button
               type="button"
               role="menuitem"
@@ -270,7 +275,7 @@ function AccountDropdown({
               Switch to Partner Dashboard
             </button>
           ) : null}
-          {auth.status === "partner" && auth.canSwitchToMember ? (
+          {auth.status === "partner" && auth.canSwitchToMember && !stockup ? (
             <button
               type="button"
               role="menuitem"
@@ -299,10 +304,12 @@ function DesktopAuthActions({
   auth,
   menuPreview = false,
   stockup = false,
+  appMode,
 }: {
   auth: NavAuthState;
   menuPreview?: boolean;
   stockup?: boolean;
+  appMode: AppMode;
 }) {
   const isActiveMember = useIsActiveMember();
 
@@ -372,15 +379,15 @@ function DesktopAuthActions({
         />
       ) : null}
       {auth.status === "member" && !stockup ? <FavoritesNavLink menuPreview={menuPreview} /> : null}
-      <AccountDropdown auth={auth} menuPreview={menuPreview} />
+      <AccountDropdown auth={auth} menuPreview={menuPreview} stockup={stockup} appMode={appMode} />
     </div>
   );
 }
 
-export function Navigation() {
+export function Navigation({ appMode }: { appMode: AppMode }) {
   const auth = useNavAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const stockup = getAppMode() === "stockup";
+  const stockup = appMode === "stockup";
   const menuPreview = !stockup && NAV_MENU_PREVIEW_ENABLED;
   const chromeBg = stockup ? VAULT_MARKET_CHROME_BG : navChromeBgClass(false, menuPreview);
   return (
@@ -415,7 +422,11 @@ export function Navigation() {
 
         <div className="hidden min-w-0 flex-1 items-center justify-end gap-6 xl:flex">
           {!menuPreview && !stockup ? <NavSearch /> : null}
-          <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview || stockup} />
+          <NavLinks
+            appMode={appMode}
+            isPartner={auth.status === "partner"}
+            menuPreview={menuPreview || stockup}
+          />
           {stockup ? <VaultMarketCartButton variant="nav" menuPreview /> : null}
         </div>
 
@@ -426,9 +437,15 @@ export function Navigation() {
             </div>
           ) : null}
           <div className={stockup ? "hidden md:contents" : undefined}>
-            <DesktopAuthActions auth={auth} menuPreview={menuPreview} stockup={stockup} />
+            <DesktopAuthActions
+              auth={auth}
+              menuPreview={menuPreview}
+              stockup={stockup}
+              appMode={appMode}
+            />
           </div>
           <MobileMenu
+            appMode={appMode}
             auth={auth}
             menuPreview={menuPreview || stockup}
             vaultMarket={stockup}

@@ -10,7 +10,7 @@ import { Navigation } from "@/components/Navigation";
 import { NavigationPrefetch } from "@/components/navigation/NavigationPrefetch";
 import { PantryMarketHeader } from "@/components/pantry/PantryMarketHeader";
 import { PantryMarketProvider } from "@/components/pantry/PantryMarketProvider";
-import { getAppMode } from "@/lib/app-mode";
+import type { AppMode } from "@/lib/app-mode";
 import {
   isExplorePath,
   isPartnerDirectoryPath,
@@ -22,12 +22,14 @@ import type { FoodVaultProduct } from "@/types/commerce";
 export function SiteLayout({
   children,
   products,
+  appMode,
 }: {
   children: React.ReactNode;
   products: FoodVaultProduct[];
+  appMode: AppMode;
 }) {
   const pathname = usePathname();
-  const stockup = getAppMode() === "stockup";
+  const stockup = appMode === "stockup";
   const isAdmin = pathname.startsWith("/admin");
   const showStorefrontHeader = stockup && isVaultMarketPath(pathname);
   const showConsumerSecondaryNav =
@@ -50,7 +52,7 @@ export function SiteLayout({
     <>
       <AuthSessionRefresh />
       <NavigationPrefetch />
-      <Navigation />
+      <Navigation appMode={appMode} />
       {showConsumerSecondaryNav ? <ConsumerSecondaryNav /> : null}
       <main
         className={`min-w-0 flex-1 bg-page ${
@@ -66,7 +68,7 @@ export function SiteLayout({
         ) : null}
         {children}
       </main>
-      <Footer mobileBottomNavInset={showConsumerSecondaryNav} />
+      <Footer appMode={appMode} mobileBottomNavInset={showConsumerSecondaryNav} />
     </>
   );
 
