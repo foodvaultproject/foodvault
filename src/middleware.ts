@@ -10,6 +10,13 @@ export async function middleware(request: NextRequest) {
   const mode = getAppMode(
     request.headers.get("x-forwarded-host") ?? request.headers.get("host")
   );
+  if (pathname === "/favicon.ico" && mode === "stockup") {
+    const iconUrl = request.nextUrl.clone();
+    iconUrl.pathname = "/Favicon/favicon_stockup.png";
+    return NextResponse.rewrite(iconUrl);
+  }
+
+  // Mode-exclusive public pages and admin sections go to the other domain.
   const crossDomain = crossDomainRedirect(mode, pathname, request.nextUrl.search);
   if (crossDomain) {
     return NextResponse.redirect(crossDomain, 307);
@@ -98,6 +105,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|sitemap.xml|robots.txt|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

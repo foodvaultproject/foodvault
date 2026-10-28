@@ -33,8 +33,19 @@ const openGraphImage = {
   alt: siteName,
 } as const;
 
+const stockupFavicon = "/Favicon/favicon_stockup.png";
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
+  ...(stockupSite
+    ? {
+        icons: {
+          icon: [{ url: stockupFavicon, type: "image/png", sizes: "2750x2750" }],
+          shortcut: [{ url: stockupFavicon, type: "image/png" }],
+          apple: [{ url: stockupFavicon, type: "image/png" }],
+        },
+      }
+    : {}),
   title: {
     default: defaultTitle,
     template: `%s | ${siteName}`,
