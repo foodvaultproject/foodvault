@@ -36,44 +36,36 @@ export function renderAdminNewContactEnquiryEmail(
   params: AdminNewContactEnquiryEmailParams
 ): RenderedEmail {
   const appUrl = requireField(params.appUrl, "appUrl").replace(/\/$/, "");
-  const referenceNumber = requireField(params.referenceNumber, "referenceNumber");
   const name = requireField(params.name, "name");
   const email = requireField(params.email, "email");
-  const enquiryType = requireField(params.enquiryType, "enquiryType");
   const subjectLine = requireField(params.subject, "subject");
   const message = requireField(params.message, "message");
 
-  const contactCentreUrl = `${appUrl}/admin/contact?q=${encodeURIComponent(referenceNumber)}`;
-  const subject = `[FoodVault Contact Centre] New Enquiry: ${subjectLine} (${referenceNumber})`;
+  const dashboardUrl = `${appUrl}/admin/dashboard`;
+  const subject = `New contact form message from ${name}`;
 
   const content = [
-    emailHeading("New contact enquiry"),
-    emailParagraph(
-      "A new FoodVault contact enquiry has been submitted and is waiting in the Contact Centre."
-    ),
-    emailDetailRow("Reference number", referenceNumber),
-    emailDetailRow("Name", name),
-    emailDetailRow("Email", email),
-    emailDetailRow("Enquiry type", enquiryType),
+    emailHeading("New contact form message"),
+    emailParagraph("Log in to the admin dashboard to review this enquiry."),
+    emailDetailRow("From", `${name} (${email})`),
     emailDetailRow("Subject", subjectLine),
     emailParagraph("<strong>Message</strong>"),
     emailMessageBlock(message),
-    emailButton(contactCentreUrl, "Open Contact Centre"),
+    emailButton(dashboardUrl, "Log in to the admin dashboard"),
   ].join("");
 
   const text = [
-    "New FoodVault contact enquiry",
+    "New contact form message",
     "",
-    `Reference number: ${referenceNumber}`,
-    `Name: ${name}`,
-    `Email: ${email}`,
-    `Enquiry type: ${enquiryType}`,
+    "Log in to the admin dashboard to review this enquiry.",
+    "",
+    `From: ${name} (${email})`,
     `Subject: ${subjectLine}`,
     "",
     "Message:",
     message,
     "",
-    `Open Contact Centre: ${contactCentreUrl}`,
+    `Admin dashboard: ${dashboardUrl}`,
   ].join("\n");
 
   return {
@@ -81,7 +73,7 @@ export function renderAdminNewContactEnquiryEmail(
     html: wrapEmailContent(
       appUrl,
       content,
-      `New FoodVault enquiry ${referenceNumber} from ${escapeHtml(name)}.`
+      `New contact form message from ${escapeHtml(name)}. Log in to the admin dashboard to review it.`
     ),
     text,
   };

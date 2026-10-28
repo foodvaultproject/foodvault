@@ -189,7 +189,7 @@ export async function sendAdminContactEnquiryEmail(input: {
 }) {
   const appUrl = getEmailAppUrl();
   const result = await sendPlatformEmail({
-    to: CONTACT_CENTRE_ADMIN_EMAIL,
+    to: "mark@benchmark-int.com",
     from: CONTACT_CENTRE_FROM_EMAIL,
     replyTo: input.email,
     rendered: renderAdminNewContactEnquiryEmail({
