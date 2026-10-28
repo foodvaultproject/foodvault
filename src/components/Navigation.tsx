@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MobileMenu } from "@/components/NavLinks";
 import { NavLinks } from "@/components/NavLinks";
@@ -30,15 +29,18 @@ import { isPartnerAccount } from "@/lib/partner-data";
 import { isAffiliateAccount } from "@/lib/affiliate/auth";
 import { createClient } from "@/lib/supabase/client";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
+import { StockUpLogo } from "@/components/StockUpLogo";
+import { VaultMarketCartButton } from "@/components/pantry/VaultMarketCartButton";
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
 import { VaultMarketShippingBar } from "@/components/VaultMarketShippingBar";
+import { getAppMode } from "@/lib/app-mode";
 import {
   NAV_MENU_CTA_CLASS,
   NAV_MENU_PREVIEW_ENABLED,
+  VAULT_MARKET_CHROME_BG,
   navChromeBgClass,
 } from "@/lib/nav-menu-preview";
-import { isVaultMarketPath } from "@/lib/consumer-nav-restructure";
 
 export type { NavAuthState } from "@/lib/nav-auth";
 
@@ -296,9 +298,11 @@ function AccountDropdown({
 function DesktopAuthActions({
   auth,
   menuPreview = false,
+  stockup = false,
 }: {
   auth: NavAuthState;
   menuPreview?: boolean;
+  stockup?: boolean;
 }) {
   const isActiveMember = useIsActiveMember();
 
@@ -331,7 +335,7 @@ function DesktopAuthActions({
           <Link
             href={LOGIN_PATH}
             className={`hidden text-sm font-medium transition-colors lg:inline-block ${
-              menuPreview
+              menuPreview || stockup
                 ? "text-white hover:text-white/80"
                 : "text-muted-foreground hover:text-primary"
             }`}
@@ -339,23 +343,25 @@ function DesktopAuthActions({
             Login
           </Link>
         )}
-        <MemberSignupCtaLink
-          variant="unlock-discounts-nav"
-          className={
-            menuPreview
-              ? NAV_MENU_CTA_CLASS
-              : "fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
-          }
-        >
-          Unlock Discounts
-        </MemberSignupCtaLink>
+        {stockup ? null : (
+          <MemberSignupCtaLink
+            variant="unlock-discounts-nav"
+            className={
+              menuPreview
+                ? NAV_MENU_CTA_CLASS
+                : "fv-btn-primary inline-flex shrink-0 items-center justify-center rounded-sm px-3 py-2 text-xs font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 sm:px-4 sm:text-sm md:px-5"
+            }
+          >
+            Unlock Discounts
+          </MemberSignupCtaLink>
+        )}
       </div>
     );
   }
 
   return (
     <div className="hidden items-center gap-3 xl:flex">
-      {auth.status === "member" && !isActiveMember ? (
+      {auth.status === "member" && !isActiveMember && !stockup ? (
         <MemberSignupCtaLink
           variant="unlock-discounts"
           className={
@@ -365,7 +371,7 @@ function DesktopAuthActions({
           }
         />
       ) : null}
-      {auth.status === "member" ? <FavoritesNavLink menuPreview={menuPreview} /> : null}
+      {auth.status === "member" && !stockup ? <FavoritesNavLink menuPreview={menuPreview} /> : null}
       <AccountDropdown auth={auth} menuPreview={menuPreview} />
     </div>
   );
@@ -373,23 +379,21 @@ function DesktopAuthActions({
 
 export function Navigation() {
   const auth = useNavAuth();
-  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const vaultMarket = isVaultMarketPath(pathname);
-  const menuPreview = NAV_MENU_PREVIEW_ENABLED;
-  const chromeBg = navChromeBgClass(vaultMarket, menuPreview);
-  const logoVariant = vaultMarket ? (menuPreview ? "menu" : "default") : "vault-market";
+  const stockup = getAppMode() === "stockup";
+  const menuPreview = !stockup && NAV_MENU_PREVIEW_ENABLED;
+  const chromeBg = stockup ? VAULT_MARKET_CHROME_BG : navChromeBgClass(false, menuPreview);
   return (
     <header
       className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
-        menuPreview || vaultMarket ? chromeBg : "bg-white"
+        menuPreview || stockup ? chromeBg : "bg-white"
       }`}
     >
-      {vaultMarket ? <VaultMarketShippingBar /> : null}
-      {!menuPreview && !vaultMarket ? <NzAnnouncementBar /> : null}
+      {stockup ? <VaultMarketShippingBar /> : null}
+      {!menuPreview && !stockup ? <NzAnnouncementBar /> : null}
       <nav
         className={`mx-auto flex h-[4.25rem] max-w-[1200px] min-w-0 items-center justify-between gap-2 overflow-x-clip px-4 sm:gap-4 sm:px-6 lg:px-8 xl:gap-6 ${
-          menuPreview || vaultMarket
+          menuPreview || stockup
             ? `border-b border-white/15 ${chromeBg}`
             : "border-b border-border bg-white"
         }`}
@@ -399,29 +403,36 @@ export function Navigation() {
           <Link
             href="/"
             className="min-w-0 shrink transition-opacity hover:opacity-80"
-            aria-label="FoodVault home"
+            aria-label={stockup ? "StockUp home" : "FoodVault home"}
           >
-            <FoodVaultLogo
-              size="nav"
-              variant={logoVariant}
-              priority
-            />
+            {stockup ? (
+              <StockUpLogo size="nav" />
+            ) : (
+              <FoodVaultLogo size="nav" variant={menuPreview ? "menu" : "default"} priority />
+            )}
           </Link>
         </div>
 
         <div className="hidden min-w-0 flex-1 items-center justify-end gap-6 xl:flex">
-          {!menuPreview && !vaultMarket ? <NavSearch /> : null}
-          <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview} />
+          {!menuPreview && !stockup ? <NavSearch /> : null}
+          <NavLinks isPartner={auth.status === "partner"} menuPreview={menuPreview || stockup} />
+          {stockup ? <VaultMarketCartButton variant="nav" menuPreview /> : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-4 sm:gap-6">
-          <div className={vaultMarket ? "hidden md:contents" : undefined}>
-            <DesktopAuthActions auth={auth} menuPreview={menuPreview} />
+          {stockup ? (
+            <div className="xl:hidden">
+              <VaultMarketCartButton variant="nav" menuPreview />
+            </div>
+          ) : null}
+          <div className={stockup ? "hidden md:contents" : undefined}>
+            <DesktopAuthActions auth={auth} menuPreview={menuPreview} stockup={stockup} />
           </div>
           <MobileMenu
             auth={auth}
-            menuPreview={menuPreview}
-            vaultMarket={vaultMarket}
+            menuPreview={menuPreview || stockup}
+            vaultMarket={stockup}
+            stockup={stockup}
             open={mobileMenuOpen}
             onOpenChange={setMobileMenuOpen}
           />

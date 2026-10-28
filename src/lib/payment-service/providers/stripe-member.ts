@@ -15,6 +15,7 @@ type CreateMemberCheckoutSessionInput = {
   authUserId: string;
   email: string;
   stripeCustomerId?: string | null;
+  origin?: string | null;
 };
 
 export function getMemberPriceId(): string {
@@ -77,7 +78,7 @@ export async function createMemberCheckoutSession(
 
   const stripe = getStripeClient();
   const { appUrl } = getPaymentServiceConfig();
-  const baseUrl = appUrl.replace(/\/$/, "");
+  const baseUrl = (input.origin?.trim() || appUrl).replace(/\/$/, "");
 
   return stripe.checkout.sessions.create({
     mode: "subscription",

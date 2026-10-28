@@ -1,9 +1,18 @@
+import { getAppMode } from "@/lib/app-mode";
 import type { CartItem, FoodVaultProduct } from "@/types/commerce";
 
-export const VAULT_MARKET_CART_KEY = "fv.vault-market.cart";
-export const VAULT_MARKET_CART_CHANGE_EVENT = "fv:vault-market-cart-change";
-export const VAULT_MARKET_CART_OPEN_EVENT = "fv:vault-market-cart-open";
-export const VAULT_MARKET_OPEN_CART_FLAG = "fv.vault-market.open-cart";
+const stockupCart = getAppMode() === "stockup";
+
+export const VAULT_MARKET_CART_KEY = stockupCart ? "stockup.cart" : "fv.vault-market.cart";
+export const VAULT_MARKET_CART_CHANGE_EVENT = stockupCart
+  ? "stockup:cart-change"
+  : "fv:vault-market-cart-change";
+export const VAULT_MARKET_CART_OPEN_EVENT = stockupCart
+  ? "stockup:cart-open"
+  : "fv:vault-market-cart-open";
+export const VAULT_MARKET_OPEN_CART_FLAG = stockupCart
+  ? "stockup.open-cart"
+  : "fv.vault-market.open-cart";
 
 export function cartItemCount(items: CartItem[]): number {
   return items.reduce((sum, item) => sum + item.quantity, 0);

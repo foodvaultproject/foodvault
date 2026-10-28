@@ -7,13 +7,14 @@ import {
 } from "@/lib/payment-service/providers/stripe-member";
 import {
   getPaymentServiceConfig,
+  resolvePaymentReturnOrigin,
 } from "@/lib/payment-service/config";
 import { createClient } from "@/lib/supabase/server";
 
 const STRIPE_CONFIG_ERROR =
   "Stripe is not configured correctly. Set STRIPE_SECRET_KEY (and related Stripe env vars) in Vercel to your real test or live keys — not the .env.example placeholders.";
 
-export async function POST() {
+export async function POST(request: Request) {
   const { isConfigured } = getPaymentServiceConfig();
   if (!isConfigured) {
     return NextResponse.json({ error: STRIPE_CONFIG_ERROR }, { status: 503 });
@@ -55,6 +56,7 @@ export async function POST() {
       authUserId: user.id,
       email: member?.email ?? user.email,
       stripeCustomerId: member?.stripe_customer_id,
+      origin: resolvePaymentReturnOrigin(request),
     });
 
     if (!session.url) {

@@ -69,7 +69,7 @@ export function OrderSuccessView({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">Vault Market</p>
+      <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">StockUp</p>
       <h1 className={`${heading1} mt-2`}>Order confirmed</h1>
       <p className="mt-3 text-base text-muted-foreground">
         Thanks for shopping the pantry. Your saver price is locked in on this order.

@@ -10,7 +10,13 @@ import { Navigation } from "@/components/Navigation";
 import { NavigationPrefetch } from "@/components/navigation/NavigationPrefetch";
 import { PantryMarketHeader } from "@/components/pantry/PantryMarketHeader";
 import { PantryMarketProvider } from "@/components/pantry/PantryMarketProvider";
-import { shouldShowConsumerSecondaryNav, isVaultMarketPath } from "@/lib/consumer-nav-restructure";
+import { getAppMode } from "@/lib/app-mode";
+import {
+  isExplorePath,
+  isPartnerDirectoryPath,
+  isSearchPath,
+  isVaultMarketPath,
+} from "@/lib/consumer-nav-restructure";
 import type { FoodVaultProduct } from "@/types/commerce";
 
 export function SiteLayout({
@@ -21,9 +27,15 @@ export function SiteLayout({
   products: FoodVaultProduct[];
 }) {
   const pathname = usePathname();
+  const stockup = getAppMode() === "stockup";
   const isAdmin = pathname.startsWith("/admin");
-  const showConsumerSecondaryNav = shouldShowConsumerSecondaryNav(pathname);
-  const vaultMarket = isVaultMarketPath(pathname);
+  const showStorefrontHeader = stockup && isVaultMarketPath(pathname);
+  const showConsumerSecondaryNav =
+    !stockup &&
+    (pathname === "/" ||
+      isPartnerDirectoryPath(pathname) ||
+      isExplorePath(pathname) ||
+      isSearchPath(pathname));
 
   if (isAdmin) {
     const isPackingSlip = pathname.includes("/packing-slip");
@@ -34,29 +46,33 @@ export function SiteLayout({
     );
   }
 
+  const shell = (
+    <>
+      <AuthSessionRefresh />
+      <NavigationPrefetch />
+      <Navigation />
+      {showConsumerSecondaryNav ? <ConsumerSecondaryNav /> : null}
+      <main
+        className={`min-w-0 flex-1 bg-page ${
+          showConsumerSecondaryNav
+            ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-0"
+            : ""
+        }`}
+      >
+        {showStorefrontHeader ? (
+          <Suspense fallback={null}>
+            <PantryMarketHeader />
+          </Suspense>
+        ) : null}
+        {children}
+      </main>
+      <Footer mobileBottomNavInset={showConsumerSecondaryNav} />
+    </>
+  );
+
   return (
     <MemberSignupCtaProvider>
-      <PantryMarketProvider products={products}>
-        <AuthSessionRefresh />
-        <NavigationPrefetch />
-        <Navigation />
-        {showConsumerSecondaryNav ? <ConsumerSecondaryNav /> : null}
-        <main
-          className={`min-w-0 flex-1 bg-page ${
-            showConsumerSecondaryNav
-              ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-0"
-              : ""
-          }`}
-        >
-          {vaultMarket ? (
-            <Suspense fallback={null}>
-              <PantryMarketHeader />
-            </Suspense>
-          ) : null}
-          {children}
-        </main>
-        <Footer mobileBottomNavInset={showConsumerSecondaryNav} vaultMarket={vaultMarket} />
-      </PantryMarketProvider>
+      {stockup ? <PantryMarketProvider products={products}>{shell}</PantryMarketProvider> : shell}
     </MemberSignupCtaProvider>
   );
 }

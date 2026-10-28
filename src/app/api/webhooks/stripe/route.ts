@@ -11,6 +11,7 @@ import {
   handleMemberInvoicePaymentSucceeded,
   syncMemberSubscriptionState,
 } from "@/lib/payment-service/providers/stripe-member";
+import { isSupermarketOrderMetadata } from "@/lib/app-mode";
 import { fulfillPantryOrderFromCheckoutSession } from "@/lib/commerce/fulfill-pantry-order";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 
@@ -59,10 +60,7 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-        if (
-          session.mode === "payment" &&
-          session.metadata?.foodvault === "vault_market"
-        ) {
+        if (session.mode === "payment" && isSupermarketOrderMetadata(session.metadata)) {
           await fulfillPantryOrderFromCheckoutSession(session);
         }
         if (
@@ -98,7 +96,7 @@ export async function POST(request: NextRequest) {
       }
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as Stripe.Checkout.Session;
-        if (session.metadata?.foodvault === "vault_market") {
+        if (isSupermarketOrderMetadata(session.metadata)) {
           await fulfillPantryOrderFromCheckoutSession(session);
         }
         break;

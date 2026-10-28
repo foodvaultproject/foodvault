@@ -39,7 +39,7 @@ export function renderSupermarketOrderEmail(
 
   const content = `
     <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;color:${SUPERMARKET_EMAIL.foreground};">Payment received</h1>
-    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${EMAIL_BRAND.body};">${greeting} your FoodVault supermarket order is confirmed and your payment has been received.</p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${EMAIL_BRAND.body};">${greeting} your StockUp supermarket order is confirmed and your payment has been received.</p>
     <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${EMAIL_BRAND.body};"><strong style="color:${SUPERMARKET_EMAIL.foreground};">Order #${escapeHtml(shortId)}</strong><br />Placed ${escapeHtml(placedAt)} (New Zealand time)</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
       ${itemRows}
@@ -73,11 +73,11 @@ export function renderSupermarketOrderEmail(
         </td>
       </tr>
     </table>
-    <p style="margin:0;font-size:13px;line-height:1.5;color:${EMAIL_BRAND.muted};">You can also keep shopping at <a href="${escapeHtml(shopUrl)}" style="color:${SUPERMARKET_EMAIL.primaryDark};font-weight:700;text-decoration:none;">foodvault.co.nz</a>.</p>
+    <p style="margin:0;font-size:13px;line-height:1.5;color:${EMAIL_BRAND.muted};">You can also keep shopping at <a href="${escapeHtml(shopUrl)}" style="color:${SUPERMARKET_EMAIL.primaryDark};font-weight:700;text-decoration:none;">stockup.co.nz</a>.</p>
   `;
 
   const text = [
-    `Payment received. Your FoodVault supermarket order #${shortId} is confirmed.`,
+    `Payment received. Your StockUp supermarket order #${shortId} is confirmed.`,
     `Placed ${placedAt} (New Zealand time).`,
     `Total paid ${formatNzPrice(order.total)}.`,
     address ? `Delivering to ${address}.` : "",
@@ -87,7 +87,7 @@ export function renderSupermarketOrderEmail(
     .join("\n");
 
   return {
-    subject: `Payment received — FoodVault order #${shortId}`,
+    subject: `Payment received — StockUp order #${shortId}`,
     html: renderSupermarketEmailLayout({
       appUrl: site,
       content,

@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { isSupermarketOrderMetadata } from "@/lib/app-mode";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
 import { sendSupermarketOrderConfirmationEmail } from "@/lib/commerce/send-supermarket-order-email";
@@ -212,7 +213,7 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
 export async function fulfillPantryOrderFromCheckoutSession(
   session: Stripe.Checkout.Session
 ): Promise<FoodVaultOrder | null> {
-  if (session.metadata?.foodvault !== "vault_market") {
+  if (!isSupermarketOrderMetadata(session.metadata)) {
     return null;
   }
 

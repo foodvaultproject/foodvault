@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Checkout",
-  description: "Complete your FoodVault supermarket order with NZ delivery details and Stripe.",
+  description: "Complete your StockUp supermarket order with NZ delivery details and Stripe.",
 };
 
 export default function VaultMarketCheckoutPage() {

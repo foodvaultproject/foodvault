@@ -142,7 +142,7 @@ export function VaultMarketCheckout() {
     return (
       <div className="mx-auto max-w-xl text-center">
         <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">
-          Vault Market
+          StockUp
         </p>
         <h1 className={`${heading1} mt-2`}>Your cart is empty</h1>
         <p className="mt-3 text-base text-muted-foreground">
@@ -161,7 +161,7 @@ export function VaultMarketCheckout() {
   return (
     <div className="mx-auto max-w-5xl">
       <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">
-        Vault Market
+        StockUp
       </p>
       <h1 className={`${heading1} mt-2`}>Checkout</h1>
       <p className="mt-3 max-w-2xl text-base text-muted-foreground">

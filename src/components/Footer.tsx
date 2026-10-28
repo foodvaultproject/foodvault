@@ -1,22 +1,44 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
+import { StockUpLogo } from "@/components/StockUpLogo";
+import { FOODVAULT_ORIGIN, STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
 import { NAV_MENU_PREVIEW_ENABLED, VAULT_MARKET_FOOTER_BG, navChromeBgClass } from "@/lib/nav-menu-preview";
 
 const FOOTER_BANNER = "/footer/footer-banner.png";
 
-const footerSections = [
+type FooterLink = { href: string; label: string; external?: boolean };
+
+const stockupFooterSections: { title: string; links: FooterLink[] }[] = [
+  {
+    title: "Shop",
+    links: [
+      { href: "/", label: "Shop Supermarket" },
+      { href: "/?categories=1", label: "Categories" },
+      { href: "/?deals=1", label: "Deals" },
+      { href: `${FOODVAULT_ORIGIN}/vault-market`, label: "Discover Kiwi Brands", external: true },
+      { href: "/contact", label: "Contact Us" },
+    ],
+  },
+];
+
+const foodvaultFooterSections: { title: string; links: FooterLink[] }[] = [
   {
     title: "Company",
     links: [
       { href: "/about", label: "About FoodVault" },
       { href: "/for-brands", label: "Partner With Us" },
-      { href: "/vault-market", label: "Vault Market" },
-      { href: "/", label: "Shop Supermarket" },
+      { href: "/", label: "Partner Brands" },
+      { href: STOCKUP_ORIGIN, label: "Shop Supermarket", external: true },
       { href: "/discover", label: "News" },
       { href: "/contact", label: "Contact Us" },
     ],
   },
+];
+
+const footerSections = getAppMode() === "stockup" ? stockupFooterSections : foodvaultFooterSections;
+
+const sharedFooterSections: { title: string; links: FooterLink[] }[] = [
   {
     title: "Help & Support",
     links: [
@@ -37,8 +59,11 @@ const footerSections = [
   },
 ];
 
-const FOOTER_DESCRIPTION =
+const FOODVAULT_FOOTER_DESCRIPTION =
   "Unlock exclusive member discounts from Kiwi brands and local hospitality venues all over New Zealand. Save on the things you love, discover new favourites, and support local cafes, restaurants, and online stores direct.";
+
+const STOCKUP_FOOTER_DESCRIPTION =
+  "Direct supermarket delivery across New Zealand. Saver prices on everyday groceries, packed and shipped from our warehouse.";
 
 const socialLinks = [
   {
@@ -58,10 +83,37 @@ const socialLinks = [
   },
 ];
 
+function FooterAnchor({
+  href,
+  external,
+  className,
+  children,
+}: {
+  href: string;
+  external?: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  if (external) {
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
+  const sections = [...footerSections, ...sharedFooterSections];
   return (
     <>
-      {footerSections.map((section) => (
+      {sections.map((section) => (
         <div key={section.title}>
           <h3
             className={`text-sm font-semibold ${
@@ -73,8 +125,9 @@ function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
           <ul className={menuPreview ? "mt-2.5 space-y-2" : "mt-4 space-y-3"}>
             {section.links.map((link) => (
               <li key={link.href + link.label}>
-                <Link
+                <FooterAnchor
                   href={link.href}
+                  external={link.external}
                   className={`text-sm transition-colors ${
                     menuPreview
                       ? "text-white hover:text-white/80"
@@ -82,7 +135,7 @@ function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
                   }`}
                 >
                   {link.label}
-                </Link>
+                </FooterAnchor>
               </li>
             ))}
           </ul>
@@ -136,7 +189,7 @@ function FooterBottomBar({
           menuPreview ? "text-white" : "text-muted-foreground"
         }`}
       >
-        &copy; FoodVault {new Date().getFullYear()}. All rights reserved.
+        &copy; {getAppMode() === "stockup" ? "StockUp" : "FoodVault"} {new Date().getFullYear()}. All rights reserved.
       </p>
     </div>
   );
@@ -144,15 +197,15 @@ function FooterBottomBar({
 
 export function Footer({
   mobileBottomNavInset = false,
-  vaultMarket = false,
 }: {
   mobileBottomNavInset?: boolean;
   vaultMarket?: boolean;
 }) {
-  const menuPreview = NAV_MENU_PREVIEW_ENABLED;
-  const branded = menuPreview || vaultMarket;
-  const chromeBg = vaultMarket ? VAULT_MARKET_FOOTER_BG : navChromeBgClass(false, menuPreview);
-  const logoVariant = vaultMarket ? (menuPreview ? "menu" : "default") : "vault-market";
+  const stockup = getAppMode() === "stockup";
+  const menuPreview = !stockup && NAV_MENU_PREVIEW_ENABLED;
+  const branded = menuPreview || stockup;
+  const chromeBg = stockup ? VAULT_MARKET_FOOTER_BG : navChromeBgClass(false, menuPreview);
+  const description = stockup ? STOCKUP_FOOTER_DESCRIPTION : FOODVAULT_FOOTER_DESCRIPTION;
 
   return (
     <footer
@@ -162,7 +215,7 @@ export function Footer({
           : "border-t border-border bg-background"
       }
     >
-      {menuPreview && !vaultMarket ? (
+      {menuPreview ? (
         <div
           className="pointer-events-none absolute inset-0 z-0 bg-cover bg-bottom bg-no-repeat"
           style={{ backgroundImage: `url('${FOOTER_BANNER}')` }}
@@ -180,13 +233,15 @@ export function Footer({
               <Link
                 href="/"
                 className="inline-block transition-opacity hover:opacity-80"
-                aria-label="FoodVault home"
+                aria-label={stockup ? "StockUp home" : "FoodVault home"}
               >
-                <FoodVaultLogo size="footer" variant={logoVariant} />
+                {stockup ? (
+                  <StockUpLogo size="footer" />
+                ) : (
+                  <FoodVaultLogo size="footer" variant={menuPreview ? "menu" : "default"} />
+                )}
               </Link>
-              <p className="text-sm leading-relaxed text-white">
-                  {FOOTER_DESCRIPTION}
-                </p>
+              <p className="text-sm leading-relaxed text-white">{description}</p>
             </div>
             <FooterLinkColumns menuPreview />
           </div>
@@ -196,13 +251,11 @@ export function Footer({
               <Link
                 href="/"
                 className="inline-block transition-opacity hover:opacity-80"
-                aria-label="FoodVault home"
+                aria-label={stockup ? "StockUp home" : "FoodVault home"}
               >
-                <FoodVaultLogo size="footer" />
+                {stockup ? <StockUpLogo size="footer" /> : <FoodVaultLogo size="footer" />}
               </Link>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-                {FOOTER_DESCRIPTION}
-              </p>
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{description}</p>
             </div>
             <FooterLinkColumns menuPreview={false} />
           </div>

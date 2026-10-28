@@ -1,10 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { crossDomainRedirect, getAppMode, legacyLocalRedirect } from "@/lib/app-mode";
 import { AUTH_CHECK_EMAIL_PATH } from "@/lib/auth/email-verification";
 import { requestHasPartnerOAuthIntent } from "@/lib/auth/partner-oauth-session";
 import { pathAllowsUnverifiedAccess } from "@/lib/auth/unverified-access";
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const mode = getAppMode(
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host")
+  );
+  const crossDomain = crossDomainRedirect(mode, pathname, request.nextUrl.search);
+  if (crossDomain) {
+    return NextResponse.redirect(crossDomain, 307);
+  }
+
+  const localRedirect = legacyLocalRedirect(mode, pathname);
+  if (localRedirect) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localRedirect;
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl, 307);
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -38,8 +56,6 @@ export async function middleware(request: NextRequest) {
       },
     }
   );
-
-  const pathname = request.nextUrl.pathname;
 
   const oauthCode = request.nextUrl.searchParams.get("code");
   if (

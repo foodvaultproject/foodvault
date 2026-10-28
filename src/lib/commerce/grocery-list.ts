@@ -1,10 +1,19 @@
+import { getAppMode } from "@/lib/app-mode";
 import { addProductToCart } from "@/lib/commerce/cart";
 import type { CartItem, FoodVaultProduct, GroceryListItem } from "@/types/commerce";
 
-export const GROCERY_LIST_KEY = "foodvault_grocery_list";
-export const GROCERY_LIST_CHANGE_EVENT = "fv:vault-market-grocery-change";
-export const GROCERY_LIST_OPEN_EVENT = "fv:vault-market-grocery-open";
-export const GROCERY_LIST_OPEN_FLAG = "fv.vault-market.open-grocery";
+const stockupList = getAppMode() === "stockup";
+
+export const GROCERY_LIST_KEY = stockupList ? "stockup_grocery_list" : "foodvault_grocery_list";
+export const GROCERY_LIST_CHANGE_EVENT = stockupList
+  ? "stockup:grocery-change"
+  : "fv:vault-market-grocery-change";
+export const GROCERY_LIST_OPEN_EVENT = stockupList
+  ? "stockup:grocery-open"
+  : "fv:vault-market-grocery-open";
+export const GROCERY_LIST_OPEN_FLAG = stockupList
+  ? "stockup.open-grocery"
+  : "fv.vault-market.open-grocery";
 
 export function emitGroceryListOpen(): void {
   if (typeof window === "undefined") return;

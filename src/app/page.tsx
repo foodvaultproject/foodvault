@@ -1,15 +1,30 @@
 import type { Metadata } from "next";
+import { HomePageClientRouter } from "@/components/home/HomePageClientRouter";
 import { PantryStorefront } from "@/components/pantry/PantryStorefront";
+import { getAppMode } from "@/lib/app-mode";
+import { getStaticHomepageData } from "@/lib/homepage/static-data";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: {
-    absolute: "FoodVault | Direct Supermarket Pricing",
-  },
-  description:
-    "Shop the FoodVault supermarket. Everyone gets saver pricing on condiments, biscuits, tea, and more, shipped from our warehouse.",
-};
+const stockup = getAppMode() === "stockup";
+
+export const metadata: Metadata = stockup
+  ? {
+      metadataBase: new URL("https://www.stockup.co.nz"),
+      title: {
+        absolute: "StockUp | Direct Supermarket Delivery",
+      },
+      description:
+        "Shop StockUp for direct supermarket delivery. Saver pricing on everyday groceries, shipped across New Zealand.",
+    }
+  : {
+      metadataBase: new URL("https://www.foodvault.co.nz"),
+      title: {
+        absolute: "FoodVault | Kiwi Brand Directory & Local Perks",
+      },
+      description:
+        "Browse Kiwi partner brands, in-store offers, and local perks across New Zealand.",
+    };
 
 type StorefrontPageProps = {
   searchParams: Promise<{
@@ -17,11 +32,17 @@ type StorefrontPageProps = {
     department?: string;
     subcategory?: string;
     specific?: string;
+    deals?: string;
   }>;
 };
 
-export default async function StorefrontPage({ searchParams }: StorefrontPageProps) {
-  const { q, department, subcategory, specific } = await searchParams;
+export default async function HomePage({ searchParams }: StorefrontPageProps) {
+  if (getAppMode() === "foodvault") {
+    const data = await getStaticHomepageData();
+    return <HomePageClientRouter data={data} />;
+  }
+
+  const { q, department, subcategory, specific, deals } = await searchParams;
 
   return (
     <section className="min-w-0 overflow-x-clip bg-page">
@@ -31,6 +52,7 @@ export default async function StorefrontPage({ searchParams }: StorefrontPagePro
           department={department ?? ""}
           subcategory={subcategory ?? ""}
           specific={specific ?? ""}
+          deals={deals === "1"}
         />
       </div>
     </section>

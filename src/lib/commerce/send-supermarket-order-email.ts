@@ -1,17 +1,20 @@
+import { getAppMode, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { renderSupermarketOrderEmail } from "@/lib/email-templates/templates/supermarket/order-confirmed";
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
 import type { FoodVaultOrder } from "@/types/commerce";
 
 function supermarketAppUrl() {
-  const configured = getEmailAppUrl().trim();
-  if (
-    !configured ||
-    configured.includes("localhost") ||
-    configured.includes("127.0.0.1")
-  ) {
-    return "https://www.foodvault.co.nz";
+  if (getAppMode() === "stockup") {
+    const configured = getEmailAppUrl().trim();
+    if (
+      configured &&
+      !configured.includes("localhost") &&
+      !configured.includes("127.0.0.1")
+    ) {
+      return configured.replace(/\/$/, "");
+    }
   }
-  return configured.replace(/\/$/, "");
+  return STOCKUP_ORIGIN;
 }
 
 export async function sendSupermarketOrderConfirmationEmail(order: FoodVaultOrder) {

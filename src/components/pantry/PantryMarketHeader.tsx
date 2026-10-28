@@ -19,10 +19,8 @@ import {
   suggestCatalogSearch,
   type VaultMarketBrowseDepartment,
 } from "@/lib/commerce/catalog";
-import {
-  CONSUMER_PARTNER_DIRECTORY_PATH,
-  CONSUMER_VAULT_MARKET_PATH,
-} from "@/lib/consumer-nav-restructure";
+import { FOODVAULT_ORIGIN } from "@/lib/app-mode";
+import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
 
@@ -123,6 +121,10 @@ export function PantryMarketHeader() {
       setActiveSubcategory(0);
     }
   }, [browseOpen]);
+
+  useEffect(() => {
+    if (searchParams.get("categories") === "1") setBrowseOpen(true);
+  }, [searchParams]);
 
   function closeBrowse() {
     setBrowseOpen(false);
@@ -461,18 +463,18 @@ export function PantryMarketHeader() {
           </div>
         </div>
 
-        <Link
-          href={CONSUMER_PARTNER_DIRECTORY_PATH}
+        <a
+          href={`${FOODVAULT_ORIGIN}/vault-market`}
           className="hidden h-11 shrink-0 items-center rounded-md px-3 text-sm font-semibold text-foreground transition-colors hover:text-vm-primary lg:inline-flex"
         >
-          Vault Market
-        </Link>
+          Discover Kiwi Brands
+        </a>
 
         <form
           onSubmit={handleSearchSubmit}
           className="relative min-w-0 flex-1"
           role="search"
-          aria-label="Search FoodVault products"
+          aria-label="Search StockUp products"
         >
           <label htmlFor={searchId} className="sr-only">
             Search products by name, brand, or SKU

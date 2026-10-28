@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { FOODVAULT_ORIGIN, STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
 import type { NavAuthState } from "@/lib/nav-auth";
 import {
   affiliateNavMenuItems,
@@ -16,7 +17,6 @@ import { LOGIN_PATH, signOutAndGoHome } from "@/lib/auth";
 import {
   CONSUMER_BROWSE_PATHS,
   CONSUMER_PARTNER_DIRECTORY_PATH,
-  CONSUMER_VAULT_MARKET_PATH,
   consumerSearchLabel,
   consumerSearchPath,
   isConsumerNavRestructureEnabled,
@@ -30,17 +30,36 @@ import {
   navChromeBgClass,
 } from "@/lib/nav-menu-preview";
 
-function getNavLinks() {
-  const links = [
-    { href: CONSUMER_VAULT_MARKET_PATH, label: "Shop Supermarket" },
-    { href: CONSUMER_PARTNER_DIRECTORY_PATH, label: "Vault Market" },
+type AppNavLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+function getNavLinks(): AppNavLink[] {
+  if (getAppMode() === "stockup") {
+    return [
+      { href: "/", label: "Shop Supermarket" },
+      { href: "/?categories=1", label: "Categories" },
+      { href: "/?deals=1", label: "Deals" },
+      {
+        href: `${FOODVAULT_ORIGIN}/vault-market`,
+        label: "Discover Kiwi Brands",
+        external: true,
+      },
+    ];
+  }
+
+  const links: AppNavLink[] = [
+    { href: "/", label: "Partner Brands" },
+    { href: "/explore", label: "In-Store Offers" },
+    { href: "/pricing", label: "Pricing" },
+    { href: "/how-it-works", label: "How It Works" },
+    { href: STOCKUP_ORIGIN, label: "Shop Supermarket", external: true },
   ];
 
   if (!isConsumerNavRestructureEnabled()) {
-    return [
-      { href: consumerSearchPath(), label: consumerSearchLabel() },
-      ...links,
-    ];
+    return [{ href: consumerSearchPath(), label: consumerSearchLabel() }, ...links];
   }
 
   return links;
@@ -58,23 +77,57 @@ const PARTNER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE
 
 const ACTIVE_MEMBER_HIDDEN_HREFS = new Set([...PORTAL_HIDDEN_HREFS, ...CONSUMER_BROWSE_PATHS]);
 
-function isNavLinkActive(pathname: string, href: string): boolean {
-  if (href === CONSUMER_VAULT_MARKET_PATH) {
-    return isVaultMarketPath(pathname);
+function isNavLinkActive(
+  pathname: string,
+  link: AppNavLink,
+  searchParams: URLSearchParams
+): boolean {
+  if (link.external) return false;
+
+  if (link.href === "/?categories=1") {
+    return pathname === "/" && searchParams.get("categories") === "1";
   }
 
-  if (href === CONSUMER_PARTNER_DIRECTORY_PATH) {
+  if (link.href === "/?deals=1") {
+    return pathname === "/" && searchParams.get("deals") === "1";
+  }
+
+  if (link.label === "Shop Supermarket") {
+    return (
+      isVaultMarketPath(pathname) &&
+      searchParams.get("deals") !== "1" &&
+      searchParams.get("categories") !== "1"
+    );
+  }
+
+  if (link.label === "Partner Brands") {
+    return pathname === "/" || isPartnerDirectoryPath(pathname);
+  }
+
+  if (link.href === CONSUMER_PARTNER_DIRECTORY_PATH) {
     return isPartnerDirectoryPath(pathname);
   }
 
-  if (CONSUMER_BROWSE_PATHS.has(href)) {
+  if (CONSUMER_BROWSE_PATHS.has(link.href)) {
     return isSearchPath(pathname);
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === link.href || pathname.startsWith(`${link.href}/`);
 }
 
-export function NavLinks({
+export function NavLinks(props: {
+  mobile?: boolean;
+  isPartner?: boolean;
+  menuPreview?: boolean;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <NavLinksContent {...props} />
+    </Suspense>
+  );
+}
+
+function NavLinksContent({
   mobile = false,
   isPartner = false,
   menuPreview = false,
@@ -84,6 +137,7 @@ export function NavLinks({
   menuPreview?: boolean;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isActiveMember = useIsActiveMember();
 
   const navLinks = getNavLinks();
@@ -99,33 +153,40 @@ export function NavLinks({
   return (
     <>
       {visibleLinks.map((link) => {
-        const isActive = isNavLinkActive(pathname, link.href);
+        const isActive = isNavLinkActive(pathname, link, searchParams);
+        const className = mobile
+          ? `block rounded-lg px-3 py-2.5 text-base transition-colors duration-150 ${
+              isActive
+                ? menuPreview
+                  ? "bg-white/10 font-semibold text-white"
+                  : "bg-primary/10 font-semibold text-primary"
+                : menuPreview
+                  ? "font-medium text-white/90 hover:bg-white/10 hover:text-white"
+                  : "font-medium text-foreground hover:bg-primary/5 hover:text-primary"
+            }`
+          : `text-sm transition-colors duration-150 ${
+              isActive
+                ? menuPreview
+                  ? "border-b-2 border-white pb-0.5 font-semibold text-white"
+                  : "border-b-2 border-primary pb-0.5 font-semibold text-primary"
+                : menuPreview
+                  ? "font-medium text-white/90 hover:text-white"
+                  : "font-medium text-muted-foreground hover:text-primary"
+            }`;
+
+        if (link.external) {
+          return (
+            <a key={link.label} href={link.href} className={className}>
+              {link.label}
+            </a>
+          );
+        }
 
         return (
           <Link
-            key={link.href}
+            key={link.label}
             href={link.href}
-            className={
-              mobile
-                ? `block rounded-lg px-3 py-2.5 text-base transition-colors duration-150 ${
-                    isActive
-                      ? menuPreview
-                        ? "bg-white/10 font-semibold text-white"
-                        : "bg-primary/10 font-semibold text-primary"
-                      : menuPreview
-                        ? "font-medium text-white/90 hover:bg-white/10 hover:text-white"
-                        : "font-medium text-foreground hover:bg-primary/5 hover:text-primary"
-                  }`
-                : `text-sm transition-colors duration-150 ${
-                    isActive
-                      ? menuPreview
-                        ? "border-b-2 border-white pb-0.5 font-semibold text-white"
-                        : "border-b-2 border-primary pb-0.5 font-semibold text-primary"
-                      : menuPreview
-                        ? "font-medium text-white/90 hover:text-white"
-                        : "font-medium text-muted-foreground hover:text-primary"
-                  }`
-            }
+            className={className}
             aria-current={isActive ? "page" : undefined}
           >
             {link.label}
@@ -141,11 +202,13 @@ function MobileAuthSection({
   onNavigate,
   menuPreview = false,
   showLogout = true,
+  stockup = false,
 }: {
   auth: NavAuthState;
   onNavigate: () => void;
   menuPreview?: boolean;
   showLogout?: boolean;
+  stockup?: boolean;
 }) {
   const isActiveMember = useIsActiveMember();
 
@@ -195,17 +258,19 @@ function MobileAuthSection({
             Login
           </Link>
         )}
-        <MemberSignupCtaLink
-          variant="unlock-discounts-nav"
-          onClick={onNavigate}
-          className={
-            menuPreview
-              ? NAV_MENU_CTA_BLOCK_CLASS
-              : "fv-btn-primary block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-          }
-        >
-          Unlock Discounts
-        </MemberSignupCtaLink>
+        {stockup ? null : (
+          <MemberSignupCtaLink
+            variant="unlock-discounts-nav"
+            onClick={onNavigate}
+            className={
+              menuPreview
+                ? NAV_MENU_CTA_BLOCK_CLASS
+                : "fv-btn-primary block rounded-sm px-4 py-3 text-center text-base font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+            }
+          >
+            Unlock Discounts
+          </MemberSignupCtaLink>
+        )}
         {auth.status === "admin" && showLogout ? (
           <button
             type="button"
@@ -244,7 +309,7 @@ function MobileAuthSection({
         menuPreview ? "border-white/15" : "border-border"
       }`}
     >
-      {auth.status === "member" && !isActiveMember ? (
+      {auth.status === "member" && !isActiveMember && !stockup ? (
         <MemberSignupCtaLink
           variant="unlock-discounts"
           onClick={onNavigate}
@@ -255,7 +320,7 @@ function MobileAuthSection({
           }
         />
       ) : null}
-      {auth.status === "member" ? (
+      {auth.status === "member" && !stockup ? (
         <FavoritesNavLink
           className="block rounded-lg px-3 py-2.5"
           onNavigate={onNavigate}
@@ -334,12 +399,14 @@ export function MobileMenu({
   auth,
   menuPreview = false,
   vaultMarket = false,
+  stockup = false,
   open: controlledOpen,
   onOpenChange,
 }: {
   auth: NavAuthState;
   menuPreview?: boolean;
   vaultMarket?: boolean;
+  stockup?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
@@ -420,6 +487,7 @@ export function MobileMenu({
                 onNavigate={closeMenu}
                 menuPreview={menuPreview}
                 showLogout={false}
+                stockup={stockup}
               />
             </div>
             {isAuthenticatedNavState(auth) ? (

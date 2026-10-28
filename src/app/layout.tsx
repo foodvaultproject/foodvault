@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Hanken_Grotesk } from "next/font/google";
 import { SiteLayout } from "@/components/SiteLayout";
+import { canonicalSiteOrigin, getAppMode, siteDisplayName } from "@/lib/app-mode";
 import { getActiveVaultMarketProducts } from "@/lib/commerce/products";
 import { locale } from "@/lib/locale";
 import "./globals.css";
@@ -14,36 +15,44 @@ const hankenGrotesk = Hanken_Grotesk({
   display: "swap",
 });
 
+const appMode = getAppMode();
+const stockupSite = appMode === "stockup";
+const siteName = siteDisplayName(appMode);
+const siteOrigin = canonicalSiteOrigin(appMode);
+const defaultTitle = stockupSite
+  ? "StockUp | Direct Supermarket Delivery"
+  : "FoodVault | Kiwi Brand Directory & Local Perks";
+const defaultDescription = stockupSite
+  ? "Shop StockUp for direct supermarket delivery. Saver pricing on everyday groceries, shipped across New Zealand."
+  : "Browse Kiwi partner brands, in-store offers, and local perks across New Zealand.";
+
 const openGraphImage = {
   url: "/opengraph-image.jpg",
   width: 1200,
   height: 630,
-  alt: "FoodVault",
+  alt: siteName,
 } as const;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://foodvault.co.nz"),
+  metadataBase: new URL(siteOrigin),
   title: {
-    default: "FoodVault — Member pricing on the food you actually buy",
-    template: "%s | FoodVault",
+    default: defaultTitle,
+    template: `%s | ${siteName}`,
   },
-  description:
-    "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
+  description: defaultDescription,
   openGraph: {
     type: "website",
     locale: "en_NZ",
     url: "/",
-    siteName: "FoodVault",
-    title: "FoodVault — Member pricing on the food you actually buy",
-    description:
-      "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
+    siteName,
+    title: defaultTitle,
+    description: defaultDescription,
     images: [openGraphImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FoodVault — Member pricing on the food you actually buy",
-    description:
-      "Join FoodVault for exclusive member pricing from independent food and beverage brands across New Zealand. Save more every week on the products you love.",
+    title: defaultTitle,
+    description: defaultDescription,
     images: [openGraphImage],
   },
 };
@@ -53,7 +62,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const products = await getActiveVaultMarketProducts();
+  const products = getAppMode() === "stockup" ? await getActiveVaultMarketProducts() : [];
 
   return (
     <html lang={locale.localeTag} className={`${hankenGrotesk.variable} h-full antialiased`}>

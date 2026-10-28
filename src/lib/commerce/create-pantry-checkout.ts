@@ -5,7 +5,7 @@ import {
   vaultMarketFreight,
   type VaultMarketDeliveryDetails,
 } from "@/lib/commerce/shipping";
-import { getPaymentServiceConfig } from "@/lib/payment-service/config";
+import { resolvePaymentReturnOrigin } from "@/lib/payment-service/config";
 import {
   getStripeClient,
   toStripeAmount,
@@ -131,20 +131,7 @@ function metaValue(value: string, max = 500) {
 }
 
 export function getCheckoutOrigin(request: Request): string {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const host = forwardedHost ?? request.headers.get("host");
-  const proto =
-    request.headers.get("x-forwarded-proto") ??
-    (host?.includes("localhost") || host?.startsWith("127.") ? "http" : "https");
-
-  if (host) {
-    return `${proto}://${host}`.replace(/\/$/, "");
-  }
-
-  return (
-    getPaymentServiceConfig().appUrl.replace(/\/$/, "") ||
-    "http://localhost:3001"
-  );
+  return resolvePaymentReturnOrigin(request);
 }
 
 export async function createPantryCheckoutSession(input: {
@@ -169,6 +156,7 @@ export async function createPantryCheckoutSession(input: {
     freight === 0 ? "Free NZ Shipping" : "Standard NZ Freight";
 
   const metadata = {
+    stockup: "supermarket_order",
     foodvault: "vault_market",
     user_id: input.userId ?? "",
     membership_id: membershipId,
@@ -226,7 +214,8 @@ export async function createPantryCheckoutSession(input: {
     success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout`,
     payment_intent_data: {
-      description: "Vault Market order",
+      description: "StockUp supermarket order",
+      statement_descriptor_suffix: "STOCKUP",
       metadata,
     },
     ...(input.userId ? { client_reference_id: input.userId } : {}),

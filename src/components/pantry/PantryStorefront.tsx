@@ -11,19 +11,26 @@ export function PantryStorefront({
   department = "",
   subcategory = "",
   specific = "",
+  deals = false,
 }: {
   query?: string;
   department?: string;
   subcategory?: string;
   specific?: string;
+  deals?: boolean;
 }) {
   const { products, liveQuery } = usePantryMarket();
-  const filtered = filterCatalogProducts(products, {
+  const matched = filterCatalogProducts(products, {
     query: liveQuery || query,
     department,
     subcategory,
     specific,
   });
+  const filtered = deals
+    ? matched.filter(
+        (product) => product.is_multibuy || product.retail_price > product.member_price
+      )
+    : matched;
 
   const searchTerm = liveQuery || query;
   const lostSearchEvents = searchTerm
@@ -44,11 +51,18 @@ export function PantryStorefront({
     <div>
       <LostSaleTracker events={lostSearchEvents} />
       <PantryHeroBanner />
+      {deals ? (
+        <h2 className="mt-6 text-xl font-bold text-foreground">Deals</h2>
+      ) : null}
 
       {filtered.length === 0 ? (
         <div className="mt-8 rounded-lg border border-dashed border-border bg-background px-6 py-16 text-center">
           <h2 className="text-xl font-bold text-foreground">
-            {products.length === 0 ? "The FoodVault supermarket is getting ready" : "No products found"}
+            {products.length === 0
+              ? "The StockUp supermarket is getting ready"
+              : deals
+                ? "No deals found"
+                : "No products found"}
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             {products.length === 0

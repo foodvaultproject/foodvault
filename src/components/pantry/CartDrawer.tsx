@@ -103,7 +103,7 @@ export function CartDrawer({
           <div className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5 text-vm-primary" aria-hidden="true" />
             <h2 id={titleId} className="text-lg font-bold text-foreground">
-              Your cart
+              Your StockUp cart
             </h2>
           </div>
           <button

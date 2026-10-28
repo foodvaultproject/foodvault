@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { MemberSignupCtaLink } from "@/components/member/MemberSignupCtaLink";
 import { SECTION_PY_HOME_PARTNER, SECTION_PY_HOME_REFINE } from "@/components/home/section-spacing";
+import { STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { heading2 } from "@/lib/ui-classes";
 
 const SAVINGS_RATE = 0.15;
@@ -16,8 +17,8 @@ const CATEGORIES = [
   {
     key: "vaultMarket",
     label: "Supermarket",
-    description: "Shop FoodVault — member pricing on pantry staples",
-    href: "/",
+    description: "Shop StockUp — saver pricing on pantry staples",
+    href: STOCKUP_ORIGIN,
     defaultValue: 45,
     max: 400,
   },
