@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { isSupabaseConfigured } from "@/lib/auth";
 import {
   generateEnquiryReferenceNumber,
   isUniqueConstraintError,
 } from "@/lib/contact/reference-number";
-import { sendAdminContactEnquiryEmail } from "@/lib/email-templates/dispatch";
+import { getResendClient } from "@/lib/notification-service/providers/resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,9 +35,57 @@ const CONTACT_TYPE_MAP: Record<string, ContactEnquiryType> = {
 };
 
 export type SubmitContactEnquiryResult =
-  | { success: true; referenceNumber: string; emailSent: true }
-  | { success: true; referenceNumber: string; emailSent: false; error: string }
+  | { success: true; referenceNumber: string; emailSent: boolean }
   | { error: string };
+
+function escapeEmailHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+async function enquiryAdminUrl(referenceNumber: string) {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const proto = headerStore.get("x-forwarded-proto") ?? "https";
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  const origin = configured || (host ? `${proto}://${host}` : "https://www.stockup.co.nz");
+  return `${origin}/admin/contact?q=${encodeURIComponent(referenceNumber)}`;
+}
+
+async function sendContactEnquiryNotification(input: {
+  referenceNumber: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}) {
+  const from = process.env.NOTIFICATION_FROM_EMAIL?.trim() || "mark@benchmark-int.com";
+  const adminUrl = await enquiryAdminUrl(input.referenceNumber);
+  const phone = input.phone.trim() || "Not provided";
+  const messageHtml = escapeEmailHtml(input.message).replace(/\r\n|\r|\n/g, "<br />");
+  const resend = getResendClient();
+  const { error } = await resend.emails.send({
+    from,
+    to: "mark@benchmark-int.com",
+    replyTo: input.email,
+    subject: `New Contact Form Enquiry - ${input.referenceNumber}`,
+    html: `
+      <p>A new contact form enquiry has been saved.</p>
+      <p><strong>Name:</strong> ${escapeEmailHtml(input.name)}</p>
+      <p><strong>Email:</strong> ${escapeEmailHtml(input.email)}</p>
+      <p><strong>Phone:</strong> ${escapeEmailHtml(phone)}</p>
+      <p><strong>Message:</strong><br />${messageHtml}</p>
+      <p><a href="${escapeEmailHtml(adminUrl)}">Open this enquiry in the admin dashboard</a></p>
+    `,
+  });
+
+  if (error) {
+    throw new Error(error.message || "Resend rejected the contact notification");
+  }
+}
 
 function mapContactTypeToEnquiryType(
   contactType: string | null
@@ -85,6 +134,7 @@ export async function submitContactEnquiryAction(
   const subject = readTrimmed(formData, "subject");
   const message = readTrimmed(formData, "message");
   const contactType = readTrimmed(formData, "contactType");
+  const phone = readTrimmed(formData, "phone");
   const consent = readTrimmed(formData, "consent");
   const enquiryType = mapContactTypeToEnquiryType(contactType);
 
@@ -96,6 +146,9 @@ export async function submitContactEnquiryAction(
   if (!email) return { error: "Please enter your email address." };
   if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return { error: "Please enter a valid email address." };
+  }
+  if (phone.length > 40) {
+    return { error: "Phone number must be 40 characters or fewer." };
   }
 
   if (!enquiryType) {
@@ -174,27 +227,19 @@ export async function submitContactEnquiryAction(
   revalidatePath("/admin/contact");
   revalidatePath("/admin/dashboard");
 
+  let emailSent = false;
   try {
-    await sendAdminContactEnquiryEmail({
+    await sendContactEnquiryNotification({
       referenceNumber,
       name: fullName,
       email,
-      enquiryType,
-      subject,
+      phone,
       message: storedMessage,
     });
+    emailSent = true;
   } catch (error) {
     console.error("[CONTACT_EMAIL_ERROR]:", error);
-    return {
-      success: true,
-      referenceNumber,
-      emailSent: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Enquiry saved, but the notification email could not be sent.",
-    };
   }
 
-  return { success: true, referenceNumber, emailSent: true };
+  return { success: true, referenceNumber, emailSent };
 }

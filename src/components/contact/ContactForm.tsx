@@ -201,6 +201,20 @@ export function ContactForm() {
               className="w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="phone" className="sr-only">
+              Phone Number
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              maxLength={40}
+              disabled={pending}
+              placeholder="Phone number (optional)"
+              className="w-full rounded-md border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
         </div>
       </div>
 
