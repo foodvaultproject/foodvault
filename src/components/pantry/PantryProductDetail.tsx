@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronDown, Heart, Minus, Plus } from "lucide-react";
+import { ChevronDown, ChevronLeft, Heart, Minus, Plus } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
 import { PantryProductGallery } from "@/components/pantry/PantryProductGallery";
@@ -19,6 +20,7 @@ import {
   resolveProductSpecific,
   resolveProductSubcategory,
 } from "@/lib/commerce/catalog";
+import { readReturnScroll } from "@/lib/commerce/return-scroll";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
 
@@ -72,6 +74,34 @@ function AccordionBlock({
   );
 }
 
+function ProductBackButton() {
+  const router = useRouter();
+
+  function goBack() {
+    const saved = readReturnScroll();
+    if (saved?.href) {
+      router.push(saved.href, { scroll: false });
+      return;
+    }
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/");
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={goBack}
+      className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-vm-primary hover:underline"
+    >
+      <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+      Back
+    </button>
+  );
+}
+
 export function PantryProductDetail({ product }: { product: FoodVaultProduct }) {
   const { addToCart, toggleGrocery, isSaved, addedIds } = usePantryMarket();
   const gallery = productGallery(product);
@@ -115,6 +145,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
           ]}
         />
       ) : null}
+      <ProductBackButton />
       <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
           {crumbs.map((crumb) => (

@@ -11,6 +11,7 @@ import {
   pantryProductPath,
   productDiscountPercent,
 } from "@/lib/commerce/catalog";
+import { rememberReturnScroll } from "@/lib/commerce/return-scroll";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
 
@@ -27,7 +28,7 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-vm-primary/30 bg-background">
       <div className="relative aspect-square overflow-hidden bg-surface">
-        <Link href={href} className="absolute inset-0">
+        <Link href={href} onClick={rememberReturnScroll} className="absolute inset-0">
           <SafeImage
             src={product.image_url ?? ""}
             alt={product.name}
@@ -59,7 +60,11 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
         <p className="text-[11px] font-semibold uppercase tracking-wide text-vm-primary">
           {product.brand}
         </p>
-        <Link href={href} className="mt-0.5 line-clamp-2 text-sm font-bold leading-snug text-foreground hover:text-vm-primary">
+        <Link
+          href={href}
+          onClick={rememberReturnScroll}
+          className="mt-0.5 line-clamp-2 text-sm font-bold leading-snug text-foreground hover:text-vm-primary"
+        >
           {product.name}
         </Link>
         {unitPrice ? (

@@ -20,6 +20,7 @@ import {
   type VaultMarketBrowseDepartment,
 } from "@/lib/commerce/catalog";
 import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
+import { rememberReturnScroll } from "@/lib/commerce/return-scroll";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
 
@@ -166,6 +167,7 @@ export function PantryMarketHeader() {
     if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
     setSearchOpen(false);
     setBrowseOpen(false);
+    rememberReturnScroll();
     router.push(pantryProductPath(product));
   }
 
@@ -552,6 +554,7 @@ export function PantryMarketHeader() {
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={() => {
                         if (replaceTimer.current) window.clearTimeout(replaceTimer.current);
+                        rememberReturnScroll();
                         setSearchOpen(false);
                         setBrowseOpen(false);
                       }}

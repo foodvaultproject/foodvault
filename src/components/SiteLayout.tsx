@@ -10,6 +10,7 @@ import { Navigation } from "@/components/Navigation";
 import { NavigationPrefetch } from "@/components/navigation/NavigationPrefetch";
 import { PantryMarketHeader } from "@/components/pantry/PantryMarketHeader";
 import { PantryMarketProvider } from "@/components/pantry/PantryMarketProvider";
+import { ReturnScrollRestore } from "@/components/pantry/ReturnScrollRestore";
 import type { AppMode } from "@/lib/app-mode";
 import {
   isExplorePath,
@@ -50,6 +51,9 @@ export function SiteLayout({
 
   const shell = (
     <>
+      <Suspense fallback={null}>
+        <ReturnScrollRestore />
+      </Suspense>
       <AuthSessionRefresh />
       <NavigationPrefetch />
       <Navigation appMode={appMode} />
