@@ -19,7 +19,6 @@ import {
   suggestCatalogSearch,
   type VaultMarketBrowseDepartment,
 } from "@/lib/commerce/catalog";
-import { FOODVAULT_ORIGIN } from "@/lib/app-mode";
 import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import { formatNzPrice } from "@/lib/partner-offer";
 import type { FoodVaultProduct } from "@/types/commerce";
@@ -462,13 +461,6 @@ export function PantryMarketHeader() {
             </div>
           </div>
         </div>
-
-        <a
-          href={`${FOODVAULT_ORIGIN}/vault-market`}
-          className="hidden h-11 shrink-0 items-center rounded-md px-3 text-sm font-semibold text-foreground transition-colors hover:text-vm-primary lg:inline-flex"
-        >
-          Discover Kiwi Brands
-        </a>
 
         <form
           onSubmit={handleSearchSubmit}

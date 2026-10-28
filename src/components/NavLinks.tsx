@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { FOODVAULT_ORIGIN, STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
+import { STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
 import type { NavAuthState } from "@/lib/nav-auth";
 import {
   affiliateNavMenuItems,
@@ -39,14 +39,8 @@ type AppNavLink = {
 function getNavLinks(): AppNavLink[] {
   if (getAppMode() === "stockup") {
     return [
-      { href: "/", label: "Shop Supermarket" },
       { href: "/?categories=1", label: "Categories" },
       { href: "/?deals=1", label: "Deals" },
-      {
-        href: `${FOODVAULT_ORIGIN}/vault-market`,
-        label: "Discover Kiwi Brands",
-        external: true,
-      },
     ];
   }
 

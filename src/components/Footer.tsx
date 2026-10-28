@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { StockUpLogo } from "@/components/StockUpLogo";
-import { FOODVAULT_ORIGIN, STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
+import { STOCKUP_ORIGIN, getAppMode } from "@/lib/app-mode";
 import { NAV_MENU_PREVIEW_ENABLED, VAULT_MARKET_FOOTER_BG, navChromeBgClass } from "@/lib/nav-menu-preview";
 
 const FOOTER_BANNER = "/footer/footer-banner.png";
@@ -16,7 +16,6 @@ const stockupFooterSections: { title: string; links: FooterLink[] }[] = [
       { href: "/", label: "Shop Supermarket" },
       { href: "/?categories=1", label: "Categories" },
       { href: "/?deals=1", label: "Deals" },
-      { href: `${FOODVAULT_ORIGIN}/vault-market`, label: "Discover Kiwi Brands", external: true },
       { href: "/contact", label: "Contact Us" },
     ],
   },
@@ -110,7 +109,10 @@ function FooterAnchor({
 }
 
 function FooterLinkColumns({ menuPreview }: { menuPreview: boolean }) {
-  const sections = [...footerSections, ...sharedFooterSections];
+  const stockup = getAppMode() === "stockup";
+  const sections = stockup
+    ? [...footerSections, ...sharedFooterSections.filter((section) => section.title !== "Help & Support")]
+    : [...footerSections, ...sharedFooterSections];
   return (
     <>
       {sections.map((section) => (
@@ -165,7 +167,9 @@ function FooterBottomBar({
       }`}
     >
       <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-        {socialLinks.map((social) => (
+        {socialLinks
+          .filter((social) => getAppMode() !== "stockup" || social.label !== "Facebook")
+          .map((social) => (
           <a
             key={social.label}
             href={social.href}
