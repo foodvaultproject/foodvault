@@ -67,7 +67,7 @@ async function sendContactEnquiryNotification(input: {
   const phone = input.phone.trim() || "Not provided";
   const messageHtml = escapeEmailHtml(input.message).replace(/\r\n|\r|\n/g, "<br />");
   const resend = getResendClient();
-  const { error } = await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from,
     to: "mark@benchmark-int.com",
     replyTo: input.email,
@@ -81,6 +81,8 @@ async function sendContactEnquiryNotification(input: {
       <p><a href="${escapeEmailHtml(adminUrl)}">Open this enquiry in the admin dashboard</a></p>
     `,
   });
+
+  console.log("[RESEND_RESPONSE]", { data, error });
 
   if (error) {
     throw new Error(error.message || "Resend rejected the contact notification");
@@ -237,8 +239,8 @@ export async function submitContactEnquiryAction(
       message: storedMessage,
     });
     emailSent = true;
-  } catch (error) {
-    console.error("[CONTACT_EMAIL_ERROR]:", error);
+  } catch (err) {
+    console.error("[RESEND_EXCEPTION]", err);
   }
 
   return { success: true, referenceNumber, emailSent };
