@@ -1,11 +1,11 @@
 import type { AccountType } from "@/lib/auth";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
-import { SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
+import { MEMBER_HOME_PATH, SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
 export function resolveVerifiedRedirectPath(
   account: AccountType,
-  _metadata?: Record<string, unknown> | null
+  metadata?: Record<string, unknown> | null
 ) {
   if (account === "partner") {
     return PARTNER_APPLICATION_PATH;
@@ -13,6 +13,10 @@ export function resolveVerifiedRedirectPath(
 
   if (account === "affiliate") {
     return AFFILIATE_DASHBOARD_PATH;
+  }
+
+  if (metadata?.signup_mode === "stockup") {
+    return MEMBER_HOME_PATH;
   }
 
   return SIGNUP_MEMBERSHIP_PATH;

@@ -80,7 +80,9 @@ export async function resendSignupVerificationAction(
     typeof metadata.first_name === "string" ? metadata.first_name : null;
   const nextPath =
     accountType === "member"
-      ? SIGNUP_MEMBERSHIP_PATH
+      ? metadata.signup_mode === "stockup"
+        ? MEMBER_HOME_PATH
+        : SIGNUP_MEMBERSHIP_PATH
       : defaultNextPathForAccount(accountType);
 
   const sendResult = await issueAndSendSignupVerification({

@@ -57,8 +57,13 @@ export async function completeSignupVerification(
   const accountType = expectedAccountType ?? getAccountTypeFromMetadata(metadata);
   const signupCompletedAt = readMetadataString(metadata, "signup_completed_at");
 
+  const stockupAccount = readMetadataString(metadata, "signup_mode") === "stockup";
+
   if (signupCompletedAt) {
     if (accountType === "member") {
+      if (stockupAccount) {
+        return { redirectPath: MEMBER_HOME_PATH };
+      }
       const rows = await fetchMemberBillingRows(supabase, user.id);
       const member = pickCanonicalMemberRow(rows);
       if (member && isActiveMemberRow(member)) {
@@ -87,13 +92,16 @@ export async function completeSignupVerification(
     });
 
     if (profileError) {
-      return { redirectPath: SIGNUP_MEMBERSHIP_PATH, error: profileError };
+      return {
+        redirectPath: stockupAccount ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH,
+        error: profileError,
+      };
     }
 
     await supabase.auth.updateUser({
       data: {
         account_type: "member",
-        signup_mode: "membership",
+        signup_mode: stockupAccount ? "stockup" : "membership",
         signup_completed_at: new Date().toISOString(),
       },
     });
@@ -101,7 +109,9 @@ export async function completeSignupVerification(
     revalidatePath(MEMBER_HOME_PATH);
     revalidatePath(MEMBER_DASHBOARD_PATH);
 
-    return { redirectPath: SIGNUP_MEMBERSHIP_PATH };
+    return {
+      redirectPath: stockupAccount ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH,
+    };
   }
 
   if (accountType === "partner") {

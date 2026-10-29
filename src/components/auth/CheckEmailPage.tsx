@@ -40,12 +40,15 @@ function friendlyErrorFromCode(code: string | null) {
   return null;
 }
 
-function continueCopy(account: AccountType) {
+function continueCopy(account: AccountType, stockup: boolean) {
   if (account === "partner") {
     return "continue your partner application";
   }
   if (account === "affiliate") {
     return "open your affiliate dashboard";
+  }
+  if (stockup) {
+    return "take you back to StockUp";
   }
   return "continue on the FoodVault homepage";
 }
@@ -55,6 +58,7 @@ function CheckEmailContent() {
   const router = useRouter();
   const email = searchParams.get("email")?.trim() ?? "";
   const account = parseAccountType(searchParams.get("account"));
+  const stockup = searchParams.get("brand") === "stockup";
   const initialError = friendlyErrorFromCode(searchParams.get("error"));
 
   const [checking, setChecking] = useState(false);
@@ -322,19 +326,19 @@ function CheckEmailContent() {
           )}
 
           <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-            Click the verification link to activate your FoodVault account.
+            Click the verification link to activate your {stockup ? "StockUp" : "FoodVault"} account.
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             You can verify on any device.
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             As soon as your email is verified we&apos;ll automatically sign you in and{" "}
-            {continueCopy(account)}.
+            {continueCopy(account, stockup)}.
           </p>
 
           {isRedirecting ? (
             <p className="mt-6 text-sm font-medium text-success" role="status" aria-live="polite">
-              Email verified — taking you into FoodVault…
+              Email verified — taking you into {stockup ? "StockUp" : "FoodVault"}…
             </p>
           ) : null}
 

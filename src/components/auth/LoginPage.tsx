@@ -9,7 +9,11 @@ import {
   type TurnstileFieldHandle,
   isTurnstileEnabledClient,
 } from "@/components/auth/TurnstileField";
-import { resendMemberSignupConfirmationAction } from "@/lib/member/signup-actions";
+import {
+  createStockUpAccountAction,
+  resendMemberSignupConfirmationAction,
+} from "@/lib/member/signup-actions";
+import { savePendingSignup } from "@/lib/auth/pending-signup-storage";
 import { assertLoginAllowedAction } from "@/lib/auth/login-actions";
 import { LoginModeTabs } from "@/components/auth/LoginModeTabs";
 import {
@@ -71,8 +75,12 @@ function LoginForm({ stockup }: { stockup: boolean }) {
   const nextPath = searchParams.get("next");
 
   const [checkingSession, setCheckingSession] = useState(true);
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(
@@ -185,6 +193,52 @@ function LoginForm({ stockup }: { stockup: boolean }) {
     }
   }
 
+  const handleCreateAccount = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+
+    if (captchaRequired && !loginTurnstileToken) {
+      setError("Please complete the CAPTCHA check before creating your account.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await createStockUpAccountAction(
+        {
+          firstName,
+          lastName,
+          email,
+          password,
+          confirmPassword,
+        },
+        loginTurnstileToken
+      );
+
+      if ("error" in result && result.error) {
+        setError(result.error);
+        return;
+      }
+
+      if ("needsEmailConfirmation" in result && result.needsEmailConfirmation) {
+        savePendingSignup({
+          email: email.trim(),
+          password,
+          account: "member",
+        });
+        router.push(result.checkEmailPath);
+        return;
+      }
+
+      if ("redirectTo" in result && result.redirectTo) {
+        router.push(result.redirectTo);
+      }
+    } finally {
+      setSubmitting(false);
+      loginTurnstileRef.current?.reset();
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setError(null);
     setConfirmationResent(false);
@@ -212,13 +266,136 @@ function LoginForm({ stockup }: { stockup: boolean }) {
           ) : (
             <>
           <h1 className={`${stockup ? "" : "mt-6"} text-3xl font-bold tracking-tight text-foreground sm:text-4xl`}>
-            {stockup ? "Log in" : "Member Login"}
+            {stockup ? (creatingAccount ? "Create an account" : "Log in") : "Member Login"}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
             {stockup
-              ? "Log in to open your saved grocery list, then review the orders and invoices in My History."
+              ? creatingAccount
+                ? "Choose an email and password. After you confirm your email, you can save products to My Grocery List and view orders in My History."
+                : "Log in to open your saved grocery list, then review the orders and invoices in My History."
               : "Log in to access your FoodVault membership, browse participating brands and local venues, save your favourites, and manage your account."}
           </p>
+
+          {stockup && creatingAccount ? (
+            <form onSubmit={handleCreateAccount} className="mt-8 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="first-name" className="text-sm font-bold text-foreground">
+                    First name
+                  </label>
+                  <input
+                    id="first-name"
+                    name="firstName"
+                    type="text"
+                    required
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className={`mt-2 ${inputClass} focus:border-vm-primary focus:ring-vm-primary/20`}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="last-name" className="text-sm font-bold text-foreground">
+                    Last name
+                  </label>
+                  <input
+                    id="last-name"
+                    name="lastName"
+                    type="text"
+                    required
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className={`mt-2 ${inputClass} focus:border-vm-primary focus:ring-vm-primary/20`}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="create-email" className="text-sm font-bold text-foreground">
+                  Email Address
+                </label>
+                <input
+                  id="create-email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className={`mt-2 ${inputClass} focus:border-vm-primary focus:ring-vm-primary/20`}
+                />
+              </div>
+              <div>
+                <label htmlFor="create-password" className="text-sm font-bold text-foreground">
+                  Password
+                </label>
+                <input
+                  id="create-password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`mt-2 ${inputClass} focus:border-vm-primary focus:ring-vm-primary/20`}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p>
+              </div>
+              <div>
+                <label htmlFor="confirm-password" className="text-sm font-bold text-foreground">
+                  Confirm password
+                </label>
+                <input
+                  id="confirm-password"
+                  name="confirmPassword"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`mt-2 ${inputClass} focus:border-vm-primary focus:ring-vm-primary/20`}
+                />
+              </div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="h-4 w-4 rounded border-border text-vm-primary focus:ring-vm-primary"
+                />
+                <span className="text-sm text-muted-foreground">Show password</span>
+              </label>
+              {error ? (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                  {error}
+                </div>
+              ) : null}
+              <TurnstileField ref={loginTurnstileRef} onTokenChange={setLoginTurnstileToken} />
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex w-full items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#059669] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting ? "Creating account..." : "Create account"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatingAccount(false);
+                  setError(null);
+                }}
+                className="w-full text-sm font-semibold text-vm-primary"
+              >
+                Already have an account? Log in
+              </button>
+            </form>
+          ) : null}
+
+          {stockup && creatingAccount ? null : (
+          <>
 
           <button
             type="button"
@@ -351,12 +528,32 @@ function LoginForm({ stockup }: { stockup: boolean }) {
               {submitting ? "Signing in..." : "Log In"}
             </button>
           </form>
+          </>
+          )}
 
           <div className="mt-8 border-t border-border pt-8">
             {stockup ? (
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Saving a product to My Grocery List, and viewing orders or invoices in My History, is available after you log in.
-              </p>
+              creatingAccount ? (
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  We&apos;ll email a confirmation link. After you open it, your StockUp login is ready.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    New to StockUp? Create a login to save products to My Grocery List and view your orders.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreatingAccount(true);
+                      setError(null);
+                    }}
+                    className="inline-flex w-full items-center justify-center rounded-sm border-2 border-vm-primary bg-background px-6 py-3.5 text-base font-semibold text-vm-primary transition-colors hover:bg-[#ecfdf5]"
+                  >
+                    Create an account
+                  </button>
+                </div>
+              )
             ) : (
               <>
             <p className="text-sm leading-relaxed text-muted-foreground">
