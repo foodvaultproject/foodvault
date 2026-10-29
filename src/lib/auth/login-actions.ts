@@ -1,6 +1,6 @@
 "use server";
 
-import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 
 export async function assertLoginAllowedAction() {
   const guard = await enforceAuthBotProtection({
@@ -9,7 +9,7 @@ export async function assertLoginAllowedAction() {
   });
 
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   return { ok: true as const };

@@ -11,7 +11,7 @@ import {
   userHasEmailPasswordIdentity,
   userHasGoogleIdentity,
 } from "@/lib/auth/auth-user-identities";
-import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import {
   issueAndSendSignupVerification,
   AUTH_CHECK_EMAIL_PATH,
@@ -38,7 +38,7 @@ export async function createPartnerAccountAction(
     turnstileToken,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   if (!isSupabaseConfigured()) {
@@ -130,7 +130,7 @@ export async function linkPartnerAccountWithPasswordAction(
     turnstileToken,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   if (!isSupabaseConfigured()) {

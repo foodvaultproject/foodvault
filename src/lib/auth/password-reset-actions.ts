@@ -2,7 +2,7 @@
 
 import type { AccountType } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
-import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { issueAndSendPasswordReset } from "@/lib/auth/email-verification";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,7 +29,7 @@ export async function resetPassword(
     requireTurnstile: options.skipTurnstile ? false : undefined,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   if (!isSupabaseConfigured()) {

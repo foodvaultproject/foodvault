@@ -6,8 +6,10 @@ export type AuthRateLimitAction =
 
 export type AuthEmailKind = "signup_verification" | "password_reset";
 
-export const AUTH_RATE_LIMIT_MESSAGE =
-  "Too many requests from your network. Please wait a few minutes and try again.";
+export function authRateLimitMessage(retryAfterSeconds: number) {
+  const seconds = Math.max(1, retryAfterSeconds);
+  return `Too many requests from your network. Please wait ${seconds} seconds and try again.`;
+}
 
 export const AUTH_CAPTCHA_FAILED_MESSAGE =
   "CAPTCHA verification failed. Please try again.";

@@ -12,7 +12,7 @@ import {
   getSiteUrl,
   issueAndSendSignupVerification,
 } from "@/lib/auth/email-verification";
-import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import { MEMBER_HOME_PATH, SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
@@ -56,7 +56,7 @@ export async function createMemberAccountAction(
     turnstileToken,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   if (!isSupabaseConfigured()) {
@@ -126,7 +126,7 @@ export async function createStockUpAccountAction(
     turnstileToken,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   if (!isSupabaseConfigured()) {

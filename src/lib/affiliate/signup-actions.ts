@@ -1,7 +1,7 @@
 "use server";
 
 import { isSupabaseConfigured } from "@/lib/auth";
-import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import {
   AUTH_CHECK_EMAIL_PATH,
   issueAndSendSignupVerification,
@@ -26,7 +26,7 @@ export async function createAffiliateAccountAction(
     turnstileToken,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   const email = input.email.trim();

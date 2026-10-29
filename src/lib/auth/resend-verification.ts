@@ -2,7 +2,7 @@
 
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
-import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
 import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
@@ -40,7 +40,7 @@ export async function resendSignupVerificationAction(
     turnstileToken,
   });
   if (!guard.ok) {
-    return { error: guard.error };
+    return authGuardFailure(guard);
   }
 
   if (!createAdminClient()) {
