@@ -265,6 +265,24 @@ function LoginForm({ stockup }: { stockup: boolean }) {
             </div>
           ) : (
             <>
+          {stockup && !creatingAccount ? (
+            <div className="mb-6 rounded-lg border border-vm-primary/30 bg-[#ecfdf5] p-4">
+              <p className="text-sm font-semibold text-foreground">New to StockUp?</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Create a login to save products to My Grocery List and view your orders.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatingAccount(true);
+                  setError(null);
+                }}
+                className="mt-3 inline-flex w-full items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#059669]"
+              >
+                Create an account
+              </button>
+            </div>
+          ) : null}
           <h1 className={`${stockup ? "" : "mt-6"} text-3xl font-bold tracking-tight text-foreground sm:text-4xl`}>
             {stockup ? (creatingAccount ? "Create an account" : "Log in") : "Member Login"}
           </h1>
@@ -533,27 +551,11 @@ function LoginForm({ stockup }: { stockup: boolean }) {
 
           <div className="mt-8 border-t border-border pt-8">
             {stockup ? (
-              creatingAccount ? (
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  We&apos;ll email a confirmation link. After you open it, your StockUp login is ready.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    New to StockUp? Create a login to save products to My Grocery List and view your orders.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreatingAccount(true);
-                      setError(null);
-                    }}
-                    className="inline-flex w-full items-center justify-center rounded-sm border-2 border-vm-primary bg-background px-6 py-3.5 text-base font-semibold text-vm-primary transition-colors hover:bg-[#ecfdf5]"
-                  >
-                    Create an account
-                  </button>
-                </div>
-              )
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {creatingAccount
+                  ? "We'll email a confirmation link. After you open it, your StockUp login is ready."
+                  : "Saving a product to My Grocery List, and viewing orders or invoices in My History, is available after you log in."}
+              </p>
             ) : (
               <>
             <p className="text-sm leading-relaxed text-muted-foreground">

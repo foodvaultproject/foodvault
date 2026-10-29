@@ -175,6 +175,36 @@ export function multibuyBundleSavings(product: FoodVaultProduct): number {
   return Math.max(0, product.member_price * product.multibuy_quantity - product.multibuy_price);
 }
 
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/** Unit price until the deal quantity is reached, then each full bundle uses the multibuy total. */
+export function multibuyAwareLineTotal(input: {
+  memberPrice: number;
+  quantity: number;
+  isMultibuy?: boolean | null;
+  multibuyQuantity?: number | null;
+  multibuyPrice?: number | null;
+}): number {
+  const quantity = Math.max(0, Math.trunc(input.quantity));
+  const bundleQuantity = Math.trunc(input.multibuyQuantity ?? 0);
+  const bundlePrice = input.multibuyPrice ?? 0;
+
+  if (
+    input.isMultibuy &&
+    bundleQuantity >= 2 &&
+    bundlePrice > 0 &&
+    quantity >= bundleQuantity
+  ) {
+    const bundles = Math.floor(quantity / bundleQuantity);
+    const remainder = quantity % bundleQuantity;
+    return roundMoney(bundles * bundlePrice + remainder * input.memberPrice);
+  }
+
+  return roundMoney(input.memberPrice * quantity);
+}
+
 export function matchesCatalogQuery(product: FoodVaultProduct, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;

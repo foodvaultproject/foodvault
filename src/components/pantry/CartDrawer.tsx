@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SafeImage } from "@/components/media/SafeImage";
-import { cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
+import { cartItemLineTotal, cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
 import {
   CONSUMER_VAULT_MARKET_PATH,
   STOREFRONT_CHECKOUT_PATH,
@@ -154,11 +154,26 @@ export function CartDrawer({
                       {item.name}
                     </p>
                     <p className="mt-1 text-sm font-bold text-vm-primary">
-                      {formatNzPrice(item.member_price)}
-                      <span className="ml-2 text-xs font-medium text-muted-light line-through">
-                        {formatNzPrice(item.retail_price)}
-                      </span>
+                      {formatNzPrice(cartItemLineTotal(item))}
+                      {item.quantity > 1 ? (
+                        <span className="ml-1 text-xs font-medium text-muted-foreground">
+                          for {item.quantity}
+                        </span>
+                      ) : null}
+                      {item.retail_price > item.member_price ? (
+                        <span className="ml-2 text-xs font-medium text-muted-light line-through">
+                          {formatNzPrice(item.retail_price * item.quantity)}
+                        </span>
+                      ) : null}
                     </p>
+                    {item.is_multibuy &&
+                    item.multibuy_quantity &&
+                    item.multibuy_price &&
+                    item.quantity >= item.multibuy_quantity ? (
+                      <p className="mt-0.5 text-xs font-semibold text-[#059669]">
+                        {item.multibuy_quantity} for {formatNzPrice(item.multibuy_price)} applied
+                      </p>
+                    ) : null}
 
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <div className="inline-flex items-center rounded-md border border-border">

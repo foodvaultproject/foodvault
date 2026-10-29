@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { isSupermarketOrderMetadata } from "@/lib/app-mode";
+import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
 import { sendSupermarketOrderConfirmationEmail } from "@/lib/commerce/send-supermarket-order-email";
@@ -326,7 +327,16 @@ export async function fulfillPantryOrderFromCheckoutSession(
     const product = products.find(
       (entry) => aliases.includes(entry.id) || aliases.includes(entry.sku)
     );
-    const unitPrice = product?.member_price ?? 0;
+    const lineTotal = product
+      ? multibuyAwareLineTotal({
+          memberPrice: product.member_price,
+          quantity: line.quantity,
+          isMultibuy: product.is_multibuy,
+          multibuyQuantity: product.multibuy_quantity,
+          multibuyPrice: product.multibuy_price,
+        })
+      : 0;
+    const unitPrice = line.quantity > 0 ? Math.round((lineTotal / line.quantity) * 100) / 100 : 0;
     return {
       order_id: orderId,
       product_id: product?.id ?? line.productId,
@@ -334,7 +344,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
       name: product?.name ?? "Vault Market item",
       quantity: line.quantity,
       unit_price: unitPrice,
-      line_total: unitPrice * line.quantity,
+      line_total: lineTotal,
     };
   });
 

@@ -141,4 +141,7 @@ export interface CartItem {
   retail_price: number;
   image_url: string | null;
   quantity: number;
+  is_multibuy?: boolean;
+  multibuy_quantity?: number | null;
+  multibuy_price?: number | null;
 }

@@ -1,4 +1,5 @@
 import { getAppMode } from "@/lib/app-mode";
+import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
 import type { CartItem, FoodVaultProduct } from "@/types/commerce";
 
 const stockupCart = getAppMode() === "stockup";
@@ -18,15 +19,45 @@ export function cartItemCount(items: CartItem[]): number {
   return items.reduce((sum, item) => sum + item.quantity, 0);
 }
 
+export function cartItemLineTotal(item: CartItem): number {
+  return multibuyAwareLineTotal({
+    memberPrice: item.member_price,
+    quantity: item.quantity,
+    isMultibuy: item.is_multibuy,
+    multibuyQuantity: item.multibuy_quantity,
+    multibuyPrice: item.multibuy_price,
+  });
+}
+
 export function cartMemberSubtotal(items: CartItem[]): number {
-  return items.reduce((sum, item) => sum + item.member_price * item.quantity, 0);
+  return items.reduce((sum, item) => sum + cartItemLineTotal(item), 0);
 }
 
 export function cartMemberSavings(items: CartItem[]): number {
   return items.reduce((sum, item) => {
-    const perUnit = Math.max(0, item.retail_price - item.member_price);
-    return sum + perUnit * item.quantity;
+    const retail = item.retail_price * item.quantity;
+    return sum + Math.max(0, retail - cartItemLineTotal(item));
   }, 0);
+}
+
+export function applyCatalogPricing(
+  items: CartItem[],
+  products: FoodVaultProduct[]
+): CartItem[] {
+  if (products.length === 0) return items;
+  const byId = new Map(products.map((product) => [product.id, product]));
+  return items.map((item) => {
+    const product = byId.get(item.product_id);
+    if (!product) return item;
+    return {
+      ...item,
+      member_price: product.member_price,
+      retail_price: product.retail_price,
+      is_multibuy: Boolean(product.is_multibuy),
+      multibuy_quantity: product.multibuy_quantity ?? null,
+      multibuy_price: product.multibuy_price ?? null,
+    };
+  });
 }
 
 export function emitVaultMarketCartOpen(): void {
@@ -112,6 +143,9 @@ export function addProductToCart(
     retail_price: product.retail_price,
     image_url: product.image_url,
     quantity: nextQty,
+    is_multibuy: Boolean(product.is_multibuy),
+    multibuy_quantity: product.multibuy_quantity ?? null,
+    multibuy_price: product.multibuy_price ?? null,
   };
 
   if (!existing) return [...items, nextItem];

@@ -7,7 +7,7 @@ import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { SafeImage } from "@/components/media/SafeImage";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
-import { cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
+import { cartItemLineTotal, cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
 import {
   amountToFreeShipping,
   qualifiesForFreeShipping,
@@ -352,7 +352,7 @@ export function VaultMarketCheckout() {
                   <span className="text-xs text-muted">Qty {item.quantity}</span>
                 </span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                  {formatNzPrice(item.member_price * item.quantity)}
+                  {formatNzPrice(cartItemLineTotal(item))}
                 </span>
               </li>
             ))}

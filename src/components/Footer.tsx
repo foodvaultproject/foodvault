@@ -60,7 +60,7 @@ const FOODVAULT_FOOTER_DESCRIPTION =
   "Unlock exclusive member discounts from Kiwi brands and local hospitality venues all over New Zealand. Save on the things you love, discover new favourites, and support local cafes, restaurants, and online stores direct.";
 
 const STOCKUP_FOOTER_DESCRIPTION =
-  "Direct supermarket delivery across New Zealand. Saver prices on everyday groceries, packed and shipped from our warehouse.";
+  "Shop New Zealand Groceries. Kiwi Owned and Operated.";
 
 const socialLinks = [
   {

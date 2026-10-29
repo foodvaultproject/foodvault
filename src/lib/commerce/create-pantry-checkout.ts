@@ -1,3 +1,4 @@
+import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import {
   formatDeliveryAddress,
@@ -108,20 +109,27 @@ export async function validatePantryCheckoutItems(
   });
 }
 
+export function pantryItemLineTotal(item: ValidatedPantryCheckoutItem): number {
+  return multibuyAwareLineTotal({
+    memberPrice: item.product.member_price,
+    quantity: item.quantity,
+    isMultibuy: item.product.is_multibuy,
+    multibuyQuantity: item.product.multibuy_quantity,
+    multibuyPrice: item.product.multibuy_price,
+  });
+}
+
 export function pantryCheckoutSavings(
   items: ValidatedPantryCheckoutItem[]
 ): number {
   return items.reduce((sum, item) => {
-    const perUnit = Math.max(0, item.product.retail_price - item.product.member_price);
-    return sum + perUnit * item.quantity;
+    const retail = item.product.retail_price * item.quantity;
+    return sum + Math.max(0, retail - pantryItemLineTotal(item));
   }, 0);
 }
 
 export function pantryCheckoutSubtotal(items: ValidatedPantryCheckoutItem[]): number {
-  return items.reduce(
-    (sum, item) => sum + item.product.member_price * item.quantity,
-    0
-  );
+  return items.reduce((sum, item) => sum + pantryItemLineTotal(item), 0);
 }
 
 export { parseVaultMarketDelivery };
@@ -132,6 +140,48 @@ function metaValue(value: string, max = 500) {
 
 export function getCheckoutOrigin(request: Request): string {
   return resolvePaymentReturnOrigin(request);
+}
+
+function pantryStripeLineItems(product: FoodVaultProduct, quantity: number) {
+  const lineTotal = multibuyAwareLineTotal({
+    memberPrice: product.member_price,
+    quantity,
+    isMultibuy: product.is_multibuy,
+    multibuyQuantity: product.multibuy_quantity,
+    multibuyPrice: product.multibuy_price,
+  });
+  const totalCents = toStripeAmount(lineTotal, "nzd");
+  const unitCents = quantity > 0 ? Math.round(totalCents / quantity) : totalCents;
+  const evenSplit = unitCents * quantity === totalCents;
+  const dealLabel =
+    product.is_multibuy &&
+    product.multibuy_quantity &&
+    product.multibuy_price &&
+    quantity >= product.multibuy_quantity
+      ? `${product.multibuy_quantity} for $${product.multibuy_price.toFixed(2)}`
+      : null;
+  const description = [product.brand, dealLabel ?? "Saver price"].filter(Boolean).join(" · ");
+
+  return [
+    {
+      quantity: evenSplit ? quantity : 1,
+      price_data: {
+        currency: "nzd",
+        unit_amount: evenSplit ? unitCents : totalCents,
+        product_data: {
+          name: evenSplit ? product.name : `${product.name} × ${quantity}`,
+          description,
+          ...(product.image_url?.startsWith("https://")
+            ? { images: [product.image_url] }
+            : {}),
+          metadata: {
+            product_id: product.id,
+            sku: product.sku,
+          },
+        },
+      },
+    },
+  ];
 }
 
 export async function createPantryCheckoutSession(input: {
@@ -193,24 +243,9 @@ export async function createPantryCheckoutSession(input: {
         },
       },
     ],
-    line_items: input.items.map(({ product, quantity }) => ({
-      quantity,
-      price_data: {
-        currency: "nzd",
-        unit_amount: toStripeAmount(product.member_price, "nzd"),
-        product_data: {
-          name: product.name,
-          description: product.brand ? `${product.brand} · Saver price` : "Saver price",
-          ...(product.image_url?.startsWith("https://")
-            ? { images: [product.image_url] }
-            : {}),
-          metadata: {
-            product_id: product.id,
-            sku: product.sku,
-          },
-        },
-      },
-    })),
+    line_items: input.items.flatMap(({ product, quantity }) =>
+      pantryStripeLineItems(product, quantity)
+    ),
     success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout`,
     payment_intent_data: {

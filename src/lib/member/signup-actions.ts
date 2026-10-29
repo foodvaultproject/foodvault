@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, SIGNUP_PATH } from "@/lib/auth";
 import {
@@ -8,11 +9,14 @@ import {
 } from "@/lib/business-name";
 import {
   AUTH_CHECK_EMAIL_PATH,
+  getSiteUrl,
   issueAndSendSignupVerification,
 } from "@/lib/auth/email-verification";
 import { enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
 import { MEMBER_HOME_PATH, SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignupFormData = {
@@ -142,26 +146,68 @@ export async function createStockUpAccountAction(
     MAX_CONTACT_NAME_LENGTH
   );
 
-  const sendResult = await issueAndSendSignupVerification({
+  const userMetadata = {
+    account_type: "member",
+    first_name: firstName,
+    last_name: lastName,
+    signup_mode: "stockup",
+    country: "New Zealand",
+    marketing_opt_in: false,
+  };
+
+  if (createAdminClient()) {
+    const sendResult = await issueAndSendSignupVerification({
+      email,
+      password: data.password,
+      firstName,
+      next: MEMBER_HOME_PATH,
+      account: "member",
+      linkType: "signup",
+      userMetadata,
+    });
+
+    if ("error" in sendResult && sendResult.error) {
+      console.error("[signup] StockUp verification email failed", sendResult);
+      return { error: sendResult.error };
+    }
+
+    return {
+      needsEmailConfirmation: true as const,
+      email,
+      checkEmailPath: `${AUTH_CHECK_EMAIL_PATH}?email=${encodeURIComponent(email)}&account=member&brand=stockup`,
+    };
+  }
+
+  const headerStore = await headers();
+  const forwardedHost = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const proto = headerStore.get("x-forwarded-proto") ?? "https";
+  const origin = forwardedHost
+    ? `${proto}://${forwardedHost.split(",")[0]?.trim()}`
+    : getSiteUrl();
+  const supabase = await createClient();
+  const { data: signedUp, error: signUpError } = await supabase.auth.signUp({
     email,
     password: data.password,
-    firstName,
-    next: MEMBER_HOME_PATH,
-    account: "member",
-    linkType: "signup",
-    userMetadata: {
-      account_type: "member",
-      first_name: firstName,
-      last_name: lastName,
-      signup_mode: "stockup",
-      country: "New Zealand",
-      marketing_opt_in: false,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`,
+      data: userMetadata,
+      ...supabaseAuthCaptchaOptions(turnstileToken),
     },
   });
 
-  if ("error" in sendResult && sendResult.error) {
-    console.error("[signup] StockUp verification email failed", sendResult);
-    return { error: sendResult.error };
+  if (signUpError) {
+    console.error("[signup] StockUp signUp failed", signUpError);
+    return { error: signUpError.message };
+  }
+
+  if (signedUp.user && signedUp.user.identities?.length === 0) {
+    return {
+      error: "An account with this email already exists. Log in instead.",
+    };
+  }
+
+  if (signedUp.session) {
+    return { success: true as const, redirectTo: MEMBER_HOME_PATH };
   }
 
   return {

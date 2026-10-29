@@ -18,6 +18,7 @@ import {
   VAULT_MARKET_CART_CHANGE_EVENT,
   VAULT_MARKET_CART_OPEN_EVENT,
   addProductToCart,
+  applyCatalogPricing,
   consumeVaultMarketCartOpenFlag,
   readVaultMarketCart,
   removeCartItem,
@@ -74,6 +75,8 @@ export function PantryMarketProvider({
 }) {
   const router = useRouter();
   const appliedGroceryIntent = useRef(false);
+  const productsRef = useRef(products);
+  productsRef.current = products;
   const [cart, setCart] = useState<CartItem[]>([]);
   const [groceryList, setGroceryList] = useState<GroceryListItem[]>([]);
   const [liveQuery, setLiveQuery] = useState("");
@@ -92,7 +95,7 @@ export function PantryMarketProvider({
   }, []);
 
   useEffect(() => {
-    setCart(readVaultMarketCart());
+    setCart(applyCatalogPricing(readVaultMarketCart(), productsRef.current));
     setGroceryList(readGroceryList());
     if (consumeVaultMarketCartOpenFlag()) {
       setGroceryOpen(false);
@@ -113,7 +116,7 @@ export function PantryMarketProvider({
     }
 
     function handleCartChange() {
-      setCart(readVaultMarketCart());
+      setCart(applyCatalogPricing(readVaultMarketCart(), productsRef.current));
     }
 
     function handleGroceryChange() {
@@ -135,6 +138,13 @@ export function PantryMarketProvider({
       window.removeEventListener("storage", handleGroceryChange);
     };
   }, []);
+
+  useEffect(() => {
+    setCart((current) => {
+      const source = current.length > 0 ? current : readVaultMarketCart();
+      return applyCatalogPricing(source, products);
+    });
+  }, [products]);
 
   const stockById = useMemo(
     () => new Map(products.map((product) => [product.id, product.stock_quantity])),
