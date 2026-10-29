@@ -276,6 +276,7 @@ function LoginForm({ stockup }: { stockup: boolean }) {
                 onClick={() => {
                   setCreatingAccount(true);
                   setError(null);
+                  setLoginTurnstileToken(null);
                 }}
                 className="mt-3 inline-flex w-full items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#059669]"
               >
@@ -404,6 +405,7 @@ function LoginForm({ stockup }: { stockup: boolean }) {
                 onClick={() => {
                   setCreatingAccount(false);
                   setError(null);
+                  setLoginTurnstileToken(null);
                 }}
                 className="w-full text-sm font-semibold text-vm-primary"
               >

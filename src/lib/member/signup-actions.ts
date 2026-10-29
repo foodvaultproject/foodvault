@@ -184,6 +184,13 @@ export async function createStockUpAccountAction(
   const origin = forwardedHost
     ? `${proto}://${forwardedHost.split(",")[0]?.trim()}`
     : getSiteUrl();
+  const captcha = supabaseAuthCaptchaOptions(turnstileToken);
+  if (!("captchaToken" in captcha)) {
+    return {
+      error: "Please complete the CAPTCHA check before creating your account.",
+    };
+  }
+
   const supabase = await createClient();
   const { data: signedUp, error: signUpError } = await supabase.auth.signUp({
     email,
@@ -191,7 +198,7 @@ export async function createStockUpAccountAction(
     options: {
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`,
       data: userMetadata,
-      ...supabaseAuthCaptchaOptions(turnstileToken),
+      ...captcha,
     },
   });
 

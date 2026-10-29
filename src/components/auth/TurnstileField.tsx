@@ -13,9 +13,16 @@ type TurnstileFieldProps = {
   className?: string;
 };
 
+/** Public site key. Env overrides this; StockUp's build does not currently set the env var. */
+const FOODVAULT_TURNSTILE_SITE_KEY = "0x4AAAAAAEHVV6CfIPMas3b3";
+
+export function turnstileSiteKey() {
+  return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || FOODVAULT_TURNSTILE_SITE_KEY;
+}
+
 export const TurnstileField = forwardRef<TurnstileFieldHandle, TurnstileFieldProps>(
   function TurnstileField({ onTokenChange, className = "" }, ref) {
-    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    const siteKey = turnstileSiteKey();
     const widgetRef = useRef<TurnstileInstance>(null);
 
     useImperativeHandle(ref, () => ({
@@ -50,5 +57,5 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle, TurnstileFieldPro
 );
 
 export function isTurnstileEnabledClient() {
-  return Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  return Boolean(turnstileSiteKey());
 }
