@@ -3,6 +3,7 @@
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
 import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
@@ -78,11 +79,11 @@ export async function resendSignupVerificationAction(
   const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
   const firstName =
     typeof metadata.first_name === "string" ? metadata.first_name : null;
-  const nextPath =
-    accountType === "member"
-      ? metadata.signup_mode === "stockup"
-        ? MEMBER_HOME_PATH
-        : SIGNUP_MEMBERSHIP_PATH
+  const stockupMember = accountType === "member" && metadata.signup_mode === "stockup";
+  const nextPath = stockupMember
+    ? MEMBER_HOME_PATH
+    : accountType === "member"
+      ? SIGNUP_MEMBERSHIP_PATH
       : defaultNextPathForAccount(accountType);
 
   const sendResult = await issueAndSendSignupVerification({
@@ -91,6 +92,7 @@ export async function resendSignupVerificationAction(
     next: nextPath,
     account: accountType,
     linkType: "invite",
+    siteOrigin: stockupMember ? STOCKUP_ORIGIN : undefined,
   });
 
   if ("error" in sendResult && sendResult.error) {

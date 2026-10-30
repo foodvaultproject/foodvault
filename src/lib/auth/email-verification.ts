@@ -31,13 +31,18 @@ export function getSiteUrl() {
   );
 }
 
+function resolveSiteOrigin(siteOrigin?: string | null) {
+  return (siteOrigin?.trim() || getSiteUrl()).replace(/\/$/, "");
+}
+
 export function buildConfirmUrl(params: {
   tokenHash: string;
   type: AuthConfirmLinkType;
   next: string;
   account: AccountType;
+  siteOrigin?: string | null;
 }) {
-  const url = new URL(`${getSiteUrl()}${AUTH_CONFIRM_PATH}`);
+  const url = new URL(`${resolveSiteOrigin(params.siteOrigin)}${AUTH_CONFIRM_PATH}`);
   url.searchParams.set("token_hash", params.tokenHash);
   url.searchParams.set("type", params.type);
   url.searchParams.set("next", params.next);
@@ -86,6 +91,7 @@ export async function generateSignupVerificationLink(params: {
   password?: string;
   userMetadata?: Record<string, unknown>;
   linkType: VerificationLinkType;
+  siteOrigin?: string | null;
 }) {
   const admin = createAdminClient();
   if (!admin) {
@@ -95,7 +101,7 @@ export async function generateSignupVerificationLink(params: {
     } satisfies AuthStepError;
   }
 
-  const redirectTo = `${getSiteUrl()}${AUTH_CONFIRM_PATH}`;
+  const redirectTo = `${resolveSiteOrigin(params.siteOrigin)}${AUTH_CONFIRM_PATH}`;
   const email = params.email.trim();
 
   if (params.linkType === "signup") {
@@ -188,12 +194,14 @@ export async function issueAndSendSignupVerification(params: {
   account: AccountType;
   linkType: VerificationLinkType;
   userMetadata?: Record<string, unknown>;
+  siteOrigin?: string | null;
 }) {
   const linkResult = await generateSignupVerificationLink({
     email: params.email,
     password: params.password,
     userMetadata: params.userMetadata,
     linkType: params.linkType,
+    siteOrigin: params.siteOrigin,
   });
 
   if ("error" in linkResult) {
@@ -205,6 +213,7 @@ export async function issueAndSendSignupVerification(params: {
     type: linkResult.linkType,
     next: params.next,
     account: params.account,
+    siteOrigin: params.siteOrigin,
   });
 
   return sendSignupVerificationEmail({

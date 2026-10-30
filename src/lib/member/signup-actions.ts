@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, SIGNUP_PATH } from "@/lib/auth";
 import {
@@ -9,12 +8,12 @@ import {
 } from "@/lib/business-name";
 import {
   AUTH_CHECK_EMAIL_PATH,
-  getSiteUrl,
   issueAndSendSignupVerification,
 } from "@/lib/auth/email-verification";
 import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { resendSignupVerificationAction } from "@/lib/auth/resend-verification";
+import { STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { MEMBER_HOME_PATH, SIGNUP_MEMBERSHIP_PATH } from "@/lib/member/paths";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -164,6 +163,7 @@ export async function createStockUpAccountAction(
       account: "member",
       linkType: "signup",
       userMetadata,
+      siteOrigin: STOCKUP_ORIGIN,
     });
 
     if ("error" in sendResult && sendResult.error) {
@@ -178,12 +178,6 @@ export async function createStockUpAccountAction(
     };
   }
 
-  const headerStore = await headers();
-  const forwardedHost = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-  const proto = headerStore.get("x-forwarded-proto") ?? "https";
-  const origin = forwardedHost
-    ? `${proto}://${forwardedHost.split(",")[0]?.trim()}`
-    : getSiteUrl();
   const captcha = supabaseAuthCaptchaOptions(turnstileToken);
   if (!("captchaToken" in captcha)) {
     return {
@@ -196,7 +190,7 @@ export async function createStockUpAccountAction(
     email,
     password: data.password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`,
+      emailRedirectTo: `${STOCKUP_ORIGIN}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`,
       data: userMetadata,
       ...captcha,
     },
