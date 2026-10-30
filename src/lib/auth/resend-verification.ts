@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
-import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { getAppMode, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
@@ -15,7 +14,6 @@ import {
 } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 function defaultNextPathForAccount(accountType: AccountType) {
   switch (accountType) {
@@ -29,8 +27,6 @@ function defaultNextPathForAccount(accountType: AccountType) {
   }
 }
 
-const STOCKUP_CONFIRM_REDIRECT = `${STOCKUP_ORIGIN}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`;
-
 async function isStockUpRequest(brand?: string | null) {
   if (brand === "stockup") return true;
   const headerStore = await headers();
@@ -38,27 +34,26 @@ async function isStockUpRequest(brand?: string | null) {
   return getAppMode(host) === "stockup";
 }
 
-async function resendStockUpSignupEmail(
-  email: string,
-  turnstileToken?: string | null
-) {
-  const captcha = supabaseAuthCaptchaOptions(turnstileToken);
-  if (!("captchaToken" in captcha)) {
-    return { error: "Please complete the CAPTCHA check before resending." };
+async function resendStockUpSignupEmail(email: string) {
+  if (!createAdminClient()) {
+    return {
+      error:
+        "We couldn't send the confirmation email. StockUp email delivery is not configured on this server.",
+    };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resend({
-    type: "signup",
+  const sendResult = await issueAndSendSignupVerification({
     email,
-    options: {
-      emailRedirectTo: STOCKUP_CONFIRM_REDIRECT,
-      ...captcha,
-    },
+    next: MEMBER_HOME_PATH,
+    account: "member",
+    linkType: "magiclink",
+    siteOrigin: STOCKUP_ORIGIN,
+    force: true,
   });
 
-  if (error) {
-    return { error: error.message };
+  if ("error" in sendResult && sendResult.error) {
+    console.error("[STOCKUP_RESEND]", sendResult);
+    return { error: "We couldn't send the confirmation email. Please try again." };
   }
 
   return { success: true as const };
@@ -83,10 +78,11 @@ export async function resendSignupVerificationAction(
     return authGuardFailure(guard);
   }
 
+  if (await isStockUpRequest(brand)) {
+    return resendStockUpSignupEmail(trimmed);
+  }
+
   if (!createAdminClient()) {
-    if (await isStockUpRequest(brand)) {
-      return resendStockUpSignupEmail(trimmed, turnstileToken);
-    }
     return { error: "Email verification is not configured in this environment." };
   }
 

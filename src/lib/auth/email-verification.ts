@@ -13,7 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const AUTH_CONFIRM_PATH = "/auth/confirm";
 export const AUTH_CHECK_EMAIL_PATH = "/auth/check-email";
 
-export type VerificationLinkType = "signup" | "invite";
+export type VerificationLinkType = "signup" | "invite" | "magiclink";
 
 export type AuthConfirmLinkType = VerificationLinkType | "recovery";
 
@@ -130,8 +130,9 @@ export async function generateSignupVerificationLink(params: {
     return { tokenHash, linkType: "signup" as const };
   }
 
+  const linkType = params.linkType === "magiclink" ? "magiclink" : "invite";
   const { data, error } = await admin.auth.admin.generateLink({
-    type: "invite",
+    type: linkType,
     email,
     options: {
       redirectTo,
@@ -140,7 +141,7 @@ export async function generateSignupVerificationLink(params: {
   });
 
   if (error) {
-    return formatAuthStepError("admin.generateLink.invite", error);
+    return formatAuthStepError(`admin.generateLink.${linkType}`, error);
   }
 
   const tokenHash = data.properties?.hashed_token;
@@ -151,17 +152,20 @@ export async function generateSignupVerificationLink(params: {
     } satisfies AuthStepError;
   }
 
-  return { tokenHash, linkType: "invite" as const };
+  return { tokenHash, linkType };
 }
 
 export async function sendSignupVerificationEmail(params: {
   to: string;
   firstName?: string | null;
   verificationUrl: string;
+  force?: boolean;
 }) {
-  const dedup = await reserveAuthEmailSend("signup_verification", params.to);
-  if (dedup.duplicate) {
-    return {};
+  if (!params.force) {
+    const dedup = await reserveAuthEmailSend("signup_verification", params.to);
+    if (dedup.duplicate) {
+      return {};
+    }
   }
 
   const appUrl = getEmailAppUrl();
@@ -195,6 +199,7 @@ export async function issueAndSendSignupVerification(params: {
   linkType: VerificationLinkType;
   userMetadata?: Record<string, unknown>;
   siteOrigin?: string | null;
+  force?: boolean;
 }) {
   const linkResult = await generateSignupVerificationLink({
     email: params.email,
@@ -220,6 +225,7 @@ export async function issueAndSendSignupVerification(params: {
     to: params.email,
     firstName: params.firstName,
     verificationUrl,
+    force: params.force,
   });
 }
 

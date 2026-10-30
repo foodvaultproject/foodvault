@@ -21,7 +21,7 @@ function loginPathForAccount(account: string | null) {
 }
 
 function isAuthConfirmLinkType(value: string | null): value is AuthConfirmLinkType {
-  return value === "signup" || value === "invite" || value === "recovery";
+  return value === "signup" || value === "invite" || value === "magiclink" || value === "recovery";
 }
 
 export async function GET(request: Request) {
