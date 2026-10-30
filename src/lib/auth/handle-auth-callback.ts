@@ -187,7 +187,10 @@ export async function handleAuthCallback(
 
   clearOAuthIntentCookie(cookieStore);
 
-  if (setupError) {
+  const stockupAccount =
+    signupMode === "stockup" || searchParams.get("brand") === "stockup";
+
+  if (setupError && !stockupAccount) {
     console.error("[auth/callback] OAuth session setup failed", {
       userId: user.id,
       accountType: context.expectedAccountType,
@@ -197,9 +200,16 @@ export async function handleAuthCallback(
     return redirectTo(`${loginPathForAccount}?error=oauth_setup_failed`);
   }
 
+  if (setupError) {
+    console.error("[auth/callback] StockUp profile setup failed", {
+      userId: user.id,
+      error: setupError,
+    });
+  }
+
   return redirectTo(
-    signupMode === "stockup" ? stockupSafePath(redirectPath) : redirectPath,
-    signupMode === "stockup" ? STOCKUP_ORIGIN : origin
+    stockupAccount ? stockupSafePath(redirectPath) : redirectPath,
+    stockupAccount ? STOCKUP_ORIGIN : origin
   );
 }
 

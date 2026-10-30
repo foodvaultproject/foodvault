@@ -91,11 +91,15 @@ export async function completeSignupVerification(
       marketingOptIn,
     });
 
-    if (profileError) {
+    if (profileError && !stockupAccount) {
       return {
-        redirectPath: stockupAccount ? MEMBER_HOME_PATH : SIGNUP_MEMBERSHIP_PATH,
+        redirectPath: SIGNUP_MEMBERSHIP_PATH,
         error: profileError,
       };
+    }
+
+    if (profileError) {
+      console.error("[signup] StockUp profile was not saved", profileError);
     }
 
     await supabase.auth.updateUser({

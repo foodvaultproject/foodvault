@@ -65,6 +65,9 @@ export async function isSignupSetupComplete(
   const accountType = expectedAccountType ?? getAccountTypeFromMetadata(metadata);
 
   if (accountType === "member") {
+    if (readMetadataString(metadata, "signup_mode") === "stockup") {
+      return Boolean(signupCompletedAt);
+    }
     return (
       Boolean(signupCompletedAt) &&
       (await memberProfileExists(supabase, user.id))
@@ -95,7 +98,7 @@ export async function isSignupSetupComplete(
 export type SessionCompletionContext = {
   expectedAccountType: AccountType;
   nextPath?: string | null;
-  signupMode?: "membership";
+  signupMode?: "membership" | "stockup";
   marketingOptIn?: boolean;
 };
 

@@ -71,7 +71,7 @@ export function parseOAuthCallbackContext(
   return {
     expectedAccountType,
     nextPath,
-    signupMode: "membership",
+    signupMode: searchParams.get("brand") === "stockup" ? "stockup" : "membership",
     marketingOptIn: marketingOptInFromQuery ?? cookieIntent?.marketingOptIn,
   };
 }
