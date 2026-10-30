@@ -92,7 +92,7 @@ export async function generateSignupVerificationLink(params: {
   userMetadata?: Record<string, unknown>;
   linkType: VerificationLinkType;
   siteOrigin?: string | null;
-}) {
+}): Promise<AuthStepError | { tokenHash: string; linkType: VerificationLinkType }> {
   const admin = createAdminClient();
   if (!admin) {
     return {
