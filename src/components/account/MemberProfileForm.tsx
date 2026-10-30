@@ -112,7 +112,7 @@ export function MemberProfileForm({
     });
     setResettingPassword(false);
 
-    if (result.error) {
+    if ("error" in result && result.error) {
       setError(result.error);
       return;
     }
