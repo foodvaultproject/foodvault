@@ -32,7 +32,13 @@ export function SiteLayout({
   const pathname = usePathname();
   const stockup = appMode === "stockup";
   const isAdmin = pathname.startsWith("/admin");
-  const showStorefrontHeader = stockup && isVaultMarketPath(pathname);
+  const showStorefrontHeader =
+    stockup &&
+    (isVaultMarketPath(pathname) ||
+      pathname === "/account" ||
+      pathname.startsWith("/account/") ||
+      pathname === "/contact" ||
+      pathname.startsWith("/contact/"));
   const showConsumerSecondaryNav =
     !stockup &&
     (pathname === "/" ||

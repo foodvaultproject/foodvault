@@ -31,7 +31,6 @@ import { isAffiliateAccount } from "@/lib/affiliate/auth";
 import { createClient } from "@/lib/supabase/client";
 import { FoodVaultLogo } from "@/components/FoodVaultLogo";
 import { StockUpLogo } from "@/components/StockUpLogo";
-import { VaultMarketCartButton } from "@/components/pantry/VaultMarketCartButton";
 import { NavSearch } from "@/components/NavSearch";
 import { NzAnnouncementBar } from "@/components/NzAnnouncementBar";
 import { VaultMarketShippingBar } from "@/components/VaultMarketShippingBar";
@@ -444,15 +443,9 @@ export function Navigation({ appMode }: { appMode: AppMode }) {
             isPartner={auth.status === "partner"}
             menuPreview={menuPreview || stockup}
           />
-          {stockup ? <VaultMarketCartButton variant="nav" menuPreview /> : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-4 sm:gap-6">
-          {stockup ? (
-            <div className="xl:hidden">
-              <VaultMarketCartButton variant="nav" menuPreview />
-            </div>
-          ) : null}
           <div className={stockup ? "hidden md:contents" : undefined}>
             <DesktopAuthActions
               auth={auth}

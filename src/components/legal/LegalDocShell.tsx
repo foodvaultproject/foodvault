@@ -12,6 +12,7 @@ type LegalDocShellProps = {
   navItems: LegalNavItem[];
   children: ReactNode;
   footerNote?: ReactNode;
+  stockup?: boolean;
 };
 
 export function LegalDocShell({
@@ -25,13 +26,24 @@ export function LegalDocShell({
   navItems,
   children,
   footerNote,
+  stockup = false,
 }: LegalDocShellProps) {
   return (
     <>
-      <section className="bg-gradient-to-b from-surface-lavender via-background to-background pt-7 sm:pt-10 md:pt-12">
+      <section
+        className={
+          stockup
+            ? "bg-[#ecfdf5] pt-7 sm:pt-10 md:pt-12"
+            : "bg-gradient-to-b from-surface-lavender via-background to-background pt-7 sm:pt-10 md:pt-12"
+        }
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {badge && (
-            <span className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+            <span
+              className={`inline-flex rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wide ${
+                stockup ? "bg-vm-primary/10 text-vm-primary" : "bg-primary/10 text-primary"
+              }`}
+            >
               {badge}
             </span>
           )}
@@ -52,7 +64,12 @@ export function LegalDocShell({
 
       <section className="bg-background py-6 sm:py-7 md:py-10">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12 lg:px-8 xl:grid-cols-[260px_minmax(0,1fr)]">
-          <LegalSidebar title={sidebarTitle} subtitle={sidebarSubtitle} items={navItems} />
+          <LegalSidebar
+            title={sidebarTitle}
+            subtitle={sidebarSubtitle}
+            items={navItems}
+            stockup={stockup}
+          />
           <div className="min-w-0 space-y-12 sm:space-y-16 [&_section]:scroll-mt-28">
             {children}
           </div>
@@ -75,17 +92,23 @@ export function LegalSection({
   number,
   title,
   children,
+  stockup = false,
 }: {
   id: string;
   number?: string;
   title: string;
   children: ReactNode;
+  stockup?: boolean;
 }) {
   return (
     <section id={id}>
       <div className="flex items-baseline gap-3">
         {number && (
-          <span className="text-2xl font-bold text-primary/40 sm:text-3xl">
+          <span
+            className={`text-2xl font-bold sm:text-3xl ${
+              stockup ? "text-vm-primary/40" : "text-primary/40"
+            }`}
+          >
             {number}
           </span>
         )}

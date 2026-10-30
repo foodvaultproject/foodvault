@@ -22,17 +22,27 @@ function CardShell({
   icon,
   action,
   children,
+  stockup = false,
 }: {
   title: string;
   icon: React.ReactNode;
   action?: React.ReactNode;
   children: React.ReactNode;
+  stockup?: boolean;
 }) {
   return (
-    <section className="rounded-lg border border-border bg-background p-4 shadow-sm">
+    <section
+      className={`rounded-lg bg-background p-4 shadow-sm ${
+        stockup ? "border border-vm-primary/30" : "border border-border"
+      }`}
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <span
+            className={`flex h-6 w-6 items-center justify-center rounded-full ${
+              stockup ? "bg-vm-primary/10 text-vm-primary" : "bg-primary/10 text-primary"
+            }`}
+          >
             {icon}
           </span>
           <h2 className="text-[14px] font-bold text-foreground">{title}</h2>
@@ -47,11 +57,13 @@ function CardShell({
 type MemberProfileFormProps = {
   profile: MemberProfile;
   lifetimeSavings?: number;
+  stockup?: boolean;
 };
 
 export function MemberProfileForm({
   profile,
   lifetimeSavings = 0,
+  stockup = false,
 }: MemberProfileFormProps) {
   const router = useRouter();
   const [firstName, setFirstName] = useState(profile.firstName);
@@ -65,6 +77,9 @@ export function MemberProfileForm({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
+  const activeInputClass = stockup
+    ? "w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-vm-primary focus:outline-none focus:ring-2 focus:ring-vm-primary/20"
+    : inputClass;
 
   async function handleSave() {
     setSaving(true);
@@ -122,7 +137,7 @@ export function MemberProfileForm({
 
   return (
     <>
-      <div className="min-h-screen bg-[#f3f4f6]">
+      <div className={stockup ? "min-h-screen bg-[#ecfdf5]" : "min-h-screen bg-[#f3f4f6]"}>
         <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:py-5">
           <h1 className="text-[18px] font-bold tracking-tight text-foreground">
             My Account
@@ -131,7 +146,7 @@ export function MemberProfileForm({
             Manage your personal information and security settings.
           </p>
           <div className="mt-5">
-            <MemberVaultMarketCard lifetimeSavings={lifetimeSavings} />
+            <MemberVaultMarketCard lifetimeSavings={lifetimeSavings} stockup={stockup} />
           </div>
 
           {message ? (
@@ -147,6 +162,7 @@ export function MemberProfileForm({
 
           <div className="mt-5 space-y-4">
             <CardShell
+              stockup={stockup}
               title="Identity"
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -157,7 +173,11 @@ export function MemberProfileForm({
                 <button
                   type="button"
                   onClick={() => setEditingIdentity((value) => !value)}
-                  className="text-sm font-semibold text-primary hover:text-primary-hover"
+                  className={`text-sm font-semibold ${
+                    stockup
+                      ? "text-vm-primary hover:text-[#059669]"
+                      : "text-primary hover:text-primary-hover"
+                  }`}
                 >
                   {editingIdentity ? "Cancel" : "Edit"}
                 </button>
@@ -169,7 +189,7 @@ export function MemberProfileForm({
                     First Name
                   </span>
                   <input
-                    className={editingIdentity ? inputClass : readOnlyClass}
+                    className={editingIdentity ? activeInputClass : readOnlyClass}
                     value={firstName}
                     onChange={(event) => setFirstName(event.target.value)}
                     readOnly={!editingIdentity}
@@ -180,7 +200,7 @@ export function MemberProfileForm({
                     Last Name
                   </span>
                   <input
-                    className={editingIdentity ? inputClass : readOnlyClass}
+                    className={editingIdentity ? activeInputClass : readOnlyClass}
                     value={lastName}
                     onChange={(event) => setLastName(event.target.value)}
                     readOnly={!editingIdentity}
@@ -190,6 +210,7 @@ export function MemberProfileForm({
             </CardShell>
 
             <CardShell
+              stockup={stockup}
               title="Contact"
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -200,7 +221,11 @@ export function MemberProfileForm({
                 <button
                   type="button"
                   onClick={() => setEditingContact((value) => !value)}
-                  className="text-sm font-semibold text-primary hover:text-primary-hover"
+                  className={`text-sm font-semibold ${
+                    stockup
+                      ? "text-vm-primary hover:text-[#059669]"
+                      : "text-primary hover:text-primary-hover"
+                  }`}
                 >
                   {editingContact ? "Cancel" : "Edit"}
                 </button>
@@ -222,20 +247,23 @@ export function MemberProfileForm({
                       📍
                     </span>
                     <input
-                      className={`${editingContact ? inputClass : readOnlyClass} pl-10`}
+                      className={`${editingContact ? activeInputClass : readOnlyClass} pl-10`}
                       value={country}
                       onChange={(event) => setCountry(event.target.value)}
                       readOnly={!editingContact}
                     />
                   </div>
-                  <p className="mt-2 text-xs text-primary">
-                    FoodVault is currently exclusive to New Zealand.
+                  <p className={`mt-2 text-xs ${stockup ? "text-vm-primary" : "text-primary"}`}>
+                    {stockup
+                      ? "StockUp delivers groceries across New Zealand."
+                      : "FoodVault is currently exclusive to New Zealand."}
                   </p>
                 </label>
               </div>
             </CardShell>
 
             <CardShell
+              stockup={stockup}
               title="Security"
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -270,7 +298,11 @@ export function MemberProfileForm({
               type="button"
               onClick={() => void handleSave()}
               disabled={saving}
-              className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
+              className={
+                stockup
+                  ? "inline-flex items-center justify-center rounded-sm bg-vm-primary px-6 py-3 text-sm font-semibold text-white hover:bg-[#059669] disabled:opacity-60"
+                  : "fv-btn-primary inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
+              }
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
@@ -288,7 +320,11 @@ export function MemberProfileForm({
       <ConfirmModal
         open={showDeleteModal}
         title="Delete your account?"
-        description="This will permanently remove your FoodVault member profile and sign you out. This action cannot be undone."
+        description={
+          stockup
+            ? "This will permanently remove your StockUp account and sign you out. This action cannot be undone."
+            : "This will permanently remove your FoodVault member profile and sign you out. This action cannot be undone."
+        }
         confirmLabel="Delete Account"
         destructive
         loading={deleting}

@@ -11,9 +11,10 @@ type LegalSidebarProps = {
   title: string;
   subtitle?: string;
   items: LegalNavItem[];
+  stockup?: boolean;
 };
 
-export function LegalSidebar({ title, subtitle, items }: LegalSidebarProps) {
+export function LegalSidebar({ title, subtitle, items, stockup = false }: LegalSidebarProps) {
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
 
   useEffect(() => {
@@ -64,7 +65,9 @@ export function LegalSidebar({ title, subtitle, items }: LegalSidebarProps) {
                 onClick={() => setActiveId(item.id)}
                 className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                   isActive
-                    ? "bg-primary/10 font-semibold text-primary"
+                    ? stockup
+                      ? "bg-vm-primary/10 font-semibold text-vm-primary"
+                      : "bg-primary/10 font-semibold text-primary"
                     : "text-muted-foreground hover:bg-surface hover:text-foreground"
                 }`}
               >

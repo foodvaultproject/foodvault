@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { submitContactEnquiryAction } from "@/lib/contact/submit-enquiry";
-import { getAppMode } from "@/lib/app-mode";
 
 type ContactTypeOption = {
   id: string;
@@ -61,8 +60,7 @@ const contactTypes: ContactTypeOption[] = [
   },
 ];
 
-export function ContactForm() {
-  const stockup = getAppMode() === "stockup";
+export function ContactForm({ stockup = false }: { stockup?: boolean }) {
   const visibleTypes = stockup
     ? contactTypes
         .filter((type) => type.id === "general" || type.id === "not-sure")
@@ -307,7 +305,12 @@ export function ContactForm() {
         />
         <label htmlFor="consent" className="text-sm leading-relaxed text-muted-foreground">
           I agree to the {stockup ? "StockUp" : "FoodVault"}{" "}
-          <Link href="/privacy" className="font-semibold text-primary hover:text-primary-hover">
+          <Link
+            href="/privacy"
+            className={`font-semibold ${
+              stockup ? "text-vm-primary hover:text-[#059669]" : "text-primary hover:text-primary-hover"
+            }`}
+          >
             Privacy Policy
           </Link>{" "}
           and consent to the processing of my personal data for the purpose of
