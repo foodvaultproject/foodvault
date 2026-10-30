@@ -216,7 +216,12 @@ function CheckEmailContent() {
     setActionError(null);
 
     try {
-      const result = await resendSignupVerificationAction(email, account, turnstileToken);
+      const result = await resendSignupVerificationAction(
+        email,
+        account,
+        turnstileToken,
+        stockup ? "stockup" : null
+      );
 
       if ("error" in result && result.error) {
         setActionError(result.error);
@@ -229,7 +234,7 @@ function CheckEmailContent() {
       setResending(false);
       turnstileRef.current?.reset();
     }
-  }, [account, captchaRequired, cooldownSeconds, email, turnstileToken]);
+  }, [account, captchaRequired, cooldownSeconds, email, stockup, turnstileToken]);
 
   const handleChangeEmail = useCallback(() => {
     stopPolling();

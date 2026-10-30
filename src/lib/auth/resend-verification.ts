@@ -1,9 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
-import { STOCKUP_ORIGIN } from "@/lib/app-mode";
+import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
+import { getAppMode, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
 import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
@@ -13,6 +15,7 @@ import {
 } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 function defaultNextPathForAccount(accountType: AccountType) {
   switch (accountType) {
@@ -26,10 +29,46 @@ function defaultNextPathForAccount(accountType: AccountType) {
   }
 }
 
+const STOCKUP_CONFIRM_REDIRECT = `${STOCKUP_ORIGIN}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`;
+
+async function isStockUpRequest(brand?: string | null) {
+  if (brand === "stockup") return true;
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  return getAppMode(host) === "stockup";
+}
+
+async function resendStockUpSignupEmail(
+  email: string,
+  turnstileToken?: string | null
+) {
+  const captcha = supabaseAuthCaptchaOptions(turnstileToken);
+  if (!("captchaToken" in captcha)) {
+    return { error: "Please complete the CAPTCHA check before resending." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: STOCKUP_CONFIRM_REDIRECT,
+      ...captcha,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true as const };
+}
+
 export async function resendSignupVerificationAction(
   email: string,
   accountType: AccountType,
-  turnstileToken?: string | null
+  turnstileToken?: string | null,
+  brand?: string | null
 ) {
   const trimmed = email.trim();
   if (!trimmed) {
@@ -45,6 +84,9 @@ export async function resendSignupVerificationAction(
   }
 
   if (!createAdminClient()) {
+    if (await isStockUpRequest(brand)) {
+      return resendStockUpSignupEmail(trimmed, turnstileToken);
+    }
     return { error: "Email verification is not configured in this environment." };
   }
 
