@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import type { AccountType } from "@/lib/auth";
 import { getAccountTypeFromMetadata } from "@/lib/auth";
 import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
+import { supabaseAuthCaptchaOptions } from "@/lib/auth/supabase-captcha";
 import { getAppMode, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { AFFILIATE_DASHBOARD_PATH } from "@/lib/affiliate/paths";
 import { issueAndSendSignupVerification } from "@/lib/auth/email-verification";
@@ -14,6 +15,7 @@ import {
 } from "@/lib/member/paths";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 function defaultNextPathForAccount(accountType: AccountType) {
   switch (accountType) {
@@ -34,29 +36,58 @@ async function isStockUpRequest(brand?: string | null) {
   return getAppMode(host) === "stockup";
 }
 
-async function resendStockUpSignupEmail(email: string) {
-  if (!createAdminClient()) {
-    return {
-      error:
-        "We couldn't send the confirmation email. StockUp email delivery is not configured on this server.",
-    };
+const STOCKUP_EMAIL_REDIRECT = `${STOCKUP_ORIGIN}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member&brand=stockup`;
+
+async function resendStockUpViaSupabase(email: string, turnstileToken?: string | null) {
+  const captcha = supabaseAuthCaptchaOptions(turnstileToken);
+  if (!("captchaToken" in captcha)) {
+    return { error: "Please complete the CAPTCHA check before resending." };
   }
 
-  const sendResult = await issueAndSendSignupVerification({
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
     email,
-    next: MEMBER_HOME_PATH,
-    account: "member",
-    linkType: "magiclink",
-    siteOrigin: STOCKUP_ORIGIN,
-    force: true,
+    options: {
+      emailRedirectTo: STOCKUP_EMAIL_REDIRECT,
+      shouldCreateUser: false,
+      ...captcha,
+    },
   });
 
-  if ("error" in sendResult && sendResult.error) {
-    console.error("[STOCKUP_RESEND]", sendResult);
-    return { error: "We couldn't send the confirmation email. Please try again." };
+  if (error) {
+    console.error("[STOCKUP_RESEND]", error.message);
+    if (/user not found|signups not allowed for otp/i.test(error.message)) {
+      return {
+        error: "No account was found for that email. Check the address or sign up again.",
+      };
+    }
+    return { error: error.message };
   }
 
+  console.log("[STOCKUP_RESEND] supabase otp accepted");
   return { success: true as const };
+}
+
+async function resendStockUpSignupEmail(email: string, turnstileToken?: string | null) {
+  if (createAdminClient()) {
+    const sendResult = await issueAndSendSignupVerification({
+      email,
+      next: MEMBER_HOME_PATH,
+      account: "member",
+      linkType: "magiclink",
+      siteOrigin: STOCKUP_ORIGIN,
+      force: true,
+    });
+
+    if ("error" in sendResult && sendResult.error) {
+      console.error("[STOCKUP_RESEND]", sendResult);
+      return resendStockUpViaSupabase(email, turnstileToken);
+    }
+
+    return { success: true as const };
+  }
+
+  return resendStockUpViaSupabase(email, turnstileToken);
 }
 
 export async function resendSignupVerificationAction(
@@ -79,7 +110,7 @@ export async function resendSignupVerificationAction(
   }
 
   if (await isStockUpRequest(brand)) {
-    return resendStockUpSignupEmail(trimmed);
+    return resendStockUpSignupEmail(trimmed, turnstileToken);
   }
 
   if (!createAdminClient()) {

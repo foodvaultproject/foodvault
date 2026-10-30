@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { crossDomainRedirect, getAppMode, legacyLocalRedirect } from "@/lib/app-mode";
+import { crossDomainRedirect, getAppMode, legacyLocalRedirect, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { AUTH_CHECK_EMAIL_PATH } from "@/lib/auth/email-verification";
 import { requestHasPartnerOAuthIntent } from "@/lib/auth/partner-oauth-session";
 import { pathAllowsUnverifiedAccess } from "@/lib/auth/unverified-access";
@@ -10,6 +10,33 @@ export async function middleware(request: NextRequest) {
   const mode = getAppMode(
     request.headers.get("x-forwarded-host") ?? request.headers.get("host")
   );
+  // Supabase replaces a disallowed redirect with the FoodVault site URL, so the
+  // login code arrives at /?code= instead of /auth/callback. The PKCE verifier
+  // cookie was set on StockUp when the email was requested.
+  if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    if (mode === "foodvault") {
+      const target = new URL(`${STOCKUP_ORIGIN}/auth/callback`);
+      target.search = request.nextUrl.search;
+      target.searchParams.set("brand", "stockup");
+      target.searchParams.set("account", "member");
+      if (!target.searchParams.get("next")) {
+        target.searchParams.set("next", "/");
+      }
+      return NextResponse.redirect(target);
+    }
+
+    if (mode === "stockup") {
+      const target = request.nextUrl.clone();
+      target.pathname = "/auth/callback";
+      target.searchParams.set("brand", "stockup");
+      target.searchParams.set("account", "member");
+      if (!target.searchParams.get("next")) {
+        target.searchParams.set("next", "/");
+      }
+      return NextResponse.redirect(target);
+    }
+  }
+
   if (pathname === "/favicon.ico" && mode === "stockup") {
     const iconUrl = request.nextUrl.clone();
     iconUrl.pathname = "/Favicon/favicon_stockup.png";
