@@ -234,8 +234,8 @@ function CheckEmailContent() {
   const handleChangeEmail = useCallback(() => {
     stopPolling();
     clearPendingSignup();
-    router.push(signupPathForAccount(account));
-  }, [account, router, stopPolling]);
+    router.push(stockup ? "/login" : signupPathForAccount(account));
+  }, [account, router, stockup, stopPolling]);
 
   useEffect(() => {
     if (cooldownSeconds <= 0) return;
@@ -293,21 +293,27 @@ function CheckEmailContent() {
   const resendDisabled = resending || cooldownSeconds > 0 || !email || isRedirecting;
 
   return (
-    <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-surface-lavender px-4 py-10 sm:py-14">
+    <section
+      className={`flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10 sm:py-14 ${
+        stockup ? "bg-[#ecfdf5]" : "bg-surface-lavender"
+      }`}
+    >
       <div className="w-full max-w-lg">
         <div className="rounded-lg border border-border bg-background p-6 text-center shadow-sm sm:p-10">
-          <div className="mx-auto flex h-[168px] w-[168px] items-center justify-center">
-            <Image
-              src="/verify-email/piggyemail.webp"
-              alt=""
-              width={168}
-              height={168}
-              priority
-              className="h-[168px] w-[168px] object-contain"
-            />
-          </div>
+          {stockup ? null : (
+            <div className="mx-auto flex h-[168px] w-[168px] items-center justify-center">
+              <Image
+                src="/verify-email/piggyemail.webp"
+                alt=""
+                width={168}
+                height={168}
+                priority
+                className="h-[168px] w-[168px] object-contain"
+              />
+            </div>
+          )}
 
-          <h1 className="mt-5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className={`${stockup ? "" : "mt-5"} text-2xl font-bold tracking-tight text-foreground sm:text-3xl`}>
             Check Your Email
           </h1>
 
@@ -359,7 +365,11 @@ function CheckEmailContent() {
               type="button"
               onClick={() => void handleVerifiedClick()}
               disabled={checking || isRedirecting}
-              className="fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
+              className={
+                stockup
+                  ? "inline-flex w-full items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#059669] disabled:opacity-60"
+                  : "fv-btn-primary inline-flex w-full items-center justify-center rounded-sm px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150 disabled:opacity-60"
+              }
             >
               {checking ? "Checking…" : "I've Verified My Email"}
             </button>
@@ -370,7 +380,11 @@ function CheckEmailContent() {
               type="button"
               onClick={() => void handleResend()}
               disabled={resendDisabled}
-              className="inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-6 py-3.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+              className={
+                stockup
+                  ? "inline-flex w-full items-center justify-center rounded-sm border-2 border-vm-primary bg-background px-6 py-3.5 text-sm font-semibold text-vm-primary transition-colors hover:bg-[#ecfdf5] disabled:cursor-not-allowed disabled:opacity-60"
+                  : "inline-flex w-full items-center justify-center rounded-sm border-2 border-primary bg-background px-6 py-3.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+              }
             >
               {resending
                 ? "Sending…"
@@ -383,14 +397,19 @@ function CheckEmailContent() {
           <button
             type="button"
             onClick={handleChangeEmail}
-            className="mt-6 text-sm font-semibold text-primary underline-offset-2 hover:underline"
+            className={`mt-6 text-sm font-semibold underline-offset-2 hover:underline ${
+              stockup ? "text-vm-primary" : "text-primary"
+            }`}
           >
             Use a different email address
           </button>
 
           {!email ? (
             <p className="mt-4 text-sm text-muted-foreground">
-              <Link href={signupPathForAccount(account)} className="font-semibold text-primary hover:text-primary-hover">
+              <Link
+                href={stockup ? "/login" : signupPathForAccount(account)}
+                className={`font-semibold ${stockup ? "text-vm-primary" : "text-primary hover:text-primary-hover"}`}
+              >
                 Return to signup
               </Link>
             </p>
