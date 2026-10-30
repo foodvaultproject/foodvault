@@ -11,11 +11,7 @@ import {
   setDevAdminCookie,
   DEV_ADMIN_EMAIL,
 } from "@/lib/admin/dev";
-import {
-  ADMIN_DASHBOARD_PATH,
-  ADMIN_LOGIN_PATH,
-  type AdminUser,
-} from "@/lib/admin/types";
+import { ADMIN_LOGIN_PATH, type AdminUser } from "@/lib/admin/types";
 
 export async function getAdminUser(): Promise<AdminUser | null> {
   if (!isSupabaseConfigured()) {
@@ -55,7 +51,7 @@ export async function requireAdminUser(): Promise<AdminUser> {
 export async function redirectIfAdminAuthenticated() {
   const admin = await getAdminUser();
   if (admin) {
-    redirect(ADMIN_DASHBOARD_PATH);
+    redirect("/admin");
   }
 }
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { StatCard, StatusBadge, formatAdminDate } from "@/components/admin/AdminUi";
-import { getAppMode } from "@/lib/app-mode";
+import { getAdminWorkspace } from "@/lib/admin/workspace";
 import {
   getDashboardStats,
   getPendingApplications,
@@ -15,10 +15,12 @@ const stockupLinks = [
   { href: "/admin/vendors", label: "Vendors", detail: "Suppliers for the supermarket warehouse." },
   { href: "/admin/purchase-orders", label: "Purchase orders", detail: "Inbound stock orders." },
   { href: "/admin/reports/sales", label: "Store reports", detail: "Sales, inventory, and vendor reports." },
+  { href: "/admin/contact", label: "Contact enquiries", detail: "Messages sent from the StockUp contact form." },
+  { href: "/admin/customers", label: "Customers", detail: "Accounts and order history for StockUp signups." },
 ];
 
 export default async function AdminDashboardPage() {
-  if (getAppMode() === "stockup") {
+  if ((await getAdminWorkspace()) === "stockup") {
     return <StockupAdminDashboard />;
   }
 

@@ -2,22 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getAppMode, routeOwner } from "@/lib/app-mode";
+import type { AdminWorkspace } from "@/lib/admin/workspace-paths";
 
 const tabs = [
-  { href: "/admin/reports", label: "Brand reports", exact: true },
-  { href: "/admin/reports/sales", label: "Sales" },
-  { href: "/admin/reports/inventory", label: "Inventory" },
-  { href: "/admin/reports/vendors", label: "Vendors" },
+  { href: "/admin/reports", label: "Brand reports", exact: true, workspace: "foodvault" as const },
+  { href: "/admin/reports/sales", label: "Sales", workspace: "stockup" as const },
+  { href: "/admin/reports/inventory", label: "Inventory", workspace: "stockup" as const },
+  { href: "/admin/reports/vendors", label: "Vendors", workspace: "stockup" as const },
 ];
 
-export function ReportsSuiteNav() {
+export function ReportsSuiteNav({ workspace }: { workspace: AdminWorkspace }) {
   const pathname = usePathname();
-  const mode = getAppMode();
-  const visibleTabs = tabs.filter((tab) => {
-    const owner = routeOwner(tab.href);
-    return owner === "shared" || owner === mode;
-  });
+  const visibleTabs = tabs.filter((tab) => tab.workspace === workspace);
 
   return (
     <div className="flex flex-wrap gap-2 rounded border border-border bg-white p-1">

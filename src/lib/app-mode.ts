@@ -163,6 +163,8 @@ export function crossDomainRedirect(
   search = ""
 ): string | null {
   if (pathname.startsWith("/api")) return null;
+  // One admin login can open either brand. Do not bounce admin pages to the other host.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
 
   const owner = routeOwner(pathname);
   if (owner === "shared" || owner === mode) return null;

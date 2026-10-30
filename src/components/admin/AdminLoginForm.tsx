@@ -8,7 +8,6 @@ import {
   isTurnstileEnabledClient,
 } from "@/components/auth/TurnstileField";
 import { adminLoginAction } from "@/lib/admin/auth";
-import { ADMIN_DASHBOARD_PATH } from "@/lib/admin/types";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -38,7 +37,7 @@ export function AdminLoginForm() {
         setError(result.error);
         return;
       }
-      router.push(ADMIN_DASHBOARD_PATH);
+      router.push("/admin");
       router.refresh();
     } finally {
       setLoading(false);

@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { adminLogoutAction } from "@/lib/admin/auth";
-import { getAppMode, routeOwner, type RouteOwner } from "@/lib/app-mode";
+import type { AdminWorkspace } from "@/lib/admin/workspace-paths";
 
 type NavItem = {
   href: string;
   label: string;
   exact?: boolean;
   icon: string;
-  owner?: RouteOwner;
+  owner?: AdminWorkspace | "shared";
   activePrefixes?: string[];
 };
 
@@ -23,25 +23,19 @@ const navItems: NavItem[] = [
     icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25",
   },
   { href: "/admin/dashboard", label: "Dashboard", icon: "M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z" },
-  { href: "/admin/partner-applications", label: "Partner Applications", icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" },
-  { href: "/admin/partners", label: "Partners", icon: "M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349" },
-  { href: "/admin/partner-contacts", label: "Partner Contacts", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
-  { href: "/admin/members", label: "Members", icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" },
-  { href: "/admin/affiliates", label: "Affiliates", icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" },
-  { href: "/admin/affiliate-analytics", label: "Affiliate Analytics", icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" },
-  { href: "/admin/affiliate-transactions", label: "Affiliate Transactions", icon: "M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" },
-  { href: "/admin/affiliate-system-health", label: "System Health", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-  { href: "/admin/affiliate-fraud", label: "Fraud Review", icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" },
-  { href: "/admin/affiliate-leaderboards", label: "Leaderboards", icon: "M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0V9.375c0-.621-.504-1.125-1.125-1.125h-.871M7.5 12.375V9.375c0-.621.504-1.125 1.125-1.125h.872" },
-  { href: "/admin/discover", label: "What's Happening?", icon: "M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" },
-  { href: "/admin/pantry", label: "Storefront", icon: "M2.25 3.75h19.5M3 8.25h18M4.5 8.25v11.25A1.5 1.5 0 006 21h12a1.5 1.5 0 001.5-1.5V8.25M9 12.75h6" },
-  { href: "/admin/products", label: "Products", icon: "M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" },
-  { href: "/admin/inventory", label: "Inventory", icon: "M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375" },
-  { href: "/admin/vendors", label: "Vendors", icon: "M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9.75h18" },
-  { href: "/admin/purchase-orders", label: "Purchase Orders", icon: "M9 12h6m-6 4h6M7.5 3.75h9A1.5 1.5 0 0118 5.25v13.5A1.5 1.5 0 0116.5 20.25h-9A1.5 1.5 0 016 18.75V5.25A1.5 1.5 0 017.5 3.75z" },
-  { href: "/admin/credit-notes", label: "Credit Notes", icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" },
-  { href: "/admin/picker", label: "Orders", icon: "M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.008v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 17.25h.008v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" },
-  { href: "/admin/contact", label: "Contact Centre", icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
+  { href: "/admin/partner-applications", label: "Partner Applications", owner: "foodvault", icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" },
+  { href: "/admin/partners", label: "Partners", owner: "foodvault", icon: "M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349" },
+  { href: "/admin/partner-contacts", label: "Partner Contacts", owner: "foodvault", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
+  { href: "/admin/members", label: "Members", owner: "foodvault", icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" },
+  { href: "/admin/customers", label: "Customers", owner: "stockup", icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" },
+  { href: "/admin/discover", label: "What's Happening?", owner: "foodvault", icon: "M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" },
+  { href: "/admin/products", label: "Products", owner: "stockup", icon: "M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" },
+  { href: "/admin/inventory", label: "Inventory", owner: "stockup", icon: "M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375" },
+  { href: "/admin/vendors", label: "Vendors", owner: "stockup", icon: "M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9.75h18" },
+  { href: "/admin/purchase-orders", label: "Purchase Orders", owner: "stockup", icon: "M9 12h6m-6 4h6M7.5 3.75h9A1.5 1.5 0 0118 5.25v13.5A1.5 1.5 0 0116.5 20.25h-9A1.5 1.5 0 016 18.75V5.25A1.5 1.5 0 017.5 3.75z" },
+  { href: "/admin/picker", label: "Orders", owner: "stockup", icon: "M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.008v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 17.25h.008v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" },
+  { href: "/admin/contact", label: "Contact Centre", owner: "foodvault", icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
+  { href: "/admin/contact", label: "Contact Enquiries", owner: "stockup", icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
   {
     href: "/admin/reports",
     label: "Brand Reports",
@@ -68,16 +62,12 @@ function isNavItemActive(pathname: string, item: NavItem) {
   return item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function visibleNavItems() {
-  const mode = getAppMode();
-  return navItems.filter((item) => {
-    const owner = item.owner ?? routeOwner(item.href);
-    return owner === "shared" || owner === mode;
-  });
+function visibleNavItems(workspace: AdminWorkspace) {
+  return navItems.filter((item) => !item.owner || item.owner === workspace);
 }
 
-function getCurrentNavLabel(pathname: string) {
-  const match = [...visibleNavItems()]
+function getCurrentNavLabel(pathname: string, workspace: AdminWorkspace) {
+  const match = [...visibleNavItems(workspace)]
     .reverse()
     .find((item) => isNavItemActive(pathname, item) && item.href !== "/");
   return match?.label ?? "Admin";
@@ -85,18 +75,20 @@ function getCurrentNavLabel(pathname: string) {
 
 function AdminNavLinks({
   pathname,
+  workspace,
   onNavigate,
 }: {
   pathname: string;
+  workspace: AdminWorkspace;
   onNavigate?: () => void;
 }) {
   return (
     <>
-      {visibleNavItems().map((item) => {
+      {visibleNavItems(workspace).map((item) => {
         const active = isNavItemActive(pathname, item);
         return (
           <Link
-            key={item.href}
+            key={`${item.owner ?? "shared"}-${item.href}`}
             href={item.href}
             onClick={onNavigate}
             className={`relative flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
@@ -142,11 +134,17 @@ function AdminLogoutButton({ className }: { className?: string }) {
   );
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  children,
+  workspace,
+}: {
+  children: React.ReactNode;
+  workspace: AdminWorkspace;
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const currentPage = getCurrentNavLabel(pathname);
-  const osName = getAppMode() === "stockup" ? "StockUp OS" : "FoodVault OS";
+  const currentPage = getCurrentNavLabel(pathname, workspace);
+  const osName = workspace === "stockup" ? "StockUp OS" : "FoodVault OS";
 
   useEffect(() => {
     setMobileOpen(false);
@@ -169,9 +167,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <p className="text-xs text-muted">Internal Admin</p>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          <AdminNavLinks pathname={pathname} />
+          <AdminNavLinks pathname={pathname} workspace={workspace} />
         </nav>
-        <div className="border-t border-border px-4 py-4">
+        <div className="space-y-3 border-t border-border px-4 py-4">
+          <Link href="/admin" className="block text-sm font-medium text-muted hover:text-primary">
+            Switch workspace
+          </Link>
           <AdminLogoutButton />
         </div>
       </aside>
@@ -206,9 +207,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </button>
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-              <AdminNavLinks pathname={pathname} onNavigate={closeMobileMenu} />
+              <AdminNavLinks pathname={pathname} workspace={workspace} onNavigate={closeMobileMenu} />
             </nav>
-            <div className="border-t border-border px-4 py-4">
+            <div className="space-y-3 border-t border-border px-4 py-4">
+              <Link href="/admin" className="block text-sm font-medium text-muted hover:text-primary">
+                Switch workspace
+              </Link>
               <AdminLogoutButton />
             </div>
           </aside>

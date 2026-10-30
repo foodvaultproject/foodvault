@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { adminSection } from "@/lib/admin/workspace-paths";
 import { crossDomainRedirect, getAppMode, legacyLocalRedirect, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { AUTH_CHECK_EMAIL_PATH } from "@/lib/auth/email-verification";
 import { requestHasPartnerOAuthIntent } from "@/lib/auth/partner-oauth-session";
@@ -43,7 +44,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(iconUrl);
   }
 
-  // Mode-exclusive public pages and admin sections go to the other domain.
+  if (pathname.startsWith("/admin/affiliate")) {
+    const retired = request.nextUrl.clone();
+    retired.pathname = "/admin";
+    retired.search = "";
+    return NextResponse.redirect(retired);
+  }
+
+  if (pathname.startsWith("/admin/") && pathname !== "/admin/login") {
+    const workspace = request.cookies.get("admin_workspace")?.value;
+    if (workspace === "foodvault" || workspace === "stockup") {
+      const section = adminSection(pathname);
+      if (section !== "shared" && section !== workspace) {
+        const home = request.nextUrl.clone();
+        home.pathname = "/admin/dashboard";
+        home.search = "";
+        return NextResponse.redirect(home);
+      }
+    }
+  }
+
+  // Mode-exclusive public pages go to the other domain. Admin stays on this host.
   const crossDomain = crossDomainRedirect(mode, pathname, request.nextUrl.search);
   if (crossDomain) {
     return NextResponse.redirect(crossDomain, 307);
