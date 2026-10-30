@@ -1,7 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import {
+  getAppMode,
+  requestHost,
+  requestSiteOrigin,
+  STOCKUP_ORIGIN,
+  stockupLinkBounce,
+  stockupSafePath,
+} from "@/lib/app-mode";
 import type { AccountType } from "@/lib/auth";
+import { stockupSessionHandoffUrl } from "@/lib/auth/email-verification";
 import { LOGIN_PATH, PARTNER_LOGIN_PATH } from "@/lib/auth";
 import { setActivePortalCookie } from "@/lib/auth/active-portal";
 import {
@@ -31,7 +40,13 @@ export async function handleAuthCallback(
   request: Request,
   options: HandleAuthCallbackOptions = {}
 ) {
-  const { searchParams, origin } = new URL(request.url);
+  const bounce = stockupLinkBounce(request);
+  if (bounce) {
+    return NextResponse.redirect(bounce);
+  }
+
+  const { searchParams } = new URL(request.url);
+  const origin = requestSiteOrigin(request);
   const code = searchParams.get("code");
   const oauthError = searchParams.get("error");
   const cookieStore = await cookies();
@@ -60,9 +75,9 @@ export async function handleAuthCallback(
 
   const pendingCookies: PendingCookie[] = [];
 
-  function redirectTo(path: string) {
+  function redirectTo(path: string, siteOrigin = origin) {
     const completeUrl = `/auth/complete?next=${encodeURIComponent(path)}`;
-    const response = NextResponse.redirect(`${origin}${completeUrl}`);
+    const response = NextResponse.redirect(`${siteOrigin}${completeUrl}`);
     for (const { name, value, options: cookieOptions } of pendingCookies) {
       response.cookies.set(name, value, cookieOptions);
     }
@@ -119,6 +134,23 @@ export async function handleAuthCallback(
     return redirectTo(`${loginPathForAccount}?error=oauth_failed`);
   }
 
+  const signupMode =
+    typeof user.user_metadata?.signup_mode === "string"
+      ? user.user_metadata.signup_mode
+      : "";
+  if (
+    signupMode === "stockup" &&
+    user.email &&
+    getAppMode(requestHost(request)) !== "stockup"
+  ) {
+    const handoff = await stockupSessionHandoffUrl(user.email);
+    clearOAuthIntentCookie(cookieStore);
+    if (handoff) {
+      return NextResponse.redirect(handoff);
+    }
+    return NextResponse.redirect(`${STOCKUP_ORIGIN}/`);
+  }
+
   if (!validateOAuthAccountType(user, context.expectedAccountType)) {
     await supabase.auth.signOut();
     clearOAuthIntentCookie(cookieStore);
@@ -165,7 +197,10 @@ export async function handleAuthCallback(
     return redirectTo(`${loginPathForAccount}?error=oauth_setup_failed`);
   }
 
-  return redirectTo(redirectPath);
+  return redirectTo(
+    signupMode === "stockup" ? stockupSafePath(redirectPath) : redirectPath,
+    signupMode === "stockup" ? STOCKUP_ORIGIN : origin
+  );
 }
 
 export const PARTNER_OAUTH_CALLBACK_PATH = "/auth/callback/partner";

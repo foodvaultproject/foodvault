@@ -1,9 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import {
+  getAppMode,
+  requestHost,
+  requestSiteOrigin,
+  STOCKUP_ORIGIN,
+  stockupLinkBounce,
+  stockupSafePath,
+} from "@/lib/app-mode";
 import { ensureAuthenticatedSession } from "@/lib/auth/session-completion";
 import {
   AUTH_CHECK_EMAIL_PATH,
+  stockupSessionHandoffUrl,
   type AuthConfirmLinkType,
 } from "@/lib/auth/email-verification";
 import {
@@ -25,7 +34,13 @@ function isAuthConfirmLinkType(value: string | null): value is AuthConfirmLinkTy
 }
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const bounce = stockupLinkBounce(request);
+  if (bounce) {
+    return NextResponse.redirect(bounce);
+  }
+
+  const { searchParams } = new URL(request.url);
+  const origin = requestSiteOrigin(request);
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
   const next = searchParams.get("next");
@@ -103,17 +118,41 @@ export async function GET(request: Request) {
     );
   }
 
+  const signupMode =
+    typeof user.user_metadata?.signup_mode === "string"
+      ? user.user_metadata.signup_mode
+      : "";
+  const stockupAccount = signupMode === "stockup" || searchParams.get("brand") === "stockup";
+  const landedOnStockUp = getAppMode(requestHost(request)) === "stockup";
+
+  if (stockupAccount && !landedOnStockUp && searchParams.get("handoff") !== "1") {
+    const handoff = await stockupSessionHandoffUrl(user.email);
+    if (handoff) {
+      return NextResponse.redirect(handoff);
+    }
+    return NextResponse.redirect(`${STOCKUP_ORIGIN}/`);
+  }
+
   const completion = await ensureAuthenticatedSession(supabase, user, {
     expectedAccountType: resolvedAccountType,
-    nextPath: next,
+    nextPath: stockupAccount ? stockupSafePath(next) : next,
   });
   if (completion.error) {
-    const checkEmailUrl = new URL(`${origin}${AUTH_CHECK_EMAIL_PATH}`);
+    const checkEmailUrl = new URL(
+      `${stockupAccount ? STOCKUP_ORIGIN : origin}${AUTH_CHECK_EMAIL_PATH}`
+    );
     checkEmailUrl.searchParams.set("account", resolvedAccountType);
     checkEmailUrl.searchParams.set("email", user.email);
     checkEmailUrl.searchParams.set("error", "verification_setup_failed");
+    if (stockupAccount) {
+      checkEmailUrl.searchParams.set("brand", "stockup");
+    }
     return NextResponse.redirect(checkEmailUrl.toString());
   }
 
-  return NextResponse.redirect(`${origin}${completion.redirectPath}`);
+  const redirectPath = stockupAccount
+    ? stockupSafePath(completion.redirectPath)
+    : completion.redirectPath;
+  const redirectOrigin = stockupAccount ? STOCKUP_ORIGIN : origin;
+  return NextResponse.redirect(`${redirectOrigin}${redirectPath}`);
 }

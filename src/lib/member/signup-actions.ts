@@ -190,7 +190,7 @@ export async function createStockUpAccountAction(
     email,
     password: data.password,
     options: {
-      emailRedirectTo: `${STOCKUP_ORIGIN}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member`,
+      emailRedirectTo: `${STOCKUP_ORIGIN}/auth/callback?next=${encodeURIComponent(MEMBER_HOME_PATH)}&account=member&brand=stockup`,
       data: userMetadata,
       ...captcha,
     },

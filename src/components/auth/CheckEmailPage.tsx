@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { stockupSafePath } from "@/lib/app-mode";
 import type { AccountType } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { finalizeVerifiedSessionAction } from "@/lib/auth/finalize-verified-session";
@@ -111,9 +112,9 @@ function CheckEmailContent() {
       return false;
     }
 
-    finishRedirect(finalize.redirectPath);
+    finishRedirect(stockup ? stockupSafePath(finalize.redirectPath) : finalize.redirectPath);
     return true;
-  }, [finishRedirect]);
+  }, [finishRedirect, stockup]);
 
   const trySignInAndContinue = useCallback(async (options?: { silent?: boolean }) => {
     if (!email || !isSupabaseConfigured()) {
@@ -178,14 +179,16 @@ function CheckEmailContent() {
       const {
         data: { user: signedInUser },
       } = await supabase.auth.getUser();
-      finishRedirect(
-        resolveVerifiedRedirectPath(account, signedInUser?.user_metadata)
+      const verifiedPath = resolveVerifiedRedirectPath(
+        account,
+        signedInUser?.user_metadata
       );
+      finishRedirect(stockup ? stockupSafePath(verifiedPath) : verifiedPath);
       return true;
     }
 
     return tryCompleteVerifiedSession(options);
-  }, [account, email, finishRedirect, stopPolling, tryCompleteVerifiedSession]);
+  }, [account, email, finishRedirect, stockup, stopPolling, tryCompleteVerifiedSession]);
 
   const handleVerifiedClick = useCallback(async () => {
     setChecking(true);

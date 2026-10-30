@@ -43,6 +43,55 @@ export function canonicalSiteOrigin(mode: AppMode = getAppMode()): string {
   return mode === "stockup" ? STOCKUP_ORIGIN : FOODVAULT_ORIGIN;
 }
 
+export function requestHost(request: {
+  headers: { get(name: string): string | null };
+}): string {
+  return normalizeHost(
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host")
+  );
+}
+
+/** Public site that received this request, not an internal deployment URL. */
+export function requestSiteOrigin(request: {
+  headers: { get(name: string): string | null };
+  url: string;
+}): string {
+  const host = requestHost(request);
+  if (STOCKUP_HOST_SET.has(host)) return STOCKUP_ORIGIN;
+  if (FOODVAULT_HOST_SET.has(host)) return FOODVAULT_ORIGIN;
+  if (!host) return new URL(request.url).origin;
+  const proto =
+    (request.headers.get("x-forwarded-proto") ?? "https").split(",")[0]?.trim() ||
+    "https";
+  return `${proto}://${host}`;
+}
+
+/** Keep a StockUp signup off FoodVault-only pages such as membership checkout. */
+export function stockupSafePath(path: string | null | undefined): string {
+  const trimmed = (path ?? "").trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return "/";
+  const pathname = trimmed.split("?")[0] || "/";
+  if (routeOwner(pathname) === "foodvault") return "/";
+  return trimmed;
+}
+
+/**
+ * Confirmation links tagged for StockUp must be opened on stockup.co.nz
+ * before the token is consumed, so the login cookie is set on that site.
+ */
+export function stockupLinkBounce(request: {
+  headers: { get(name: string): string | null };
+  url: string;
+}): string | null {
+  const url = new URL(request.url);
+  if (url.searchParams.get("brand") !== "stockup") return null;
+  if (url.searchParams.get("bounced") === "1") return null;
+  if (STOCKUP_HOST_SET.has(normalizeHost(url.host))) return null;
+  if (getAppMode(requestHost(request)) === "stockup") return null;
+  url.searchParams.set("bounced", "1");
+  return `${STOCKUP_ORIGIN}${url.pathname}?${url.searchParams.toString()}`;
+}
+
 export function siteDisplayName(mode: AppMode = getAppMode()): string {
   return mode === "stockup" ? "StockUp" : "FoodVault";
 }

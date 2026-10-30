@@ -21,6 +21,7 @@ import {
   parseOAuthDisplayName,
   shouldReplacePlaceholderMemberName,
 } from "@/lib/auth/oauth-display-name";
+import { stockupSafePath } from "@/lib/app-mode";
 import { PARTNER_APPLICATION_PATH } from "@/lib/partner-auth";
 
 export function readMetadataString(
@@ -104,6 +105,10 @@ export function resolvePostSignupRedirect(
   nextPath?: string | null,
   completionRedirect?: string
 ) {
+  if (metadata?.signup_mode === "stockup") {
+    return stockupSafePath(nextPath || completionRedirect);
+  }
+
   if (nextPath && nextPath.startsWith("/")) {
     return nextPath;
   }

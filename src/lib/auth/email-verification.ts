@@ -8,6 +8,7 @@ import {
 import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
 import { renderMemberPasswordResetEmail, renderMemberVerifyEmail } from "@/lib/email-templates/render";
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
+import { STOCKUP_ORIGIN } from "@/lib/mode-routes";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const AUTH_CONFIRM_PATH = "/auth/confirm";
@@ -47,7 +48,35 @@ export function buildConfirmUrl(params: {
   url.searchParams.set("type", params.type);
   url.searchParams.set("next", params.next);
   url.searchParams.set("account", params.account);
+  if (resolveSiteOrigin(params.siteOrigin) === STOCKUP_ORIGIN) {
+    url.searchParams.set("brand", "stockup");
+  }
   return url.toString();
+}
+
+/** One-time StockUp confirm URL so the session cookie is set on stockup.co.nz. */
+export async function stockupSessionHandoffUrl(email: string) {
+  const linkResult = await generateSignupVerificationLink({
+    email,
+    linkType: "magiclink",
+    siteOrigin: STOCKUP_ORIGIN,
+  });
+
+  if ("error" in linkResult) {
+    return null;
+  }
+
+  const confirmUrl = new URL(
+    buildConfirmUrl({
+      tokenHash: linkResult.tokenHash,
+      type: linkResult.linkType,
+      next: "/",
+      account: "member",
+      siteOrigin: STOCKUP_ORIGIN,
+    })
+  );
+  confirmUrl.searchParams.set("handoff", "1");
+  return confirmUrl.toString();
 }
 
 function formatAuthStepError(
