@@ -38,7 +38,11 @@ export function SiteLayout({
       pathname === "/account" ||
       pathname.startsWith("/account/") ||
       pathname === "/contact" ||
-      pathname.startsWith("/contact/"));
+      pathname.startsWith("/contact/") ||
+      pathname === "/terms" ||
+      pathname === "/privacy" ||
+      pathname === "/cookies" ||
+      pathname === "/refund-policy");
   const showConsumerSecondaryNav =
     !stockup &&
     (pathname === "/" ||

@@ -142,13 +142,29 @@ function useNavAuth(): NavAuthState {
   return auth;
 }
 
-function AccountMenuButton({ open, menuPreview = false }: { open: boolean; menuPreview?: boolean }) {
+function accountMenuItemClass(stockup: boolean) {
+  return stockup
+    ? "block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-[#d1fae5] hover:text-[#047857]"
+    : "block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary";
+}
+
+function AccountMenuButton({
+  open,
+  menuPreview = false,
+  stockup = false,
+}: {
+  open: boolean;
+  menuPreview?: boolean;
+  stockup?: boolean;
+}) {
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition-colors ${
         menuPreview
           ? "border border-white/80 bg-transparent text-white hover:bg-white/10"
-          : "border border-border bg-surface text-foreground hover:bg-surface-lavender"
+          : stockup
+            ? "border border-[#a7f3d0] bg-white text-foreground hover:border-[#10b981] hover:bg-[#ecfdf5] hover:text-[#047857]"
+            : "border border-border bg-surface text-foreground hover:bg-surface-lavender"
       }`}
     >
       <svg
@@ -243,13 +259,17 @@ function AccountDropdown({
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={`rounded-full focus:outline-none focus-visible:ring-2 ${
-          menuPreview ? "focus-visible:ring-white/40" : "focus-visible:ring-primary/30"
+          menuPreview
+            ? "focus-visible:ring-white/40"
+            : stockup
+              ? "focus-visible:ring-[#10b981]/40"
+              : "focus-visible:ring-primary/30"
         }`}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Account menu"
       >
-        <AccountMenuButton open={open} menuPreview={menuPreview} />
+        <AccountMenuButton open={open} menuPreview={menuPreview} stockup={stockup} />
       </button>
 
       {open ? (
@@ -265,7 +285,7 @@ function AccountDropdown({
                 setOpen(false);
                 emitGroceryListOpen();
               }}
-              className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+              className={accountMenuItemClass(stockup)}
             >
               My Grocery List
             </button>
@@ -276,7 +296,7 @@ function AccountDropdown({
               href={item.href}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="block px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+              className={accountMenuItemClass(stockup)}
             >
               {item.label}
             </Link>
@@ -286,7 +306,7 @@ function AccountDropdown({
               type="button"
               role="menuitem"
               onClick={() => void handleSwitchPortal("partner")}
-              className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+              className={accountMenuItemClass(false)}
             >
               Switch to Partner Dashboard
             </button>
@@ -296,7 +316,7 @@ function AccountDropdown({
               type="button"
               role="menuitem"
               onClick={() => void handleSwitchPortal("member")}
-              className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+              className={accountMenuItemClass(false)}
             >
               Switch to Member Dashboard
             </button>
@@ -306,7 +326,7 @@ function AccountDropdown({
             type="button"
             role="menuitem"
             onClick={() => void handleLogout()}
-            className="block w-full px-4 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
+            className={accountMenuItemClass(stockup)}
           >
             Logout
           </button>

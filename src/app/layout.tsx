@@ -77,7 +77,10 @@ export default async function RootLayout({
   const products = appMode === "stockup" ? await getActiveVaultMarketProducts() : [];
 
   return (
-    <html lang={locale.localeTag} className={`${hankenGrotesk.variable} h-full antialiased`}>
+    <html
+      lang={locale.localeTag}
+      className={`${hankenGrotesk.variable} h-full antialiased${appMode === "stockup" ? " stockup" : ""}`}
+    >
       <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
         <SiteLayout appMode={appMode} products={products}>
           {children}

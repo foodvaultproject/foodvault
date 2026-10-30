@@ -126,55 +126,142 @@
   --shadow-button-hover: 0 12px 28px rgba(139, 124, 246, 0.32);
 }
 
+/* StockUp replaces the FoodVault purple theme. */
+html.stockup,
 .stockup-contact {
+  --color-page: #ecfdf5;
   --color-primary: #10b981;
   --color-primary-hover: #059669;
   --color-primary-pressed: #047857;
   --color-primary-accent: #059669;
+  --color-info: #10b981;
+  --color-surface: #ecfdf5;
   --color-surface-lavender: #ecfdf5;
+  --color-border: #d1fae5;
+  --color-border-hover: #6ee7b7;
+  --page: #ecfdf5;
   --primary: #10b981;
   --primary-hover: #059669;
   --primary-pressed: #047857;
   --primary-accent: #059669;
   --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --primary-gradient-hover: linear-gradient(135deg, #059669 0%, #047857 100%);
+  --info: #10b981;
+  --surface: #ecfdf5;
   --surface-lavender: #ecfdf5;
+  --border: #d1fae5;
+  --border-hover: #6ee7b7;
+  --shadow-card: 0 8px 30px rgba(5, 150, 105, 0.08);
+  --shadow-card-hover: 0 12px 40px rgba(5, 150, 105, 0.14);
   --shadow-button: 0 8px 20px rgba(16, 185, 129, 0.25);
   --shadow-button-hover: 0 12px 28px rgba(16, 185, 129, 0.32);
   --ring: rgba(16, 185, 129, 0.2);
 }
 
+html.stockup .text-primary,
+html.stockup .hover\:text-primary:hover,
+html.stockup .hover\:text-primary-hover:hover,
+html.stockup .focus\:text-primary:focus,
 .stockup-contact .text-primary,
+.stockup-contact .hover\:text-primary:hover,
 .stockup-contact .hover\:text-primary-hover:hover {
-  color: #10b981 !important;
+  color: #059669 !important;
 }
 
-.stockup-contact .border-primary {
-  border-color: #10b981 !important;
+html.stockup .bg-primary,
+.stockup-contact .bg-primary {
+  background-color: #10b981 !important;
 }
 
+html.stockup .bg-primary\/5,
+html.stockup .hover\:bg-primary\/5:hover,
 .stockup-contact .bg-primary\/5,
 .stockup-contact .hover\:bg-primary\/5:hover {
-  background-color: rgb(16 185 129 / 0.05) !important;
+  background-color: rgb(16 185 129 / 0.08) !important;
 }
 
-.stockup-contact .hover\:border-primary\/40:hover {
-  border-color: rgb(16 185 129 / 0.4) !important;
+html.stockup .bg-primary\/10,
+html.stockup .hover\:bg-primary\/10:hover,
+.stockup-contact .bg-primary\/10,
+.stockup-contact .hover\:bg-primary\/10:hover {
+  background-color: rgb(16 185 129 / 0.12) !important;
 }
 
+html.stockup .border-primary,
+html.stockup .focus\:border-primary:focus,
+.stockup-contact .border-primary,
 .stockup-contact .focus\:border-primary:focus {
   border-color: #10b981 !important;
 }
 
-.stockup-contact .focus\:ring-primary:focus,
-.stockup-contact .focus\:ring-primary\/20:focus {
-  --tw-ring-color: rgb(16 185 129 / 0.2);
-  box-shadow: 0 0 0 2px rgb(16 185 129 / 0.2);
+html.stockup .border-primary\/10,
+.stockup-contact .border-primary\/10 {
+  border-color: rgb(16 185 129 / 0.1) !important;
 }
 
+html.stockup .border-primary\/20,
+.stockup-contact .border-primary\/20 {
+  border-color: rgb(16 185 129 / 0.2) !important;
+}
+
+html.stockup .border-primary\/30,
+.stockup-contact .border-primary\/30 {
+  border-color: rgb(16 185 129 / 0.3) !important;
+}
+
+html.stockup .hover\:border-primary\/40:hover,
+.stockup-contact .hover\:border-primary\/40:hover {
+  border-color: rgb(16 185 129 / 0.4) !important;
+}
+
+html.stockup .focus\:ring-primary:focus,
+html.stockup .focus\:ring-primary\/20:focus,
+html.stockup .focus\:ring-primary\/30:focus,
+html.stockup .focus-visible\:ring-primary\/30:focus-visible,
+.stockup-contact .focus\:ring-primary:focus,
+.stockup-contact .focus\:ring-primary\/20:focus {
+  --tw-ring-color: rgb(16 185 129 / 0.35);
+  box-shadow: 0 0 0 2px rgb(16 185 129 / 0.28);
+}
+
+html.stockup .bg-page,
+html.stockup .bg-surface,
+html.stockup .bg-surface-lavender,
+.stockup-contact .bg-surface-lavender {
+  background-color: #ecfdf5 !important;
+}
+
+html.stockup .hover\:bg-surface:hover,
+html.stockup .hover\:bg-surface-lavender:hover {
+  background-color: #d1fae5 !important;
+}
+
+html.stockup .border-border,
+.stockup-contact .border-border {
+  border-color: #d1fae5 !important;
+}
+
+html.stockup .from-surface-lavender,
 .stockup-contact .from-surface-lavender {
   --tw-gradient-from: #ecfdf5;
   --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+
+html.stockup .fv-btn-ghost:hover,
+.stockup-contact .fv-btn-ghost:hover {
+  background: rgb(16 185 129 / 0.08);
+}
+
+html.stockup input[type="checkbox"],
+html.stockup input[type="radio"],
+.stockup-contact input[type="checkbox"],
+.stockup-contact input[type="radio"] {
+  accent-color: #10b981;
+}
+
+html.stockup ::selection {
+  background: #a7f3d0;
+  color: #064e3b;
 }
 
 body {
