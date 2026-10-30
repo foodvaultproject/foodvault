@@ -177,7 +177,12 @@ export async function linkPartnerAccountWithPassword(
   email: string,
   password: string,
   turnstileToken?: string | null
-) {
+): Promise<{
+  error?: string;
+  needsGoogleSignIn?: true;
+  success?: true;
+  redirectPath?: string;
+}> {
   const { linkPartnerAccountWithPasswordAction } = await import(
     "@/lib/partner/signup-actions"
   );
