@@ -249,6 +249,7 @@ export async function createPantryCheckoutSession(input: {
     success_url: `${origin}/order-success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/checkout`,
     payment_intent_data: {
+      capture_method: "manual" as const,
       description: "StockUp supermarket order",
       statement_descriptor_suffix: "STOCKUP",
       metadata,

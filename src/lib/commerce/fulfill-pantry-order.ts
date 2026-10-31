@@ -4,8 +4,10 @@ import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
 import { sendSupermarketOrderConfirmationEmail } from "@/lib/commerce/send-supermarket-order-email";
+import { sendAdminNewOrderAlertEmail } from "@/lib/email-templates/templates/supermarket/admin-new-order-alert";
+import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { FoodVaultOrder, FoodVaultShippingAddress } from "@/types/commerce";
+import type { FoodVaultOrder, FoodVaultOrderStatus, FoodVaultShippingAddress } from "@/types/commerce";
 
 type ParsedCartLine = {
   productId: string;
@@ -71,6 +73,81 @@ function readShipping(session: Stripe.Checkout.Session): FoodVaultShippingAddres
 
 function amountFromCents(value: number | null | undefined): number {
   return typeof value === "number" ? value / 100 : 0;
+}
+
+async function resolvePantryPaymentState(
+  session: Stripe.Checkout.Session
+): Promise<Extract<FoodVaultOrderStatus, "authorized" | "paid"> | null> {
+  if (
+    session.payment_status === "paid" ||
+    session.payment_status === "no_payment_required"
+  ) {
+    return "paid";
+  }
+
+  if (session.payment_status !== "unpaid") return null;
+
+  const intentId = paymentIntentId(session);
+  if (!intentId) return null;
+
+  const embedded =
+    session.payment_intent && typeof session.payment_intent === "object"
+      ? session.payment_intent
+      : null;
+  const intent = embedded ?? (await getStripeClient().paymentIntents.retrieve(intentId));
+  if (intent.status === "requires_capture") return "authorized";
+  if (intent.status === "succeeded") return "paid";
+  return null;
+}
+
+export async function releaseReservedStock(productId: string, sku: string, quantity: number) {
+  const qty = Math.trunc(quantity);
+  if (qty <= 0) return;
+
+  const admin = createAdminClient();
+  if (!admin) return;
+
+  const product = await findProductStockRow(productId, sku);
+  if (!product) return;
+
+  const { data: batches, error: batchError } = await admin
+    .from("foodvault_inventory_batches")
+    .select("id, quantity_remaining, quantity_received")
+    .eq("product_id", product.id)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const latest = (batches ?? [])[0] as Record<string, unknown> | undefined;
+  if (!batchError && latest?.id != null && latest.quantity_remaining != null && latest.quantity_remaining !== "") {
+    const onHand = onHandFromBatch(latest);
+    const { error: updateError } = await admin
+      .from("foodvault_inventory_batches")
+      .update({
+        quantity_remaining: onHand + qty,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", String(latest.id));
+
+    if (!updateError) {
+      const { data: refreshed, error: refreshError } = await admin
+        .from("foodvault_inventory_batches")
+        .select("quantity_remaining, quantity_received")
+        .eq("product_id", product.id);
+      if (!refreshError) {
+        const nextStock = ((refreshed ?? []) as Record<string, unknown>[]).reduce(
+          (sum, row) => sum + onHandFromBatch(row),
+          0
+        );
+        await admin.from("foodvault_products").update({ stock_quantity: nextStock }).eq("id", product.id);
+        return;
+      }
+    }
+  }
+
+  await admin
+    .from("foodvault_products")
+    .update({ stock_quantity: Math.max(0, Number(product.stock_quantity ?? 0) + qty) })
+    .eq("id", product.id);
 }
 
 async function findProductStockRow(
@@ -218,12 +295,8 @@ export async function fulfillPantryOrderFromCheckoutSession(
     return null;
   }
 
-  if (
-    session.payment_status !== "paid" &&
-    session.payment_status !== "no_payment_required"
-  ) {
-    return null;
-  }
+  const paymentState = await resolvePantryPaymentState(session);
+  if (!paymentState) return null;
 
   const existing = await getPantryOrderByStripeSessionId(session.id);
   if (existing) return existing;
@@ -252,7 +325,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
 
   const orderPayload = {
     member_id: memberId,
-    status: "paid",
+    status: paymentState,
     subtotal,
     total,
     currency: (session.currency ?? "nzd").toUpperCase(),
@@ -385,6 +458,18 @@ export async function fulfillPantryOrderFromCheckoutSession(
       });
     } catch (error) {
       console.error("[vault-market] Order confirmation email failed", {
+        orderId: order.id,
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+
+    try {
+      await sendAdminNewOrderAlertEmail({
+        order: { ...order, shipping_email: recipient },
+        deliveryNotes: session.metadata?.delivery_notes,
+      });
+    } catch (error) {
+      console.error("[vault-market] Admin order alert email failed", {
         orderId: order.id,
         error: error instanceof Error ? error.message : error,
       });

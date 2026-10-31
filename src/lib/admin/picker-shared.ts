@@ -20,6 +20,9 @@ export type PickerLine = {
   sku: string;
   brand: string;
   quantity: number;
+  quantityPicked: number | null;
+  unitPrice: number;
+  lineTotal: number;
   imageUrl: string | null;
   binLocation: string;
   barcode: string | null;
@@ -32,6 +35,9 @@ export type PickerOrderDetail = {
   customerName: string;
   addressSummary: string;
   total: number;
+  subtotal: number;
+  shippingCost: number;
+  currency: string;
   paidAt: string;
   trackingNumber: string | null;
   lines: PickerLine[];

@@ -1,11 +1,17 @@
 import { shortOrderId } from "@/lib/admin/picker-shared";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
+import {
+  isPickRecorded,
+  quantityFromOrderItem,
+  revenueFromOrderItem,
+} from "@/lib/commerce/pick-settlement";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { FoodVaultOrderStatus, FoodVaultProduct } from "@/types/commerce";
 
 export type MemberOrderDisplayStatus =
+  | "Confirmed"
   | "Paid"
   | "Packing"
   | "Dispatched"
@@ -63,6 +69,7 @@ export function memberOrderDisplayStatus(
   if (status === "cancelled") return "Cancelled";
   if (status === "refunded") return "Refunded";
   if (status === "fulfilled") return trackingNumber?.trim() ? "Dispatched" : "Packing";
+  if (status === "authorized" || status === "capturing") return "Confirmed";
   return "Paid";
 }
 
@@ -121,12 +128,17 @@ export async function getMemberVaultMarketOrders(
     const trackingNumber = asString(row.tracking_number) || null;
     const thumbnails: string[] = [];
     const reorderLines: MemberOrderReorderLine[] = [];
-    const lines: MemberOrderLine[] = lineRows.map((item) => ({
-      name: asString(item.name, "Item"),
-      quantity: Math.max(1, Math.trunc(asNumber(item.quantity, 1))),
-      unitPrice: asNumber(item.unit_price),
-      lineTotal: asNumber(item.line_total),
-    }));
+    const lines: MemberOrderLine[] = lineRows.map((item) => {
+      const recorded = isPickRecorded(item.quantity_picked);
+      const quantity = quantityFromOrderItem(item);
+      const name = asString(item.name, "Item");
+      return {
+        name: recorded && quantity === 0 ? `${name} (out of stock)` : name,
+        quantity,
+        unitPrice: asNumber(item.unit_price),
+        lineTotal: recorded ? revenueFromOrderItem(item) : asNumber(item.line_total),
+      };
+    });
     const shippingParts = [
       asString(row.shipping_line1),
       asString(row.shipping_line2),

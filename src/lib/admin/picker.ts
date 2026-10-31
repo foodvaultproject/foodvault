@@ -130,7 +130,7 @@ export async function listPickerQueue(tab: PickerQueueTab): Promise<PickerQueueC
   const { data: orders, error } = await supabase
     .from("foodvault_orders")
     .select("*")
-    .eq("status", "paid")
+    .in("status", ["authorized", "paid"])
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -194,6 +194,12 @@ export async function getPickerOrder(orderId: string): Promise<PickerOrderDetail
         sku,
         brand: asString(product?.brand, "FoodVault"),
         quantity: Math.max(1, Math.trunc(asNumber(item.quantity, 1))),
+        quantityPicked:
+          item.quantity_picked == null || item.quantity_picked === ""
+            ? null
+            : Math.max(0, Math.trunc(asNumber(item.quantity_picked))),
+        unitPrice: asNumber(item.unit_price),
+        lineTotal: asNumber(item.line_total),
         imageUrl: asString(product?.image_url) || null,
         binLocation: asString(product?.bin_location),
         barcode: asString(product?.barcode) || asString(product?.sku) || null,
@@ -201,13 +207,24 @@ export async function getPickerOrder(orderId: string): Promise<PickerOrderDetail
     })
     .sort((a, b) => compareBinLocation(a.binLocation, b.binLocation));
 
+  const subtotal = asNumber(row.subtotal);
+  const total = asNumber(row.total);
+  const storedShipping = row.shipping_cost;
+  const shippingCost =
+    storedShipping == null || storedShipping === ""
+      ? Math.max(0, total - subtotal)
+      : asNumber(storedShipping);
+
   return {
     id: asString(row.id),
     shortId: shortOrderId(asString(row.id)),
     status: asString(row.status, "paid") as FoodVaultOrderStatus,
     customerName: asString(row.shipping_name, "Member order"),
     addressSummary: addressSummary(row) || "No shipping address",
-    total: asNumber(row.total),
+    total,
+    subtotal,
+    shippingCost,
+    currency: asString(row.currency, "NZD").toUpperCase(),
     paidAt: asString(row.created_at),
     trackingNumber: asString(row.tracking_number) || null,
     lines,

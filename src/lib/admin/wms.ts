@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { quantityFromOrderItem } from "@/lib/commerce/pick-settlement";
 import {
   claimValue,
   normalizeScanCode,
@@ -149,7 +150,7 @@ export async function productSalesVelocity30d(): Promise<Map<string, number>> {
   const { data: orders } = await supabase
     .from("foodvault_orders")
     .select("id")
-    .in("status", ["paid", "fulfilled"])
+    .in("status", ["authorized", "paid", "fulfilled"])
     .gte("created_at", since);
 
   const orderIds = (orders ?? []).map((row) => asString((row as Record<string, unknown>).id)).filter(Boolean);
@@ -157,12 +158,12 @@ export async function productSalesVelocity30d(): Promise<Map<string, number>> {
 
   const { data: items } = await supabase
     .from("foodvault_order_items")
-    .select("product_id, sku, quantity")
+    .select("product_id, sku, quantity, quantity_picked")
     .in("order_id", orderIds);
 
   for (const item of items ?? []) {
     const record = item as Record<string, unknown>;
-    const qty = Math.max(0, Math.trunc(asNumber(record.quantity)));
+    const qty = quantityFromOrderItem(record);
     const productId = asString(record.product_id);
     const sku = asString(record.sku);
     if (productId) velocity.set(productId, (velocity.get(productId) ?? 0) + qty);

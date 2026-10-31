@@ -16,6 +16,18 @@ export function renderSupermarketOrderEmail(
   const placedAt = formatOrderPlacedAt(order.created_at);
   const shortId = order.id.replace(/-/g, "").slice(-8).toUpperCase() || order.id.slice(0, 8);
   const freight = Math.max(0, order.shipping_cost ?? order.total - order.subtotal);
+  const authorized = order.status === "authorized";
+  const headline = authorized ? "Order confirmed" : "Payment received";
+  const intro = authorized
+    ? "your StockUp supermarket order is confirmed. We've placed a hold on your card for the total below, and you'll only be charged for the items we pack."
+    : "your StockUp supermarket order is confirmed and your payment has been received.";
+  const totalLabel = authorized ? "Amount on hold" : "Total paid";
+  const subject = authorized
+    ? `Order confirmed — StockUp order #${shortId}`
+    : `Payment received — StockUp order #${shortId}`;
+  const preheader = authorized
+    ? `Order #${shortId} is confirmed. Your card is authorized, and we charge only for packed items.`
+    : `Your payment was received and order #${shortId} is confirmed.`;
   const recipientName = order.shipping?.name?.trim();
   const greeting = recipientName ? `Kia ora ${escapeHtml(recipientName)},` : "Kia ora,";
   const address = [
@@ -38,8 +50,8 @@ export function renderSupermarketOrderEmail(
     .join("");
 
   const content = `
-    <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;color:${SUPERMARKET_EMAIL.foreground};">Payment received</h1>
-    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${EMAIL_BRAND.body};">${greeting} your StockUp supermarket order is confirmed and your payment has been received.</p>
+    <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;color:${SUPERMARKET_EMAIL.foreground};">${headline}</h1>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${EMAIL_BRAND.body};">${greeting} ${intro}</p>
     <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${EMAIL_BRAND.body};"><strong style="color:${SUPERMARKET_EMAIL.foreground};">Order #${escapeHtml(shortId)}</strong><br />Placed ${escapeHtml(placedAt)} (New Zealand time)</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
       ${itemRows}
@@ -52,7 +64,7 @@ export function renderSupermarketOrderEmail(
         <td align="right" style="padding:6px 0;font-size:14px;">${freight === 0 ? "FREE" : escapeHtml(formatNzPrice(freight))}</td>
       </tr>
       <tr>
-        <td style="padding:8px 0 0;font-size:16px;font-weight:700;color:${SUPERMARKET_EMAIL.foreground};">Total paid</td>
+        <td style="padding:8px 0 0;font-size:16px;font-weight:700;color:${SUPERMARKET_EMAIL.foreground};">${totalLabel}</td>
         <td align="right" style="padding:8px 0 0;font-size:16px;font-weight:700;color:${SUPERMARKET_EMAIL.foreground};">${escapeHtml(formatNzPrice(order.total))}</td>
       </tr>
     </table>
@@ -77,9 +89,11 @@ export function renderSupermarketOrderEmail(
   `;
 
   const text = [
-    `Payment received. Your StockUp supermarket order #${shortId} is confirmed.`,
+    authorized
+      ? `Order confirmed. Your StockUp supermarket order #${shortId} is on hold for the packed items.`
+      : `Payment received. Your StockUp supermarket order #${shortId} is confirmed.`,
     `Placed ${placedAt} (New Zealand time).`,
-    `Total paid ${formatNzPrice(order.total)}.`,
+    `${totalLabel} ${formatNzPrice(order.total)}.`,
     address ? `Delivering to ${address}.` : "",
     `View your orders: ${ordersUrl}`,
   ]
@@ -87,11 +101,11 @@ export function renderSupermarketOrderEmail(
     .join("\n");
 
   return {
-    subject: `Payment received — StockUp order #${shortId}`,
+    subject,
     html: renderSupermarketEmailLayout({
       appUrl: site,
       content,
-      preheader: `Your payment was received and order #${shortId} is confirmed.`,
+      preheader,
     }),
     text,
   };

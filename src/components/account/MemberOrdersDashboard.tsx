@@ -15,6 +15,7 @@ import { formatOrderPlacedAt } from "@/lib/commerce/order-display";
 import { formatNzPrice } from "@/lib/partner-offer";
 
 const statusStyles: Record<string, string> = {
+  Confirmed: "bg-amber-50 text-amber-800",
   Paid: "bg-amber-50 text-amber-800",
   Packing: "bg-blue-50 text-blue-700",
   Dispatched: "bg-emerald-50 text-emerald-700",

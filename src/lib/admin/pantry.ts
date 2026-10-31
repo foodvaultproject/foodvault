@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { quantityFromOrderItem } from "@/lib/commerce/pick-settlement";
 import {
   buildUnitPricing,
   parseUnitPriceLabel,
@@ -288,7 +289,7 @@ export async function listInventorySales(): Promise<InventorySaleMovement[]> {
         id: asString(row.id),
         productId: asString(row.product_id),
         sku: asString(row.sku),
-        quantity: Math.max(0, Math.trunc(asNumber(row.quantity))),
+        quantity: quantityFromOrderItem(row),
         at,
         orderId: asString(row.order_id),
       },

@@ -42,7 +42,7 @@ export function PickerQueueClient({
       <div className="mb-4">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Active orders</h1>
         <p className="mt-1 text-sm text-muted">
-          Walk the warehouse in one pass. Oldest paid orders sit at the top.
+          Walk the warehouse in one pass. Oldest authorized orders sit at the top.
         </p>
       </div>
 
@@ -51,12 +51,12 @@ export function PickerQueueClient({
       {orders.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-white px-5 py-12 text-center">
           <p className="text-base font-semibold text-foreground">
-            {tab === "fulfilled" ? "No orders fulfilled today yet." : "No paid orders waiting to pick."}
+            {tab === "fulfilled" ? "No orders fulfilled today yet." : "No orders waiting to pick."}
           </p>
           <p className="mt-1 text-sm text-muted">
             {tab === "fulfilled"
               ? "Completed picks will land here after dispatch."
-              : "New Vault Market checkouts appear here as soon as payment confirms."}
+              : "New Vault Market checkouts appear here once the card hold is authorized."}
           </p>
         </div>
       ) : (
@@ -76,7 +76,11 @@ export function PickerQueueClient({
                         : "bg-amber-50 text-amber-800"
                     }`}
                   >
-                    {order.status === "fulfilled" ? "Fulfilled" : "Paid"}
+                    {order.status === "fulfilled"
+                      ? "Fulfilled"
+                      : order.status === "authorized"
+                        ? "Authorized"
+                        : "Paid"}
                   </span>
                 </div>
 

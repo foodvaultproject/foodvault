@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { SafeImage } from "@/components/media/SafeImage";
 import {
   BarcodeScanner,
@@ -17,60 +17,110 @@ import {
   type PickerOrderDetail,
 } from "@/lib/admin/picker-shared";
 import { normalizeScanCode } from "@/lib/admin/wms-shared";
+import {
+  amountToMinorUnits,
+  minorUnitsToAmount,
+  settlePicks,
+} from "@/lib/commerce/pick-settlement";
+import { formatNzPrice } from "@/lib/partner-offer";
 
 function storageKey(orderId: string) {
   return `${PICKER_STORAGE_PREFIX}${orderId}`;
 }
 
-function loadPicked(orderId: string, lineIds: string[], alreadyFulfilled: boolean): Set<string> {
-  if (alreadyFulfilled) return new Set(lineIds);
+function loadPicks(
+  orderId: string,
+  lines: PickerLine[],
+  alreadyClosed: boolean
+): Record<string, number | null> {
+  const picks: Record<string, number | null> = {};
+  for (const line of lines) {
+    picks[line.itemId] = alreadyClosed ? (line.quantityPicked ?? line.quantity) : line.quantityPicked;
+  }
+  if (alreadyClosed) return picks;
+
   try {
     const raw = window.localStorage.getItem(storageKey(orderId));
-    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-    const ids = Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
-    return new Set(ids.filter((id) => lineIds.includes(id)));
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    if (Array.isArray(parsed)) {
+      for (const id of parsed) {
+        if (typeof id !== "string" || picks[id] != null) continue;
+        const line = lines.find((entry) => entry.itemId === id);
+        if (line) picks[id] = line.quantity;
+      }
+    } else if (parsed && typeof parsed === "object") {
+      const stored = parsed as Record<string, unknown>;
+      for (const line of lines) {
+        if (picks[line.itemId] != null) continue;
+        const value = stored[line.itemId];
+        if (typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= line.quantity) {
+          picks[line.itemId] = value;
+        }
+      }
+    }
   } catch {
-    return new Set();
+    return picks;
   }
+
+  return picks;
 }
 
 export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
   const router = useRouter();
-  const lineIds = useMemo(() => order.lines.map((line) => line.itemId), [order.lines]);
   const alreadyFulfilled = order.status === "fulfilled";
-  const [picked, setPicked] = useState<Set<string>>(() =>
-    alreadyFulfilled ? new Set(lineIds) : new Set()
+  const alreadyClosed = alreadyFulfilled || order.status === "cancelled" || order.status === "refunded";
+  const [picks, setPicks] = useState<Record<string, number | null>>(() =>
+    Object.fromEntries(order.lines.map((line) => [line.itemId, alreadyClosed ? line.quantity : null]))
   );
-  const [hydrated, setHydrated] = useState(alreadyFulfilled);
+  const [hydrated, setHydrated] = useState(alreadyClosed);
   const [modalOpen, setModalOpen] = useState(false);
   const [wrongScan, setWrongScan] = useState<string | null>(null);
   const [tracking, setTracking] = useState(order.trackingNumber ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
   const [pending, startTransition] = useTransition();
+  const submitGuard = useRef(false);
 
   useEffect(() => {
-    setPicked(loadPicked(order.id, lineIds, alreadyFulfilled));
+    setPicks(loadPicks(order.id, order.lines, alreadyClosed));
     setHydrated(true);
-  }, [alreadyFulfilled, lineIds, order.id]);
+  }, [alreadyClosed, order.id, order.lines]);
 
   useEffect(() => {
-    if (!hydrated || alreadyFulfilled) return;
-    window.localStorage.setItem(storageKey(order.id), JSON.stringify([...picked]));
-  }, [alreadyFulfilled, hydrated, order.id, picked]);
+    if (!hydrated || alreadyClosed) return;
+    window.localStorage.setItem(storageKey(order.id), JSON.stringify(picks));
+  }, [alreadyClosed, hydrated, order.id, picks]);
+
+  const settlement = useMemo(
+    () =>
+      settlePicks({
+        currency: order.currency,
+        shippingCost: order.shippingCost,
+        authorizedMinor: amountToMinorUnits(order.total, order.currency),
+        lines: order.lines.map((line) => ({
+          itemId: line.itemId,
+          name: line.name,
+          sku: line.sku,
+          productId: line.productId,
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+          lineTotal: line.lineTotal,
+          quantityPicked: picks[line.itemId] ?? null,
+        })),
+      }),
+    [order, picks]
+  );
 
   const total = order.lines.length;
-  const pickedCount = order.lines.filter((line) => picked.has(line.itemId)).length;
-  const percent = total === 0 ? 0 : Math.round((pickedCount / total) * 100);
-  const complete = total > 0 && pickedCount === total;
+  const resolvedCount = order.lines.filter((line) => picks[line.itemId] != null).length;
+  const percent = total === 0 ? 0 : Math.round((resolvedCount / total) * 100);
+  const chargeLabel = formatNzPrice(minorUnitsToAmount(settlement.totalMinor, order.currency));
+  const holdLabel = formatNzPrice(order.total);
+  const busy = locked || pending;
 
-  function toggleLine(itemId: string) {
-    if (alreadyFulfilled) return;
-    setPicked((current) => {
-      const next = new Set(current);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
-      return next;
-    });
+  function setLineQty(itemId: string, quantity: number | null) {
+    if (alreadyClosed) return;
+    setPicks((current) => ({ ...current, [itemId]: quantity }));
   }
 
   function lineMatchesScan(line: PickerLine, code: string) {
@@ -81,20 +131,18 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
   }
 
   function handlePickScan(code: string) {
-    if (alreadyFulfilled) return;
-    setPicked((current) => {
-      const match = order.lines.find((line) => lineMatchesScan(line, code) && !current.has(line.itemId));
-      if (!match) {
-        playScanErrorSound();
-        setWrongScan(code);
-        return current;
-      }
-      playScanSuccessSound();
-      setWrongScan(null);
-      const next = new Set(current);
-      next.add(match.itemId);
-      return next;
-    });
+    if (alreadyClosed) return;
+    const match = order.lines.find(
+      (line) => lineMatchesScan(line, code) && picks[line.itemId] !== line.quantity
+    );
+    if (!match) {
+      playScanErrorSound();
+      setWrongScan(code);
+      return;
+    }
+    playScanSuccessSound();
+    setWrongScan(null);
+    setLineQty(match.itemId, match.quantity);
   }
 
   function openPackingSlip(autoprint = false) {
@@ -102,20 +150,31 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
   }
 
   function submitFulfill(printFirst = false) {
+    if (submitGuard.current || busy || settlement.unresolved) return;
+    submitGuard.current = true;
+    setLocked(true);
     setError(null);
-    if (printFirst) {
-      window.open(packingSlipPath(order.id, true), "_blank", "noopener,noreferrer");
-    }
     const formData = new FormData();
     formData.set("order_id", order.id);
     formData.set("tracking_number", tracking.trim());
+    formData.set(
+      "picks",
+      JSON.stringify(
+        Object.fromEntries(
+          order.lines.map((line) => [line.itemId, picks[line.itemId] ?? 0])
+        )
+      )
+    );
     startTransition(async () => {
       const result = await fulfillPickerOrderAction(formData);
-      if (result.error) {
+      if ("error" in result) {
+        submitGuard.current = false;
+        setLocked(false);
         setError(result.error);
         return;
       }
       window.localStorage.removeItem(storageKey(order.id));
+      if (printFirst && !result.cancelled) openPackingSlip(true);
       setModalOpen(false);
       router.push("/admin/picker");
       router.refresh();
@@ -131,9 +190,7 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
             <h1 className="font-mono text-xl font-bold text-foreground">#{order.shortId}</h1>
             <p className="mt-0.5 text-sm text-muted">{order.customerName}</p>
           </div>
-          <p className="text-right text-sm font-bold text-primary">
-            {percent}%
-          </p>
+          <p className="text-right text-sm font-bold text-primary">{percent}%</p>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
           <div
@@ -143,7 +200,7 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
         </div>
         <div className="mt-2 flex items-center justify-between gap-3">
           <p className="text-sm font-semibold text-foreground">
-            Picked {pickedCount} of {total} items — {percent}% Complete
+            Resolved {resolvedCount} of {total} lines — {percent}%
           </p>
           <button
             type="button"
@@ -153,83 +210,119 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
             Print Packing Slip
           </button>
         </div>
-        {!alreadyFulfilled ? (
+        {!alreadyClosed ? (
           <div className="mt-3">
             <BarcodeScanner onScan={handlePickScan} placeholder="Scan product barcode to pick" />
           </div>
         ) : null}
       </div>
 
-      <ol className="flex-1 space-y-3 px-4 py-4 pb-32">
+      <ol className="flex-1 space-y-3 px-4 py-4 pb-36">
         {order.lines.length === 0 ? (
           <li className="rounded-2xl border border-dashed border-border bg-white px-5 py-10 text-center text-sm text-muted">
             This order has no line items.
           </li>
         ) : (
           order.lines.map((line) => {
-            const isPicked = picked.has(line.itemId);
+            const pickedQty = picks[line.itemId];
+            const isPicked = pickedQty != null && pickedQty > 0;
+            const isOut = pickedQty === 0;
             const assigned = Boolean(line.binLocation.trim());
             return (
-              <li key={line.itemId}>
-                <button
-                  type="button"
-                  onClick={() => toggleLine(line.itemId)}
-                  aria-pressed={isPicked}
-                  className={`flex w-full gap-3 rounded-2xl border p-3 text-left shadow-sm transition-colors ${
-                    isPicked
-                      ? "border-slate-200 bg-slate-100"
-                      : "border-border bg-white"
-                  }`}
-                >
+              <li
+                key={line.itemId}
+                className={`rounded-2xl border p-3 shadow-sm ${
+                  isOut ? "border-slate-200 bg-slate-100" : isPicked ? "border-emerald-200 bg-emerald-50/40" : "border-border bg-white"
+                }`}
+              >
+                <div className="flex gap-3">
                   <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
                     <SafeImage
                       src={line.imageUrl ?? ""}
                       alt={line.name}
                       fill
                       sizes="96px"
-                      className={`object-cover ${isPicked ? "opacity-50 grayscale" : ""}`}
+                      className={`object-cover ${isOut ? "opacity-50 grayscale" : ""}`}
                       fallbackVariant="muted"
                     />
                   </div>
                   <div className="min-w-0 flex-1">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
-                        assigned
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-amber-100 text-amber-800"
+                        assigned ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
                       }`}
                     >
                       {displayBinLocation(line.binLocation)}
                     </span>
-                    <p
-                      className={`mt-1 text-base font-bold leading-snug text-foreground ${
-                        isPicked ? "text-slate-500 line-through" : ""
-                      }`}
-                    >
+                    <p className={`mt-1 text-base font-bold leading-snug text-foreground ${isOut ? "text-slate-500 line-through" : ""}`}>
                       {line.name}
                     </p>
-                    <p className={`text-xs text-muted ${isPicked ? "line-through" : ""}`}>
+                    <p className={`text-xs text-muted ${isOut ? "line-through" : ""}`}>
                       {line.brand}
                       {line.sku ? ` · ${line.sku}` : ""}
                     </p>
-                    <div className="mt-2 flex items-end justify-between gap-2">
-                      <p
-                        className={`text-3xl font-black tracking-tight ${
-                          isPicked ? "text-slate-400 line-through" : "text-primary"
-                        }`}
-                      >
-                        QTY: {line.quantity}
-                      </p>
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                          isPicked ? "bg-slate-200 text-slate-600" : "bg-primary/10 text-primary"
-                        }`}
-                      >
-                        {isPicked ? "Picked" : "Pending"}
-                      </span>
-                    </div>
+                    <p className={`mt-2 text-sm font-bold ${isOut ? "text-slate-400 line-through" : "text-primary"}`}>
+                      Ordered {line.quantity}
+                      {line.lineTotal > 0 ? ` · ${formatNzPrice(line.lineTotal)}` : ""}
+                    </p>
                   </div>
-                </button>
+                </div>
+                {alreadyClosed ? (
+                  <p className="mt-3 text-sm font-semibold text-muted">
+                    {isOut ? "Out of stock" : `Picked ${pickedQty ?? line.quantity}`}
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        aria-pressed={isPicked}
+                        onClick={() => setLineQty(line.itemId, line.quantity)}
+                        className={`min-h-11 rounded-xl text-sm font-bold ${
+                          isPicked ? "bg-primary text-primary-foreground" : "border border-border bg-white text-foreground"
+                        }`}
+                      >
+                        Picked
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={isOut}
+                        onClick={() => setLineQty(line.itemId, 0)}
+                        className={`min-h-11 rounded-xl text-sm font-bold ${
+                          isOut ? "bg-slate-700 text-white" : "border border-border bg-white text-foreground"
+                        }`}
+                      >
+                        Out of stock
+                      </button>
+                    </div>
+                    {isPicked && line.quantity > 1 ? (
+                      <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
+                        <span className="text-sm font-semibold text-foreground">Picked qty</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setLineQty(line.itemId, Math.max(0, (pickedQty ?? 0) - 1))}
+                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg font-bold"
+                            aria-label={`Decrease picked quantity for ${line.name}`}
+                          >
+                            −
+                          </button>
+                          <span className="w-8 text-center text-base font-bold">{pickedQty}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setLineQty(line.itemId, Math.min(line.quantity, (pickedQty ?? 0) + 1))
+                            }
+                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg font-bold"
+                            aria-label={`Increase picked quantity for ${line.name}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </li>
             );
           })
@@ -242,15 +335,35 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
             This order is already fulfilled
             {order.trackingNumber ? ` · ${order.trackingNumber}` : ""}.
           </p>
+        ) : order.status === "cancelled" || order.status === "refunded" ? (
+          <p className="rounded-xl bg-slate-100 px-4 py-3 text-center text-sm font-semibold text-slate-700">
+            This order is {order.status}.
+          </p>
         ) : (
-          <button
-            type="button"
-            disabled={!complete}
-            onClick={() => setModalOpen(true)}
-            className="flex min-h-14 w-full items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
-          >
-            Mark Order as Fulfilled
-          </button>
+          <>
+            {!settlement.unresolved ? (
+              <p className="mb-2 text-center text-sm font-semibold text-foreground">
+                {settlement.allOutOfStock
+                  ? "Nothing to pack. The card hold will be released."
+                  : `Charge ${chargeLabel} of ${holdLabel} on hold`}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              disabled={settlement.unresolved || total === 0 || busy}
+              onClick={() => {
+                setError(null);
+                setModalOpen(true);
+              }}
+              className="flex min-h-14 w-full items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+            >
+              {settlement.unresolved
+                ? "Resolve every line"
+                : settlement.allOutOfStock
+                  ? "Cancel order and release hold"
+                  : "Review charge and fulfill"}
+            </button>
+          </>
         )}
       </div>
 
@@ -259,7 +372,7 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
           <div role="alertdialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
             <h2 className="text-lg font-bold text-red-700">Wrong barcode</h2>
             <p className="mt-2 text-sm text-muted">
-              <span className="font-mono">{wrongScan}</span> is not an unpicked line on this order.
+              <span className="font-mono">{wrongScan}</span> is not an open line on this order.
             </p>
             <button
               type="button"
@@ -281,49 +394,81 @@ export function PickerOrderClient({ order }: { order: PickerOrderDetail }) {
             className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
           >
             <h2 id="fulfill-title" className="text-lg font-bold text-foreground">
-              Dispatch order #{order.shortId}
+              {settlement.allOutOfStock ? `Cancel order #${order.shortId}` : `Dispatch order #${order.shortId}`}
             </h2>
-            <p className="mt-1 text-sm text-muted">
-              Optional courier tracking number (NZ Post / CourierPost).
-            </p>
-            <label className="mt-4 block text-sm font-semibold text-foreground" htmlFor="tracking_number">
-              Tracking number
-            </label>
-            <input
-              id="tracking_number"
-              value={tracking}
-              onChange={(event) => setTracking(event.target.value)}
-              placeholder="e.g. NZ123456789"
-              className="mt-1 w-full rounded-xl border border-border px-3 py-3 text-base"
-              autoComplete="off"
-            />
+            {settlement.allOutOfStock ? (
+              <p className="mt-1 text-sm text-muted">
+                Every line is out of stock. The authorization will be cancelled and the customer will not be charged.
+              </p>
+            ) : (
+              <>
+                <p className="mt-1 text-sm text-muted">
+                  {settlement.adjustments.length > 0
+                    ? `Capture ${chargeLabel}. The rest of the ${holdLabel} hold is released.`
+                    : `Capture the full ${chargeLabel} hold.`}
+                </p>
+                {settlement.adjustments.length > 0 ? (
+                  <ul className="mt-3 space-y-1 text-sm text-foreground">
+                    {settlement.adjustments.map((line) => (
+                      <li key={line.itemId}>
+                        {line.name}: picked {line.picked} of {line.ordered}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <label className="mt-4 block text-sm font-semibold text-foreground" htmlFor="tracking_number">
+                  Tracking number
+                </label>
+                <input
+                  id="tracking_number"
+                  value={tracking}
+                  onChange={(event) => setTracking(event.target.value)}
+                  placeholder="e.g. NZ123456789"
+                  className="mt-1 w-full rounded-xl border border-border px-3 py-3 text-base"
+                  autoComplete="off"
+                />
+              </>
+            )}
             {error ? <p className="mt-2 text-sm font-medium text-red-600">{error}</p> : null}
             <div className="mt-5 space-y-2">
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() => submitFulfill(true)}
-                className="flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground"
-              >
-                {pending ? "Saving…" : "Print & Dispatch"}
-              </button>
+              {settlement.allOutOfStock ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => submitFulfill(false)}
+                  className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-800 text-sm font-bold text-white disabled:opacity-60"
+                >
+                  {busy ? "Releasing hold…" : "Release hold and cancel"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => submitFulfill(true)}
+                  className="flex min-h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground disabled:opacity-60"
+                >
+                  {busy ? "Capturing…" : "Print, capture, and dispatch"}
+                </button>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  disabled={pending}
+                  disabled={busy}
                   onClick={() => setModalOpen(false)}
                   className="min-h-12 rounded-xl border border-border text-sm font-bold text-foreground"
                 >
-                  Cancel
+                  Back
                 </button>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => submitFulfill(false)}
-                  className="min-h-12 rounded-xl border border-border text-sm font-bold text-foreground"
-                >
-                  {pending ? "Saving…" : "Dispatch only"}
-                </button>
+                {settlement.allOutOfStock ? null : (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => submitFulfill(false)}
+                    className="min-h-12 rounded-xl border border-border text-sm font-bold text-foreground"
+                  >
+                    {busy ? "Capturing…" : "Capture only"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

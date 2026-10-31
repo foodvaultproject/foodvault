@@ -1,5 +1,7 @@
 export type FoodVaultOrderStatus =
   | "pending"
+  | "authorized"
+  | "capturing"
   | "paid"
   | "fulfilled"
   | "cancelled"
@@ -96,6 +98,7 @@ export interface FoodVaultOrderItem {
   sku: string;
   name: string;
   quantity: number;
+  quantity_picked?: number | null;
   unit_price: number;
   line_total: number;
 }

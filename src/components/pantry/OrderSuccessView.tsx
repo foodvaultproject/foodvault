@@ -134,6 +134,11 @@ export function OrderSuccessView({
               <p className="mt-1 text-sm font-semibold text-foreground">
                 Order total {formatNzPrice(order.total)}
               </p>
+              {order.status === "authorized" ? (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Your card is authorized for this amount. We charge only for the items we pack.
+                </p>
+              ) : null}
             </div>
           </>
         ) : (

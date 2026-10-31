@@ -3,7 +3,7 @@ import { renderSupermarketOrderEmail } from "@/lib/email-templates/templates/sup
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
 import type { FoodVaultOrder } from "@/types/commerce";
 
-function supermarketAppUrl() {
+export function supermarketEmailAppUrl() {
   if (getAppMode() === "stockup") {
     const configured = getEmailAppUrl().trim();
     if (
@@ -26,7 +26,7 @@ export async function sendSupermarketOrderConfirmationEmail(order: FoodVaultOrde
     return { sent: false as const, reason: "invalid_recipient" as const };
   }
 
-  const rendered = renderSupermarketOrderEmail(order, supermarketAppUrl());
+  const rendered = renderSupermarketOrderEmail(order, supermarketEmailAppUrl());
   const result = await sendPlatformEmailSafe({ to, rendered });
   if (!result.sent) {
     console.error("[vault-market] Order confirmation email was not sent", {

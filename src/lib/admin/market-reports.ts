@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/auth";
+import { quantityFromOrderItem, revenueFromOrderItem } from "@/lib/commerce/pick-settlement";
 import {
   creditStatusLabel,
   type AbcClass,
@@ -185,22 +186,22 @@ export async function getSalesReport(range: ReportDateRange): Promise<SalesRepor
   if (orderIds.length > 0) {
     const { data: items } = await supabase
       .from("foodvault_order_items")
-      .select("order_id, product_id, sku, name, quantity, unit_price, line_total")
+      .select("order_id, product_id, sku, name, quantity, quantity_picked, unit_price, line_total")
       .in("order_id", orderIds);
     itemRows = (items ?? []) as Record<string, unknown>[];
   }
 
   const revenue = orderRows.reduce((sum, row) => sum + asNumber(row.total), 0);
   const memberSavings = orderRows.reduce((sum, row) => sum + asNumber(row.total_savings), 0);
-  const itemCount = itemRows.reduce((sum, row) => sum + Math.max(0, Math.trunc(asNumber(row.quantity))), 0);
+  const itemCount = itemRows.reduce((sum, row) => sum + quantityFromOrderItem(row), 0);
   const orderCount = orderRows.length;
 
   const categoryMap = new Map<string, CategoryProfitRow>();
   let cogs = 0;
 
   for (const item of itemRows) {
-    const qty = Math.max(0, Math.trunc(asNumber(item.quantity)));
-    const lineRevenue = asNumber(item.line_total) || asNumber(item.unit_price) * qty;
+    const qty = quantityFromOrderItem(item);
+    const lineRevenue = revenueFromOrderItem(item);
     const product =
       productsById.get(asString(item.product_id)) ?? productsBySku.get(asString(item.sku)) ?? null;
     const cost = unitCostForProduct(product?.id ?? asString(item.product_id), product?.wholesale_cost, costByProduct);
@@ -271,7 +272,7 @@ export async function getInventoryReport(): Promise<InventoryReportData> {
   const { data: orders } = await supabase
     .from("foodvault_orders")
     .select("id")
-    .in("status", ["paid", "fulfilled"])
+    .in("status", ["authorized", "paid", "fulfilled"])
     .gte("created_at", since);
   const orderIds = (orders ?? []).map((row) => asString((row as Record<string, unknown>).id)).filter(Boolean);
 
@@ -280,12 +281,12 @@ export async function getInventoryReport(): Promise<InventoryReportData> {
   if (orderIds.length > 0) {
     const { data: items } = await supabase
       .from("foodvault_order_items")
-      .select("product_id, sku, quantity, unit_price, line_total")
+      .select("product_id, sku, quantity, quantity_picked, unit_price, line_total")
       .in("order_id", orderIds);
     for (const item of items ?? []) {
       const record = item as Record<string, unknown>;
-      const qty = Math.max(0, Math.trunc(asNumber(record.quantity)));
-      const revenue = asNumber(record.line_total) || asNumber(record.unit_price) * qty;
+      const qty = quantityFromOrderItem(record);
+      const revenue = revenueFromOrderItem(record);
       for (const key of [asString(record.product_id), asString(record.sku)].filter(Boolean)) {
         soldQty.set(key, (soldQty.get(key) ?? 0) + qty);
         soldRev.set(key, (soldRev.get(key) ?? 0) + revenue);

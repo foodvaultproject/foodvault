@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from "@/lib/auth";
 import { compareBinLocation, displayBinLocation, shortOrderId } from "@/lib/admin/picker-shared";
+import { isPickRecorded, quantityFromOrderItem, revenueFromOrderItem } from "@/lib/commerce/pick-settlement";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -94,17 +95,28 @@ export async function getPackingSlipOrder(orderId: string): Promise<PackingSlipO
   const lines = lineRows
     .map((item) => {
       const product = products.get(asString(item.product_id)) ?? products.get(asString(item.sku)) ?? null;
-      const quantity = Math.max(1, Math.trunc(asNumber(item.quantity, 1)));
+      const ordered = Math.max(0, Math.trunc(asNumber(item.quantity, 1)));
+      const recorded = isPickRecorded(item.quantity_picked);
+      const quantity = quantityFromOrderItem({ quantity: ordered, quantity_picked: item.quantity_picked });
+      if (recorded && quantity === 0) return null;
       const unitPrice = asNumber(item.unit_price);
       return {
         sku: asString(item.sku) || asString(product?.sku) || "—",
         name: asString(item.name, "Vault Market item"),
-        quantity,
+        quantity: recorded ? quantity : Math.max(1, ordered),
         binLocation: displayBinLocation(asString(product?.bin_location)),
         unitPrice,
-        lineTotal: asNumber(item.line_total, unitPrice * quantity),
+        lineTotal: recorded
+          ? revenueFromOrderItem({
+              quantity: ordered,
+              quantity_picked: item.quantity_picked,
+              line_total: item.line_total,
+              unit_price: unitPrice,
+            })
+          : asNumber(item.line_total, unitPrice * Math.max(1, ordered)),
       };
     })
+    .filter((line): line is PackingSlipLine => line !== null)
     .sort((a, b) => compareBinLocation(a.binLocation, b.binLocation) || a.name.localeCompare(b.name));
 
   const subtotal = asNumber(row.subtotal);
