@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AddressAutocomplete } from "@/components/common/AddressAutocomplete";
 import { SafeImage } from "@/components/media/SafeImage";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import { cartItemLineTotal, cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
+import {
+  clearCheckoutDeliveryAction,
+  saveCheckoutDeliveryAction,
+  type CheckoutAccountDefaults,
+} from "@/lib/commerce/saved-delivery-actions";
 import {
   amountToFreeShipping,
   FREE_SHIPPING_THRESHOLD_NZD,
@@ -43,13 +48,47 @@ const EMPTY_DELIVERY: DeliveryForm = {
   deliveryNotes: "",
 };
 
-export function VaultMarketCheckout() {
+function deliveryFromAccount(account: CheckoutAccountDefaults): DeliveryForm {
+  const saved = account.saved;
+  return {
+    fullName: saved?.fullName || account.fullName || "",
+    phone: saved?.phone || "",
+    email: account.email || saved?.email || "",
+    street: saved?.street || "",
+    suburb: saved?.suburb || "",
+    city: saved?.city || "",
+    postcode: saved?.postcode || "",
+    deliveryNotes: saved?.deliveryNotes || "",
+  };
+}
+
+export function VaultMarketCheckout({
+  account = { loggedIn: false, email: "", fullName: "", saved: null },
+}: {
+  account?: CheckoutAccountDefaults;
+}) {
   const router = useRouter();
   const { cart } = usePantryMarket();
-  const [delivery, setDelivery] = useState<DeliveryForm>(EMPTY_DELIVERY);
-  const [lookupValue, setLookupValue] = useState("");
+  const [delivery, setDelivery] = useState<DeliveryForm>(() => deliveryFromAccount(account));
+  const [lookupValue, setLookupValue] = useState(account.saved?.street ?? "");
+  const [saveDetails, setSaveDetails] = useState(account.loggedIn);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const skipInitialSave = useRef(true);
+
+  useEffect(() => {
+    if (!account.loggedIn || !saveDetails) return;
+    if (skipInitialSave.current) {
+      skipInitialSave.current = false;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void saveCheckoutDeliveryAction(delivery);
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [account.loggedIn, delivery, saveDetails]);
 
   const subtotal = cartMemberSubtotal(cart);
   const savings = cartMemberSavings(cart);
@@ -111,6 +150,14 @@ export function VaultMarketCheckout() {
 
     setSubmitting(true);
     setError(null);
+
+    if (account.loggedIn) {
+      if (saveDetails) {
+        await saveCheckoutDeliveryAction(nextDelivery);
+      } else {
+        await clearCheckoutDeliveryAction();
+      }
+    }
 
     try {
       const response = await fetch("/api/pantry/checkout", {
@@ -327,6 +374,23 @@ export function VaultMarketCheckout() {
                   className={`mt-1 ${fieldClass} min-h-24`}
                 />
               </div>
+              {account.loggedIn ? (
+                <label className="flex items-start gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={saveDetails}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setSaveDetails(checked);
+                      if (!checked) {
+                        void clearCheckoutDeliveryAction();
+                      }
+                    }}
+                    className="mt-0.5 h-4 w-4 accent-[#10B981]"
+                  />
+                  <span>Save details for next time</span>
+                </label>
+              ) : null}
             </div>
           </section>
         </div>

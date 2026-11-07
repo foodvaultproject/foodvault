@@ -296,7 +296,10 @@ function readFirstName(metadata: Record<string, unknown> | null | undefined) {
   return null;
 }
 
-export async function generatePasswordRecoveryLink(email: string) {
+export async function generatePasswordRecoveryLink(
+  email: string,
+  siteOrigin?: string | null
+) {
   const admin = createAdminClient();
   if (!admin) {
     return {
@@ -310,7 +313,7 @@ export async function generatePasswordRecoveryLink(email: string) {
     type: "recovery",
     email: trimmedEmail,
     options: {
-      redirectTo: `${getSiteUrl()}${AUTH_CONFIRM_PATH}`,
+      redirectTo: `${resolveSiteOrigin(siteOrigin)}${AUTH_CONFIRM_PATH}`,
     },
   });
 
@@ -339,19 +342,22 @@ export async function sendPasswordResetEmail(params: {
   to: string;
   firstName?: string | null;
   resetUrl: string;
+  brand?: "foodvault" | "stockup";
 }) {
   const dedup = await reserveAuthEmailSend("password_reset", params.to);
   if (dedup.duplicate) {
     return {};
   }
 
-  const appUrl = getEmailAppUrl();
+  const brand = params.brand ?? "foodvault";
+  const appUrl = brand === "stockup" ? STOCKUP_ORIGIN : getEmailAppUrl();
   const result = await sendPlatformEmailSafe({
     to: params.to,
     rendered: renderMemberPasswordResetEmail({
       appUrl,
       firstName: params.firstName,
       resetUrl: params.resetUrl,
+      brand,
     }),
   });
 
@@ -371,6 +377,8 @@ export async function issueAndSendPasswordReset(params: {
   email: string;
   account: AccountType;
   firstName?: string | null;
+  siteOrigin?: string | null;
+  brand?: "foodvault" | "stockup";
 }) {
   const candidates = authEmailCandidates(params.email);
   if (candidates.length === 0) {
@@ -398,7 +406,7 @@ export async function issueAndSendPasswordReset(params: {
 
   let lastError: AuthStepError | null = null;
   for (const email of emailsToTry) {
-    const linkResult = await generatePasswordRecoveryLink(email);
+    const linkResult = await generatePasswordRecoveryLink(email, params.siteOrigin);
 
     if ("notFound" in linkResult && linkResult.notFound) {
       continue;
@@ -419,12 +427,14 @@ export async function issueAndSendPasswordReset(params: {
       type: "recovery",
       next: RESET_PASSWORD_PATH,
       account: params.account,
+      siteOrigin: params.siteOrigin,
     });
 
     const sendResult = await sendPasswordResetEmail({
       to: email,
       firstName: params.firstName ?? linkResult.firstName,
       resetUrl,
+      brand: params.brand,
     });
 
     if ("error" in sendResult) {

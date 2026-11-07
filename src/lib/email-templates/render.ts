@@ -53,6 +53,7 @@ export function renderEmailTemplate(
         appUrl: String(params.appUrl ?? ""),
         firstName: params.firstName as string | null | undefined,
         resetUrl: String(params.resetUrl ?? ""),
+        brand: params.brand === "stockup" ? "stockup" : "foodvault",
       });
     case "partner.application-received":
       return renderPartnerApplicationReceivedEmail({

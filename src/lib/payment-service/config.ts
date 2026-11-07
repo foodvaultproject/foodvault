@@ -11,14 +11,26 @@ function looksLikePlaceholder(value: string): boolean {
   );
 }
 
+/** Trim, drop wrapping quotes, and remove accidental whitespace from a pasted key. */
+export function normalizeStripeKey(value: string) {
+  let trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    trimmed = trimmed.slice(1, -1).trim();
+  }
+  return trimmed.replace(/\s+/g, "");
+}
+
 export function isValidStripeSecretKey(key: string): boolean {
-  const trimmed = key.trim();
+  const trimmed = normalizeStripeKey(key);
   if (looksLikePlaceholder(trimmed)) return false;
-  return /^sk_(test|live)_[A-Za-z0-9]+$/.test(trimmed);
+  return /^(sk|rk)_(test|live)_[A-Za-z0-9]+$/.test(trimmed);
 }
 
 export function isValidStripePublishableKey(key: string): boolean {
-  const trimmed = key.trim();
+  const trimmed = normalizeStripeKey(key);
   if (looksLikePlaceholder(trimmed)) return false;
   return /^pk_(test|live)_[A-Za-z0-9]+$/.test(trimmed);
 }
@@ -40,9 +52,11 @@ export function resolvePaymentReturnOrigin(request: Request): string {
 }
 
 export function getPaymentServiceConfig() {
-  const secretKey = process.env.STRIPE_SECRET_KEY ?? "";
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
-  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+  const secretKey = normalizeStripeKey(process.env.STRIPE_SECRET_KEY ?? "");
+  const webhookSecret = normalizeStripeKey(process.env.STRIPE_WEBHOOK_SECRET ?? "");
+  const publishableKey = normalizeStripeKey(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
+  );
   const appUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? canonicalSiteOrigin()).replace(/\/$/, "");
 
   return {

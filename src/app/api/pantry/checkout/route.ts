@@ -13,7 +13,7 @@ import { getPaymentServiceConfig } from "@/lib/payment-service/config";
 import { createClient } from "@/lib/supabase/server";
 
 const STRIPE_CONFIG_ERROR =
-  "Stripe is not configured correctly. Set STRIPE_SECRET_KEY in .env.local to your real test or live key.";
+  "Stripe is not configured on StockUp. Add STRIPE_SECRET_KEY to the StockUp project in Vercel, using your real test or live key.";
 
 export async function POST(request: Request) {
   const { isConfigured } = getPaymentServiceConfig();

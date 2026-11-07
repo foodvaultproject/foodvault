@@ -1,9 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import type { AccountType } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { authGuardFailure, enforceAuthBotProtection } from "@/lib/auth/bot-protection/enforce";
 import { issueAndSendPasswordReset } from "@/lib/auth/email-verification";
+import { getAppMode, STOCKUP_ORIGIN } from "@/lib/app-mode";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type ResetPasswordOptions = {
@@ -43,9 +45,16 @@ export async function resetPassword(
     return { error: "Password reset is not configured in this environment." };
   }
 
+  const headerStore = await headers();
+  const stockup =
+    getAppMode(headerStore.get("x-forwarded-host") ?? headerStore.get("host")) ===
+    "stockup";
+
   const sendResult = await issueAndSendPasswordReset({
     email: trimmed,
     account: options.account ?? "member",
+    siteOrigin: stockup ? STOCKUP_ORIGIN : undefined,
+    brand: stockup ? "stockup" : "foodvault",
   });
 
   if ("error" in sendResult && sendResult.error) {
