@@ -176,6 +176,56 @@ async function findProductStockRow(
   return row;
 }
 
+function missingColumn(message: string): string | null {
+  const labelled = message.match(/Could not find the '([^']+)' column/i)?.[1];
+  if (labelled) return labelled;
+  const absent = message.match(/column "?([\w.]+)"? does not exist/i)?.[1];
+  return absent?.split(".").pop() ?? null;
+}
+
+/** Insert rows, dropping columns the live table does not have yet. */
+async function insertFlexible(
+  table: "foodvault_orders" | "foodvault_order_items",
+  rows: Record<string, unknown> | Record<string, unknown>[]
+) {
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error("Admin Supabase client unavailable for Vault Market fulfillment");
+  }
+
+  const list = (Array.isArray(rows) ? rows : [rows]).map((row) => ({ ...row }));
+  let lastError = `Unable to save ${table}`;
+  let clearedMember = false;
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const result = await admin.from(table).insert(list).select("*");
+    if (!result.error && result.data) {
+      return result.data as Record<string, unknown>[];
+    }
+
+    lastError = result.error?.message ?? lastError;
+    const column = missingColumn(lastError);
+    if (column && list.some((row) => Object.prototype.hasOwnProperty.call(row, column))) {
+      for (const row of list) delete row[column];
+      continue;
+    }
+
+    if (
+      !clearedMember &&
+      list.some((row) => row.member_id) &&
+      /member_id|foreign key|violates/i.test(lastError)
+    ) {
+      clearedMember = true;
+      for (const row of list) row.member_id = null;
+      continue;
+    }
+
+    break;
+  }
+
+  throw new Error(lastError);
+}
+
 function onHandFromBatch(row: Record<string, unknown>): number {
   if (row.quantity_remaining != null && row.quantity_remaining !== "") {
     return Math.max(0, Math.trunc(Number(row.quantity_remaining)));
@@ -346,52 +396,19 @@ export async function fulfillPantryOrderFromCheckoutSession(
     shipping_cost: Number.isFinite(shippingCost) ? shippingCost : Math.max(0, total - subtotal),
   };
 
-  let inserted = await admin
-    .from("foodvault_orders")
-    .insert(orderPayload)
-    .select("*")
-    .single();
-
-  if (inserted.error || !inserted.data) {
-    const legacyPayload = {
-      member_id: orderPayload.member_id,
-      status: orderPayload.status,
-      subtotal: orderPayload.subtotal,
-      total: orderPayload.total,
-      currency: orderPayload.currency,
-      stripe_session_id: orderPayload.stripe_session_id,
-      stripe_payment_intent_id: orderPayload.stripe_payment_intent_id,
-      total_savings: orderPayload.total_savings,
-      shipping_name: orderPayload.shipping_name,
-      shipping_line1: orderPayload.shipping_line1,
-      shipping_line2: orderPayload.shipping_line2,
-      shipping_city: orderPayload.shipping_city,
-      shipping_state: orderPayload.shipping_state,
-      shipping_postal_code: orderPayload.shipping_postal_code,
-      shipping_country: orderPayload.shipping_country,
-    };
-    inserted = await admin
-      .from("foodvault_orders")
-      .insert(legacyPayload)
-      .select("*")
-      .single();
-  }
-
-  if (inserted.error && memberId) {
-    inserted = await admin
-      .from("foodvault_orders")
-      .insert({ ...orderPayload, member_id: null })
-      .select("*")
-      .single();
-  }
-
-  if (inserted.error || !inserted.data) {
+  let insertedRows: Record<string, unknown>[];
+  try {
+    insertedRows = await insertFlexible("foodvault_orders", orderPayload);
+  } catch (error) {
     const raced = await getPantryOrderByStripeSessionId(session.id);
     if (raced) return raced;
-    throw new Error(inserted.error?.message ?? "Unable to create Vault Market order");
+    throw error;
   }
 
-  const orderId = String(inserted.data.id);
+  const orderId = String(insertedRows[0]?.id ?? "");
+  if (!orderId) {
+    throw new Error("Unable to create Vault Market order");
+  }
   const lineRows = cartLines.map((line) => {
     const aliases = [line.productId];
     if (line.productId.startsWith("seed-")) {
@@ -421,17 +438,12 @@ export async function fulfillPantryOrderFromCheckoutSession(
     };
   });
 
-  const { error: itemsError } = await admin
-    .from("foodvault_order_items")
-    .insert(lineRows);
-
-  if (itemsError) {
-    const { error: retryError } = await admin
-      .from("foodvault_order_items")
-      .insert(lineRows.map(({ product_id: _productId, ...rest }) => rest));
-    if (retryError) {
-      throw new Error(retryError.message);
-    }
+  try {
+    await insertFlexible("foodvault_order_items", lineRows);
+  } catch (error) {
+    await admin.from("foodvault_order_items").delete().eq("order_id", orderId);
+    await admin.from("foodvault_orders").delete().eq("id", orderId);
+    throw error;
   }
 
   try {
@@ -439,9 +451,10 @@ export async function fulfillPantryOrderFromCheckoutSession(
       await decrementStock(line.product_id, line.sku, line.quantity);
     }
   } catch (error) {
-    await admin.from("foodvault_order_items").delete().eq("order_id", orderId);
-    await admin.from("foodvault_orders").delete().eq("id", orderId);
-    throw error;
+    console.error("[vault-market] Stock was not reduced for a paid order", {
+      orderId,
+      error: error instanceof Error ? error.message : error,
+    });
   }
 
   const order = await getPantryOrderByStripeSessionId(session.id);
@@ -451,11 +464,36 @@ export async function fulfillPantryOrderFromCheckoutSession(
       session.metadata?.recipient_email?.trim() ||
       session.customer_details?.email?.trim() ||
       null;
+    const savedShipping = order.shipping;
+    const notice: FoodVaultOrder = {
+      ...order,
+      shipping_email: recipient,
+      subtotal: order.subtotal > 0 ? order.subtotal : subtotal,
+      total: order.total > 0 ? order.total : total,
+      total_savings:
+        (order.total_savings ?? 0) > 0
+          ? order.total_savings
+          : Number.isFinite(totalSavings)
+            ? totalSavings
+            : 0,
+      shipping_cost:
+        (order.shipping_cost ?? 0) > 0
+          ? order.shipping_cost
+          : Number.isFinite(shippingCost)
+            ? shippingCost
+            : 0,
+      shipping: savedShipping ?? {
+        name: (orderPayload.shipping_name as string | null) ?? null,
+        line1: (orderPayload.shipping_line1 as string | null) ?? null,
+        line2: (orderPayload.shipping_line2 as string | null) ?? null,
+        city: (orderPayload.shipping_city as string | null) ?? null,
+        state: (orderPayload.shipping_state as string | null) ?? null,
+        postal_code: (orderPayload.shipping_postal_code as string | null) ?? null,
+        country: (orderPayload.shipping_country as string | null) ?? null,
+      },
+    };
     try {
-      await sendSupermarketOrderConfirmationEmail({
-        ...order,
-        shipping_email: recipient,
-      });
+      await sendSupermarketOrderConfirmationEmail(notice);
     } catch (error) {
       console.error("[vault-market] Order confirmation email failed", {
         orderId: order.id,
@@ -465,7 +503,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
 
     try {
       await sendAdminNewOrderAlertEmail({
-        order: { ...order, shipping_email: recipient },
+        order: notice,
         deliveryNotes: session.metadata?.delivery_notes,
       });
     } catch (error) {

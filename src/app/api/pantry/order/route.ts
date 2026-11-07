@@ -10,20 +10,30 @@ export async function GET(request: Request) {
   }
 
   let order = await getPantryOrderByStripeSessionId(sessionId);
+  let failure: string | null = null;
   if (!order) {
     try {
-      const session = await getStripeClient().checkout.sessions.retrieve(sessionId);
+      const session = await getStripeClient().checkout.sessions.retrieve(sessionId, {
+        expand: ["payment_intent"],
+      });
       order = await fulfillPantryOrderFromCheckoutSession(session);
+      if (!order) {
+        const intent = session.payment_intent;
+        const intentStatus =
+          intent && typeof intent === "object" ? intent.status : null;
+        failure = `Payment is ${session.payment_status ?? "unknown"}${intentStatus ? ` (${intentStatus})` : ""} and the order was not saved.`;
+      }
     } catch (error) {
+      failure = error instanceof Error ? error.message : "Unable to confirm checkout";
       console.error("[vault-market] Unable to confirm paid checkout session", {
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: failure,
       });
     }
   }
 
   if (!order) {
-    return NextResponse.json({ order: null }, { status: 202 });
+    return NextResponse.json({ order: null, error: failure }, { status: 202 });
   }
 
   return NextResponse.json({ order });
