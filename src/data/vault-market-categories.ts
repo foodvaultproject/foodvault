@@ -137,6 +137,7 @@ export const VAULT_MARKET_TAXONOMY: readonly VaultMarketDepartmentNode[] = [
         specifics: [
           "Tinned Fruit",
           "Tinned Vegetables",
+          "Tinned Tomatoes",
           "Beans & Legumes",
           "Soups",
           "Tinned Fish",
