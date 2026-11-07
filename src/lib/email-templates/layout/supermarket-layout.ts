@@ -16,14 +16,34 @@ export function renderSupermarketEmailLayout({
   appUrl,
   content,
   preheader,
+  logoUrl,
 }: {
   appUrl: string;
   content: string;
   preheader?: string;
+  /** Absolute image URL. Header wordmark and image both link to the StockUp site. */
+  logoUrl?: string;
 }) {
   const websiteUrl = appUrl.replace(/\/$/, "") || STOCKUP_ORIGIN;
   const year = new Date().getFullYear();
   const preheaderText = preheader ? escapeHtml(preheader) : "";
+  const safeWebsiteUrl = escapeHtml(websiteUrl);
+  const header = logoUrl
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding-bottom:10px;">
+                    <a href="${safeWebsiteUrl}" style="text-decoration:none;">
+                      <img src="${escapeHtml(logoUrl)}" width="48" height="48" alt="StockUp" style="display:block;width:48px;height:48px;border:0;outline:none;text-decoration:none;" />
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <a href="${safeWebsiteUrl}" style="font-family:Arial,Helvetica,sans-serif;font-size:28px;line-height:1;font-weight:700;letter-spacing:-0.03em;color:#ffffff;text-decoration:none;">StockUp</a>
+                  </td>
+                </tr>
+              </table>`
+    : `<a href="${safeWebsiteUrl}" style="font-size:28px;line-height:1;font-weight:700;letter-spacing:-0.03em;color:#ffffff;text-decoration:none;">StockUp</a>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -35,7 +55,7 @@ export function renderSupermarketEmailLayout({
   <body style="margin:0;padding:0;width:100%;background-color:${SUPERMARKET.pageBackground};font-family:${EMAIL_BRAND.fontFamily};color:${EMAIL_BRAND.body};">
     ${
       preheaderText
-        ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${preheaderText}</div>`
+        ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">${preheaderText}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;</div>`
         : ""
     }
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${SUPERMARKET.pageBackground};padding:24px 12px;">
@@ -44,7 +64,7 @@ export function renderSupermarketEmailLayout({
           <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#ffffff;border:1px solid ${SUPERMARKET.border};border-radius:10px;overflow:hidden;">
             <tr>
               <td align="center" style="padding:28px 32px;background-color:${SUPERMARKET.primary};">
-                <a href="${escapeHtml(websiteUrl)}" style="font-size:28px;line-height:1;font-weight:700;letter-spacing:-0.03em;color:#ffffff;text-decoration:none;">StockUp</a>
+                ${header}
               </td>
             </tr>
             <tr>
@@ -55,7 +75,7 @@ export function renderSupermarketEmailLayout({
             <tr>
               <td style="padding:24px 32px;background-color:${SUPERMARKET.surface};border-top:1px solid ${SUPERMARKET.border};text-align:center;font-size:13px;line-height:1.6;color:${EMAIL_BRAND.muted};">
                 <p style="margin:0 0 8px;">
-                  <a href="${escapeHtml(websiteUrl)}" style="color:${SUPERMARKET.primaryDark};font-weight:700;text-decoration:none;">stockup.co.nz</a>
+                  <a href="${safeWebsiteUrl}" style="color:${SUPERMARKET.primaryDark};font-weight:700;text-decoration:none;">stockup.co.nz</a>
                 </p>
                 <p style="margin:0 0 8px;">
                   Need a hand? Email

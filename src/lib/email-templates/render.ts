@@ -41,6 +41,7 @@ export function renderEmailTemplate(
         appUrl: String(params.appUrl ?? ""),
         firstName: params.firstName as string | null | undefined,
         verificationUrl: String(params.verificationUrl ?? ""),
+        brand: params.brand === "stockup" ? "stockup" : "foodvault",
       });
     case "member.membership-activated":
       return renderMemberMembershipActivatedEmail({

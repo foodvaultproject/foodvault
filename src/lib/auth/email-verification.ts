@@ -189,6 +189,7 @@ export async function sendSignupVerificationEmail(params: {
   firstName?: string | null;
   verificationUrl: string;
   force?: boolean;
+  brand?: "foodvault" | "stockup";
 }) {
   if (!params.force) {
     const dedup = await reserveAuthEmailSend("signup_verification", params.to);
@@ -197,13 +198,15 @@ export async function sendSignupVerificationEmail(params: {
     }
   }
 
-  const appUrl = getEmailAppUrl();
+  const brand = params.brand ?? "foodvault";
+  const appUrl = brand === "stockup" ? STOCKUP_ORIGIN : getEmailAppUrl();
   const result = await sendPlatformEmailSafe({
     to: params.to,
     rendered: renderMemberVerifyEmail({
       appUrl,
       firstName: params.firstName,
       verificationUrl: params.verificationUrl,
+      brand,
     }),
   });
 
@@ -255,6 +258,7 @@ export async function issueAndSendSignupVerification(params: {
     firstName: params.firstName,
     verificationUrl,
     force: params.force,
+    brand: resolveSiteOrigin(params.siteOrigin) === STOCKUP_ORIGIN ? "stockup" : "foodvault",
   });
 }
 
