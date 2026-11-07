@@ -62,9 +62,10 @@ const FOODVAULT_FOOTER_DESCRIPTION =
 const STOCKUP_FOOTER_DESCRIPTION =
   "Shop New Zealand Groceries. Kiwi Owned and Operated.";
 
-const socialLinks = [
+const socialLinks: { href: string; stockupHref?: string; label: string; iconSrc: string }[] = [
   {
     href: "https://www.instagram.com/foodvault_nz/",
+    stockupHref: "https://www.instagram.com/stockup_newzealand/",
     label: "Instagram",
     iconSrc: "/footer/instagram.png",
   },
@@ -178,11 +179,14 @@ function FooterBottomBar({
     >
       <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
         {socialLinks
-          .filter((social) => appMode === "foodvault" || social.label !== "Facebook")
+          .filter((social) => {
+            if (appMode === "foodvault") return true;
+            return social.label !== "Facebook" && social.label !== "LinkedIn";
+          })
           .map((social) => (
           <a
             key={social.label}
-            href={social.href}
+            href={appMode === "stockup" && social.stockupHref ? social.stockupHref : social.href}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-12 w-12 items-center justify-center transition-opacity hover:opacity-80 sm:h-[60px] sm:w-[60px]"
