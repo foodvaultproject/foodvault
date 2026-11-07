@@ -52,15 +52,16 @@ export async function saveCheckoutDeliveryAction(details: SavedDeliveryDetails) 
   } = await supabase.auth.getUser();
   if (!user) return { saved: false as const };
 
+  const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
   const payload: SavedDeliveryDetails = {
-    fullName: details.fullName.trim(),
-    phone: details.phone.trim(),
-    email: details.email.trim(),
-    street: details.street.trim(),
-    suburb: details.suburb.trim(),
-    city: details.city.trim(),
-    postcode: details.postcode.trim(),
-    deliveryNotes: details.deliveryNotes.trim(),
+    fullName: text(details?.fullName),
+    phone: text(details?.phone),
+    email: text(details?.email),
+    street: text(details?.street),
+    suburb: text(details?.suburb),
+    city: text(details?.city),
+    postcode: text(details?.postcode),
+    deliveryNotes: text(details?.deliveryNotes),
   };
 
   const { error } = await supabase.auth.updateUser({

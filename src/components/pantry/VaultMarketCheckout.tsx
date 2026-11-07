@@ -74,6 +74,7 @@ export function VaultMarketCheckout({
   const [saveDetails, setSaveDetails] = useState(account.loggedIn);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stripeUrl, setStripeUrl] = useState<string | null>(null);
   const skipInitialSave = useRef(true);
 
   useEffect(() => {
@@ -84,7 +85,7 @@ export function VaultMarketCheckout({
     }
 
     const timer = window.setTimeout(() => {
-      void saveCheckoutDeliveryAction(delivery);
+      void saveCheckoutDeliveryAction(delivery).catch(() => undefined);
     }, 700);
 
     return () => window.clearTimeout(timer);
@@ -150,13 +151,16 @@ export function VaultMarketCheckout({
 
     setSubmitting(true);
     setError(null);
+    setStripeUrl(null);
 
+    // Saving the address must not block payment. A failed or unfinished
+    // profile update used to leave the button on "Redirecting to Stripe..."
+    // and never start the Stripe request.
     if (account.loggedIn) {
-      if (saveDetails) {
-        await saveCheckoutDeliveryAction(nextDelivery);
-      } else {
-        await clearCheckoutDeliveryAction();
-      }
+      const persist = saveDetails
+        ? saveCheckoutDeliveryAction(nextDelivery)
+        : clearCheckoutDeliveryAction();
+      void Promise.resolve(persist).catch(() => undefined);
     }
 
     try {
@@ -170,6 +174,7 @@ export function VaultMarketCheckout({
           })),
           delivery: nextDelivery,
         }),
+        signal: AbortSignal.timeout(30_000),
       });
       const data = (await response.json()) as { url?: string; error?: string };
 
@@ -179,9 +184,10 @@ export function VaultMarketCheckout({
         return;
       }
 
-      window.location.href = data.url;
+      setStripeUrl(data.url);
+      window.location.assign(data.url);
     } catch {
-      setError("Unable to start checkout.");
+      setError("Unable to start checkout. Please try again.");
       setSubmitting(false);
     }
   }
@@ -474,6 +480,15 @@ export function VaultMarketCheckout({
             <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
+          ) : null}
+
+          {stripeUrl ? (
+            <a
+              href={stripeUrl}
+              className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-sm border border-vm-primary px-4 text-sm font-semibold text-vm-primary"
+            >
+              Continue to Stripe
+            </a>
           ) : null}
 
           {!canSubmit ? (
