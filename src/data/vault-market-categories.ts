@@ -115,6 +115,7 @@ export const VAULT_MARKET_TAXONOMY: readonly VaultMarketDepartmentNode[] = [
           "Pasta sauces",
           "Stir-fry sauces",
           "Curry pastes",
+          "Pastes",
           "Marinades",
           "Tomato paste",
           "Cooking sauces",
