@@ -99,11 +99,20 @@ export async function getPantryOrderByStripeSessionId(
 
   if (!row?.id) return null;
 
-  const { data: itemRows } = await admin
+  let itemResult = await admin
     .from("foodvault_order_items")
     .select("*")
     .eq("order_id", row.id)
     .order("created_at", { ascending: true });
+
+  if (itemResult.error && /created_at/i.test(itemResult.error.message)) {
+    itemResult = await admin
+      .from("foodvault_order_items")
+      .select("*")
+      .eq("order_id", row.id);
+  }
+
+  const itemRows = itemResult.data;
 
   return mapOrder(
     row,

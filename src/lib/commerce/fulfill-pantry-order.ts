@@ -3,8 +3,6 @@ import { isSupermarketOrderMetadata } from "@/lib/app-mode";
 import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
-import { sendSupermarketOrderConfirmationEmail } from "@/lib/commerce/send-supermarket-order-email";
-import { sendAdminNewOrderAlertEmail } from "@/lib/email-templates/templates/supermarket/admin-new-order-alert";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FoodVaultOrder, FoodVaultOrderStatus, FoodVaultShippingAddress } from "@/types/commerce";
@@ -512,26 +510,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
         country: (orderPayload.shipping_country as string | null) ?? null,
       },
     };
-    try {
-      await sendSupermarketOrderConfirmationEmail(notice);
-    } catch (error) {
-      console.error("[vault-market] Order confirmation email failed", {
-        orderId: order.id,
-        error: error instanceof Error ? error.message : error,
-      });
-    }
-
-    try {
-      await sendAdminNewOrderAlertEmail({
-        order: notice,
-        deliveryNotes: session.metadata?.delivery_notes,
-      });
-    } catch (error) {
-      console.error("[vault-market] Admin order alert email failed", {
-        orderId: order.id,
-        error: error instanceof Error ? error.message : error,
-      });
-    }
+    return notice;
   }
 
   return order;

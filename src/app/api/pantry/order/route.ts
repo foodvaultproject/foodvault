@@ -1,7 +1,30 @@
 import { NextResponse } from "next/server";
 import { fulfillPantryOrderFromCheckoutSession } from "@/lib/commerce/fulfill-pantry-order";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
+import { sendSupermarketOrderConfirmationEmail } from "@/lib/commerce/send-supermarket-order-email";
+import { sendAdminNewOrderAlertEmail } from "@/lib/email-templates/templates/supermarket/admin-new-order-alert";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { FoodVaultOrder } from "@/types/commerce";
+
+async function sendSavedOrderEmails(order: FoodVaultOrder) {
+  if (!order.items?.length) return;
+  const admin = createAdminClient();
+  if (!admin) return;
+
+  const claim = await admin
+    .from("foodvault_orders")
+    .update({ confirmation_sent_at: new Date().toISOString() })
+    .eq("id", order.id)
+    .is("confirmation_sent_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (claim.error || !claim.data) return;
+
+  await sendSupermarketOrderConfirmationEmail(order);
+  await sendAdminNewOrderAlertEmail({ order });
+}
 
 export async function GET(request: Request) {
   const sessionId = new URL(request.url).searchParams.get("session_id")?.trim();
@@ -34,6 +57,15 @@ export async function GET(request: Request) {
 
   if (!order) {
     return NextResponse.json({ order: null, error: failure }, { status: 202 });
+  }
+
+  try {
+    await sendSavedOrderEmails(order);
+  } catch (error) {
+    console.error("[vault-market] Order notification failed", {
+      orderId: order.id,
+      error: error instanceof Error ? error.message : error,
+    });
   }
 
   return NextResponse.json({ order });

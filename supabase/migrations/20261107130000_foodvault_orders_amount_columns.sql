@@ -24,7 +24,8 @@ alter table public.foodvault_orders
   add column if not exists updated_at timestamptz default now();
 
 alter table public.foodvault_orders
-  add column if not exists member_id uuid;
+  add column if not exists member_id uuid,
+  add column if not exists confirmation_sent_at timestamptz;
 
 alter table public.foodvault_order_items
   add column if not exists name text,
