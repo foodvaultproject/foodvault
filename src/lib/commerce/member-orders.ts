@@ -83,11 +83,19 @@ export async function getMemberVaultMarketOrders(
   const supabase = await ordersClient();
   if (!supabase || !memberId.trim()) return [];
 
-  const { data: orders, error } = await supabase
+  let { data: orders, error } = await supabase
     .from("foodvault_orders")
     .select("*")
     .eq("member_id", memberId)
     .order("created_at", { ascending: false });
+
+  if (error && /member_id/i.test(error.message)) {
+    ({ data: orders, error } = await supabase
+      .from("foodvault_orders")
+      .select("*")
+      .eq("user_id", memberId)
+      .order("created_at", { ascending: false }));
+  }
 
   if (error) {
     console.error("[vault-market] failed to list member orders", error.message);
@@ -136,7 +144,7 @@ export async function getMemberVaultMarketOrders(
         name: recorded && quantity === 0 ? `${name} (out of stock)` : name,
         quantity,
         unitPrice: asNumber(item.unit_price),
-        lineTotal: recorded ? revenueFromOrderItem(item) : asNumber(item.line_total),
+        lineTotal: recorded ? revenueFromOrderItem(item) : asNumber(item.line_total ?? item.total_price),
       };
     });
     const shippingParts = [

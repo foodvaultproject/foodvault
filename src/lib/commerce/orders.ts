@@ -44,7 +44,7 @@ function mapOrderItem(row: Record<string, unknown>): FoodVaultOrderItem {
     name: asString(row.name, "Vault Market item"),
     quantity: Math.max(1, Math.trunc(asNumber(row.quantity, 1))),
     unit_price: asNumber(row.unit_price),
-    line_total: asNumber(row.line_total),
+    line_total: asNumber(row.line_total ?? row.total_price),
   };
 }
 
@@ -58,7 +58,7 @@ function mapOrder(
     member_id: asNullableString(row.member_id),
     status,
     subtotal: asNumber(row.subtotal),
-    total: asNumber(row.total),
+    total: asNumber(row.total ?? row.total_amount),
     currency: asString(row.currency, "NZD").toUpperCase(),
     stripe_session_id: asNullableString(row.stripe_session_id ?? row.session_id),
     stripe_payment_intent_id: asNullableString(

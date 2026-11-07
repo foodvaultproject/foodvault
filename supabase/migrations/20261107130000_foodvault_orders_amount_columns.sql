@@ -23,4 +23,12 @@ alter table public.foodvault_orders
   add column if not exists fulfilled_at timestamptz,
   add column if not exists updated_at timestamptz default now();
 
+alter table public.foodvault_orders
+  add column if not exists member_id uuid;
+
+alter table public.foodvault_order_items
+  add column if not exists name text,
+  add column if not exists sku text,
+  add column if not exists line_total numeric(12, 2);
+
 notify pgrst, 'reload schema';

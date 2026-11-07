@@ -210,14 +210,17 @@ async function insertFlexible(
       continue;
     }
 
-    if (
-      !clearedMember &&
-      list.some((row) => row.member_id) &&
-      /member_id|foreign key|violates/i.test(lastError)
-    ) {
-      clearedMember = true;
-      for (const row of list) row.member_id = null;
-      continue;
+    if (!clearedMember && /foreign key|violates/i.test(lastError)) {
+      const foreignColumn = ["user_id", "member_id", "product_id"].find(
+        (column) =>
+          new RegExp(column, "i").test(lastError) &&
+          list.some((row) => row[column] != null && row[column] !== "")
+      );
+      if (foreignColumn) {
+        clearedMember = foreignColumn !== "product_id";
+        for (const row of list) row[foreignColumn] = null;
+        continue;
+      }
     }
 
     break;
@@ -373,11 +376,27 @@ export async function fulfillPantryOrderFromCheckoutSession(
   const intentId = paymentIntentId(session);
   const shippingCost = Number(session.metadata.shipping_cost ?? 0);
 
+  const shippingAddress = {
+    name: session.metadata.recipient_name?.trim() || shipping.name,
+    line1: session.metadata.delivery_street?.trim() || shipping.line1,
+    line2: session.metadata.delivery_suburb?.trim() || shipping.line2,
+    city: session.metadata.delivery_city?.trim() || shipping.city,
+    state: shipping.state,
+    postal_code: session.metadata.delivery_postcode?.trim() || shipping.postal_code,
+    country: shipping.country || "NZ",
+    phone: session.metadata.recipient_phone?.trim() || null,
+    email: session.metadata.recipient_email?.trim() || null,
+  };
+
   const orderPayload = {
+    user_id: memberId,
     member_id: memberId,
     status: paymentState,
     subtotal,
     total,
+    total_amount: total,
+    savings_amount: Number.isFinite(totalSavings) ? totalSavings : 0,
+    shipping_address: shippingAddress,
     currency: (session.currency ?? "nzd").toUpperCase(),
     stripe_session_id: session.id,
     stripe_payment_intent_id: intentId,
@@ -434,6 +453,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
       name: product?.name ?? "Vault Market item",
       quantity: line.quantity,
       unit_price: unitPrice,
+      total_price: lineTotal,
       line_total: lineTotal,
     };
   });
