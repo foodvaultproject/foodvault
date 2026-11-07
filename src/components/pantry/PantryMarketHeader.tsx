@@ -12,6 +12,7 @@ import {
   catalogSlug,
   getVaultMarketBrowseDepartments,
   pantryDepartmentPath,
+  offerPrice,
   pantryProductPath,
   resolveProductDepartment,
   resolveProductSpecific,
@@ -582,7 +583,7 @@ export function PantryMarketHeader() {
                         </span>
                       </span>
                       <span className="shrink-0 text-sm font-semibold tabular-nums text-vm-primary">
-                        {formatNzPrice(suggestion.product.member_price)}
+                        {formatNzPrice(offerPrice(suggestion.product))}
                       </span>
                     </Link>
                   </li>

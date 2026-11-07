@@ -183,7 +183,7 @@ export function isMultibuyPriceAtOrAboveMemberTotal(
 }
 
 export function invalidMultibuyPriceMessage(memberPrice: number, quantity: number): string {
-  return `Invalid Multi-Buy Price: Total must be less than the standard Member Price total ($${memberBundleTotal(memberPrice, quantity).toFixed(2)}).`;
+  return `Invalid Multi-Buy Price: Total must be less than the standard price total ($${memberBundleTotal(memberPrice, quantity).toFixed(2)}).`;
 }
 
 export function multibuyPricingIssue(input: {

@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { isSupermarketOrderMetadata } from "@/lib/app-mode";
-import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
+import { multibuyAwareLineTotal, offerPrice } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
@@ -118,34 +118,42 @@ export async function releaseReservedStock(productId: string, sku: string, quant
   const latest = (batches ?? [])[0] as Record<string, unknown> | undefined;
   if (!batchError && latest?.id != null && latest.quantity_remaining != null && latest.quantity_remaining !== "") {
     const onHand = onHandFromBatch(latest);
-    const { error: updateError } = await admin
-      .from("foodvault_inventory_batches")
-      .update({
-        quantity_remaining: onHand + qty,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", String(latest.id));
-
-    if (!updateError) {
-      const { data: refreshed, error: refreshError } = await admin
-        .from("foodvault_inventory_batches")
-        .select("quantity_remaining, quantity_received")
-        .eq("product_id", product.id);
-      if (!refreshError) {
-        const nextStock = ((refreshed ?? []) as Record<string, unknown>[]).reduce(
-          (sum, row) => sum + onHandFromBatch(row),
-          0
-        );
-        await admin.from("foodvault_products").update({ stock_quantity: nextStock }).eq("id", product.id);
-        return;
-      }
-    }
+    await updateById("foodvault_inventory_batches", String(latest.id), {
+      quantity_remaining: onHand + qty,
+      updated_at: new Date().toISOString(),
+    });
+    await writeProductStockFromBatches(product.id, Math.max(0, Number(product.stock_quantity ?? 0) + qty));
+    return;
   }
 
-  await admin
-    .from("foodvault_products")
-    .update({ stock_quantity: Math.max(0, Number(product.stock_quantity ?? 0) + qty) })
-    .eq("id", product.id);
+  await updateById("foodvault_products", product.id, {
+    stock_quantity: Math.max(0, Number(product.stock_quantity ?? 0) + qty),
+  });
+}
+
+/** Move on-hand stock to the quantity that was actually captured. */
+export async function settleInventoryForPick(
+  lines: Array<{
+    itemId: string;
+    productId: string;
+    sku: string;
+    targetQuantity: number;
+    committedQuantity: number;
+  }>
+) {
+  for (const line of lines) {
+    const target = Math.max(0, Math.trunc(line.targetQuantity));
+    const committed = Math.max(0, Math.trunc(line.committedQuantity));
+    const delta = target - committed;
+    if (delta > 0) {
+      await decrementStock(line.productId, line.sku, delta);
+    } else if (delta < 0) {
+      await releaseReservedStock(line.productId, line.sku, -delta);
+    }
+    if (line.itemId && (delta !== 0 || committed !== target)) {
+      await setQuantityCommitted(line.itemId, target);
+    }
+  }
 }
 
 async function findProductStockRow(
@@ -234,6 +242,84 @@ function onHandFromBatch(row: Record<string, unknown>): number {
   return Math.max(0, Math.trunc(Number(row.quantity_received ?? 0)));
 }
 
+async function updateById(
+  table: "foodvault_inventory_batches" | "foodvault_order_items" | "foodvault_products",
+  id: string,
+  fields: Record<string, unknown>
+) {
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error("Admin Supabase client unavailable for stock update");
+  }
+
+  let body = { ...fields };
+  let lastError = `Unable to update ${table}`;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if (Object.keys(body).length === 0) break;
+    const result = await admin.from(table).update(body).eq("id", id);
+    if (!result.error) return;
+    lastError = result.error.message;
+    const column = missingColumn(lastError);
+    if (
+      !column ||
+      !(column in body) ||
+      column === "quantity_remaining" ||
+      column === "stock_quantity" ||
+      column === "quantity_committed"
+    ) {
+      break;
+    }
+    const next = { ...body };
+    delete next[column];
+    body = next;
+  }
+
+  throw new Error(lastError);
+}
+
+async function setQuantityCommitted(itemId: string, quantity: number) {
+  await updateById("foodvault_order_items", itemId, {
+    quantity_committed: Math.max(0, Math.trunc(quantity)),
+  });
+}
+
+async function writeProductStockFromBatches(productId: string, fallback: number) {
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error("Admin Supabase client unavailable for stock update");
+  }
+
+  const { data: refreshed, error: refreshError } = await admin
+    .from("foodvault_inventory_batches")
+    .select("quantity_remaining, quantity_received")
+    .eq("product_id", productId);
+
+  if (refreshError && !/quantity_remaining/i.test(refreshError.message)) {
+    throw new Error(refreshError.message);
+  }
+
+  const refreshedRows = (refreshed ?? []) as Record<string, unknown>[];
+  const nextStock =
+    refreshError || refreshedRows.length === 0
+      ? Math.max(0, Math.trunc(fallback))
+      : refreshedRows.reduce((sum, row) => sum + onHandFromBatch(row), 0);
+
+  await updateById("foodvault_products", productId, { stock_quantity: nextStock });
+  return { nextStock, refreshedRows, refreshError };
+}
+
+async function reserveOrderedStock(itemId: string, productId: string, sku: string, quantity: number) {
+  const qty = Math.trunc(quantity);
+  if (qty <= 0) return;
+  await decrementStock(productId, sku, qty);
+  try {
+    if (itemId) await setQuantityCommitted(itemId, qty);
+  } catch (error) {
+    await releaseReservedStock(productId, sku, qty);
+    throw error;
+  }
+}
+
 async function decrementStock(productId: string, sku: string, quantity: number) {
   const admin = createAdminClient();
   if (!admin) {
@@ -245,7 +331,8 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
     throw new Error(`Unable to update stock for ${sku || productId}`);
   }
 
-  const sellQty = Math.max(1, Math.trunc(quantity));
+  const sellQty = Math.trunc(quantity);
+  if (sellQty <= 0) return;
   const { data: batches, error: batchError } = await admin
     .from("foodvault_inventory_batches")
     .select("id, quantity_remaining, quantity_received, created_at")
@@ -259,17 +346,13 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
   let leftToSell = sellQty;
   const batchRows = (batches ?? []) as Record<string, unknown>[];
   const applied: { id: string; previous: number }[] = [];
-  const db = admin;
 
   async function restoreBatches() {
     for (const change of applied) {
-      await db
-        .from("foodvault_inventory_batches")
-        .update({
-          quantity_remaining: change.previous,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", change.id);
+      await updateById("foodvault_inventory_batches", change.id, {
+        quantity_remaining: change.previous,
+        updated_at: new Date().toISOString(),
+      });
     }
   }
 
@@ -281,49 +364,18 @@ async function decrementStock(productId: string, sku: string, quantity: number) 
       const take = Math.min(onHand, leftToSell);
       const nextRemaining = onHand - take;
       const batchId = String(batch.id);
-      const { error: updateError } = await admin
-        .from("foodvault_inventory_batches")
-        .update({
-          quantity_remaining: nextRemaining,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", batchId);
-
-      if (updateError) {
-        if (/quantity_remaining/i.test(updateError.message)) break;
-        throw new Error(updateError.message);
-      }
+      await updateById("foodvault_inventory_batches", batchId, {
+        quantity_remaining: nextRemaining,
+        updated_at: new Date().toISOString(),
+      });
       applied.push({ id: batchId, previous: onHand });
       leftToSell -= take;
     }
 
-    const { data: refreshed, error: refreshError } = await admin
-      .from("foodvault_inventory_batches")
-      .select("quantity_remaining, quantity_received")
-      .eq("product_id", product.id);
-
-    const refreshedRows = (refreshed ?? []) as Record<string, unknown>[];
-    const nextStock =
-      refreshError && /quantity_remaining/i.test(refreshError.message)
-        ? Math.max(0, Number(product.stock_quantity ?? 0) - sellQty)
-        : refreshError
-          ? null
-          : refreshedRows.length > 0
-            ? refreshedRows.reduce((sum, row) => sum + onHandFromBatch(row), 0)
-            : Math.max(0, Number(product.stock_quantity ?? 0) - sellQty);
-
-    if (nextStock == null) {
-      throw new Error(refreshError?.message ?? "Unable to recalculate stock");
-    }
-
-    const { error: productError } = await admin
-      .from("foodvault_products")
-      .update({ stock_quantity: nextStock })
-      .eq("id", product.id);
-
-    if (productError) {
-      throw new Error(productError.message);
-    }
+    const { refreshedRows } = await writeProductStockFromBatches(
+      product.id,
+      Math.max(0, Number(product.stock_quantity ?? 0) - sellQty)
+    );
 
     if (leftToSell > 0 && refreshedRows.length > 0) {
       console.error("[vault-market] Sale exceeded recorded batch stock", {
@@ -436,7 +488,7 @@ export async function fulfillPantryOrderFromCheckoutSession(
     );
     const lineTotal = product
       ? multibuyAwareLineTotal({
-          memberPrice: product.member_price,
+          memberPrice: offerPrice(product),
           quantity: line.quantity,
           isMultibuy: product.is_multibuy,
           multibuyQuantity: product.multibuy_quantity,
@@ -456,8 +508,9 @@ export async function fulfillPantryOrderFromCheckoutSession(
     };
   });
 
+  let insertedItems: Record<string, unknown>[] = [];
   try {
-    await insertFlexible("foodvault_order_items", lineRows);
+    insertedItems = await insertFlexible("foodvault_order_items", lineRows);
   } catch (error) {
     await admin.from("foodvault_order_items").delete().eq("order_id", orderId);
     await admin.from("foodvault_orders").delete().eq("id", orderId);
@@ -465,8 +518,13 @@ export async function fulfillPantryOrderFromCheckoutSession(
   }
 
   try {
-    for (const line of lineRows) {
-      await decrementStock(line.product_id, line.sku, line.quantity);
+    for (const row of insertedItems) {
+      await reserveOrderedStock(
+        String(row.id ?? ""),
+        String(row.product_id ?? ""),
+        String(row.sku ?? ""),
+        Math.trunc(Number(row.quantity ?? 0))
+      );
     }
   } catch (error) {
     console.error("[vault-market] Stock was not reduced for a paid order", {

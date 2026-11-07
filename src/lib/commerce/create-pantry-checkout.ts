@@ -1,4 +1,4 @@
-import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
+import { multibuyAwareLineTotal, offerPrice } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
 import {
   formatDeliveryAddress,
@@ -93,8 +93,8 @@ export async function validatePantryCheckoutItems(
     if (!product) {
       throw new Error("One or more products are no longer available");
     }
-    if (product.member_price <= 0) {
-      throw new Error(`${product.name} does not have a valid saver price`);
+    if (offerPrice(product) <= 0) {
+      throw new Error(`${product.name} does not have a valid price`);
     }
     if (product.stock_quantity <= 0) {
       throw new Error(`${product.name} is out of stock`);
@@ -111,7 +111,7 @@ export async function validatePantryCheckoutItems(
 
 export function pantryItemLineTotal(item: ValidatedPantryCheckoutItem): number {
   return multibuyAwareLineTotal({
-    memberPrice: item.product.member_price,
+    memberPrice: offerPrice(item.product),
     quantity: item.quantity,
     isMultibuy: item.product.is_multibuy,
     multibuyQuantity: item.product.multibuy_quantity,
@@ -144,7 +144,7 @@ export function getCheckoutOrigin(request: Request): string {
 
 function pantryStripeLineItems(product: FoodVaultProduct, quantity: number) {
   const lineTotal = multibuyAwareLineTotal({
-    memberPrice: product.member_price,
+    memberPrice: offerPrice(product),
     quantity,
     isMultibuy: product.is_multibuy,
     multibuyQuantity: product.multibuy_quantity,

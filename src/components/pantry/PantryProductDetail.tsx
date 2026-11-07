@@ -11,8 +11,10 @@ import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
   formatMultibuyBadge,
   formatUnitPrice,
+  hasSaverPrice,
   isMultibuyDeal,
   multibuyBundleSavings,
+  offerPrice,
   pantryDepartmentPath,
   productDiscountPercent,
   productGallery,
@@ -140,7 +142,7 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
               sku: product.sku,
               name: product.name,
               source: "view",
-              estimated_revenue: product.member_price,
+              estimated_revenue: offerPrice(product),
             },
           ]}
         />
@@ -211,21 +213,25 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
 
           <div className="mt-6 flex flex-wrap items-end gap-4">
             <div>
-              <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
-                Saver Price
-              </span>
+              {hasSaverPrice(product) ? (
+                <span className="inline-flex items-center rounded-sm border border-vm-secondary/30 bg-vm-secondary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-vm-secondary">
+                  Saver Price
+                </span>
+              ) : null}
               <p className="mt-1 text-3xl font-bold text-vm-primary">
-                {formatNzPrice(product.member_price)}
+                {formatNzPrice(offerPrice(product))}
               </p>
             </div>
-            <div className="pb-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                Retail Price
-              </p>
-              <p className="text-lg text-muted-light line-through">
-                {formatNzPrice(product.retail_price)}
-              </p>
-            </div>
+            {hasSaverPrice(product) ? (
+              <div className="pb-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  Retail Price
+                </p>
+                <p className="text-lg text-muted-light line-through">
+                  {formatNzPrice(product.retail_price)}
+                </p>
+              </div>
+            ) : null}
           </div>
           {unitPrice ? <p className="mt-2 text-sm text-muted">{unitPrice}</p> : null}
 

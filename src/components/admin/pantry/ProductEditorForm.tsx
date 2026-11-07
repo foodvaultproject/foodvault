@@ -15,6 +15,7 @@ import {
   saveVaultMarketProductFamilyAction,
   uploadVaultMarketImageAction,
 } from "@/lib/admin/pantry-actions";
+import { offerPrice } from "@/lib/commerce/catalog";
 import {
   NIP_NUTRIENTS,
   calcGrossProfit,
@@ -95,7 +96,9 @@ export function ProductEditorForm({
   const [subcategory, setSubcategory] = useState(product?.subcategory ?? "");
   const [specific, setSpecific] = useState(product?.specific ?? "");
   const [retailPrice, setRetailPrice] = useState(product ? String(product.retail_price) : "");
-  const [memberPrice, setMemberPrice] = useState(product ? String(product.member_price) : "");
+  const [memberPrice, setMemberPrice] = useState(
+    product && product.member_price > 0 ? String(product.member_price) : ""
+  );
   const [wholesaleCost, setWholesaleCost] = useState(String(product?.wholesale_cost ?? 0));
   const [vendorId, setVendorId] = useState(product?.vendor_id ?? "");
   const [unitKind, setUnitKind] = useState<UnitKind>(() => inferUnitKind(product));
@@ -128,18 +131,22 @@ export function ProductEditorForm({
 
   const variant = variants[activeIndex] ?? variants[0];
   const packAmountValue = Number(packAmount);
+  const saverAmount = memberPrice.trim() === "" ? 0 : Number(memberPrice);
+  const retailAmount = Number(retailPrice);
+  const priceBasis = offerPrice({ member_price: saverAmount, retail_price: retailAmount });
+  const usingSaver = Number.isFinite(saverAmount) && saverAmount > 0;
   const unitPriceLabel = formatAutoUnitPriceLabel(
-    Number(memberPrice),
+    priceBasis,
     unitKind,
     Number.isFinite(packAmountValue) ? packAmountValue : 0
   );
-  const grossProfit = calcGrossProfit(Number(memberPrice), Number(wholesaleCost));
+  const grossProfit = calcGrossProfit(priceBasis, Number(wholesaleCost));
   const multibuyGp = calcMultibuyGrossProfit(
     Number(multibuyPrice),
     Number(wholesaleCost),
     Number(multibuyQuantity)
   );
-  const memberPriceValue = Number(memberPrice);
+  const memberPriceValue = priceBasis;
   const multibuyQtyValue = Math.trunc(Number(multibuyQuantity));
   const multibuyPriceValue = Number(multibuyPrice);
   const multibuyPriceInvalid =
@@ -324,7 +331,7 @@ export function ProductEditorForm({
       subcategory: subcategory.trim(),
       specific: specific.trim(),
       retail_price: Number(retailPrice),
-      member_price: Number(memberPrice),
+      member_price: usingSaver ? saverAmount : 0,
       wholesale_cost: Number(wholesaleCost) || 0,
       vendor_id: vendorId.trim(),
       unit_price_label: unitPriceLabel.trim(),
@@ -485,13 +492,12 @@ export function ProductEditorForm({
             />
           </div>
           <div>
-            <label className={labelClass} htmlFor="member_price">Member price</label>
+            <label className={labelClass} htmlFor="member_price">SAVER</label>
             <input
               id="member_price"
               type="number"
               min="0"
               step="0.01"
-              required
               value={memberPrice}
               onChange={(e) => {
                 setMemberPrice(e.target.value);
@@ -500,8 +506,9 @@ export function ProductEditorForm({
                 );
               }}
               className={inputClass}
+              placeholder="Optional"
             />
-            <p className="mt-1 text-[11px] text-muted">Includes 15% GST.</p>
+            <p className="mt-1 text-[11px] text-muted">Optional. Includes 15% GST.</p>
           </div>
           <div>
             <label className={labelClass} htmlFor="wholesale_cost">Wholesale cost</label>
@@ -530,8 +537,10 @@ export function ProductEditorForm({
                   }`}
             </div>
             <p className="mt-1 text-[11px] text-muted">
-              Member price includes 15% GST. GP uses member price excluding GST
-              {grossProfit.exGst != null ? ` (${`$${grossProfit.exGst.toFixed(2)}`})` : ""}.
+              {usingSaver
+                ? "SAVER includes 15% GST. GP uses the SAVER price excluding GST"
+                : "GP uses the retail price excluding GST"}
+              {grossProfit.exGst != null ? ` ($${grossProfit.exGst.toFixed(2)})` : ""}.
             </p>
           </div>
           <div className="md:col-span-3 rounded-md border border-amber-200 bg-amber-50/70 p-4">
@@ -703,7 +712,7 @@ export function ProductEditorForm({
               className={`${inputClass} cursor-default bg-surface`}
             />
             <p className="mt-1 text-[11px] text-muted">
-              Calculated from member price
+              Calculated from the {usingSaver ? "SAVER" : "retail"} price
               {unitKind === "solid" ? " per 100g" : " per 1L"}.
             </p>
           </div>

@@ -115,7 +115,10 @@ export async function saveVaultMarketProductAction(formData: FormData) {
 
   const multibuyError = multibuyPricingIssue({
     is_multibuy: Boolean(payload.is_multibuy),
-    member_price: Number(payload.member_price) || 0,
+    member_price:
+      Number(payload.member_price) > 0
+        ? Number(payload.member_price)
+        : Number(payload.retail_price) || 0,
     multibuy_quantity: Number(payload.multibuy_quantity) || 0,
     multibuy_price: Number(payload.multibuy_price) || 0,
   });

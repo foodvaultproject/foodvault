@@ -121,17 +121,18 @@ export function deriveUnitPricing(product: FoodVaultProduct): FoodVaultUnitPrici
     product.net_weight_g ??
     Number(product.name.match(/(\d+(?:\.\d+)?)\s*g\b/i)?.[1] ?? 0);
 
-  if (weight > 0 && product.member_price > 0) {
+  const priced = offerPrice(product);
+  if (weight > 0 && priced > 0) {
     return {
-      price: product.member_price / (weight / 100),
+      price: priced / (weight / 100),
       basis: "100g",
     };
   }
 
   const ml = Number(product.name.match(/(\d+(?:\.\d+)?)\s*ml\b/i)?.[1] ?? 0);
-  if (ml > 0 && product.member_price > 0) {
+  if (ml > 0 && priced > 0) {
     return {
-      price: product.member_price / (ml / 100),
+      price: priced / (ml / 100),
       basis: "100ml",
     };
   }
@@ -146,8 +147,23 @@ export function formatUnitPrice(product: FoodVaultProduct): string | null {
   return `${formatNzPrice(unit.price)} / ${unit.basis}`;
 }
 
+/** Customer price. A blank SAVER price (stored as 0) sells at retail. */
+export function offerPrice(prices: { member_price: number; retail_price: number }): number {
+  const saver = prices.member_price;
+  const retail = prices.retail_price;
+  if (Number.isFinite(saver) && saver > 0) return saver;
+  if (Number.isFinite(retail) && retail > 0) return retail;
+  return 0;
+}
+
+export function hasSaverPrice(prices: { member_price: number; retail_price: number }): boolean {
+  const saver = prices.member_price;
+  const retail = prices.retail_price;
+  return Number.isFinite(saver) && saver > 0 && Number.isFinite(retail) && retail > saver;
+}
+
 export function productDiscountPercent(product: FoodVaultProduct): number {
-  if (product.retail_price <= 0) return 0;
+  if (!hasSaverPrice(product) || product.retail_price <= 0) return 0;
   return Math.round(
     ((product.retail_price - product.member_price) / product.retail_price) * 100
   );
@@ -172,7 +188,7 @@ export function multibuyBundleSavings(product: FoodVaultProduct): number {
   if (!isMultibuyDeal(product) || product.multibuy_quantity == null || product.multibuy_price == null) {
     return 0;
   }
-  return Math.max(0, product.member_price * product.multibuy_quantity - product.multibuy_price);
+  return Math.max(0, offerPrice(product) * product.multibuy_quantity - product.multibuy_price);
 }
 
 function roundMoney(value: number): number {

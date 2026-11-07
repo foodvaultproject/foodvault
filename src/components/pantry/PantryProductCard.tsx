@@ -7,7 +7,9 @@ import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
   formatUnitPrice,
+  hasSaverPrice,
   isMultibuyDeal,
+  offerPrice,
   pantryProductPath,
   productDiscountPercent,
 } from "@/lib/commerce/catalog";
@@ -72,18 +74,24 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
         ) : null}
 
         <div className="mt-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center rounded-sm bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-              Saver
-            </span>
-            {multibuy ? <MultibuyBadge product={product} /> : null}
-          </div>
+          {hasSaverPrice(product) || multibuy ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {hasSaverPrice(product) ? (
+                <span className="inline-flex items-center rounded-sm bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  Saver
+                </span>
+              ) : null}
+              {multibuy ? <MultibuyBadge product={product} /> : null}
+            </div>
+          ) : null}
           <p className="mt-1 text-base font-bold leading-none text-vm-primary">
-            {formatNzPrice(product.member_price)}
+            {formatNzPrice(offerPrice(product))}
           </p>
-          <p className="mt-1 text-xs text-muted-light line-through">
-            {formatNzPrice(product.retail_price)}
-          </p>
+          {hasSaverPrice(product) ? (
+            <p className="mt-1 text-xs text-muted-light line-through">
+              {formatNzPrice(product.retail_price)}
+            </p>
+          ) : null}
         </div>
 
         <button

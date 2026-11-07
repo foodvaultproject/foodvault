@@ -4,7 +4,7 @@ import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
 import { PantryHeroBanner } from "@/components/pantry/PantryHeroBanner";
 import { PantryProductCard } from "@/components/pantry/PantryProductCard";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
-import { filterCatalogProducts } from "@/lib/commerce/catalog";
+import { filterCatalogProducts, hasSaverPrice, offerPrice } from "@/lib/commerce/catalog";
 
 export function PantryStorefront({
   query = "",
@@ -28,7 +28,7 @@ export function PantryStorefront({
   });
   const filtered = deals
     ? matched.filter(
-        (product) => product.is_multibuy || product.retail_price > product.member_price
+        (product) => product.is_multibuy || hasSaverPrice(product)
       )
     : matched;
 
@@ -43,7 +43,7 @@ export function PantryStorefront({
           name: product.name,
           source: "search" as const,
           search_query: searchTerm,
-          estimated_revenue: product.member_price,
+          estimated_revenue: offerPrice(product),
         }))
     : [];
 

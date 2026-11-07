@@ -1,5 +1,5 @@
 import { getAppMode } from "@/lib/app-mode";
-import { multibuyAwareLineTotal } from "@/lib/commerce/catalog";
+import { multibuyAwareLineTotal, offerPrice } from "@/lib/commerce/catalog";
 import type { CartItem, FoodVaultProduct } from "@/types/commerce";
 
 const stockupCart = getAppMode() === "stockup";
@@ -51,7 +51,7 @@ export function applyCatalogPricing(
     if (!product) return item;
     return {
       ...item,
-      member_price: product.member_price,
+      member_price: offerPrice(product),
       retail_price: product.retail_price,
       is_multibuy: Boolean(product.is_multibuy),
       multibuy_quantity: product.multibuy_quantity ?? null,
@@ -139,7 +139,7 @@ export function addProductToCart(
     sku: product.sku,
     name: product.name,
     brand: product.brand,
-    member_price: product.member_price,
+    member_price: offerPrice(product),
     retail_price: product.retail_price,
     image_url: product.image_url,
     quantity: nextQty,

@@ -1,5 +1,6 @@
 import { getAppMode } from "@/lib/app-mode";
 import { addProductToCart } from "@/lib/commerce/cart";
+import { offerPrice } from "@/lib/commerce/catalog";
 import type { CartItem, FoodVaultProduct, GroceryListItem } from "@/types/commerce";
 
 const stockupList = getAppMode() === "stockup";
@@ -71,7 +72,7 @@ export function toggleGroceryListItem(
       sku: product.sku,
       name: product.name,
       brand: product.brand,
-      member_price: product.member_price,
+      member_price: offerPrice(product),
       retail_price: product.retail_price,
       image_url: product.image_url,
       quantity: 1,

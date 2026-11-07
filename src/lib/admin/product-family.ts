@@ -1,4 +1,5 @@
 import { emptyNipMatrix, multibuyPricingIssue, type NipMatrix } from "@/lib/admin/pantry-shared";
+import { offerPrice } from "@/lib/commerce/catalog";
 
 export type ProductFamilyVariantInput = {
   id?: string;
@@ -75,13 +76,17 @@ export function validateProductFamilyInput(input: ProductFamilySaveInput): strin
     return "Retail price is required.";
   }
   if (!Number.isFinite(input.member_price) || input.member_price < 0) {
-    return "Member price is required.";
+    return "SAVER price must be zero or greater.";
   }
   if (input.is_multibuy) {
-    if (!Number.isFinite(input.member_price) || input.member_price <= 0) {
-      return "Member price is required before setting a multi-buy deal.";
+    const priceBasis = offerPrice({
+      member_price: input.member_price,
+      retail_price: input.retail_price,
+    });
+    if (!(priceBasis > 0)) {
+      return "Enter a retail price before setting a multi-buy deal.";
     }
-    const multibuyError = multibuyPricingIssue(input);
+    const multibuyError = multibuyPricingIssue({ ...input, member_price: priceBasis });
     if (multibuyError) return multibuyError;
   }
   if (input.variants.length < 1) return "Add at least one variant.";

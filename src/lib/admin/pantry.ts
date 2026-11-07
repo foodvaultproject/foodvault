@@ -444,9 +444,10 @@ export function productWritePayload(input: {
   multibuy_quantity?: number | null;
   multibuy_price?: number | null;
 }): Record<string, unknown> {
+  const pricedAt = input.member_price > 0 ? input.member_price : input.retail_price;
   const unitPricing =
     input.unit_kind && input.pack_amount && input.pack_amount > 0
-      ? buildUnitPricing(input.member_price, input.unit_kind, input.pack_amount)
+      ? buildUnitPricing(pricedAt, input.unit_kind, input.pack_amount)
       : parseUnitPriceLabel(input.unit_price_label);
   const payload: Record<string, unknown> = {
     sku: input.sku,

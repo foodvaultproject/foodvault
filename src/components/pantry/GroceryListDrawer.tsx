@@ -147,9 +147,11 @@ export function GroceryListDrawer({
                     </p>
                     <p className="mt-1 text-sm font-bold text-vm-primary">
                       {formatNzPrice(item.member_price)}
-                      <span className="ml-2 text-xs font-medium text-muted-light line-through">
-                        {formatNzPrice(item.retail_price)}
-                      </span>
+                      {item.retail_price > item.member_price ? (
+                        <span className="ml-2 text-xs font-medium text-muted-light line-through">
+                          {formatNzPrice(item.retail_price)}
+                        </span>
+                      ) : null}
                     </p>
 
                     <div className="mt-3 flex items-center justify-between gap-2">
