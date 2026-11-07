@@ -428,7 +428,7 @@ export function Navigation({ appMode }: { appMode: AppMode }) {
   const chromeBg = stockup ? VAULT_MARKET_CHROME_BG : navChromeBgClass(false, menuPreview);
   return (
     <header
-      className={`sticky top-0 ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
+      className={`sticky top-0 print:hidden ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
         menuPreview || stockup ? chromeBg : "bg-white"
       }`}
     >

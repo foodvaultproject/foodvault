@@ -23,8 +23,18 @@ import type { FoodVaultProduct } from "@/types/commerce";
 
 function isProductDetailPath(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
-  if (parts.length !== 3) return false;
-  return parts[0] !== "account" && parts[0] !== "admin" && parts[0] !== "auth";
+  if (parts.length !== 2 && parts.length !== 3) return false;
+  const reserved = new Set([
+    "account",
+    "admin",
+    "auth",
+    "partner",
+    "affiliate",
+    "signup",
+    "brands",
+    "discover",
+  ]);
+  return !reserved.has(parts[0]);
 }
 
 export function SiteLayout({
@@ -77,7 +87,7 @@ export function SiteLayout({
       <Navigation appMode={appMode} />
       {showConsumerSecondaryNav ? <ConsumerSecondaryNav /> : null}
       <main
-        className={`min-w-0 flex-1 bg-page ${
+        className={`min-w-0 flex-1 bg-page print:bg-white print:p-0 ${
           showConsumerSecondaryNav
             ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-0"
             : ""
@@ -89,7 +99,7 @@ export function SiteLayout({
           </Suspense>
         ) : null}
         {showStockUpBack ? (
-          <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 print:hidden sm:px-6 lg:px-8">
             <StockUpBackButton />
           </div>
         ) : null}

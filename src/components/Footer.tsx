@@ -227,8 +227,8 @@ export function Footer({
     <footer
       className={
         branded
-          ? `relative overflow-hidden border-t border-white/15 ${chromeBg}`
-          : "border-t border-border bg-background"
+          ? `relative overflow-hidden border-t border-white/15 print:hidden ${chromeBg}`
+          : "border-t border-border bg-background print:hidden"
       }
     >
       {menuPreview ? (

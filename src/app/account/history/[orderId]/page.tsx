@@ -7,8 +7,8 @@ import { requireAuthenticatedMember } from "@/lib/member/auth";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Invoice",
-  description: "StockUp order invoice.",
+  title: "Tax Invoice",
+  description: "StockUp tax invoice.",
 };
 
 export default async function StockUpInvoicePage({
