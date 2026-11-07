@@ -1,4 +1,4 @@
-export const FREE_SHIPPING_THRESHOLD_NZD = 100;
+export const FREE_SHIPPING_THRESHOLD_NZD = 1;
 export const STANDARD_SHIPPING_NZD = 9.95;
 
 export type VaultMarketDeliveryDetails = {

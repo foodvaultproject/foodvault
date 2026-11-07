@@ -10,6 +10,7 @@ import { CONSUMER_VAULT_MARKET_PATH } from "@/lib/consumer-nav-restructure";
 import { cartItemLineTotal, cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
 import {
   amountToFreeShipping,
+  FREE_SHIPPING_THRESHOLD_NZD,
   qualifiesForFreeShipping,
   vaultMarketFreight,
 } from "@/lib/commerce/shipping";
@@ -387,8 +388,8 @@ export function VaultMarketCheckout() {
                 Freight
                 <p className="mt-0.5 max-w-[14rem] text-xs leading-snug">
                   {freeShipping
-                    ? "Orders over $100 ship free."
-                    : `Add ${formatNzPrice(remainingToFree)} more to unlock free freight on orders over $100.`}
+                    ? `Orders over ${formatNzPrice(FREE_SHIPPING_THRESHOLD_NZD)} ship free.`
+                    : `Add ${formatNzPrice(remainingToFree)} more to unlock free freight on orders over ${formatNzPrice(FREE_SHIPPING_THRESHOLD_NZD)}.`}
                 </p>
               </dt>
               <dd className="font-semibold">

@@ -13,6 +13,7 @@ import {
 } from "@/lib/consumer-nav-restructure";
 import {
   amountToFreeShipping,
+  FREE_SHIPPING_THRESHOLD_NZD,
   qualifiesForFreeShipping,
   vaultMarketFreight,
 } from "@/lib/commerce/shipping";
@@ -223,7 +224,7 @@ export function CartDrawer({
                   Free NZ Shipping unlocked
                 </p>
                 <p className="mt-1 text-xs text-success/80">
-                  Your order is over $100.00, so freight is $0.00.
+                  Your order is over {formatNzPrice(FREE_SHIPPING_THRESHOLD_NZD)}, so freight is $0.00.
                 </p>
               </div>
             ) : (
@@ -268,8 +269,8 @@ export function CartDrawer({
                 Freight
                 <p className="mt-0.5 max-w-[16rem] text-xs font-normal leading-snug text-muted-foreground">
                   {freeShipping
-                    ? "Orders over $100 ship free."
-                    : `Add ${formatNzPrice(remainingToFree)} more to unlock free freight on orders over $100.`}
+                    ? `Orders over ${formatNzPrice(FREE_SHIPPING_THRESHOLD_NZD)} ship free.`
+                    : `Add ${formatNzPrice(remainingToFree)} more to unlock free freight on orders over ${formatNzPrice(FREE_SHIPPING_THRESHOLD_NZD)}.`}
                 </p>
               </dt>
               <dd className="font-bold text-foreground">
