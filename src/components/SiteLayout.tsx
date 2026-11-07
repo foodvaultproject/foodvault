@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { MemberSignupCtaProvider } from "@/components/member/MemberSignupCtaProvider";
 import { Navigation } from "@/components/Navigation";
 import { NavigationPrefetch } from "@/components/navigation/NavigationPrefetch";
+import { StockUpBackButton } from "@/components/StockUpBackButton";
 import { PantryMarketHeader } from "@/components/pantry/PantryMarketHeader";
 import { PantryMarketProvider } from "@/components/pantry/PantryMarketProvider";
 import { ReturnScrollRestore } from "@/components/pantry/ReturnScrollRestore";
@@ -19,6 +20,12 @@ import {
   isVaultMarketPath,
 } from "@/lib/consumer-nav-restructure";
 import type { FoodVaultProduct } from "@/types/commerce";
+
+function isProductDetailPath(pathname: string) {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length !== 3) return false;
+  return parts[0] !== "account" && parts[0] !== "admin" && parts[0] !== "auth";
+}
 
 export function SiteLayout({
   children,
@@ -43,6 +50,7 @@ export function SiteLayout({
       pathname === "/privacy" ||
       pathname === "/cookies" ||
       pathname === "/refund-policy");
+  const showStockUpBack = stockup && pathname !== "/" && !isProductDetailPath(pathname);
   const showConsumerSecondaryNav =
     !stockup &&
     (pathname === "/" ||
@@ -79,6 +87,11 @@ export function SiteLayout({
           <Suspense fallback={null}>
             <PantryMarketHeader />
           </Suspense>
+        ) : null}
+        {showStockUpBack ? (
+          <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 sm:px-6 lg:px-8">
+            <StockUpBackButton />
+          </div>
         ) : null}
         {children}
       </main>
