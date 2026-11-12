@@ -37,7 +37,7 @@ export async function resetPassword(
   if (!isSupabaseConfigured()) {
     return {
       error:
-        "Password reset is not configured yet. Contact support@foodvault.co.nz for help.",
+        "Password reset is not configured yet. Contact mark@benchmark-int.com for help.",
     };
   }
 

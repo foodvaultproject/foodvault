@@ -12,6 +12,7 @@ import {
   portalPageTitle,
   portalSectionTitle,
 } from "@/lib/partner-portal-classes";
+import { DEFAULT_SUPPORT_EMAIL } from "@/lib/system-settings";
 import { PartnerPortalShell } from "./PartnerPortalShell";
 import { PartnerAffiliateSetupBanner } from "./PartnerAffiliateSetupBanner";
 
@@ -92,7 +93,7 @@ export function PartnerSupport() {
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <a
-              href="mailto:support@foodvault.co.nz"
+              href={`mailto:${DEFAULT_SUPPORT_EMAIL}`}
               className="inline-flex h-11 items-center justify-center rounded-sm bg-white px-5 text-sm font-medium text-primary"
             >
               Email Support

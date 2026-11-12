@@ -1,7 +1,7 @@
 export const DEFAULT_PLATFORM_NAME = "FoodVault";
 export const DEFAULT_MEMBERSHIP_PRICE_MONTHLY = 20;
 export const DEFAULT_TRIAL_LENGTH_DAYS = 7;
-export const DEFAULT_SUPPORT_EMAIL = "support@foodvault.co.nz";
+export const DEFAULT_SUPPORT_EMAIL = "mark@benchmark-int.com";
 export const DEFAULT_HOMEPAGE_HEADLINE =
   "Save More On The Food And Brands You Already Buy";
 export const DEFAULT_HOMEPAGE_SUBHEADING =
