@@ -2,6 +2,21 @@ export const DEFAULT_PLATFORM_NAME = "FoodVault";
 export const DEFAULT_MEMBERSHIP_PRICE_MONTHLY = 20;
 export const DEFAULT_TRIAL_LENGTH_DAYS = 7;
 export const DEFAULT_SUPPORT_EMAIL = "mark@benchmark-int.com";
+
+const RETIRED_SUPPORT_EMAILS = new Set([
+  "support@foodvault.co.nz",
+  "hello@foodvault.co.nz",
+  "hello@foodvault.com",
+]);
+
+export function resolveSupportEmail(value: unknown): string {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed || RETIRED_SUPPORT_EMAILS.has(trimmed.toLowerCase())) {
+    return DEFAULT_SUPPORT_EMAIL;
+  }
+  return trimmed;
+}
+
 export const DEFAULT_HOMEPAGE_HEADLINE =
   "Save More On The Food And Brands You Already Buy";
 export const DEFAULT_HOMEPAGE_SUBHEADING =
@@ -52,7 +67,7 @@ export function parseSystemSettingsRow(
       row?.trial_length_days,
       DEFAULT_TRIAL_LENGTH_DAYS
     ),
-    support_email: parseSettingText(row?.support_email, DEFAULT_SUPPORT_EMAIL),
+    support_email: resolveSupportEmail(row?.support_email),
     homepage_headline: parseSettingText(
       row?.homepage_headline,
       DEFAULT_HOMEPAGE_HEADLINE

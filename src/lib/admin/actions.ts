@@ -25,7 +25,7 @@ import {
 import { parseMetaTags } from "@/lib/discover/meta-tags";
 import {
   DEFAULT_PLATFORM_NAME,
-  DEFAULT_SUPPORT_EMAIL,
+  resolveSupportEmail,
 } from "@/lib/system-settings";
 import {
   updateHomepageSettingsRow,
@@ -241,8 +241,7 @@ export async function saveSystemSettingsAction(formData: FormData) {
       String(formData.get("platform_name") ?? "").trim() || DEFAULT_PLATFORM_NAME,
     membership_price_monthly: membershipPrice,
     trial_length_days: trialLengthDays,
-    support_email:
-      String(formData.get("support_email") ?? "").trim() || DEFAULT_SUPPORT_EMAIL,
+    support_email: resolveSupportEmail(formData.get("support_email")),
     updated_at: new Date().toISOString(),
   };
 
