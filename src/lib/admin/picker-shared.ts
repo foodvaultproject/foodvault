@@ -74,5 +74,5 @@ export const PICKER_STORAGE_PREFIX = "fv.picker.picked.";
 
 export function packingSlipPath(orderId: string, autoprint = false): string {
   const path = `/admin/orders/${orderId}/packing-slip`;
-  return autoprint ? `${path}?autoprint=true` : path;
+  return autoprint ? `${path}?autoprint=1` : path;
 }

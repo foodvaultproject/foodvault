@@ -29,6 +29,11 @@ export async function sendResendEmail(input: {
   text?: string;
   replyTo?: string;
   from?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
 }) {
   const { fromEmail, replyToEmail } = getNotificationServiceConfig();
   const resend = getResendClient();
@@ -40,6 +45,10 @@ export async function sendResendEmail(input: {
     subject: input.subject,
     html: input.html,
     text: input.text,
+    attachments: input.attachments?.map((file) => ({
+      filename: file.filename,
+      content: file.content,
+    })),
   });
 
   if (error) {

@@ -7,6 +7,7 @@ import {
   renderSupermarketEmailLayout,
 } from "@/lib/email-templates/layout/supermarket-layout";
 import { sendPlatformEmailSafe } from "@/lib/email-templates/send";
+import type { RenderedEmail } from "@/lib/email-templates/types";
 import { formatNzPrice } from "@/lib/partner-offer";
 
 const ADMIN_PACKING_INVOICE_EMAIL =
@@ -21,15 +22,7 @@ export type PackingInvoiceLine = {
   lineTotal: number;
 };
 
-function gstIncluded(total: number) {
-  return Math.round(((total * 3) / 23) * 100) / 100;
-}
-
-function addressBlock(lines: string[]) {
-  return lines.filter(Boolean).map((line) => escapeHtml(line)).join("<br />");
-}
-
-export function renderAdminPackingInvoiceEmail(input: {
+type PackingInvoiceInput = {
   orderId: string;
   orderDate: string;
   customerName?: string | null;
@@ -42,7 +35,34 @@ export function renderAdminPackingInvoiceEmail(input: {
   shippingCost: number;
   capturedTotal: number;
   appUrl: string;
-}) {
+};
+
+function gstIncluded(total: number) {
+  return Math.round(((total * 3) / 23) * 100) / 100;
+}
+
+function addressBlock(lines: string[]) {
+  return lines.filter(Boolean).map((line) => escapeHtml(line)).join("<br />");
+}
+
+function packingSlipPrintUrl(appUrl: string, orderId: string) {
+  return `${appUrl.replace(/\/$/, "")}/admin/orders/${orderId}/packing-slip?autoprint=1`;
+}
+
+function printInvoiceButton(href: string) {
+  const safeHref = escapeHtml(href);
+  const green = SUPERMARKET_EMAIL.primary;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+      <tr>
+        <td style="border-radius:6px;background-color:${green};">
+          <a href="${safeHref}" style="display:inline-block;padding:12px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">Download / Print Tax Invoice (PDF)</a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:0 0 20px;font-size:12px;line-height:1.5;color:#6b7280;">Opens the tax invoice in your browser so you can Save as PDF. If the button does not load, use this link: <a href="${safeHref}" style="color:${SUPERMARKET_EMAIL.primaryDark};word-break:break-all;">${safeHref}</a></p>`;
+}
+
+function invoiceDocumentHtml(input: PackingInvoiceInput) {
   const shortId = shortOrderId(input.orderId);
   const customerName = input.customerName?.trim() || "Customer";
   const gst = gstIncluded(input.capturedTotal);
@@ -64,7 +84,7 @@ export function renderAdminPackingInvoiceEmail(input: {
     })
     .join("");
 
-  const content = `
+  return `
     <h1 style="margin:0 0 16px;font-size:22px;line-height:1.25;letter-spacing:0.04em;color:${ink};">TAX INVOICE / PACKING SLIP</h1>
     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#111827;">
       <strong>Britomart Groceries Limited t/a StockUp</strong><br />
@@ -118,6 +138,34 @@ export function renderAdminPackingInvoiceEmail(input: {
       </tr>
     </table>
   `;
+}
+
+function standaloneInvoiceHtml(input: PackingInvoiceInput) {
+  const shortId = shortOrderId(input.orderId);
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>StockUp Tax Invoice #${escapeHtml(shortId)}</title>
+    <style>
+      @page { size: A4; margin: 12mm; }
+      body { margin: 0; padding: 24px; font-family: Arial, Helvetica, sans-serif; color: #111827; background: #fff; }
+    </style>
+  </head>
+  <body>
+    ${invoiceDocumentHtml(input)}
+  </body>
+</html>`;
+}
+
+export function renderAdminPackingInvoiceEmail(input: PackingInvoiceInput): RenderedEmail {
+  const shortId = shortOrderId(input.orderId);
+  const customerName = input.customerName?.trim() || "Customer";
+  const gst = gstIncluded(input.capturedTotal);
+  const printUrl = packingSlipPrintUrl(input.appUrl, input.orderId);
+  const document = invoiceDocumentHtml(input);
+  const printCta = printInvoiceButton(printUrl);
+  const invoiceHtml = standaloneInvoiceHtml(input);
 
   const text = [
     "TAX INVOICE / PACKING SLIP",
@@ -126,7 +174,7 @@ export function renderAdminPackingInvoiceEmail(input: {
     "GST No: 140-493-740",
     `Order date: ${formatOrderPlacedAt(input.orderDate)}`,
     `Order ID: ${shortId}`,
-    tracking ? `NZ Post tracking: ${tracking}` : "",
+    input.trackingNumber?.trim() ? `NZ Post tracking: ${input.trackingNumber.trim()}` : "",
     `Customer: ${customerName}`,
     input.customerEmail?.trim() || "",
     input.customerPhone?.trim() || "",
@@ -139,6 +187,7 @@ export function renderAdminPackingInvoiceEmail(input: {
     `Freight ${formatNzPrice(input.shippingCost)}`,
     `Total Charged ${formatNzPrice(input.capturedTotal)}`,
     `Includes GST (15%): ${formatNzPrice(gst)}`,
+    `Download / print tax invoice: ${printUrl}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -147,10 +196,17 @@ export function renderAdminPackingInvoiceEmail(input: {
     subject: `Packing Slip & Tax Invoice — Order #${shortId} (${customerName})`,
     html: renderSupermarketEmailLayout({
       appUrl: input.appUrl,
-      content,
+      content: `${printCta}${document}<div style="clear:both;padding-top:24px;">${printCta}</div>`,
       preheader: `Packing slip and tax invoice for order #${shortId}.`,
     }),
     text,
+    attachments: [
+      {
+        filename: `StockUp-Tax-Invoice-${shortId}.html`,
+        content: Buffer.from(invoiceHtml, "utf8"),
+        contentType: "text/html; charset=utf-8",
+      },
+    ],
   };
 }
 

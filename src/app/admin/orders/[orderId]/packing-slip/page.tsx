@@ -21,5 +21,10 @@ export default async function PackingSlipPage({ params, searchParams }: Props) {
   const order = await getPackingSlipOrder(orderId);
   if (!order) notFound();
 
-  return <PackingSlipView order={order} autoprint={autoprint === "true"} />;
+  return (
+    <PackingSlipView
+      order={order}
+      autoprint={autoprint === "true" || autoprint === "1"}
+    />
+  );
 }

@@ -44,6 +44,7 @@ export async function sendPlatformEmail(
     html: input.rendered.html,
     text: input.rendered.text,
     replyTo: input.replyTo,
+    attachments: input.rendered.attachments,
   });
 
   return { sent: true, id: queued.id };
