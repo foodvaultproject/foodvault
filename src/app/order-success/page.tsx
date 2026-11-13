@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { OrderSuccessView } from "@/components/pantry/OrderSuccessView";
 import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
 import { PAGE_PY } from "@/lib/section-spacing";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +23,20 @@ export default async function OrderSuccessPage({
     ? await getPantryOrderByStripeSessionId(sessionId)
     : null;
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <section className="bg-page">
       <div className={`mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
-        <OrderSuccessView sessionId={sessionId ?? ""} initialOrder={order} />
+        <OrderSuccessView
+          sessionId={sessionId ?? ""}
+          initialOrder={order}
+          signedIn={Boolean(user)}
+          orderEmail={order?.shipping_email ?? null}
+        />
       </div>
     </section>
   );

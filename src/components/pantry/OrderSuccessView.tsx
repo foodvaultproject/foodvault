@@ -19,12 +19,26 @@ function formatShipping(shipping: FoodVaultShippingAddress | null | undefined) {
   ].filter(Boolean) as string[];
 }
 
+function guestSignupHref(orderEmail: string | null) {
+  const params = new URLSearchParams({
+    mode: "signup",
+    next: "/account/history",
+  });
+  const email = orderEmail?.trim();
+  if (email) params.set("email", email);
+  return `/login?${params.toString()}`;
+}
+
 export function OrderSuccessView({
   sessionId,
   initialOrder,
+  signedIn,
+  orderEmail,
 }: {
   sessionId: string;
   initialOrder: FoodVaultOrder | null;
+  signedIn: boolean;
+  orderEmail?: string | null;
 }) {
   const [order, setOrder] = useState<FoodVaultOrder | null>(initialOrder);
 
@@ -159,10 +173,10 @@ export function OrderSuccessView({
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Link
-          href="/account/orders"
+          href={signedIn ? "/account/history" : guestSignupHref(orderEmail ?? order?.shipping_email ?? null)}
           className="inline-flex items-center justify-center rounded-sm bg-vm-primary px-6 py-3 text-sm font-semibold text-white hover:bg-vm-surface"
         >
-          View order history
+          {signedIn ? "View order history" : "Create account to track orders"}
         </Link>
         <Link
           href="/"

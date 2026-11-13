@@ -75,10 +75,12 @@ function LoginForm({ stockup }: { stockup: boolean }) {
   const nextPath = searchParams.get("next");
 
   const [checkingSession, setCheckingSession] = useState(true);
-  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(
+    () => stockup && searchParams.get("mode") === "signup"
+  );
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => searchParams.get("email")?.trim() ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -123,6 +125,14 @@ function LoginForm({ stockup }: { stockup: boolean }) {
       setCheckingSession(false);
     });
   }, [router, nextPath, searchParams]);
+
+  useEffect(() => {
+    const presetEmail = searchParams.get("email")?.trim();
+    if (presetEmail) setEmail(presetEmail);
+    if (stockup && searchParams.get("mode") === "signup") {
+      setCreatingAccount(true);
+    }
+  }, [searchParams, stockup]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
