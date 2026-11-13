@@ -8,7 +8,7 @@ import { formatNzPrice } from "@/lib/partner-offer";
 import {
   gstIncluded,
   invoiceDocumentHtml,
-  taxInvoiceAttachment,
+  taxInvoicePdfAttachment,
   taxInvoicePrintButton,
   type TaxInvoiceInput,
   type TaxInvoiceLine,
@@ -65,7 +65,6 @@ export function renderAdminPackingInvoiceEmail(input: PackingInvoiceInput): Rend
       preheader: `Packing slip and tax invoice for order #${shortId}.`,
     }),
     text,
-    attachments: [taxInvoiceAttachment(input, "admin")],
   };
 }
 
@@ -82,11 +81,14 @@ export async function sendAdminPackingInvoiceEmail(input: {
   shippingCost: number;
   capturedTotal: number;
 }) {
+  const rendered = renderAdminPackingInvoiceEmail({
+    ...input,
+    appUrl: supermarketEmailAppUrl(),
+  });
+  const pdf = await taxInvoicePdfAttachment(input, "admin");
+  if (pdf) rendered.attachments = [pdf];
   return sendPlatformEmailSafe({
     to: ADMIN_PACKING_INVOICE_EMAIL,
-    rendered: renderAdminPackingInvoiceEmail({
-      ...input,
-      appUrl: supermarketEmailAppUrl(),
-    }),
+    rendered,
   });
 }

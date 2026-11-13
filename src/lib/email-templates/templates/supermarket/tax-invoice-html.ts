@@ -1,32 +1,16 @@
 import { shortOrderId } from "@/lib/admin/picker-shared";
+import {
+  generateTaxInvoicePdf,
+  type TaxInvoiceInput,
+  type TaxInvoiceLine,
+} from "@/lib/commerce/generate-tax-invoice-pdf";
 import { formatOrderPlacedAt } from "@/lib/commerce/order-display";
 import { escapeHtml } from "@/lib/email-templates/layout/components";
 import { SUPERMARKET_EMAIL } from "@/lib/email-templates/layout/supermarket-layout";
 import type { EmailAttachment } from "@/lib/email-templates/types";
 import { formatNzPrice } from "@/lib/partner-offer";
 
-export type TaxInvoiceLine = {
-  name: string;
-  sku?: string | null;
-  ordered: number;
-  picked: number;
-  unitPrice: number;
-  lineTotal: number;
-};
-
-export type TaxInvoiceInput = {
-  orderId: string;
-  orderDate: string;
-  customerName?: string | null;
-  customerEmail?: string | null;
-  customerPhone?: string | null;
-  addressLines: string[];
-  trackingNumber?: string | null;
-  lines: TaxInvoiceLine[];
-  subtotal: number;
-  shippingCost: number;
-  capturedTotal: number;
-};
+export type { TaxInvoiceInput, TaxInvoiceLine };
 
 export function gstIncluded(total: number) {
   return Math.round(((total * 3) / 23) * 100) / 100;
@@ -36,7 +20,10 @@ function addressBlock(lines: string[]) {
   return lines.filter(Boolean).map((line) => escapeHtml(line)).join("<br />");
 }
 
-export function taxInvoicePrintButton(href: string, label = "Download / Print Tax Invoice") {
+export function taxInvoicePrintButton(
+  href: string,
+  label = "Download / Print Tax Invoice (PDF)"
+) {
   const safeHref = escapeHtml(href);
   const green = SUPERMARKET_EMAIL.primary;
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
@@ -149,35 +136,22 @@ export function invoiceDocumentHtml(
   `;
 }
 
-export function standaloneInvoiceHtml(
+export async function taxInvoicePdfAttachment(
   input: TaxInvoiceInput,
   variant: "admin" | "customer" = "customer"
-) {
-  const shortId = shortOrderId(input.orderId);
-  return `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>StockUp Tax Invoice #${escapeHtml(shortId)}</title>
-    <style>
-      @page { size: A4; margin: 12mm; }
-      body { margin: 0; padding: 24px; font-family: Arial, Helvetica, sans-serif; color: #111827; background: #fff; }
-    </style>
-  </head>
-  <body>
-    ${invoiceDocumentHtml(input, variant)}
-  </body>
-</html>`;
-}
-
-export function taxInvoiceAttachment(
-  input: TaxInvoiceInput,
-  variant: "admin" | "customer" = "customer"
-): EmailAttachment {
-  const shortId = shortOrderId(input.orderId);
-  return {
-    filename: `StockUp-Tax-Invoice-${shortId}.html`,
-    content: Buffer.from(standaloneInvoiceHtml(input, variant), "utf8"),
-    contentType: "text/html; charset=utf-8",
-  };
+): Promise<EmailAttachment | undefined> {
+  try {
+    const content = await generateTaxInvoicePdf(input, variant);
+    return {
+      filename: `StockUp-Tax-Invoice-${shortOrderId(input.orderId)}.pdf`,
+      content,
+      contentType: "application/pdf",
+    };
+  } catch (error) {
+    console.error("[stockup] Tax invoice PDF generation failed", {
+      orderId: input.orderId,
+      error: error instanceof Error ? error.message : error,
+    });
+    return undefined;
+  }
 }

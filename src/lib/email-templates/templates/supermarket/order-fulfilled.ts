@@ -11,7 +11,7 @@ import type { RenderedEmail } from "@/lib/email-templates/types";
 import { formatNzPrice } from "@/lib/partner-offer";
 import {
   gstIncluded,
-  taxInvoiceAttachment,
+  taxInvoicePdfAttachment,
   taxInvoicePrintButton,
   type TaxInvoiceLine,
 } from "@/lib/email-templates/templates/supermarket/tax-invoice-html";
@@ -121,24 +121,6 @@ export function renderSupermarketOrderFulfilledEmail(input: {
       preheader: `Order #${shortId} is packed. We charged ${formatNzPrice(input.capturedTotal)}.`,
     }),
     text,
-    attachments: [
-      taxInvoiceAttachment(
-        {
-          orderId: input.orderId,
-          orderDate: input.orderDate,
-          customerName: input.customerName,
-          customerEmail: input.customerEmail,
-          customerPhone: input.customerPhone,
-          addressLines: input.addressLines,
-          trackingNumber: input.trackingNumber,
-          lines: input.lines,
-          subtotal: input.lines.reduce((sum, line) => sum + line.lineTotal, 0),
-          shippingCost: input.shippingCost,
-          capturedTotal: input.capturedTotal,
-        },
-        "customer"
-      ),
-    ],
   };
 }
 
@@ -164,12 +146,31 @@ export async function sendSupermarketOrderFulfilledEmail(input: {
     return { sent: false as const, reason: "invalid_recipient" as const };
   }
 
+  const rendered = renderSupermarketOrderFulfilledEmail({
+    ...input,
+    appUrl: supermarketEmailAppUrl(),
+  });
+  const pdf = await taxInvoicePdfAttachment(
+    {
+      orderId: input.orderId,
+      orderDate: input.orderDate,
+      customerName: input.customerName,
+      customerEmail: input.customerEmail,
+      customerPhone: input.customerPhone,
+      addressLines: input.addressLines,
+      trackingNumber: input.trackingNumber,
+      lines: input.lines,
+      subtotal: input.lines.reduce((sum, line) => sum + line.lineTotal, 0),
+      shippingCost: input.shippingCost,
+      capturedTotal: input.capturedTotal,
+    },
+    "customer"
+  );
+  if (pdf) rendered.attachments = [pdf];
+
   const result = await sendPlatformEmailSafe({
     to,
-    rendered: renderSupermarketOrderFulfilledEmail({
-      ...input,
-      appUrl: supermarketEmailAppUrl(),
-    }),
+    rendered,
   });
   if (!result.sent) {
     console.error("[vault-market] Packed order email was not sent", {

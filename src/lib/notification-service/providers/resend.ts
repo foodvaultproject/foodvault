@@ -48,6 +48,7 @@ export async function sendResendEmail(input: {
     attachments: input.attachments?.map((file) => ({
       filename: file.filename,
       content: file.content,
+      contentType: file.contentType,
     })),
   });
 
