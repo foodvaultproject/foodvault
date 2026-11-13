@@ -18,6 +18,18 @@ import {
 } from "@/lib/commerce/fulfill-pantry-order";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 
+async function fulfillPantryFromPaymentIntent(intent: Stripe.PaymentIntent) {
+  const stripe = getStripeClient();
+  const sessions = await stripe.checkout.sessions.list({
+    payment_intent: intent.id,
+    limit: 1,
+    expand: ["data.payment_intent"],
+  });
+  const session = sessions.data[0];
+  if (!session || !isSupermarketOrderMetadata(session.metadata)) return;
+  await fulfillPantryOrderFromCheckoutSession(session);
+}
+
 export async function POST(request: NextRequest) {
   const { webhookSecret } = getPaymentServiceConfig();
   const rawBody = await request.text();
@@ -121,8 +133,12 @@ export async function POST(request: NextRequest) {
         await handleMemberInvoicePaymentFailed(invoice);
         break;
       }
-      case "payment_intent.succeeded":
+      case "payment_intent.amount_capturable_updated":
+      case "payment_intent.succeeded": {
+        const intent = event.data.object as Stripe.PaymentIntent;
+        await fulfillPantryFromPaymentIntent(intent);
         break;
+      }
       case "payment_intent.payment_failed": {
         const intent = event.data.object as Stripe.PaymentIntent;
         await handlePantryPaymentFailure(intent.id);

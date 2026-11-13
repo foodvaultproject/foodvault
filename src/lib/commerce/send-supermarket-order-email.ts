@@ -38,11 +38,47 @@ export async function sendSupermarketOrderConfirmationEmail(order: FoodVaultOrde
   return result;
 }
 
+export type OrderEmailFallbacks = {
+  stripeEmail?: string | null;
+  accountEmail?: string | null;
+};
+
+function resolveOrderRecipient(
+  order: FoodVaultOrder,
+  extras?: OrderEmailFallbacks
+) {
+  return (
+    order.shipping_email?.trim() ||
+    extras?.stripeEmail?.trim() ||
+    extras?.accountEmail?.trim() ||
+    ""
+  );
+}
+
 /** Sends customer + admin order mail once. Safe to call from the webhook and the success-page poll. */
-export async function sendSavedOrderEmails(order: FoodVaultOrder) {
+export async function sendSavedOrderEmails(
+  order: FoodVaultOrder,
+  extras?: OrderEmailFallbacks
+) {
   if (!order.items?.length) return;
   const admin = createAdminClient();
   if (!admin) return;
+
+  const recipient = resolveOrderRecipient(order, extras);
+  if (!recipient) {
+    console.error("[vault-market] Confirmation skipped — no recipient", {
+      orderId: order.id,
+    });
+    return;
+  }
+
+  if (recipient !== (order.shipping_email?.trim() || "")) {
+    await admin
+      .from("foodvault_orders")
+      .update({ shipping_email: recipient })
+      .eq("id", order.id);
+    order = { ...order, shipping_email: recipient };
+  }
 
   const claim = await admin
     .from("foodvault_orders")
@@ -55,20 +91,27 @@ export async function sendSavedOrderEmails(order: FoodVaultOrder) {
   if (claim.error || !claim.data) return;
 
   try {
-    await sendSupermarketOrderConfirmationEmail(order);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const adminAlert = await sendAdminNewOrderAlertEmail({ order });
-    if (!adminAlert.sent) {
-      console.error("[vault-market] Admin order alert was not sent; confirmation_sent_at reset for retry", {
-        orderId: order.id,
-        reason: adminAlert.reason,
-      });
+    const customer = await sendSupermarketOrderConfirmationEmail(order);
+    if (!customer.sent) {
       await admin
         .from("foodvault_orders")
         .update({ confirmation_sent_at: null })
         .eq("id", order.id);
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const adminAlert = await sendAdminNewOrderAlertEmail({ order });
+    if (!adminAlert.sent) {
+      console.error("[vault-market] Admin order alert was not sent", {
+        orderId: order.id,
+        reason: adminAlert.reason,
+      });
     }
   } catch (error) {
+    await admin
+      .from("foodvault_orders")
+      .update({ confirmation_sent_at: null })
+      .eq("id", order.id);
     console.error("[vault-market] Order notification failed", {
       orderId: order.id,
       error: error instanceof Error ? error.message : error,

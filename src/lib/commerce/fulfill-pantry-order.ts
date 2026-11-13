@@ -19,6 +19,31 @@ type ParsedCartLine = {
   quantity: number;
 };
 
+function stripeCheckoutEmail(session: Stripe.Checkout.Session): string | null {
+  return session.customer_details?.email?.trim() || session.metadata?.recipient_email?.trim() || null;
+}
+
+async function accountEmailForSession(session: Stripe.Checkout.Session): Promise<string | null> {
+  const userId = session.metadata?.user_id?.trim();
+  if (!userId) return null;
+  const admin = createAdminClient();
+  if (!admin) return null;
+  try {
+    const { data, error } = await admin.auth.admin.getUserById(userId);
+    if (error) return null;
+    return data.user?.email?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+async function notifySavedPantryOrder(order: FoodVaultOrder, session: Stripe.Checkout.Session) {
+  await sendSavedOrderEmails(order, {
+    stripeEmail: stripeCheckoutEmail(session),
+    accountEmail: await accountEmailForSession(session),
+  });
+}
+
 function paymentIntentId(session: Stripe.Checkout.Session): string | null {
   if (typeof session.payment_intent === "string") return session.payment_intent;
   if (session.payment_intent && typeof session.payment_intent === "object") {
@@ -410,8 +435,9 @@ export async function fulfillPantryOrderFromCheckoutSession(
 
   const existing = await getPantryOrderByStripeSessionId(session.id);
   if (existing) {
-    await sendSavedOrderEmails(existing);
-    return existing;
+    const fresh = (await getPantryOrderByStripeSessionId(session.id)) ?? existing;
+    await notifySavedPantryOrder(fresh, session);
+    return fresh;
   }
 
   const admin = createAdminClient();
@@ -480,7 +506,11 @@ export async function fulfillPantryOrderFromCheckoutSession(
     insertedRows = await insertFlexible("foodvault_orders", orderPayload);
   } catch (error) {
     const raced = await getPantryOrderByStripeSessionId(session.id);
-    if (raced) return raced;
+    if (raced) {
+      const fresh = (await getPantryOrderByStripeSessionId(session.id)) ?? raced;
+      await notifySavedPantryOrder(fresh, session);
+      return fresh;
+    }
     throw error;
   }
 
@@ -547,14 +577,17 @@ export async function fulfillPantryOrderFromCheckoutSession(
   if (order) {
     const recipient =
       order.shipping_email?.trim() ||
-      session.metadata?.recipient_email?.trim() ||
-      session.customer_details?.email?.trim() ||
+      stripeCheckoutEmail(session) ||
+      (await accountEmailForSession(session)) ||
       null;
     const savedShipping = order.shipping;
-    await sendSavedOrderEmails({
-      ...order,
-      shipping_email: recipient,
-    });
+    await notifySavedPantryOrder(
+      {
+        ...order,
+        shipping_email: recipient,
+      },
+      session
+    );
     const notice: FoodVaultOrder = {
       ...order,
       shipping_email: recipient,
