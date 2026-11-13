@@ -4,13 +4,14 @@ import { revalidatePath } from "next/cache";
 import type Stripe from "stripe";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
-import { releaseReservedStock } from "@/lib/commerce/fulfill-pantry-order";
+import { settleInventoryForPick } from "@/lib/commerce/fulfill-pantry-order";
 import {
   amountToMinorUnits,
   minimumCaptureMinor,
   minorUnitsToAmount,
   settlePicks,
 } from "@/lib/commerce/pick-settlement";
+import { sendAdminPackingInvoiceEmail } from "@/lib/email-templates/templates/supermarket/admin-packing-invoice";
 import { sendSupermarketOrderCanceledEmail } from "@/lib/email-templates/templates/supermarket/order-canceled";
 import { sendSupermarketOrderFulfilledEmail } from "@/lib/email-templates/templates/supermarket/order-fulfilled";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
@@ -53,6 +54,12 @@ function stripeErrorMessage(error: unknown): string {
     return error.message;
   }
   return "Stripe could not update this payment.";
+}
+
+function committedUnits(row: OrderRow): number {
+  const raw = row.quantity_committed;
+  if (raw == null || raw === "") return 0;
+  return Math.max(0, Math.trunc(asNumber(raw)));
 }
 
 function lockIsFresh(updatedAt: unknown): boolean {
@@ -144,6 +151,10 @@ export async function fulfillPickerOrderAction(formData: FormData): Promise<Acti
     };
   }
 
+  const stockCommitted = Object.fromEntries(
+    itemRows.map((item) => [asString(item.id), committedUnits(item)])
+  );
+
   if (status === "capturing") {
     try {
       const recovered = await recoverInProgressOrder({
@@ -153,6 +164,7 @@ export async function fulfillPickerOrderAction(formData: FormData): Promise<Acti
         trackingNumber,
         settlement,
         currency,
+        stockCommitted,
       });
       if (recovered) return recovered;
     } catch (error) {
@@ -246,6 +258,7 @@ export async function fulfillPickerOrderAction(formData: FormData): Promise<Acti
       trackingNumber,
       settlement,
       currency,
+      stockCommitted,
       cancelled: payment.cancelled,
       capturedMinor: payment.capturedMinor,
     });
@@ -269,6 +282,7 @@ async function recoverInProgressOrder(input: {
   trackingNumber: string;
   settlement: ReturnType<typeof settlePicks>;
   currency: string;
+  stockCommitted: Record<string, number>;
 }): Promise<ActionResult | null> {
   const paymentIntentId = asString(input.order.stripe_payment_intent_id);
   const settled = await settledCaptureMinor(paymentIntentId);
@@ -287,6 +301,7 @@ async function recoverInProgressOrder(input: {
     trackingNumber: input.trackingNumber,
     settlement: input.settlement,
     currency: input.currency,
+    stockCommitted: input.stockCommitted,
     cancelled,
     capturedMinor: cancelled ? 0 : settled,
   });
@@ -402,9 +417,20 @@ async function finalizeOrder(input: {
   trackingNumber: string;
   settlement: ReturnType<typeof settlePicks>;
   currency: string;
+  stockCommitted: Record<string, number>;
   cancelled: boolean;
   capturedMinor: number;
 }): Promise<"updated" | "lost"> {
+  await settleInventoryForPick(
+    input.settlement.lines.map((line) => ({
+      itemId: line.itemId,
+      productId: line.productId,
+      sku: line.sku,
+      targetQuantity: input.cancelled ? 0 : line.picked,
+      committedQuantity: input.stockCommitted[line.itemId] ?? 0,
+    }))
+  );
+
   const now = new Date().toISOString();
   const captured = minorUnitsToAmount(input.capturedMinor, input.currency);
   const goods = minorUnitsToAmount(input.settlement.goodsMinor, input.currency);
@@ -488,26 +514,12 @@ async function finalizeOrder(input: {
     }
   );
 
-  await Promise.all(
-    input.settlement.lines.map(async (line) => {
-      const shortfall = line.ordered - line.picked;
-      if (shortfall <= 0) return;
-      try {
-        await releaseReservedStock(line.productId, line.sku, shortfall);
-      } catch (releaseError) {
-        console.error("[picker] failed to release unpicked stock", {
-          orderId: input.orderId,
-          sku: line.sku,
-          shortfall,
-          error: releaseError instanceof Error ? releaseError.message : releaseError,
-        });
-      }
-    })
-  );
-
   revalidatePath("/admin/picker");
   revalidatePath(`/admin/picker/${input.orderId}`);
   revalidatePath(`/admin/orders/${input.orderId}/packing-slip`);
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin/products");
+  revalidatePath("/");
   revalidatePath("/account/orders");
   await sendPickerOutcomeEmail({
     order: input.order,
@@ -516,14 +528,35 @@ async function finalizeOrder(input: {
     capturedTotal: input.cancelled ? 0 : captured,
     shippingCost: shipping,
     trackingNumber: input.trackingNumber,
-    lines: input.settlement.lines.map((line) => ({
-      name: line.name,
-      ordered: line.ordered,
-      picked: line.picked,
-      lineTotal: minorUnitsToAmount(line.chargeMinor, input.currency),
-    })),
+    lines: input.settlement.lines.map((line) => {
+      const lineTotal = minorUnitsToAmount(line.chargeMinor, input.currency);
+      return {
+        name: line.name,
+        sku: line.sku,
+        ordered: line.ordered,
+        picked: line.picked,
+        unitPrice: line.picked > 0 ? Math.round((lineTotal / line.picked) * 100) / 100 : 0,
+        lineTotal,
+      };
+    }),
   });
   return "updated";
+}
+
+function orderAddressLines(order: OrderRow): string[] {
+  const locality = [
+    asString(order.shipping_city),
+    asString(order.shipping_state),
+    asString(order.shipping_postal_code),
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return [
+    asString(order.shipping_line1),
+    asString(order.shipping_line2),
+    locality,
+    asString(order.shipping_country),
+  ].filter(Boolean);
 }
 
 async function sendPickerOutcomeEmail(input: {
@@ -533,19 +566,26 @@ async function sendPickerOutcomeEmail(input: {
   capturedTotal: number;
   shippingCost: number;
   trackingNumber: string;
-  lines: Array<{ name: string; ordered: number; picked: number; lineTotal: number }>;
+  lines: Array<{
+    name: string;
+    sku: string;
+    ordered: number;
+    picked: number;
+    unitPrice: number;
+    lineTotal: number;
+  }>;
 }) {
   const to = asString(input.order.shipping_email);
-  if (!to) {
-    console.warn("[picker] Order outcome email skipped — no shipping email", {
-      orderId: input.orderId,
-    });
-    return;
-  }
-
   const customerName = asString(input.order.shipping_name) || null;
-  try {
-    if (input.cancelled) {
+
+  if (input.cancelled) {
+    if (!to) {
+      console.warn("[picker] Order outcome email skipped — no shipping email", {
+        orderId: input.orderId,
+      });
+      return;
+    }
+    try {
       await sendSupermarketOrderCanceledEmail({
         to,
         orderId: input.orderId,
@@ -553,22 +593,65 @@ async function sendPickerOutcomeEmail(input: {
         releasedHold: asNumber(input.order.total),
         lines: input.lines.map((line) => ({ name: line.name, ordered: line.ordered })),
       });
-      return;
+    } catch (error) {
+      console.error("[picker] Order outcome email failed", {
+        orderId: input.orderId,
+        cancelled: true,
+        error: error instanceof Error ? error.message : error,
+      });
     }
+    return;
+  }
 
-    await sendSupermarketOrderFulfilledEmail({
-      to,
-      orderId: input.orderId,
-      customerName,
-      lines: input.lines,
-      shippingCost: input.shippingCost,
-      capturedTotal: input.capturedTotal,
-      trackingNumber: input.trackingNumber || null,
-    });
+  try {
+    if (to) {
+      await sendSupermarketOrderFulfilledEmail({
+        to,
+        orderId: input.orderId,
+        customerName,
+        lines: input.lines,
+        shippingCost: input.shippingCost,
+        capturedTotal: input.capturedTotal,
+        trackingNumber: input.trackingNumber || null,
+      });
+    } else {
+      console.warn("[picker] Packed customer email skipped — no shipping email", {
+        orderId: input.orderId,
+      });
+    }
   } catch (error) {
     console.error("[picker] Order outcome email failed", {
       orderId: input.orderId,
-      cancelled: input.cancelled,
+      cancelled: false,
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const goodsSubtotal = input.lines.reduce((sum, line) => sum + line.lineTotal, 0);
+    const result = await sendAdminPackingInvoiceEmail({
+      orderId: input.orderId,
+      orderDate: asString(input.order.created_at) || new Date().toISOString(),
+      customerName,
+      customerEmail: to || null,
+      customerPhone: asString(input.order.shipping_phone) || asString(input.order.phone) || null,
+      addressLines: orderAddressLines(input.order),
+      trackingNumber: input.trackingNumber || null,
+      lines: input.lines,
+      subtotal: goodsSubtotal,
+      shippingCost: input.shippingCost,
+      capturedTotal: input.capturedTotal,
+    });
+    if (!result.sent) {
+      console.error("[picker] Admin packing invoice email was not sent", {
+        orderId: input.orderId,
+        reason: result.reason,
+      });
+    }
+  } catch (error) {
+    console.error("[picker] Admin packing invoice email failed", {
+      orderId: input.orderId,
       error: error instanceof Error ? error.message : error,
     });
   }

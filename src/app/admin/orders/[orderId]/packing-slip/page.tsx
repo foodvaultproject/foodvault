@@ -12,7 +12,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { orderId } = await params;
-  return { title: `Packing slip ${orderId.replace(/-/g, "").slice(-8).toUpperCase()}` };
+  return { title: `Tax invoice / packing slip ${orderId.replace(/-/g, "").slice(-8).toUpperCase()}` };
 }
 
 export default async function PackingSlipPage({ params, searchParams }: Props) {

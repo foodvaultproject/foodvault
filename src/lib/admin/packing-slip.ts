@@ -8,6 +8,8 @@ export type PackingSlipLine = {
   sku: string;
   name: string;
   quantity: number;
+  ordered: number;
+  picked: number;
   binLocation: string;
   unitPrice: number;
   lineTotal: number;
@@ -18,6 +20,8 @@ export type PackingSlipOrder = {
   shortId: string;
   createdAt: string;
   customerName: string;
+  customerEmail: string | null;
+  customerPhone: string | null;
   addressLines: string[];
   trackingNumber: string | null;
   subtotal: number;
@@ -98,12 +102,13 @@ export async function getPackingSlipOrder(orderId: string): Promise<PackingSlipO
       const ordered = Math.max(0, Math.trunc(asNumber(item.quantity, 1)));
       const recorded = isPickRecorded(item.quantity_picked);
       const quantity = quantityFromOrderItem({ quantity: ordered, quantity_picked: item.quantity_picked });
-      if (recorded && quantity === 0) return null;
       const unitPrice = asNumber(item.unit_price);
       return {
         sku: asString(item.sku) || asString(product?.sku) || "—",
-        name: asString(item.name, "Vault Market item"),
+        name: asString(item.name, "StockUp item"),
         quantity: recorded ? quantity : Math.max(1, ordered),
+        ordered,
+        picked: recorded ? quantity : Math.max(1, ordered),
         binLocation: displayBinLocation(asString(product?.bin_location)),
         unitPrice,
         lineTotal: recorded
@@ -128,6 +133,8 @@ export async function getPackingSlipOrder(orderId: string): Promise<PackingSlipO
     shortId: shortOrderId(asString(row.id)),
     createdAt: asString(row.created_at),
     customerName: asString(row.shipping_name, "Member order"),
+    customerEmail: asString(row.shipping_email) || null,
+    customerPhone: asString(row.shipping_phone) || asString(row.phone) || null,
     addressLines: addressLines(row),
     trackingNumber: asString(row.tracking_number) || null,
     subtotal,
