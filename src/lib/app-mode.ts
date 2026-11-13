@@ -7,12 +7,13 @@ import {
   STOCKUP_GUARDED_PREFIXES,
   STOCKUP_HOSTS,
   STOCKUP_ORIGIN,
+  stockupSafePath,
 } from "@/lib/mode-routes";
 
 export type AppMode = "stockup" | "foodvault";
 export type RouteOwner = "shared" | AppMode;
 
-export { FOODVAULT_ORIGIN, STOCKUP_ORIGIN };
+export { FOODVAULT_ORIGIN, STOCKUP_ORIGIN, stockupSafePath };
 
 const STOCKUP_HOST_SET = new Set<string>(STOCKUP_HOSTS);
 const FOODVAULT_HOST_SET = new Set<string>(FOODVAULT_HOSTS);
@@ -64,15 +65,6 @@ export function requestSiteOrigin(request: {
     (request.headers.get("x-forwarded-proto") ?? "https").split(",")[0]?.trim() ||
     "https";
   return `${proto}://${host}`;
-}
-
-/** Keep a StockUp signup off FoodVault-only pages such as membership checkout. */
-export function stockupSafePath(path: string | null | undefined): string {
-  const trimmed = (path ?? "").trim();
-  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return "/";
-  const pathname = trimmed.split("?")[0] || "/";
-  if (routeOwner(pathname) === "foodvault") return "/";
-  return trimmed;
 }
 
 /**

@@ -12,7 +12,10 @@ import {
   syncMemberSubscriptionState,
 } from "@/lib/payment-service/providers/stripe-member";
 import { isSupermarketOrderMetadata } from "@/lib/app-mode";
-import { fulfillPantryOrderFromCheckoutSession } from "@/lib/commerce/fulfill-pantry-order";
+import {
+  fulfillPantryOrderFromCheckoutSession,
+  handlePantryPaymentFailure,
+} from "@/lib/commerce/fulfill-pantry-order";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 
 export async function POST(request: NextRequest) {
@@ -119,8 +122,23 @@ export async function POST(request: NextRequest) {
         break;
       }
       case "payment_intent.succeeded":
-      case "payment_intent.payment_failed":
         break;
+      case "payment_intent.payment_failed": {
+        const intent = event.data.object as Stripe.PaymentIntent;
+        await handlePantryPaymentFailure(intent.id);
+        break;
+      }
+      case "charge.failed": {
+        const charge = event.data.object as Stripe.Charge;
+        const intentId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : charge.payment_intent?.id;
+        if (intentId) {
+          await handlePantryPaymentFailure(intentId);
+        }
+        break;
+      }
       default:
         break;
     }

@@ -65,3 +65,30 @@ export const FOODVAULT_GUARDED_PREFIXES = [
 
 /** Exact paths only, so `/admin/reports/sales` is not treated as a brand report. */
 export const FOODVAULT_EXACT_ROUTES = ["/admin/reports"] as const;
+
+function foodvaultOwnedPath(pathname: string) {
+  const lower = pathname.toLowerCase();
+  if (
+    lower === "/signup" ||
+    lower.startsWith("/signup/") ||
+    lower === "/membership" ||
+    lower.startsWith("/membership/")
+  ) {
+    return true;
+  }
+  if (FOODVAULT_EXACT_ROUTES.some((route) => lower === route)) {
+    return true;
+  }
+  return FOODVAULT_GUARDED_PREFIXES.some(
+    (prefix) => lower === prefix || lower.startsWith(`${prefix}/`)
+  );
+}
+
+/** Rewrite FoodVault-only destinations so a StockUp signup never lands on membership. */
+export function stockupSafePath(path: string | null | undefined): string {
+  const trimmed = (path ?? "").trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return "/";
+  const pathname = trimmed.split("?")[0] || "/";
+  if (foodvaultOwnedPath(pathname)) return "/";
+  return trimmed;
+}

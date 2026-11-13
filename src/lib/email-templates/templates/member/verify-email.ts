@@ -1,4 +1,4 @@
-import { STOCKUP_ORIGIN } from "@/lib/app-mode";
+import { STOCKUP_ORIGIN, stockupSafePath } from "@/lib/app-mode";
 import { wrapEmailContent } from "@/lib/email-templates/layout/base-layout";
 import {
   emailButton,
@@ -57,10 +57,23 @@ export function renderMemberVerifyEmail(
   };
 }
 
+function stockupHref(raw: string, fallbackPath = "/") {
+  try {
+    const url = new URL(raw);
+    url.protocol = "https:";
+    url.host = new URL(STOCKUP_ORIGIN).host;
+    url.pathname = stockupSafePath(url.pathname);
+    return url.toString();
+  } catch {
+    return `${STOCKUP_ORIGIN}${stockupSafePath(fallbackPath)}`;
+  }
+}
+
 function renderStockUpVerifyEmail(params: MemberVerifyEmailParams): RenderedEmail {
   const firstName = params.firstName?.trim();
   const greeting = firstName ? `Kia ora ${escapeHtml(firstName)},` : "";
-  const verificationUrl = escapeHtml(params.verificationUrl);
+  const loginUrl = `${STOCKUP_ORIGIN}/login`;
+  const verificationUrl = escapeHtml(stockupHref(params.verificationUrl));
   const green = SUPERMARKET_EMAIL.primary;
   const ink = SUPERMARKET_EMAIL.foreground;
 
@@ -88,14 +101,16 @@ function renderStockUpVerifyEmail(params: MemberVerifyEmailParams): RenderedEmai
       </tr>
     </table>
     <p style="margin:0 0 20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#6b7280;">If the button does not open, copy this link into your browser:<br /><a href="${verificationUrl}" style="color:${SUPERMARKET_EMAIL.primaryDark};word-break:break-all;">${verificationUrl}</a></p>
-    <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#6b7280;">If you didn't create an account with StockUp, you can safely ignore this email.</p>
+    <p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#6b7280;">If you didn't create an account with StockUp, you can safely ignore this email.</p>
+    <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#6b7280;">Need to start again? <a href="${escapeHtml(loginUrl)}" style="color:${SUPERMARKET_EMAIL.primaryDark};font-weight:700;text-decoration:none;">Go back to StockUp login</a>.</p>
   `;
 
   const text = [
     "Welcome to StockUp!",
     firstName ? `Kia ora ${firstName},` : "",
     "Thanks for joining StockUp! Please confirm your email address by clicking the button below so you can start placing orders.",
-    params.verificationUrl,
+    stockupHref(params.verificationUrl),
+    `Go back to StockUp login: ${loginUrl}`,
     "If you didn't create an account with StockUp, you can safely ignore this email.",
   ]
     .filter(Boolean)

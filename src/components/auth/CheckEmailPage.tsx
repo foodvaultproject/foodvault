@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { stockupSafePath } from "@/lib/app-mode";
+import { STOCKUP_ORIGIN, stockupSafePath } from "@/lib/app-mode";
 import type { AccountType } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { finalizeVerifiedSessionAction } from "@/lib/auth/finalize-verified-session";
@@ -91,10 +91,12 @@ function CheckEmailContent() {
       stopPolling();
       setIsRedirecting(true);
       clearPendingSignup();
-      // Full navigation ensures auth cookies are applied before the next page loads.
-      window.location.assign(path);
+      const destination = stockup
+        ? `${STOCKUP_ORIGIN}${stockupSafePath(path)}`
+        : path;
+      window.location.assign(destination);
     },
-    [stopPolling]
+    [stockup, stopPolling]
   );
 
   const tryCompleteVerifiedSession = useCallback(async (options?: { silent?: boolean }) => {
@@ -112,7 +114,7 @@ function CheckEmailContent() {
       return false;
     }
 
-    finishRedirect(stockup ? stockupSafePath(finalize.redirectPath) : finalize.redirectPath);
+    finishRedirect(finalize.redirectPath);
     return true;
   }, [finishRedirect, stockup]);
 
@@ -183,7 +185,7 @@ function CheckEmailContent() {
         account,
         signedInUser?.user_metadata
       );
-      finishRedirect(stockup ? stockupSafePath(verifiedPath) : verifiedPath);
+      finishRedirect(verifiedPath);
       return true;
     }
 
@@ -242,7 +244,11 @@ function CheckEmailContent() {
   const handleChangeEmail = useCallback(() => {
     stopPolling();
     clearPendingSignup();
-    router.push(stockup ? "/login" : signupPathForAccount(account));
+    if (stockup) {
+      window.location.assign(`${STOCKUP_ORIGIN}/login`);
+      return;
+    }
+    router.push(signupPathForAccount(account));
   }, [account, router, stockup, stopPolling]);
 
   useEffect(() => {
@@ -415,10 +421,10 @@ function CheckEmailContent() {
           {!email ? (
             <p className="mt-4 text-sm text-muted-foreground">
               <Link
-                href={stockup ? "/login" : signupPathForAccount(account)}
+                href={stockup ? `${STOCKUP_ORIGIN}/login` : signupPathForAccount(account)}
                 className={`font-semibold ${stockup ? "text-vm-primary" : "text-primary hover:text-primary-hover"}`}
               >
-                Return to signup
+                {stockup ? "Return to StockUp login" : "Return to signup"}
               </Link>
             </p>
           ) : null}

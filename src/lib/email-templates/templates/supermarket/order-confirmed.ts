@@ -17,16 +17,16 @@ export function renderSupermarketOrderEmail(
   const shortId = order.id.replace(/-/g, "").slice(-8).toUpperCase() || order.id.slice(0, 8);
   const freight = Math.max(0, order.shipping_cost ?? order.total - order.subtotal);
   const authorized = order.status === "authorized";
-  const headline = authorized ? "Order confirmed" : "Payment received";
+  const headline = authorized ? "Order received" : "Payment received";
   const intro = authorized
-    ? "your StockUp supermarket order is confirmed. We've placed a hold on your card for the total below, and you'll only be charged for the items we pack."
+    ? "your StockUp supermarket order has been received. Payment is authorized (pending capture). We'll charge your card only for the items we pack."
     : "your StockUp supermarket order is confirmed and your payment has been received.";
-  const totalLabel = authorized ? "Amount on hold" : "Total paid";
+  const totalLabel = authorized ? "Amount authorized (pending capture)" : "Total paid";
   const subject = authorized
-    ? `Order confirmed — StockUp order #${shortId}`
+    ? `Order received — StockUp order #${shortId}`
     : `Payment received — StockUp order #${shortId}`;
   const preheader = authorized
-    ? `Order #${shortId} is confirmed. Your card is authorized, and we charge only for packed items.`
+    ? `Order #${shortId} is received. Payment is authorized (pending capture); we charge only for packed items.`
     : `Your payment was received and order #${shortId} is confirmed.`;
   const recipientName = order.shipping?.name?.trim();
   const greeting = recipientName ? `Kia ora ${escapeHtml(recipientName)},` : "Kia ora,";
@@ -90,7 +90,7 @@ export function renderSupermarketOrderEmail(
 
   const text = [
     authorized
-      ? `Order confirmed. Your StockUp supermarket order #${shortId} is on hold for the packed items.`
+      ? `Order received. Your StockUp supermarket order #${shortId} is authorized (pending capture). We'll charge only for packed items.`
       : `Payment received. Your StockUp supermarket order #${shortId} is confirmed.`,
     `Placed ${placedAt} (New Zealand time).`,
     `${totalLabel} ${formatNzPrice(order.total)}.`,

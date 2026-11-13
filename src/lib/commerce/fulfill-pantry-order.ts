@@ -2,7 +2,14 @@ import type Stripe from "stripe";
 import { isSupermarketOrderMetadata } from "@/lib/app-mode";
 import { multibuyAwareLineTotal, offerPrice } from "@/lib/commerce/catalog";
 import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
-import { getPantryOrderByStripeSessionId } from "@/lib/commerce/orders";
+import {
+  getPantryOrderByPaymentIntentId,
+  getPantryOrderByStripeSessionId,
+} from "@/lib/commerce/orders";
+import {
+  sendPantryPaymentFailedEmails,
+  sendSavedOrderEmails,
+} from "@/lib/commerce/send-supermarket-order-email";
 import { getStripeClient } from "@/lib/payment-service/providers/stripe-client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FoodVaultOrder, FoodVaultOrderStatus, FoodVaultShippingAddress } from "@/types/commerce";
@@ -402,7 +409,10 @@ export async function fulfillPantryOrderFromCheckoutSession(
   if (!paymentState) return null;
 
   const existing = await getPantryOrderByStripeSessionId(session.id);
-  if (existing) return existing;
+  if (existing) {
+    await sendSavedOrderEmails(existing);
+    return existing;
+  }
 
   const admin = createAdminClient();
   if (!admin) {
@@ -541,6 +551,10 @@ export async function fulfillPantryOrderFromCheckoutSession(
       session.customer_details?.email?.trim() ||
       null;
     const savedShipping = order.shipping;
+    await sendSavedOrderEmails({
+      ...order,
+      shipping_email: recipient,
+    });
     const notice: FoodVaultOrder = {
       ...order,
       shipping_email: recipient,
@@ -572,4 +586,53 @@ export async function fulfillPantryOrderFromCheckoutSession(
   }
 
   return order;
+}
+
+const OPEN_PAYMENT_STATUSES = new Set(["authorized", "pending", "capturing"]);
+
+export async function handlePantryPaymentFailure(paymentIntentId: string) {
+  const intentId = paymentIntentId.trim();
+  if (!intentId) return null;
+
+  const order = await getPantryOrderByPaymentIntentId(intentId);
+  if (!order || !OPEN_PAYMENT_STATUSES.has(order.status)) {
+    return order;
+  }
+
+  const admin = createAdminClient();
+  if (!admin) return order;
+
+  const { data, error } = await admin
+    .from("foodvault_orders")
+    .update({ status: "cancelled" })
+    .eq("id", order.id)
+    .in("status", ["authorized", "pending", "capturing"])
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) return order;
+
+  for (const item of order.items ?? []) {
+    try {
+      await releaseReservedStock(item.product_id, item.sku, item.quantity);
+    } catch (releaseError) {
+      console.error("[vault-market] Could not release stock after payment failure", {
+        orderId: order.id,
+        productId: item.product_id,
+        error: releaseError instanceof Error ? releaseError.message : releaseError,
+      });
+    }
+  }
+
+  const cancelled: FoodVaultOrder = { ...order, status: "cancelled" };
+  try {
+    await sendPantryPaymentFailedEmails(cancelled);
+  } catch (emailError) {
+    console.error("[vault-market] Payment-failed notification failed", {
+      orderId: order.id,
+      error: emailError instanceof Error ? emailError.message : emailError,
+    });
+  }
+
+  return cancelled;
 }

@@ -70,9 +70,13 @@ export function OrderSuccessView({
   return (
     <div className="mx-auto max-w-2xl">
       <p className="text-sm font-medium uppercase tracking-[0.08em] text-vm-primary">StockUp</p>
-      <h1 className={`${heading1} mt-2`}>Order confirmed</h1>
+      <h1 className={`${heading1} mt-2`}>
+        {order?.status === "authorized" ? "Order received" : "Order confirmed"}
+      </h1>
       <p className="mt-3 text-base text-muted-foreground">
-        Thanks for shopping the pantry. Your saver price is locked in on this order.
+        {order?.status === "authorized"
+          ? "We've received your order. Payment is authorized (pending capture) and we'll charge only for the items we pack."
+          : "Thanks for shopping the pantry. Your saver price is locked in on this order."}
       </p>
 
       <article className="fv-card mt-8 rounded-lg border border-border bg-background p-6 sm:p-8">
@@ -136,7 +140,8 @@ export function OrderSuccessView({
               </p>
               {order.status === "authorized" ? (
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Your card is authorized for this amount. We charge only for the items we pack.
+                  Payment is authorized (pending capture) for this amount. We charge only for
+                  the items we pack.
                 </p>
               ) : null}
             </div>

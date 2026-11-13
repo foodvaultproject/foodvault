@@ -75,47 +75,55 @@ function mapOrder(
   };
 }
 
-export async function getPantryOrderByStripeSessionId(
-  sessionId: string
-): Promise<FoodVaultOrder | null> {
+async function loadOrderItems(orderId: string): Promise<FoodVaultOrderItem[]> {
   const admin = createAdminClient();
-  if (!admin || !sessionId.trim()) return null;
-
-  const { data: byStripeId, error: stripeIdError } = await admin
-    .from("foodvault_orders")
-    .select("*")
-    .eq("stripe_session_id", sessionId)
-    .maybeSingle();
-
-  let row = byStripeId as Record<string, unknown> | null;
-  if (!row && stripeIdError) {
-    const { data: bySessionId } = await admin
-      .from("foodvault_orders")
-      .select("*")
-      .eq("session_id", sessionId)
-      .maybeSingle();
-    row = (bySessionId as Record<string, unknown> | null) ?? null;
-  }
-
-  if (!row?.id) return null;
+  if (!admin) return [];
 
   let itemResult = await admin
     .from("foodvault_order_items")
     .select("*")
-    .eq("order_id", row.id)
+    .eq("order_id", orderId)
     .order("created_at", { ascending: true });
 
   if (itemResult.error && /created_at/i.test(itemResult.error.message)) {
     itemResult = await admin
       .from("foodvault_order_items")
       .select("*")
-      .eq("order_id", row.id);
+      .eq("order_id", orderId);
   }
 
-  const itemRows = itemResult.data;
+  return (itemResult.data ?? []).map((item) => mapOrderItem(item as Record<string, unknown>));
+}
 
-  return mapOrder(
-    row,
-    (itemRows ?? []).map((item) => mapOrderItem(item as Record<string, unknown>))
-  );
+async function getPantryOrderByColumn(
+  column: "stripe_session_id" | "session_id" | "stripe_payment_intent_id",
+  value: string
+): Promise<FoodVaultOrder | null> {
+  const admin = createAdminClient();
+  if (!admin || !value.trim()) return null;
+
+  const { data, error } = await admin
+    .from("foodvault_orders")
+    .select("*")
+    .eq(column, value)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const row = data as Record<string, unknown>;
+  if (!row.id) return null;
+  return mapOrder(row, await loadOrderItems(String(row.id)));
+}
+
+export async function getPantryOrderByStripeSessionId(
+  sessionId: string
+): Promise<FoodVaultOrder | null> {
+  const byStripeId = await getPantryOrderByColumn("stripe_session_id", sessionId);
+  if (byStripeId) return byStripeId;
+  return getPantryOrderByColumn("session_id", sessionId);
+}
+
+export async function getPantryOrderByPaymentIntentId(
+  paymentIntentId: string
+): Promise<FoodVaultOrder | null> {
+  return getPantryOrderByColumn("stripe_payment_intent_id", paymentIntentId);
 }

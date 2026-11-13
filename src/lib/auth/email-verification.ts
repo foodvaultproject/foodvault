@@ -8,7 +8,7 @@ import {
 import { findAuthUserByEmail } from "@/lib/auth/find-user-by-email";
 import { renderMemberPasswordResetEmail, renderMemberVerifyEmail } from "@/lib/email-templates/render";
 import { getEmailAppUrl, sendPlatformEmailSafe } from "@/lib/email-templates/send";
-import { STOCKUP_ORIGIN } from "@/lib/mode-routes";
+import { STOCKUP_ORIGIN, stockupSafePath } from "@/lib/mode-routes";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const AUTH_CONFIRM_PATH = "/auth/confirm";
@@ -32,8 +32,28 @@ export function getSiteUrl() {
   );
 }
 
+function isStockUpOrigin(value?: string | null) {
+  const trimmed = (value ?? "").trim().toLowerCase();
+  return trimmed.includes("stockup.co.nz") || trimmed === STOCKUP_ORIGIN.toLowerCase();
+}
+
 function resolveSiteOrigin(siteOrigin?: string | null) {
+  if (isStockUpOrigin(siteOrigin)) {
+    return STOCKUP_ORIGIN;
+  }
   return (siteOrigin?.trim() || getSiteUrl()).replace(/\/$/, "");
+}
+
+export function rewriteStockUpAbsoluteUrl(raw: string, fallbackPath = "/") {
+  try {
+    const url = new URL(raw);
+    url.protocol = "https:";
+    url.host = new URL(STOCKUP_ORIGIN).host;
+    url.pathname = stockupSafePath(url.pathname);
+    return url.toString();
+  } catch {
+    return `${STOCKUP_ORIGIN}${stockupSafePath(fallbackPath)}`;
+  }
 }
 
 export function buildConfirmUrl(params: {
@@ -43,12 +63,15 @@ export function buildConfirmUrl(params: {
   account: AccountType;
   siteOrigin?: string | null;
 }) {
-  const url = new URL(`${resolveSiteOrigin(params.siteOrigin)}${AUTH_CONFIRM_PATH}`);
+  const origin = resolveSiteOrigin(params.siteOrigin);
+  const next =
+    origin === STOCKUP_ORIGIN ? stockupSafePath(params.next) : params.next.startsWith("/") ? params.next : "/";
+  const url = new URL(`${origin}${AUTH_CONFIRM_PATH}`);
   url.searchParams.set("token_hash", params.tokenHash);
   url.searchParams.set("type", params.type);
-  url.searchParams.set("next", params.next);
+  url.searchParams.set("next", next);
   url.searchParams.set("account", params.account);
-  if (resolveSiteOrigin(params.siteOrigin) === STOCKUP_ORIGIN) {
+  if (origin === STOCKUP_ORIGIN) {
     url.searchParams.set("brand", "stockup");
   }
   return url.toString();
@@ -200,12 +223,16 @@ export async function sendSignupVerificationEmail(params: {
 
   const brand = params.brand ?? "foodvault";
   const appUrl = brand === "stockup" ? STOCKUP_ORIGIN : getEmailAppUrl();
+  const verificationUrl =
+    brand === "stockup"
+      ? rewriteStockUpAbsoluteUrl(params.verificationUrl, AUTH_CONFIRM_PATH)
+      : params.verificationUrl;
   const result = await sendPlatformEmailSafe({
     to: params.to,
     rendered: renderMemberVerifyEmail({
       appUrl,
       firstName: params.firstName,
-      verificationUrl: params.verificationUrl,
+      verificationUrl,
       brand,
     }),
   });
@@ -233,12 +260,17 @@ export async function issueAndSendSignupVerification(params: {
   siteOrigin?: string | null;
   force?: boolean;
 }) {
+  const stockup =
+    resolveSiteOrigin(params.siteOrigin) === STOCKUP_ORIGIN ||
+    params.userMetadata?.signup_mode === "stockup";
+  const siteOrigin = stockup ? STOCKUP_ORIGIN : params.siteOrigin;
+
   const linkResult = await generateSignupVerificationLink({
     email: params.email,
     password: params.password,
     userMetadata: params.userMetadata,
     linkType: params.linkType,
-    siteOrigin: params.siteOrigin,
+    siteOrigin,
   });
 
   if ("error" in linkResult) {
@@ -250,7 +282,7 @@ export async function issueAndSendSignupVerification(params: {
     type: linkResult.linkType,
     next: params.next,
     account: params.account,
-    siteOrigin: params.siteOrigin,
+    siteOrigin,
   });
 
   return sendSignupVerificationEmail({
@@ -258,7 +290,7 @@ export async function issueAndSendSignupVerification(params: {
     firstName: params.firstName,
     verificationUrl,
     force: params.force,
-    brand: resolveSiteOrigin(params.siteOrigin) === STOCKUP_ORIGIN ? "stockup" : "foodvault",
+    brand: stockup ? "stockup" : "foodvault",
   });
 }
 
