@@ -84,8 +84,14 @@ export function SiteLayout({
       </Suspense>
       <AuthSessionRefresh />
       <NavigationPrefetch />
-      <Navigation appMode={appMode} />
-      {showConsumerSecondaryNav ? <ConsumerSecondaryNav /> : null}
+      <div className="no-print print:hidden">
+        <Navigation appMode={appMode} />
+      </div>
+      {showConsumerSecondaryNav ? (
+        <div className="no-print print:hidden">
+          <ConsumerSecondaryNav />
+        </div>
+      ) : null}
       <main
         className={`min-w-0 flex-1 bg-page print:bg-white print:p-0 ${
           showConsumerSecondaryNav
@@ -94,9 +100,11 @@ export function SiteLayout({
         }`}
       >
         {showStorefrontHeader ? (
-          <Suspense fallback={null}>
-            <PantryMarketHeader />
-          </Suspense>
+          <div className="no-print print:hidden">
+            <Suspense fallback={null}>
+              <PantryMarketHeader />
+            </Suspense>
+          </div>
         ) : null}
         {showStockUpBack ? (
           <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 print:hidden sm:px-6 lg:px-8">
@@ -105,7 +113,9 @@ export function SiteLayout({
         ) : null}
         {children}
       </main>
-      <Footer appMode={appMode} mobileBottomNavInset={showConsumerSecondaryNav} />
+      <div className="no-print print:hidden">
+        <Footer appMode={appMode} mobileBottomNavInset={showConsumerSecondaryNav} />
+      </div>
     </>
   );
 

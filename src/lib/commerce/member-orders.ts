@@ -46,7 +46,10 @@ export type MemberOrderHistoryItem = {
   reorderLines: MemberOrderReorderLine[];
   lines: MemberOrderLine[];
   shippingName: string | null;
+  shippingEmail: string | null;
+  shippingPhone: string | null;
   shippingAddress: string | null;
+  shippingCost: number;
 };
 
 function asNumber(value: unknown, fallback = 0): number {
@@ -188,7 +191,10 @@ export async function getMemberVaultMarketOrders(
       reorderLines,
       lines,
       shippingName: asString(row.shipping_name) || null,
+      shippingEmail: asString(row.shipping_email) || null,
+      shippingPhone: asString(row.shipping_phone) || asString(row.phone) || null,
       shippingAddress: shippingParts.join(", ") || null,
+      shippingCost: asNumber(row.shipping_cost),
     };
   });
 }
