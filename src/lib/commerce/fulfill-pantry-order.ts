@@ -310,9 +310,24 @@ async function updateById(
 }
 
 async function setQuantityCommitted(itemId: string, quantity: number) {
-  await updateById("foodvault_order_items", itemId, {
-    quantity_committed: Math.max(0, Math.trunc(quantity)),
-  });
+  try {
+    await updateById("foodvault_order_items", itemId, {
+      quantity_committed: Math.max(0, Math.trunc(quantity)),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      /PGRST204/i.test(message) ||
+      (/quantity_committed/i.test(message) && /schema cache|could not find the/i.test(message))
+    ) {
+      console.warn("[vault-market] quantity_committed is not in the schema cache", {
+        itemId,
+        error: message,
+      });
+      return;
+    }
+    throw error;
+  }
 }
 
 async function writeProductStockFromBatches(productId: string, fallback: number) {
