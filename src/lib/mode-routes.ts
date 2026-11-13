@@ -11,6 +11,7 @@ export const STOCKUP_GUARDED_PREFIXES = [
   "/order-success",
   "/account/orders",
   "/account/history",
+  "/invoice",
   "/pantry",
   "/admin/pantry",
   "/admin/products",

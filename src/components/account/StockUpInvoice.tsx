@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import type { MemberOrderHistoryItem } from "@/lib/commerce/member-orders";
 import { formatOrderPlacedAt } from "@/lib/commerce/order-display";
 import { formatNzPrice } from "@/lib/partner-offer";
@@ -19,17 +20,35 @@ function invoiceTotalLabel(status: string) {
   return "Total Charged";
 }
 
-export function StockUpInvoice({ order }: { order: MemberOrderHistoryItem }) {
+export function StockUpInvoice({
+  order,
+  autoprint = false,
+  guest = false,
+}: {
+  order: MemberOrderHistoryItem;
+  autoprint?: boolean;
+  guest?: boolean;
+}) {
   const gst = gstIncluded(order.total);
   const totalLabel = invoiceTotalLabel(order.status);
+
+  useEffect(() => {
+    if (!autoprint) return;
+    const timer = window.setTimeout(() => window.print(), 400);
+    return () => window.clearTimeout(timer);
+  }, [autoprint]);
 
   return (
     <div className="min-h-screen bg-[#ecfdf5] print:m-0 print:min-h-0 print:bg-white print:p-0">
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 print:m-0 print:w-full print:max-w-none print:p-0">
         <div className="no-print mb-4 flex items-center justify-between gap-3 print:hidden">
-          <Link href="/account/history" className="text-sm font-semibold text-vm-primary">
-            Back to My History
-          </Link>
+          {guest ? (
+            <span className="text-sm font-semibold text-vm-primary">StockUp tax invoice</span>
+          ) : (
+            <Link href="/account/history" className="text-sm font-semibold text-vm-primary">
+              Back to My History
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => window.print()}
@@ -60,14 +79,18 @@ export function StockUpInvoice({ order }: { order: MemberOrderHistoryItem }) {
                 GST No: 140-493-740
               </p>
               <h1 className="mt-4 text-2xl font-bold text-foreground print:text-black">
-                Tax Invoice
+                TAX INVOICE
               </h1>
               <p className="mt-1 font-mono text-sm text-muted-foreground print:text-neutral-800">
                 #{order.shortId}
               </p>
             </div>
             <div className="text-right text-sm text-muted-foreground print:text-neutral-800">
-              <p>{formatOrderPlacedAt(order.createdAt)}</p>
+              <p>Order date: {formatOrderPlacedAt(order.createdAt)}</p>
+              <p className="mt-1">Order ID: {order.shortId}</p>
+              {order.trackingNumber ? (
+                <p className="mt-1">Tracking: {order.trackingNumber}</p>
+              ) : null}
               <p className="mt-1 font-semibold text-foreground print:text-black">{order.displayStatus}</p>
             </div>
           </div>

@@ -9,13 +9,14 @@ import {
 import { sendPlatformEmailSafe } from "@/lib/email-templates/send";
 import type { RenderedEmail } from "@/lib/email-templates/types";
 import { formatNzPrice } from "@/lib/partner-offer";
+import {
+  gstIncluded,
+  taxInvoiceAttachment,
+  taxInvoicePrintButton,
+  type TaxInvoiceLine,
+} from "@/lib/email-templates/templates/supermarket/tax-invoice-html";
 
-export type PackedOrderLine = {
-  name: string;
-  ordered: number;
-  picked: number;
-  lineTotal: number;
-};
+export type PackedOrderLine = TaxInvoiceLine;
 
 function trackingUrl(code: string) {
   return `https://www.nzpost.co.nz/tools/tracking?trackid=${encodeURIComponent(code.trim())}`;
@@ -23,11 +24,16 @@ function trackingUrl(code: string) {
 
 export function renderSupermarketOrderFulfilledEmail(input: {
   orderId: string;
+  orderDate: string;
   customerName?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  addressLines: string[];
   lines: PackedOrderLine[];
   shippingCost: number;
   capturedTotal: number;
   trackingNumber?: string | null;
+  invoicePrintUrl: string;
   appUrl: string;
 }): RenderedEmail {
   const shortId = shortOrderId(input.orderId);
@@ -38,6 +44,8 @@ export function renderSupermarketOrderFulfilledEmail(input: {
     : "Kia ora,";
   const tracking = input.trackingNumber?.trim() || "";
   const freight = Math.max(0, input.shippingCost);
+  const gst = gstIncluded(input.capturedTotal);
+  const printCta = taxInvoicePrintButton(input.invoicePrintUrl);
 
   const itemRows = input.lines
     .map((line) => {
@@ -56,6 +64,7 @@ export function renderSupermarketOrderFulfilledEmail(input: {
   const content = `
     <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;color:${SUPERMARKET_EMAIL.foreground};">Packed and charged</h1>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${EMAIL_BRAND.body};">${greeting} your StockUp order has been packed. We charged your card only for the items below.</p>
+    ${printCta}
     <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${EMAIL_BRAND.body};"><strong style="color:${SUPERMARKET_EMAIL.foreground};">Order #${escapeHtml(shortId)}</strong></p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
       ${itemRows}
@@ -66,6 +75,10 @@ export function renderSupermarketOrderFulfilledEmail(input: {
       <tr>
         <td style="padding:8px 0 0;font-size:16px;font-weight:700;color:${SUPERMARKET_EMAIL.foreground};">Amount charged</td>
         <td align="right" style="padding:8px 0 0;font-size:16px;font-weight:700;color:${SUPERMARKET_EMAIL.foreground};">${escapeHtml(formatNzPrice(input.capturedTotal))}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0 0;font-size:13px;color:${EMAIL_BRAND.muted};">Includes GST (15%)</td>
+        <td align="right" style="padding:4px 0 0;font-size:13px;color:${EMAIL_BRAND.muted};">${escapeHtml(formatNzPrice(gst))}</td>
       </tr>
     </table>
     ${
@@ -80,6 +93,7 @@ export function renderSupermarketOrderFulfilledEmail(input: {
         </td>
       </tr>
     </table>
+    <div style="clear:both;padding-top:8px;">${printCta}</div>
   `;
 
   const text = [
@@ -91,7 +105,9 @@ export function renderSupermarketOrderFulfilledEmail(input: {
     ),
     freight === 0 ? "Freight: FREE" : `Freight: ${formatNzPrice(freight)}`,
     `Amount charged: ${formatNzPrice(input.capturedTotal)}`,
+    `Includes GST (15%): ${formatNzPrice(gst)}`,
     tracking ? `Tracking: ${tracking}` : "",
+    `Download / print tax invoice: ${input.invoicePrintUrl}`,
     `View your orders: ${ordersUrl}`,
   ]
     .filter(Boolean)
@@ -105,17 +121,40 @@ export function renderSupermarketOrderFulfilledEmail(input: {
       preheader: `Order #${shortId} is packed. We charged ${formatNzPrice(input.capturedTotal)}.`,
     }),
     text,
+    attachments: [
+      taxInvoiceAttachment(
+        {
+          orderId: input.orderId,
+          orderDate: input.orderDate,
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          customerPhone: input.customerPhone,
+          addressLines: input.addressLines,
+          trackingNumber: input.trackingNumber,
+          lines: input.lines,
+          subtotal: input.lines.reduce((sum, line) => sum + line.lineTotal, 0),
+          shippingCost: input.shippingCost,
+          capturedTotal: input.capturedTotal,
+        },
+        "customer"
+      ),
+    ],
   };
 }
 
 export async function sendSupermarketOrderFulfilledEmail(input: {
   to: string;
   orderId: string;
+  orderDate: string;
   customerName?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  addressLines: string[];
   lines: PackedOrderLine[];
   shippingCost: number;
   capturedTotal: number;
   trackingNumber?: string | null;
+  invoicePrintUrl: string;
 }) {
   const to = input.to.trim();
   if (!to) {

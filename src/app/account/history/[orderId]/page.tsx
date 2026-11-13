@@ -13,12 +13,20 @@ export const metadata: Metadata = {
 
 export default async function StockUpInvoicePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ autoprint?: string }>;
 }) {
   const { orderId } = await params;
+  const { autoprint } = await searchParams;
   const member = await requireAuthenticatedMember();
   const order = await getMemberVaultMarketOrder(member.id, orderId);
   if (!order) notFound();
-  return <StockUpInvoice order={order} />;
+  return (
+    <StockUpInvoice
+      order={order}
+      autoprint={autoprint === "true" || autoprint === "1"}
+    />
+  );
 }

@@ -11,6 +11,8 @@ import {
   minorUnitsToAmount,
   settlePicks,
 } from "@/lib/commerce/pick-settlement";
+import { customerTaxInvoicePrintUrl } from "@/lib/commerce/invoice-access";
+import { supermarketEmailAppUrl } from "@/lib/commerce/send-supermarket-order-email";
 import { sendAdminPackingInvoiceEmail } from "@/lib/email-templates/templates/supermarket/admin-packing-invoice";
 import { sendSupermarketOrderCanceledEmail } from "@/lib/email-templates/templates/supermarket/order-canceled";
 import { sendSupermarketOrderFulfilledEmail } from "@/lib/email-templates/templates/supermarket/order-fulfilled";
@@ -605,14 +607,25 @@ async function sendPickerOutcomeEmail(input: {
 
   try {
     if (to) {
+      const memberId =
+        asString(input.order.user_id) || asString(input.order.member_id);
       await sendSupermarketOrderFulfilledEmail({
         to,
         orderId: input.orderId,
+        orderDate: asString(input.order.created_at) || new Date().toISOString(),
         customerName,
+        customerEmail: to,
+        customerPhone: asString(input.order.shipping_phone) || asString(input.order.phone) || null,
+        addressLines: orderAddressLines(input.order),
         lines: input.lines,
         shippingCost: input.shippingCost,
         capturedTotal: input.capturedTotal,
         trackingNumber: input.trackingNumber || null,
+        invoicePrintUrl: customerTaxInvoicePrintUrl({
+          appUrl: supermarketEmailAppUrl(),
+          orderId: input.orderId,
+          isMember: Boolean(memberId),
+        }),
       });
     } else {
       console.warn("[picker] Packed customer email skipped — no shipping email", {
