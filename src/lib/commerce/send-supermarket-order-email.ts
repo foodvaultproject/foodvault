@@ -28,7 +28,7 @@ export async function sendSupermarketOrderConfirmationEmail(order: FoodVaultOrde
   }
 
   const rendered = renderSupermarketOrderEmail(order, supermarketEmailAppUrl());
-  const result = await sendPlatformEmailSafe({ to, rendered });
+  const result = await sendPlatformEmailSafe({ to, brand: "stockup", rendered });
   if (!result.sent) {
     console.error("[vault-market] Order confirmation email was not sent", {
       orderId: order.id,
@@ -131,6 +131,7 @@ export async function sendPantryPaymentFailedEmails(order: FoodVaultOrder) {
     `;
     await sendPlatformEmailSafe({
       to: customer,
+      brand: "stockup",
       rendered: {
         subject: `Payment failed — StockUp order #${shortId}`,
         html: renderSupermarketEmailLayout({
@@ -145,6 +146,7 @@ export async function sendPantryPaymentFailedEmails(order: FoodVaultOrder) {
 
   await sendPlatformEmailSafe({
     to: ADMIN_ORDER_ALERT_EMAIL,
+    brand: "stockup",
     rendered: {
       subject: `Payment failed — StockUp order #${shortId}`,
       html: wrapEmailContent(

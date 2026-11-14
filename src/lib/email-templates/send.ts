@@ -1,4 +1,8 @@
 import { getNotificationServiceConfig } from "@/lib/notification-service/config";
+import {
+  resolveNotificationFromEmail,
+  type NotificationBrand,
+} from "@/lib/notification-service/from-address";
 import { sendResendEmail } from "@/lib/notification-service/providers/resend";
 import type { RenderedEmail } from "@/lib/email-templates/types";
 
@@ -11,6 +15,7 @@ export type SendPlatformEmailInput = {
   rendered: RenderedEmail;
   replyTo?: string;
   from?: string;
+  brand?: NotificationBrand;
 };
 
 export type SendPlatformEmailResult =
@@ -37,9 +42,15 @@ export async function sendPlatformEmail(
     return { sent: false, reason: "not_configured" };
   }
 
+  const from =
+    input.from ??
+    (input.brand === "stockup"
+      ? resolveNotificationFromEmail({ brand: "stockup" })
+      : undefined);
+
   const queued = await sendResendEmail({
     to: recipient,
-    from: input.from,
+    from,
     subject: input.rendered.subject,
     html: input.rendered.html,
     text: input.rendered.text,

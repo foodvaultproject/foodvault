@@ -78,6 +78,7 @@ export async function sendAdminNewOrderAlertEmail(input: {
   const pickerUrl = `${STOCKUP_ORIGIN}/admin/picker/${input.order.id}`;
   const result = await sendPlatformEmailSafe({
     to: ADMIN_ORDER_ALERT_EMAIL,
+    brand: "stockup",
     rendered: renderAdminNewOrderAlertEmail({ ...input, pickerUrl }),
   });
   if (!result.sent) {

@@ -89,6 +89,7 @@ export async function sendAdminPackingInvoiceEmail(input: {
   if (pdf) rendered.attachments = [pdf];
   return sendPlatformEmailSafe({
     to: ADMIN_PACKING_INVOICE_EMAIL,
+    brand: "stockup",
     rendered,
   });
 }

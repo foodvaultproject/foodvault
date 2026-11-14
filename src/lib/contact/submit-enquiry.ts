@@ -7,6 +7,8 @@ import {
   generateEnquiryReferenceNumber,
   isUniqueConstraintError,
 } from "@/lib/contact/reference-number";
+import { getAppMode } from "@/lib/app-mode";
+import { STOCKUP_FROM_EMAIL, resolveNotificationFromEmail } from "@/lib/notification-service/from-address";
 import { getResendClient } from "@/lib/notification-service/providers/resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -62,7 +64,13 @@ async function sendContactEnquiryNotification(input: {
   phone: string;
   message: string;
 }) {
-  const from = process.env.NOTIFICATION_FROM_EMAIL?.trim() || "mark@benchmark-int.com";
+  const headerStore = await headers();
+  const brand = getAppMode(headerStore.get("x-forwarded-host") ?? headerStore.get("host"));
+  const from = process.env.NOTIFICATION_FROM_EMAIL?.trim()
+    ? resolveNotificationFromEmail({ brand })
+    : brand === "stockup"
+      ? STOCKUP_FROM_EMAIL
+      : "mark@benchmark-int.com";
   const adminUrl = await enquiryAdminUrl(input.referenceNumber);
   const phone = input.phone.trim() || "Not provided";
   const messageHtml = escapeEmailHtml(input.message).replace(/\r\n|\r|\n/g, "<br />");

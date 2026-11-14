@@ -170,6 +170,7 @@ export async function sendSupermarketOrderFulfilledEmail(input: {
 
   const result = await sendPlatformEmailSafe({
     to,
+    brand: "stockup",
     rendered,
   });
   if (!result.sent) {

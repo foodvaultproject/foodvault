@@ -229,6 +229,7 @@ export async function sendSignupVerificationEmail(params: {
       : params.verificationUrl;
   const result = await sendPlatformEmailSafe({
     to: params.to,
+    brand,
     rendered: renderMemberVerifyEmail({
       appUrl,
       firstName: params.firstName,
@@ -385,6 +386,7 @@ export async function sendPasswordResetEmail(params: {
   const appUrl = brand === "stockup" ? STOCKUP_ORIGIN : getEmailAppUrl();
   const result = await sendPlatformEmailSafe({
     to: params.to,
+    brand,
     rendered: renderMemberPasswordResetEmail({
       appUrl,
       firstName: params.firstName,

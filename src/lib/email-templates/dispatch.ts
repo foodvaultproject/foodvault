@@ -18,6 +18,7 @@ import {
 import { renderAdminNewBrandApplicationEmail } from "@/lib/email-templates/templates/admin/new-brand-application";
 import { renderAdminNewContactEnquiryEmail } from "@/lib/email-templates/templates/admin/new-contact-enquiry";
 import { partnerProfilePathFromSlug } from "@/lib/member/favorites-utils";
+import { resolveNotificationFromEmail } from "@/lib/notification-service/from-address";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const PARTNER_SUBMISSION_ADMIN_EMAIL =
@@ -26,8 +27,9 @@ export const PARTNER_SUBMISSION_ADMIN_EMAIL =
 export const CONTACT_CENTRE_ADMIN_EMAIL =
   process.env.CONTACT_CENTRE_ADMIN_EMAIL || "mark@benchmark-int.com";
 
-const CONTACT_CENTRE_FROM_EMAIL =
-  process.env.NOTIFICATION_FROM_EMAIL || "FoodVault <hello@foodvault.co.nz>";
+function contactCentreFromEmail() {
+  return resolveNotificationFromEmail({ brand: "foodvault" });
+}
 
 function resolveContactName(metadata: Record<string, unknown> | undefined) {
   if (!metadata) return null;
@@ -190,7 +192,7 @@ export async function sendAdminContactEnquiryEmail(input: {
   const appUrl = getEmailAppUrl();
   const result = await sendPlatformEmail({
     to: "mark@benchmark-int.com",
-    from: CONTACT_CENTRE_FROM_EMAIL,
+    from: contactCentreFromEmail(),
     replyTo: input.email,
     rendered: renderAdminNewContactEnquiryEmail({
       appUrl,

@@ -89,6 +89,7 @@ export async function sendSupermarketOrderCanceledEmail(input: {
 
   const result = await sendPlatformEmailSafe({
     to,
+    brand: "stockup",
     rendered: renderSupermarketOrderCanceledEmail({
       ...input,
       appUrl: supermarketEmailAppUrl(),

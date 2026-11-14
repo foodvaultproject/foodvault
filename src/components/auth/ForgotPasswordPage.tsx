@@ -20,12 +20,14 @@ type ForgotPasswordPageProps = {
   initialEmail?: string;
   isPartner?: boolean;
   initialError?: string | null;
+  stockup?: boolean;
 };
 
 export function ForgotPasswordPage({
   initialEmail = "",
   isPartner = false,
   initialError = null,
+  stockup = false,
 }: ForgotPasswordPageProps) {
   const backLink = isPartner ? PARTNER_LOGIN_PATH : LOGIN_PATH;
   const [email, setEmail] = useState(initialEmail);
@@ -62,7 +64,9 @@ export function ForgotPasswordPage({
       }
 
       setMessage(
-        "If an account exists for that email, a reset link has been sent from hello@foodvault.co.nz. Check your inbox and spam folder."
+        stockup
+          ? "If an account exists for that email, a reset link has been sent from hello@stockup.co.nz. Check your inbox and spam folder."
+          : "If an account exists for that email, a reset link has been sent from hello@foodvault.co.nz. Check your inbox and spam folder."
       );
     } finally {
       setSubmitting(false);

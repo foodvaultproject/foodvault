@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { resolveNotificationFromEmail } from "@/lib/notification-service/from-address";
 import { getNotificationServiceConfig } from "@/lib/notification-service/config";
 
 let resendClient: Resend | null = null;
@@ -19,7 +20,8 @@ export function getResendClient(): Resend {
 function formatFromAddress(from?: string) {
   const value = from?.trim();
   if (!value) return null;
-  return value.includes("<") ? value : `FoodVault <${value}>`;
+  const brand = /@([^@>\s]*\.)?stockup\.co\.nz/i.test(value) ? "stockup" : "foodvault";
+  return resolveNotificationFromEmail({ raw: value, brand });
 }
 
 export async function sendResendEmail(input: {
