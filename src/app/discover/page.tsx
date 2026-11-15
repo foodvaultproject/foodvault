@@ -84,8 +84,8 @@ export default async function DiscoverPage() {
             </DiscoverSectionGrid>
           </div>
         </section>
-        <section className="bg-[#064E3B] py-12 text-center text-white">
-          <h2 className="text-2xl font-bold">Shop saver pricing</h2>
+        <section className="bg-[#064E3B] py-12 text-center">
+          <h2 className="text-2xl font-bold text-white">Shop Now</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-white/80">
             Browse the StockUp pantry and add everyday groceries to your cart.
           </p>

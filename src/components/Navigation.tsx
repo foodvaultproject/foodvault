@@ -386,6 +386,14 @@ function DesktopAuthActions({
             Login
           </Link>
         )}
+        {stockup && auth.status === "guest" ? (
+          <Link
+            href="/login?mode=signup"
+            className="hidden items-center justify-center rounded-sm border border-white px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 lg:inline-flex"
+          >
+            Create Account
+          </Link>
+        ) : null}
         {stockup ? null : (
           <MemberSignupCtaLink
             variant="unlock-discounts-nav"

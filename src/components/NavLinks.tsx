@@ -40,11 +40,7 @@ type AppNavLink = {
 
 function getNavLinks(appMode: AppMode): AppNavLink[] {
   if (appMode === "stockup") {
-    return [
-      { href: "/?categories=1", label: "Categories" },
-      { href: "/?deals=1", label: "Deals" },
-      { href: "/discover", label: "News & Savings" },
-    ];
+    return [];
   }
 
   const links: AppNavLink[] = [
@@ -258,6 +254,15 @@ function MobileAuthSection({
             Login
           </Link>
         )}
+        {stockup && auth.status === "guest" ? (
+          <Link
+            href="/login?mode=signup"
+            onClick={onNavigate}
+            className="inline-flex items-center justify-center rounded-sm border border-white px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-white/10"
+          >
+            Create Account
+          </Link>
+        ) : null}
         {stockup ? null : (
           <MemberSignupCtaLink
             variant="unlock-discounts-nav"

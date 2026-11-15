@@ -5,8 +5,20 @@ import { DISCOVER_PAGE_TITLE } from "@/lib/discover/categories";
 const DISCOVER_HERO_IMAGE = "/discover/whats-happening-hero.png";
 
 export function DiscoverHeader({ stockup = false }: { stockup?: boolean }) {
+  if (stockup) {
+    return (
+      <section className="bg-[#064E3B]">
+        <div className="mx-auto flex min-h-[8.5rem] max-w-[1200px] items-center px-4 sm:min-h-[9.5rem] sm:px-6 lg:px-8">
+          <h1 className="text-[2.625rem] font-bold leading-[1.08] tracking-tight text-white sm:text-[2.75rem] lg:text-[3rem]">
+            News & Savings
+          </h1>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className={stockup ? "bg-[#064E3B]" : "bg-[#f5f2ff]"}>
+    <section className="bg-[#f5f2ff]">
       <div className="relative mx-auto max-w-[1200px] overflow-hidden">
         <div className="relative aspect-[2700/378] min-h-[8.5rem] w-full sm:min-h-[9.5rem]">
           <Image
