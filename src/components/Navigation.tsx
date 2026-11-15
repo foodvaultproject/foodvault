@@ -377,6 +377,14 @@ function DesktopAuthActions({
         ) : (
           <Link
             href={LOGIN_PATH}
+            onClick={(event) => {
+              if (!stockup || window.location.pathname !== LOGIN_PATH) return;
+              event.preventDefault();
+              const params = new URLSearchParams(window.location.search);
+              params.delete("mode");
+              const query = params.toString();
+              window.history.pushState(null, "", query ? `${LOGIN_PATH}?${query}` : LOGIN_PATH);
+            }}
             className={`hidden text-sm font-medium transition-colors lg:inline-block ${
               menuPreview || stockup
                 ? "text-white hover:text-white/80"

@@ -129,10 +129,32 @@ function LoginForm({ stockup }: { stockup: boolean }) {
   useEffect(() => {
     const presetEmail = searchParams.get("email")?.trim();
     if (presetEmail) setEmail(presetEmail);
-    if (stockup && searchParams.get("mode") === "signup") {
-      setCreatingAccount(true);
+    if (stockup) {
+      setCreatingAccount(searchParams.get("mode") === "signup");
     }
   }, [searchParams, stockup]);
+
+  function replaceLoginMode(mode: "signup" | null) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (mode === "signup") params.set("mode", "signup");
+    else params.delete("mode");
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `/login?${query}` : "/login");
+  }
+
+  function showLoginCard() {
+    setCreatingAccount(false);
+    setError(null);
+    setLoginTurnstileToken(null);
+    replaceLoginMode(null);
+  }
+
+  function showCreateAccountCard() {
+    setCreatingAccount(true);
+    setError(null);
+    setLoginTurnstileToken(null);
+    replaceLoginMode("signup");
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -283,11 +305,7 @@ function LoginForm({ stockup }: { stockup: boolean }) {
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setCreatingAccount(true);
-                  setError(null);
-                  setLoginTurnstileToken(null);
-                }}
+                onClick={showCreateAccountCard}
                 className="mt-3 inline-flex w-full items-center justify-center rounded-sm bg-vm-primary px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#059669]"
               >
                 Create an account
@@ -412,11 +430,7 @@ function LoginForm({ stockup }: { stockup: boolean }) {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setCreatingAccount(false);
-                  setError(null);
-                  setLoginTurnstileToken(null);
-                }}
+                onClick={showLoginCard}
                 className="w-full text-sm font-semibold text-vm-primary"
               >
                 Already have an account? Log in

@@ -244,7 +244,15 @@ function MobileAuthSection({
         ) : (
           <Link
             href={LOGIN_PATH}
-            onClick={onNavigate}
+            onClick={(event) => {
+              onNavigate();
+              if (!stockup || window.location.pathname !== LOGIN_PATH) return;
+              event.preventDefault();
+              const params = new URLSearchParams(window.location.search);
+              params.delete("mode");
+              const query = params.toString();
+              window.history.pushState(null, "", query ? `${LOGIN_PATH}?${query}` : LOGIN_PATH);
+            }}
             className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
               menuPreview
                 ? "text-white hover:bg-white/10 hover:text-white"
