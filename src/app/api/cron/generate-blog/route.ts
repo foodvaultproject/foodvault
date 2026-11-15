@@ -6,6 +6,7 @@ import {
 } from "@/lib/cron/generate-blog";
 import { generateBlogDraftWithGemini } from "@/lib/cron/generate-blog-gemini";
 import { saveGeneratedDiscoverArticle } from "@/lib/cron/save-generated-blog";
+import { generateAndSaveStockUpArticle } from "@/lib/cron/generate-stockup-blog";
 import { revalidatePublicDiscover } from "@/lib/cache/revalidate";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -31,12 +32,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (request.nextUrl.searchParams.get("site") === "stockup") {
+      const post = await generateAndSaveStockUpArticle(admin, { publish: true });
+      revalidatePublicDiscover({ slug: post.slug, site: "stockup" });
+      await recordScheduledJobRun({
+        jobName: "generate_blog",
+        status: "success",
+        result: { title: post.title, slug: post.slug, category: post.category, site: "stockup" },
+      });
+      return NextResponse.json({ success: true, post }, { status: 200 });
+    }
+
     const payload = await buildBlogGenerationPayload(admin);
     logBlogGenerationPayload(payload);
 
     const draft = await generateBlogDraftWithGemini(payload);
     const post = await saveGeneratedDiscoverArticle(admin, payload, draft);
-    revalidatePublicDiscover({ slug: post.slug });
+    revalidatePublicDiscover({ slug: post.slug, site: "foodvault" });
 
     await recordScheduledJobRun({
       jobName: "generate_blog",

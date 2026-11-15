@@ -15,11 +15,18 @@ export const PUBLIC_CACHE_TAG = {
   partnerProfile: "public-partner-profile",
 } as const;
 
+export function discoverCacheTag(site: "foodvault" | "stockup" = "foodvault") {
+  return `public-discover-${site}`;
+}
+
 /** Bust ISR caches when a Discover article is saved, published, or deleted. */
 export function revalidatePublicDiscover(options?: {
   slug?: string | null;
   previousSlug?: string | null;
+  site?: "foodvault" | "stockup" | null;
 }) {
+  const site = options?.site === "stockup" ? "stockup" : "foodvault";
+  revalidateTag(discoverCacheTag(site), { expire: 0 });
   revalidateTag(PUBLIC_CACHE_TAG.discover, { expire: 0 });
   revalidatePath("/admin/discover");
   revalidatePath("/discover", "layout");
@@ -31,7 +38,7 @@ export function revalidatePublicDiscover(options?: {
     .filter((value): value is string => Boolean(value));
 
   for (const slug of new Set(slugs)) {
-    revalidateTag(`discover-article-${slug}`, { expire: 0 });
+    revalidateTag(`discover-article-${site}-${slug}`, { expire: 0 });
     revalidatePath(`/discover/${slug}`);
   }
 }

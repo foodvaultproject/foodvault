@@ -221,17 +221,20 @@ export async function getMemberStats() {
 }
 
 export async function getArticles(
-  filter: "ALL" | "PUBLISHED" | "DRAFT" | "ARCHIVED" = "ALL"
+  filter: "ALL" | "PUBLISHED" | "DRAFT" | "ARCHIVED" = "ALL",
+  site: "foodvault" | "stockup" = "foodvault"
 ): Promise<DiscoverArticleRow[]> {
   if (!isSupabaseConfigured()) {
-    if (filter === "ALL") return mockArticles;
-    return mockArticles.filter((a) => a.status === filter);
+    const scoped = mockArticles.filter((article) => (article.site ?? "foodvault") === site);
+    if (filter === "ALL") return scoped;
+    return scoped.filter((a) => a.status === filter);
   }
 
   const supabase = await createClient();
   let query = supabase
     .from("discover_articles")
     .select("*")
+    .eq("site", site)
     .order("created_at", { ascending: false });
 
   if (filter !== "ALL") {
@@ -242,13 +245,22 @@ export async function getArticles(
   return (data ?? []) as DiscoverArticleRow[];
 }
 
-export async function getArticleById(id: string): Promise<DiscoverArticleRow | null> {
+export async function getArticleById(
+  id: string,
+  site?: "foodvault" | "stockup"
+): Promise<DiscoverArticleRow | null> {
   if (!isSupabaseConfigured()) {
-    return mockArticles.find((a) => a.id === id) ?? null;
+    return (
+      mockArticles.find(
+        (article) => article.id === id && (!site || (article.site ?? "foodvault") === site)
+      ) ?? null
+    );
   }
 
   const supabase = await createClient();
-  const { data } = await supabase.from("discover_articles").select("*").eq("id", id).maybeSingle();
+  let query = supabase.from("discover_articles").select("*").eq("id", id);
+  if (site) query = query.eq("site", site);
+  const { data } = await query.maybeSingle();
   return (data as DiscoverArticleRow | null) ?? null;
 }
 
@@ -385,16 +397,17 @@ export async function getContactStats() {
   };
 }
 
-export async function getDiscoverStats() {
+export async function getDiscoverStats(site: "foodvault" | "stockup" = "foodvault") {
   if (!isSupabaseConfigured()) {
     return { total: 1284, published: 1102, drafts: 142, views: 45200 };
   }
   const supabase = await createClient();
+  const scoped = () => supabase.from("discover_articles").select("id", { count: "exact", head: true }).eq("site", site);
   const [total, published, drafts, viewsRes] = await Promise.all([
-    supabase.from("discover_articles").select("id", { count: "exact", head: true }),
-    supabase.from("discover_articles").select("id", { count: "exact", head: true }).eq("status", "PUBLISHED"),
-    supabase.from("discover_articles").select("id", { count: "exact", head: true }).eq("status", "DRAFT"),
-    supabase.from("discover_articles").select("views"),
+    scoped(),
+    supabase.from("discover_articles").select("id", { count: "exact", head: true }).eq("site", site).eq("status", "PUBLISHED"),
+    supabase.from("discover_articles").select("id", { count: "exact", head: true }).eq("site", site).eq("status", "DRAFT"),
+    supabase.from("discover_articles").select("views").eq("site", site),
   ]);
   const views = (viewsRes.data ?? []).reduce((sum, row) => sum + (row.views ?? 0), 0);
   return {

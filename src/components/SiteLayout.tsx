@@ -59,7 +59,9 @@ export function SiteLayout({
       pathname === "/terms" ||
       pathname === "/privacy" ||
       pathname === "/cookies" ||
-      pathname === "/refund-policy");
+      pathname === "/refund-policy" ||
+      pathname === "/discover" ||
+      pathname.startsWith("/discover/"));
   const showStockUpBack = stockup && pathname !== "/" && !isProductDetailPath(pathname);
   const showConsumerSecondaryNav =
     !stockup &&

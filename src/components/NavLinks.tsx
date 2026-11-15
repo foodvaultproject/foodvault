@@ -43,6 +43,7 @@ function getNavLinks(appMode: AppMode): AppNavLink[] {
     return [
       { href: "/?categories=1", label: "Categories" },
       { href: "/?deals=1", label: "Deals" },
+      { href: "/discover", label: "News & Savings" },
     ];
   }
 

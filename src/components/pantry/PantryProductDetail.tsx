@@ -104,7 +104,13 @@ function ProductBackButton() {
   );
 }
 
-export function PantryProductDetail({ product }: { product: FoodVaultProduct }) {
+export function PantryProductDetail({
+  product,
+  guides = [],
+}: {
+  product: FoodVaultProduct;
+  guides?: Array<{ title: string; slug: string }>;
+}) {
   const { addToCart, toggleGrocery, isSaved, addedIds } = usePantryMarket();
   const gallery = productGallery(product);
   const [quantity, setQuantity] = useState(1);
@@ -283,6 +289,19 @@ export function PantryProductDetail({ product }: { product: FoodVaultProduct }) 
             </button>
           </div>
           <p className="mt-2 text-xs text-muted">SKU {product.sku}</p>
+          {guides.length > 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Featured in StockUp Guides:{" "}
+              {guides.map((guide, index) => (
+                <span key={guide.slug}>
+                  {index > 0 ? ", " : null}
+                  <Link href={`/discover/${guide.slug}`} className="font-semibold text-[#064E3B] hover:underline">
+                    {guide.title}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ) : null}
         </div>
       </div>
 

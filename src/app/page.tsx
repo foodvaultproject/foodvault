@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { DiscoverSection } from "@/components/home/DiscoverSection";
 import { HomePageClientRouter } from "@/components/home/HomePageClientRouter";
 import { PantryStorefront } from "@/components/pantry/PantryStorefront";
 import { getAppMode } from "@/lib/app-mode";
+import { getDiscoverPageContent } from "@/lib/discover/queries";
 import { getStaticHomepageData } from "@/lib/homepage/static-data";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +45,8 @@ export default async function HomePage({ searchParams }: StorefrontPageProps) {
   }
 
   const { q, department, subcategory, specific, deals } = await searchParams;
+  const showGuides = !q && !department && !subcategory && !specific && deals !== "1";
+  const guides = showGuides ? (await getDiscoverPageContent("stockup")).homepageCards : [];
 
   return (
     <section className="min-w-0 overflow-x-clip bg-page">
@@ -55,6 +59,7 @@ export default async function HomePage({ searchParams }: StorefrontPageProps) {
           deals={deals === "1"}
         />
       </div>
+      {showGuides ? <DiscoverSection articles={guides} stockup /> : null}
     </section>
   );
 }

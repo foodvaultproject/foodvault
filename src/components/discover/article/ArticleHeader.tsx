@@ -9,6 +9,8 @@ type ArticleHeaderProps = {
   authorName: string | null;
   publishDate: string | null;
   readTimeMinutes: number;
+  updatedLabel?: string | null;
+  stockup?: boolean;
 };
 
 export function ArticleHeader({
@@ -18,6 +20,8 @@ export function ArticleHeader({
   authorName,
   publishDate,
   readTimeMinutes,
+  updatedLabel,
+  stockup = false,
 }: ArticleHeaderProps) {
   const metadataParts = [
     authorName,
@@ -27,7 +31,7 @@ export function ArticleHeader({
 
   return (
     <header className="space-y-5 sm:space-y-6">
-      <ArticleCategoryLabel category={category} />
+      <ArticleCategoryLabel category={category} stockup={stockup} />
 
       <h1 className={`max-w-4xl ${heading1}`}>
         {title}
@@ -42,6 +46,7 @@ export function ArticleHeader({
       {metadataParts.length > 0 ? (
         <p className="text-sm text-muted-foreground">
           {metadataParts.join(" • ")}
+          {updatedLabel ? ` • Updated ${updatedLabel}` : ""}
         </p>
       ) : null}
     </header>

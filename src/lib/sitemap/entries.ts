@@ -81,10 +81,15 @@ export async function getSitemapBrandEntries(): Promise<SitemapDynamicEntry[]> {
     .filter((entry): entry is SitemapDynamicEntry => entry !== null);
 }
 
-export async function getSitemapDiscoverEntries(): Promise<SitemapDynamicEntry[]> {
+export async function getSitemapDiscoverEntries(
+  site: "foodvault" | "stockup" = "foodvault"
+): Promise<SitemapDynamicEntry[]> {
   if (!isSupabaseConfigured()) {
     return mockArticles
-      .filter((article) => article.status === "PUBLISHED")
+      .filter(
+        (article) =>
+          article.status === "PUBLISHED" && (article.site ?? "foodvault") === site
+      )
       .map((article) => ({
         path: `/discover/${article.slug}`,
         lastModified: parseLastModified(article.updated_at ?? article.publish_date),
@@ -94,7 +99,8 @@ export async function getSitemapDiscoverEntries(): Promise<SitemapDynamicEntry[]
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("discover_articles")
-    .select("slug, updated_at, publish_date, created_at")
+    .select("slug, updated_at, publish_date, created_at, site")
+    .eq("site", site)
     .eq("status", "PUBLISHED");
 
   if (error || !data?.length) {
@@ -104,7 +110,7 @@ export async function getSitemapDiscoverEntries(): Promise<SitemapDynamicEntry[]
   return data
     .map((row) => {
       const slug = String(row.slug ?? "").trim();
-      if (!slug) return null;
+      if (!slug || slug === "news" || slug === "savings") return null;
 
       return {
         path: `/discover/${slug}`,
@@ -118,6 +124,6 @@ export async function getSitemapDiscoverEntries(): Promise<SitemapDynamicEntry[]
     .filter((entry): entry is SitemapDynamicEntry => entry !== null);
 }
 
-export function buildSitemapUrl(path: string): string {
-  return `${SITEMAP_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+export function buildSitemapUrl(path: string, origin = SITEMAP_BASE_URL): string {
+  return `${origin}${path.startsWith("/") ? path : `/${path}`}`;
 }

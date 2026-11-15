@@ -1,15 +1,17 @@
 import { mockArticles } from "@/lib/admin/mock-data";
 import {
-  DISCOVER_CMS_CATEGORIES,
+  type AnyDiscoverCategory,
   type DiscoverArticleRow,
-  type DiscoverCategory,
+  type DiscoverFaq,
+  type DiscoverSite,
 } from "@/lib/admin/types";
 import { resolveDiscoverAuthorName } from "@/lib/discover/constants";
 import {
+  categoriesForSite,
   isRemovedDiscoverCategory,
   normalizeDiscoverCategory,
 } from "@/lib/discover/categories";
-import { parseMetaTags } from "@/lib/discover/meta-tags";
+import { parseDiscoverFaqs, parseMetaTags } from "@/lib/discover/meta-tags";
 import { isSupabaseConfigured } from "@/lib/auth";
 import { createPublicReadClient } from "@/lib/supabase/public-read";
 
@@ -20,7 +22,7 @@ export type DiscoverArticleCard = {
   id: string;
   slug: string;
   title: string;
-  category: DiscoverCategory;
+  category: AnyDiscoverCategory;
   summary: string | null;
   heroImageUrl: string;
   readTimeMinutes: number;
@@ -31,7 +33,7 @@ export type DiscoverArticleCard = {
 
 export type DiscoverPageContent = {
   featured: DiscoverArticleCard | null;
-  byCategory: Record<DiscoverCategory, DiscoverArticleCard[]>;
+  byCategory: Record<string, DiscoverArticleCard[]>;
   homepageCards: DiscoverArticleCard[];
 };
 
@@ -40,12 +42,19 @@ export type DiscoverArticlePageData = DiscoverArticleCard & {
   metaTitle: string | null;
   metaDescription: string | null;
   metaTags: string[];
+  relatedProductIds: string[];
+  faqs: DiscoverFaq[];
+  site: DiscoverSite;
   updatedAt: string | null;
 };
 
-function toDiscoverCategory(value: string): DiscoverCategory | null {
-  if (isRemovedDiscoverCategory(value)) return null;
-  return normalizeDiscoverCategory(value);
+function articleSite(row: DiscoverArticleRow, fallback: DiscoverSite): DiscoverSite {
+  return row.site === "stockup" ? "stockup" : row.site === "foodvault" ? "foodvault" : fallback;
+}
+
+function toDiscoverCategory(value: string, site: DiscoverSite): AnyDiscoverCategory | null {
+  if (site === "foodvault" && isRemovedDiscoverCategory(value)) return null;
+  return normalizeDiscoverCategory(value, site);
 }
 
 function sortByPublishDate(rows: DiscoverArticleRow[]): DiscoverArticleRow[] {
@@ -56,8 +65,11 @@ function sortByPublishDate(rows: DiscoverArticleRow[]): DiscoverArticleRow[] {
   });
 }
 
-export function mapArticleRow(row: DiscoverArticleRow): DiscoverArticleCard | null {
-  const category = toDiscoverCategory(row.category);
+export function mapArticleRow(
+  row: DiscoverArticleRow,
+  site: DiscoverSite = "foodvault"
+): DiscoverArticleCard | null {
+  const category = toDiscoverCategory(row.category, articleSite(row, site));
   if (!category) return null;
 
   return {
@@ -90,18 +102,21 @@ export function formatPublishDate(iso: string | null) {
   });
 }
 
-function buildDiscoverContent(rows: DiscoverArticleRow[]): DiscoverPageContent {
+function buildDiscoverContent(
+  rows: DiscoverArticleRow[],
+  site: DiscoverSite
+): DiscoverPageContent {
   const published = sortByPublishDate(rows.filter((row) => row.status === "PUBLISHED"));
   const cards = published
-    .map(mapArticleRow)
+    .map((row) => mapArticleRow(row, site))
     .filter((card): card is DiscoverArticleCard => card !== null);
 
   const byCategory = Object.fromEntries(
-    DISCOVER_CMS_CATEGORIES.map((category) => [
+    categoriesForSite(site).map((category) => [
       category,
       cards.filter((card) => card.category === category),
     ])
-  ) as Record<DiscoverCategory, DiscoverArticleCard[]>;
+  );
 
   const featured =
     cards.find((card) => card.featured) ??
@@ -113,9 +128,11 @@ function buildDiscoverContent(rows: DiscoverArticleRow[]): DiscoverPageContent {
   return { featured, byCategory, homepageCards };
 }
 
-async function fetchPublishedRows(): Promise<DiscoverArticleRow[]> {
+async function fetchPublishedRows(site: DiscoverSite): Promise<DiscoverArticleRow[]> {
   if (!isSupabaseConfigured()) {
-    return mockArticles.filter((article) => article.status === "PUBLISHED");
+    return mockArticles.filter(
+      (article) => article.status === "PUBLISHED" && (article.site ?? "foodvault") === site
+    );
   }
 
   const supabase = createPublicReadClient();
@@ -126,6 +143,7 @@ async function fetchPublishedRows(): Promise<DiscoverArticleRow[]> {
   const { data } = await supabase
     .from("discover_articles")
     .select("*")
+    .eq("site", site)
     .eq("status", "PUBLISHED")
     .order("publish_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
@@ -134,22 +152,27 @@ async function fetchPublishedRows(): Promise<DiscoverArticleRow[]> {
 }
 
 export async function getPublishedArticlesByCategory(
-  category: DiscoverCategory
+  site: DiscoverSite,
+  category: AnyDiscoverCategory
 ): Promise<DiscoverArticlePageData[]> {
-  const rows = await fetchPublishedRows();
+  const rows = await fetchPublishedRows(site);
   return rows
     .filter((row) => row.category === category && row.status === "PUBLISHED")
-    .map(mapRowToPageData)
+    .map((row) => mapRowToPageData(row, site))
     .filter((article): article is DiscoverArticlePageData => article !== null);
 }
 
-export async function getDiscoverPageContent(): Promise<DiscoverPageContent> {
-  const rows = await fetchPublishedRows();
-  return buildDiscoverContent(rows);
+export async function getDiscoverPageContent(site: DiscoverSite = "foodvault"): Promise<DiscoverPageContent> {
+  const rows = await fetchPublishedRows(site);
+  return buildDiscoverContent(rows, site);
 }
 
-function mapRowToPageData(row: DiscoverArticleRow): DiscoverArticlePageData | null {
-  const card = mapArticleRow(row);
+function mapRowToPageData(
+  row: DiscoverArticleRow,
+  site: DiscoverSite
+): DiscoverArticlePageData | null {
+  const resolvedSite = articleSite(row, site);
+  const card = mapArticleRow(row, resolvedSite);
   if (!card) return null;
 
   return {
@@ -158,6 +181,11 @@ function mapRowToPageData(row: DiscoverArticleRow): DiscoverArticlePageData | nu
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
     metaTags: parseMetaTags(row.meta_tags),
+    relatedProductIds: Array.isArray(row.related_product_ids)
+      ? row.related_product_ids.filter(Boolean)
+      : [],
+    faqs: parseDiscoverFaqs(row.faqs),
+    site: resolvedSite,
     updatedAt: row.updated_at ?? row.created_at ?? null,
   };
 }
@@ -165,7 +193,7 @@ function mapRowToPageData(row: DiscoverArticleRow): DiscoverArticlePageData | nu
 export function pickContinueReadingArticles(
   articles: DiscoverArticleCard[],
   currentSlug: string,
-  category: DiscoverCategory,
+  category: AnyDiscoverCategory,
   limit = 5
 ): DiscoverArticleCard[] {
   const others = articles.filter((article) => article.slug !== currentSlug);
@@ -176,14 +204,18 @@ export function pickContinueReadingArticles(
 }
 
 export async function getPublishedArticleBySlug(
-  slug: string
+  slug: string,
+  site: DiscoverSite = "foodvault"
 ): Promise<DiscoverArticlePageData | null> {
   if (!isSupabaseConfigured()) {
     const row = mockArticles.find(
-      (article) => article.slug === slug && article.status === "PUBLISHED"
+      (article) =>
+        article.slug === slug &&
+        article.status === "PUBLISHED" &&
+        (article.site ?? "foodvault") === site
     );
     if (!row) return null;
-    return mapRowToPageData(row);
+    return mapRowToPageData(row, site);
   }
 
   const supabase = createPublicReadClient();
@@ -194,25 +226,29 @@ export async function getPublishedArticleBySlug(
   const { data } = await supabase
     .from("discover_articles")
     .select("*")
+    .eq("site", site)
     .eq("slug", slug)
     .eq("status", "PUBLISHED")
     .maybeSingle();
 
   if (!data) return null;
-  return mapRowToPageData(data as DiscoverArticleRow);
+  return mapRowToPageData(data as DiscoverArticleRow, site);
 }
 
-export async function getDiscoverArticlePageData(slug: string): Promise<{
+export async function getDiscoverArticlePageData(
+  slug: string,
+  site: DiscoverSite = "foodvault"
+): Promise<{
   article: DiscoverArticlePageData;
   continueReading: DiscoverArticleCard[];
 } | null> {
-  const rows = await fetchPublishedRows();
+  const rows = await fetchPublishedRows(site);
   const articleRow = rows.find((row) => row.slug === slug);
   if (!articleRow) {
-    const article = await getPublishedArticleBySlug(slug);
+    const article = await getPublishedArticleBySlug(slug, site);
     if (!article) return null;
     const allCards = rows
-      .map(mapArticleRow)
+      .map((row) => mapArticleRow(row, site))
       .filter((card): card is DiscoverArticleCard => card !== null);
     return {
       article,
@@ -220,15 +256,38 @@ export async function getDiscoverArticlePageData(slug: string): Promise<{
     };
   }
 
-  const article = mapRowToPageData(articleRow);
+  const article = mapRowToPageData(articleRow, site);
   if (!article) return null;
 
   const allCards = rows
-    .map(mapArticleRow)
+    .map((row) => mapArticleRow(row, site))
     .filter((card): card is DiscoverArticleCard => card !== null);
 
   return {
     article,
     continueReading: pickContinueReadingArticles(allCards, slug, article.category),
   };
+}
+
+export async function getStockUpGuidesForProduct(productId: string): Promise<
+  Array<{ title: string; slug: string }>
+> {
+  if (!productId || !isSupabaseConfigured()) return [];
+  const supabase = createPublicReadClient();
+  if (!supabase) return [];
+
+  const { data } = await supabase
+    .from("discover_articles")
+    .select("title, slug")
+    .eq("site", "stockup")
+    .eq("status", "PUBLISHED")
+    .contains("related_product_ids", [productId])
+    .order("publish_date", { ascending: false });
+
+  return (data ?? [])
+    .map((row) => ({
+      title: String(row.title ?? "").trim(),
+      slug: String(row.slug ?? "").trim(),
+    }))
+    .filter((row) => row.title && row.slug);
 }

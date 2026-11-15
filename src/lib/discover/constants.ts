@@ -1,4 +1,6 @@
 export const DISCOVER_ARTICLE_AUTHOR = "Mark, Kiwi & Piggy";
+export const STOCKUP_ARTICLE_AUTHOR = "StockUp Team";
+export const STOCKUP_PUBLISHER_NAME = "Britomart Groceries Limited t/a StockUp";
 
 const LEGACY_DISCOVER_AUTHORS = new Set([
   "System Administrator",

@@ -10,6 +10,7 @@ import type { GeneratedBlogDraft } from "@/lib/cron/generate-blog-gemini";
 import { normalizeArticleBodyHtml } from "@/lib/discover/article-blocks";
 import { DISCOVER_ARTICLE_AUTHOR } from "@/lib/discover/constants";
 import { unescapeArticleEntities } from "@/lib/discover/article-inline";
+import { parseMetaTags } from "@/lib/discover/meta-tags";
 import { formatArticleBodyContent } from "@/lib/discover/format-article-body";
 
 function isMissingColumnError(error: { message?: string } | null) {
@@ -26,6 +27,7 @@ async function uniqueDiscoverSlug(admin: SupabaseClient, rawSlug: string, title:
     const { data, error } = await admin
       .from("discover_articles")
       .select("id")
+      .eq("site", "foodvault")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -95,12 +97,9 @@ export async function saveGeneratedDiscoverArticle(
   );
   const partner = featuredPartnerFromPayload(payload);
   const heroImageUrl = partnerBlogHeroImageUrl(partner);
-  const metaTags = [
-    payload.cmsCategory,
-    "FoodVault",
-    partner?.businessName,
-  ].filter((tag): tag is string => Boolean(tag));
+  const metaTags = parseMetaTags(draft.tags);
   const insertPayload = {
+    site: "foodvault",
     title: draft.title,
     slug,
     category: payload.cmsCategory,

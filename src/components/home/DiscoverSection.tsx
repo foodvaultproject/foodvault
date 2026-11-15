@@ -11,6 +11,7 @@ const HOMEPAGE_TILE_IMAGE_SIZES = "(max-width: 768px) 50vw, (max-width: 1200px) 
 type DiscoverSectionProps = {
   articles: DiscoverArticleCard[];
   compactSpacing?: boolean;
+  stockup?: boolean;
 };
 
 const DISCOVER_COPY = {
@@ -22,11 +23,18 @@ const DISCOVER_COPY = {
 export function DiscoverSection({
   articles,
   compactSpacing = false,
+  stockup = false,
 }: DiscoverSectionProps) {
   const homepageArticles = articles.slice(0, HOMEPAGE_DISCOVER_LIMIT);
   if (homepageArticles.length === 0) return null;
 
-  const copy = DISCOVER_COPY;
+  const copy = stockup
+    ? {
+        heading: "News & Savings",
+        subtitle: "Guides from the StockUp team on saver grocery shops.",
+        ctaLabel: "News & Savings →",
+      }
+    : DISCOVER_COPY;
 
   return (
     <section
@@ -44,7 +52,9 @@ export function DiscoverSection({
           </div>
           <Link
             href="/discover"
-            className="hidden shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover sm:inline-flex"
+            className={`hidden shrink-0 text-xs font-semibold transition-colors sm:inline-flex ${
+              stockup ? "text-[#064E3B]" : "text-primary hover:text-primary-hover"
+            }`}
           >
             {copy.ctaLabel}
           </Link>

@@ -38,7 +38,6 @@ export const FOODVAULT_GUARDED_PREFIXES = [
   "/how-it-works",
   "/for-brands",
   "/about",
-  "/discover",
   "/membership",
   "/signup",
   "/partner",
@@ -60,7 +59,6 @@ export const FOODVAULT_GUARDED_PREFIXES = [
   "/admin/affiliate-system-health",
   "/admin/affiliate-fraud",
   "/admin/affiliate-leaderboards",
-  "/admin/discover",
   "/admin/homepage",
 ] as const;
 

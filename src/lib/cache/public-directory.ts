@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
-import { PUBLIC_CACHE_TAG, PUBLIC_REVALIDATE_SECONDS } from "@/lib/cache/revalidate";
+import { discoverCacheTag, PUBLIC_CACHE_TAG, PUBLIC_REVALIDATE_SECONDS } from "@/lib/cache/revalidate";
+import type { DiscoverSite } from "@/lib/admin/types";
 import { getDiscoverPageContent, getDiscoverArticlePageData, getPublishedArticleBySlug } from "@/lib/discover/queries";
 import {
   getFeaturedBrands,
@@ -46,22 +47,27 @@ export const getCachedHomeExploreGalleryItems = unstable_cache(
   }
 );
 
-export const getCachedDiscoverPageContent = unstable_cache(
-  async () => getDiscoverPageContent(),
-  ["cached-discover-page-content"],
-  {
-    revalidate: PUBLIC_REVALIDATE_SECONDS,
-    tags: [PUBLIC_CACHE_TAG.discover],
-  }
-);
-
-export async function getCachedPublishedArticleBySlug(slug: string) {
+export function getCachedDiscoverPageContent(site: DiscoverSite = "foodvault") {
   return unstable_cache(
-    async () => getPublishedArticleBySlug(slug),
-    ["cached-discover-article", slug],
+    async () => getDiscoverPageContent(site),
+    ["cached-discover-page-content", site],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CACHE_TAG.discover, `discover-article-${slug}`],
+      tags: [discoverCacheTag(site), PUBLIC_CACHE_TAG.discover],
+    }
+  )();
+}
+
+export async function getCachedPublishedArticleBySlug(
+  slug: string,
+  site: DiscoverSite = "foodvault"
+) {
+  return unstable_cache(
+    async () => getPublishedArticleBySlug(slug, site),
+    ["cached-discover-article", site, slug],
+    {
+      revalidate: PUBLIC_REVALIDATE_SECONDS,
+      tags: [discoverCacheTag(site), `discover-article-${site}-${slug}`],
     }
   )();
 }
@@ -205,19 +211,22 @@ export async function getCachedPartnerLogos(limit: number) {
   )();
 }
 
-export async function getCachedDiscoverArticlePageData(slug: string) {
+export async function getCachedDiscoverArticlePageData(
+  slug: string,
+  site: DiscoverSite = "foodvault"
+) {
   return unstable_cache(
-    async () => getDiscoverArticlePageData(slug),
-    ["cached-discover-article-page", slug],
+    async () => getDiscoverArticlePageData(slug, site),
+    ["cached-discover-article-page", site, slug],
     {
       revalidate: PUBLIC_REVALIDATE_SECONDS,
-      tags: [PUBLIC_CACHE_TAG.discover, `discover-article-${slug}`],
+      tags: [discoverCacheTag(site), `discover-article-${site}-${slug}`],
     }
   )();
 }
 
-export async function getCachedDiscoverArticleSlugs() {
-  const content = await getCachedDiscoverPageContent();
+export async function getCachedDiscoverArticleSlugs(site: DiscoverSite = "foodvault") {
+  const content = await getCachedDiscoverPageContent(site);
   const slugs = new Set<string>();
 
   if (content.featured?.slug) {

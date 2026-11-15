@@ -1,12 +1,18 @@
 import type { MetadataRoute } from "next";
-import { SITEMAP_BASE_URL } from "@/lib/sitemap/entries";
+import { headers } from "next/headers";
+import { canonicalSiteOrigin, getAppMode } from "@/lib/app-mode";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const headerStore = await headers();
+  const origin = canonicalSiteOrigin(
+    getAppMode(headerStore.get("x-forwarded-host") ?? headerStore.get("host"))
+  );
+
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${SITEMAP_BASE_URL}/sitemap.xml`,
+    sitemap: `${origin}/sitemap.xml`,
   };
 }

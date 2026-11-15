@@ -9,6 +9,7 @@ import {
   resolveProductSubcategory,
 } from "@/lib/commerce/catalog";
 import { getActiveVaultMarketProducts, getVaultMarketProductById } from "@/lib/commerce/products";
+import { getStockUpGuidesForProduct } from "@/lib/discover/queries";
 import { PAGE_PY } from "@/lib/section-spacing";
 
 export const dynamic = "force-dynamic";
@@ -55,11 +56,12 @@ export default async function StorefrontProductPage({ params }: ProductPageProps
   const listed = findCatalogProduct(products, { category, subcategory, slug });
   if (!listed) notFound();
   const product = (await getVaultMarketProductById(listed.id)) ?? listed;
+  const guides = await getStockUpGuidesForProduct(product.id);
 
   return (
     <section className="min-w-0 overflow-x-clip bg-page">
       <div className={`mx-auto min-w-0 max-w-[1200px] px-4 sm:px-6 lg:px-8 ${PAGE_PY}`}>
-        <PantryProductDetail product={product} />
+        <PantryProductDetail product={product} guides={guides} />
       </div>
     </section>
   );

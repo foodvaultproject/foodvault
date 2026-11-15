@@ -8,7 +8,17 @@ export const DISCOVER_CMS_CATEGORIES = [
   "News",
 ] as const;
 
+export const STOCKUP_DISCOVER_CATEGORIES = ["News", "Savings"] as const;
+
+export type DiscoverSite = "foodvault" | "stockup";
 export type DiscoverCategory = (typeof DISCOVER_CMS_CATEGORIES)[number];
+export type StockUpDiscoverCategory = (typeof STOCKUP_DISCOVER_CATEGORIES)[number];
+export type AnyDiscoverCategory = DiscoverCategory | StockUpDiscoverCategory;
+
+export type DiscoverFaq = {
+  question: string;
+  answer: string;
+};
 
 export type AdminUser = {
   id: string;
@@ -112,6 +122,7 @@ export type AdminAffiliateStats = {
 
 export type DiscoverArticleRow = {
   id: string;
+  site?: DiscoverSite | null;
   title: string;
   slug: string;
   category: string;
@@ -122,6 +133,8 @@ export type DiscoverArticleRow = {
   meta_title: string | null;
   meta_description: string | null;
   meta_tags: string[] | null;
+  related_product_ids?: string[] | null;
+  faqs?: unknown;
   featured: boolean;
   publish_date: string | null;
   author_name: string | null;

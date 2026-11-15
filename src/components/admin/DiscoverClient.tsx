@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { StatCard, StatusBadge, formatAdminDate } from "@/components/admin/AdminUi";
 import { deleteArticleAction } from "@/lib/admin/actions";
-import type { DiscoverArticleRow } from "@/lib/admin/types";
+import { generateStockUpDraftAction } from "@/lib/admin/stockup-discover-actions";
+import type { DiscoverArticleRow, DiscoverSite } from "@/lib/admin/types";
 import { DISCOVER_PAGE_TITLE } from "@/lib/discover/categories";
 
 const FILTERS = ["ALL", "PUBLISHED", "DRAFT", "ARCHIVED"] as const;
@@ -21,10 +22,12 @@ export function DiscoverClient({
   stats,
   articles,
   activeFilter,
+  site,
 }: {
   stats: Stats;
   articles: DiscoverArticleRow[];
   activeFilter: string;
+  site: DiscoverSite;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -39,7 +42,7 @@ export function DiscoverClient({
     }
 
     startTransition(async () => {
-      const result = await deleteArticleAction(article.id);
+      const result = await deleteArticleAction(article.id, site);
       if (result.error) {
         alert(result.error);
         return;
@@ -55,12 +58,51 @@ export function DiscoverClient({
           <h1 className="text-2xl font-bold text-foreground">{DISCOVER_PAGE_TITLE}</h1>
           <p className="mt-1 text-sm text-muted">Manage articles for the public {DISCOVER_PAGE_TITLE} section</p>
         </div>
-        <Link
-          href="/admin/discover/edit"
-          className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
-        >
-          New Article
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {site === "stockup" ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                startTransition(async () => {
+                  const result = await generateStockUpDraftAction();
+                  if ("error" in result && result.error) {
+                    alert(result.error);
+                    return;
+                  }
+                  if (result.id) {
+                    router.push(`/admin/discover/edit?id=${result.id}&site=stockup`);
+                    router.refresh();
+                  }
+                });
+              }}
+              className="rounded border border-border bg-white px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface disabled:opacity-60"
+            >
+              Generate StockUp Draft
+            </button>
+          ) : null}
+          <Link
+            href={`/admin/discover/edit?site=${site}`}
+            className="fv-btn-primary inline-flex items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-[transform,box-shadow] duration-150"
+          >
+            New Article
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex gap-1 rounded border border-border bg-page p-1 w-fit">
+        {(["foodvault", "stockup"] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => router.push(`/admin/discover?site=${value}&filter=${activeFilter}`)}
+            className={`rounded px-4 py-2 text-xs font-semibold uppercase tracking-wide ${
+              site === value ? "bg-white text-primary shadow-sm" : "text-muted hover:text-foreground"
+            }`}
+          >
+            {value === "stockup" ? "StockUp" : "FoodVault"}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -75,7 +117,7 @@ export function DiscoverClient({
           <button
             key={filter}
             type="button"
-            onClick={() => router.push(`/admin/discover?filter=${filter}`)}
+            onClick={() => router.push(`/admin/discover?site=${site}&filter=${filter}`)}
             className={`rounded px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
               activeFilter === filter
                 ? "bg-white text-primary shadow-sm"
@@ -128,7 +170,7 @@ export function DiscoverClient({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Link
-                        href={`/admin/discover/edit?id=${article.id}`}
+                        href={`/admin/discover/edit?id=${article.id}&site=${site}`}
                         className="text-sm font-semibold text-primary hover:underline"
                       >
                         Edit

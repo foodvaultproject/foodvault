@@ -12,17 +12,18 @@ import {
 } from "@/lib/email-templates/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
-import { DISCOVER_ARTICLE_AUTHOR } from "@/lib/discover/constants";
+import { DISCOVER_ARTICLE_AUTHOR, STOCKUP_ARTICLE_AUTHOR } from "@/lib/discover/constants";
+import { categoriesForSite, RESERVED_DISCOVER_SLUGS } from "@/lib/discover/categories";
 import { normalizeArticleBodyHtml } from "@/lib/discover/article-blocks";
 import { formatArticleBodyContent } from "@/lib/discover/format-article-body";
 import { getBrandReportEvents } from "@/lib/admin/queries";
-import { slugifyTitle } from "@/lib/admin/types";
+import { slugifyTitle, type DiscoverSite } from "@/lib/admin/types";
 import {
   BRAND_REPORT_PRIORITIES,
   BRAND_REPORT_STATUSES,
   BRAND_REPORT_STORAGE_BUCKET,
 } from "@/lib/brand-reports/constants";
-import { parseMetaTags } from "@/lib/discover/meta-tags";
+import { parseDiscoverFaqs, parseMetaTags } from "@/lib/discover/meta-tags";
 import {
   DEFAULT_PLATFORM_NAME,
   resolveSupportEmail,
@@ -334,9 +335,17 @@ export async function saveArticleAction(
   const id = formData.get("id") ? String(formData.get("id")) : null;
   const title = String(formData.get("title") ?? "");
   const slug = String(formData.get("slug") ?? slugifyTitle(title));
+  const site: DiscoverSite = formData.get("site") === "stockup" ? "stockup" : "foodvault";
   const heroImageUrl = formData.get("hero_image_url");
   const now = new Date().toISOString();
   const rawBody = typeof bodyHtml === "string" ? bodyHtml : String(formData.get("body") ?? "");
+  const category = String(formData.get("category") ?? "");
+  if (!(categoriesForSite(site) as readonly string[]).includes(category)) {
+    return { error: "Choose a category for this site." };
+  }
+  if ((RESERVED_DISCOVER_SLUGS as readonly string[]).includes(slug)) {
+    return { error: "That slug is reserved for a category page." };
+  }
 
   let publishDate = now;
   let previousSlug: string | null = null;
@@ -346,6 +355,7 @@ export async function saveArticleAction(
       .from("discover_articles")
       .select("publish_date, created_at, slug")
       .eq("id", id)
+      .eq("site", site)
       .maybeSingle();
     publishDate =
       (existing as { publish_date?: string | null; created_at?: string } | null)
@@ -357,39 +367,48 @@ export async function saveArticleAction(
   }
 
   const payload = {
+    site,
     title,
     slug,
-    category: String(formData.get("category") ?? ""),
+    category,
     summary: String(formData.get("summary") ?? ""),
     body: normalizeArticleBodyHtml(rawBody, title),
     hero_image_url: heroImageUrl ? String(heroImageUrl) : null,
     meta_title: String(formData.get("meta_title") ?? ""),
     meta_description: String(formData.get("meta_description") ?? ""),
     meta_tags: parseMetaTags(formData.get("meta_tags")),
+    related_product_ids: parseMetaTags(formData.get("related_product_ids")).filter((value) =>
+      /^[0-9a-f-]{36}$/i.test(value)
+    ),
+    faqs: parseDiscoverFaqs(formData.get("faqs")),
     featured: formData.get("featured") === "on",
     publish_date: publishDate,
     status: publish ? "PUBLISHED" : "DRAFT",
-    author_name: DISCOVER_ARTICLE_AUTHOR,
+    author_name: site === "stockup" ? STOCKUP_ARTICLE_AUTHOR : DISCOVER_ARTICLE_AUTHOR,
     updated_at: now,
   };
 
   if (!isSupabaseConfigured()) {
-    revalidatePublicDiscover({ slug, previousSlug });
+    revalidatePublicDiscover({ slug, previousSlug, site });
     return { success: true, id: id ?? "new" };
   }
 
   const supabase = await createClient();
   if (id) {
-    const { error } = await supabase.from("discover_articles").update(payload).eq("id", id);
+    const { error } = await supabase
+      .from("discover_articles")
+      .update(payload)
+      .eq("id", id)
+      .eq("site", site);
     if (error) return { error: error.message };
   } else {
     const { data, error } = await supabase.from("discover_articles").insert(payload).select("id").single();
     if (error) return { error: error.message };
-    revalidatePublicDiscover({ slug, previousSlug });
+    revalidatePublicDiscover({ slug, previousSlug, site });
     return { success: true, id: data.id };
   }
 
-  revalidatePublicDiscover({ slug, previousSlug });
+  revalidatePublicDiscover({ slug, previousSlug, site });
   return { success: true, id };
 }
 
@@ -417,29 +436,40 @@ export async function formatArticleBodyAction(input: {
   return { html };
 }
 
-export async function deleteArticleAction(articleId: string) {
+export async function deleteArticleAction(
+  articleId: string,
+  site: DiscoverSite = "foodvault"
+) {
   const admin = await getAdminUser();
   if (!admin) return { error: "Unauthorized" };
 
   if (!articleId) return { error: "Article ID is required" };
 
   if (!isSupabaseConfigured()) {
-    revalidatePublicDiscover();
+    revalidatePublicDiscover({ site });
     return { success: true };
   }
 
   const supabase = await createClient();
   const { data: article } = await supabase
     .from("discover_articles")
-    .select("slug")
+    .select("slug, site")
     .eq("id", articleId)
+    .eq("site", site)
     .maybeSingle();
 
-  const { error } = await supabase.from("discover_articles").delete().eq("id", articleId);
+  const { error } = await supabase
+    .from("discover_articles")
+    .delete()
+    .eq("id", articleId)
+    .eq("site", site);
   if (error) return { error: error.message };
 
   await logAuditAction("delete_article", "discover_article", articleId);
-  revalidatePublicDiscover({ slug: article?.slug ?? null });
+  revalidatePublicDiscover({
+    slug: article?.slug ?? null,
+    site: article?.site === "stockup" ? "stockup" : site,
+  });
   return { success: true };
 }
 

@@ -20,7 +20,6 @@ const FOODVAULT_ADMIN_PREFIXES = [
   "/admin/partners",
   "/admin/partner-contacts",
   "/admin/members",
-  "/admin/discover",
   "/admin/homepage",
 ] as const;
 

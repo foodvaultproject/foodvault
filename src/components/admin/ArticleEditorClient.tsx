@@ -9,15 +9,28 @@ import {
   type ArticleBodyEditorHandle,
 } from "@/components/admin/ArticleBodyEditor";
 import { saveArticleAction } from "@/lib/admin/actions";
-import { DISCOVER_CMS_CATEGORIES, slugifyTitle, type DiscoverArticleRow } from "@/lib/admin/types";
-import { normalizeDiscoverCategory } from "@/lib/discover/categories";
-import { parseMetaTags } from "@/lib/discover/meta-tags";
+import {
+  slugifyTitle,
+  type DiscoverArticleRow,
+  type DiscoverFaq,
+  type DiscoverSite,
+} from "@/lib/admin/types";
+import { categoriesForSite, normalizeDiscoverCategory } from "@/lib/discover/categories";
+import { parseDiscoverFaqs, parseMetaTags } from "@/lib/discover/meta-tags";
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted";
 
-export function ArticleEditorClient({ article }: { article: DiscoverArticleRow | null }) {
+export function ArticleEditorClient({
+  article,
+  site,
+  products = [],
+}: {
+  article: DiscoverArticleRow | null;
+  site: DiscoverSite;
+  products?: Array<{ id: string; name: string; brand: string }>;
+}) {
   const router = useRouter();
   const bodyEditorRef = useRef<ArticleBodyEditorHandle>(null);
   const [pending, startTransition] = useTransition();
@@ -26,6 +39,10 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [heroUrl, setHeroUrl] = useState(article?.hero_image_url ?? "");
   const [metaTags, setMetaTags] = useState<string[]>(parseMetaTags(article?.meta_tags));
+  const [productQuery, setProductQuery] = useState("");
+  const [relatedIds, setRelatedIds] = useState<string[]>(article?.related_product_ids ?? []);
+  const [faqs, setFaqs] = useState<DiscoverFaq[]>(parseDiscoverFaqs(article?.faqs));
+  const categories = categoriesForSite(site);
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -41,12 +58,15 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
       fd.set("body", bodyHtml);
       if (heroUrl) fd.set("hero_image_url", heroUrl);
       fd.set("meta_tags", JSON.stringify(metaTags));
+      fd.set("site", site);
+      fd.set("related_product_ids", JSON.stringify(relatedIds));
+      fd.set("faqs", JSON.stringify(faqs));
       const result = await saveArticleAction(fd, publish, bodyHtml);
       if (result.error) {
         setError(result.error);
         return;
       }
-      router.push("/admin/discover");
+      router.push(`/admin/discover?site=${site}`);
       router.refresh();
     });
   }
@@ -55,6 +75,7 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
     <div className="rounded border border-border bg-white p-6">
       <form id="article-form" className="space-y-6">
         {article ? <input type="hidden" name="id" value={article.id} /> : null}
+        <input type="hidden" name="site" value={site} />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
@@ -87,12 +108,12 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
             id="category"
             name="category"
             defaultValue={
-              (article?.category ? normalizeDiscoverCategory(article.category) : null) ??
-              DISCOVER_CMS_CATEGORIES[0]
+              (article?.category ? normalizeDiscoverCategory(article.category, site) : null) ??
+              categories[0]
             }
             className={inputClass}
           >
-            {DISCOVER_CMS_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
@@ -153,6 +174,84 @@ export function ArticleEditorClient({ article }: { article: DiscoverArticleRow |
             disabled={pending}
           />
         </div>
+
+        {site === "stockup" ? (
+          <section className="space-y-4 rounded-lg border border-border p-5">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wide text-muted">Featured pantry products</h3>
+              <input
+                value={productQuery}
+                onChange={(event) => setProductQuery(event.target.value)}
+                placeholder="Search active products"
+                className={`${inputClass} mt-3`}
+              />
+            </div>
+            <div className="max-h-56 space-y-2 overflow-y-auto">
+              {products
+                .filter((product) => {
+                  const query = productQuery.trim().toLowerCase();
+                  if (!query) return relatedIds.includes(product.id) || products.indexOf(product) < 12;
+                  return `${product.name} ${product.brand}`.toLowerCase().includes(query);
+                })
+                .slice(0, 20)
+                .map((product) => (
+                  <label key={product.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={relatedIds.includes(product.id)}
+                      onChange={() =>
+                        setRelatedIds((current) =>
+                          current.includes(product.id)
+                            ? current.filter((id) => id !== product.id)
+                            : [...current, product.id]
+                        )
+                      }
+                    />
+                    <span>{product.brand ? `${product.brand} · ` : ""}{product.name}</span>
+                  </label>
+                ))}
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-muted">FAQs</h3>
+              {faqs.map((faq, index) => (
+                <div key={index} className="grid gap-2">
+                  <input
+                    value={faq.question}
+                    onChange={(event) =>
+                      setFaqs((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, question: event.target.value } : item
+                        )
+                      )
+                    }
+                    placeholder="Question"
+                    className={inputClass}
+                  />
+                  <textarea
+                    value={faq.answer}
+                    onChange={(event) =>
+                      setFaqs((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, answer: event.target.value } : item
+                        )
+                      )
+                    }
+                    placeholder="Answer"
+                    rows={2}
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFaqs((current) => [...current, { question: "", answer: "" }])}
+                className="text-sm font-semibold text-primary"
+              >
+                Add FAQ
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="checkbox" name="featured" defaultChecked={article?.featured ?? false} className="rounded-md border-border text-primary focus:ring-primary" />
