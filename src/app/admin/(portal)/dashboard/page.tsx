@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin/queries";
 
 const stockupLinks = [
+  { href: "/admin/discover", label: "News & Savings", detail: "Write, generate, and publish StockUp blog posts." },
   { href: "/admin/picker", label: "Orders", detail: "Pick, pack, and fulfill supermarket orders." },
   { href: "/admin/products", label: "Products", detail: "Create and edit catalogue items and saver prices." },
   { href: "/admin/inventory", label: "Inventory", detail: "Log batches, unit cost, and what is on hand." },

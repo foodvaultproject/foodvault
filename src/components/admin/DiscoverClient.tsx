@@ -55,8 +55,14 @@ export function DiscoverClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{DISCOVER_PAGE_TITLE}</h1>
-          <p className="mt-1 text-sm text-muted">Manage articles for the public {DISCOVER_PAGE_TITLE} section</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {site === "stockup" ? "News & Savings" : DISCOVER_PAGE_TITLE}
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            {site === "stockup"
+              ? "Write and publish StockUp blog posts. New Article saves a draft you can edit."
+              : `Manage articles for the public ${DISCOVER_PAGE_TITLE} section`}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {site === "stockup" ? (
