@@ -42,6 +42,7 @@ export const stockupMemberNavMenuItems = [
   { href: "/", label: "Home" },
   { href: "/account/history", label: "My History" },
   { href: MEMBER_ACCOUNT_PATH, label: "My Account" },
+  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Help & Support" },
 ] as const;
 

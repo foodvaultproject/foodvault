@@ -22,7 +22,7 @@ const STOCKUP_STATIC_ROUTES: Array<{
   { path: "/discover/news", changeFrequency: "weekly", priority: 0.7 },
   { path: "/discover/savings", changeFrequency: "weekly", priority: 0.7 },
   { path: "/contact", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/faq", changeFrequency: "monthly", priority: 0.4 },
+  { path: "/faq", changeFrequency: "weekly", priority: 0.8 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/cookies", changeFrequency: "yearly", priority: 0.3 },

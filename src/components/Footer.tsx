@@ -18,6 +18,7 @@ const stockupFooterSections: { title: string; links: FooterLink[] }[] = [
       { href: "/?categories=1", label: "Categories" },
       { href: "/?deals=1", label: "Deals" },
       { href: "/contact", label: "Contact Us" },
+      { href: "/faq", label: "FAQ" },
     ],
   },
 ];
