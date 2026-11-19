@@ -3,6 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { SavedCardForm } from "@/components/account/SavedCardForm";
+import { SafeImage } from "@/components/media/SafeImage";
+import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
+import {
+  catalogSlug,
+  filterCatalogProducts,
+  getVaultMarketBrowseDepartments,
+  offerPrice,
+  resolveProductDepartment,
+} from "@/lib/commerce/catalog";
 import { formatNzPrice } from "@/lib/partner-offer";
 import {
   aucklandToday,
@@ -13,13 +22,13 @@ import type { SavedDeliveryDetails } from "@/lib/commerce/saved-delivery";
 import {
   cancelSchedule,
   saveSchedule,
-  searchScheduleProducts,
   setSchedulePaused,
   skipNextScheduleDelivery,
 } from "@/lib/commerce/schedule-actions";
 import type { ScheduleAddress, ScheduleRecord } from "@/lib/commerce/recurring-schedule-types";
 import type { StockupCardSummary } from "@/lib/commerce/stockup-billing";
 import { vaultMarketFreight } from "@/lib/commerce/shipping";
+import type { FoodVaultProduct } from "@/types/commerce";
 
 const DRAFT_KEY = "stockup.auto-restock-draft";
 
@@ -29,6 +38,7 @@ type DraftItem = {
   brand: string;
   price: number;
   quantity: number;
+  imageUrl?: string | null;
 };
 
 const EMPTY_ADDRESS: ScheduleAddress = {
@@ -308,10 +318,13 @@ function ScheduleEditor({
       brand: item.brand,
       price: item.unitPrice,
       quantity: item.quantity,
+      imageUrl: item.imageUrl,
     })) ?? (seedProduct ? [seedProduct] : [])
   );
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Array<{ id: string; name: string; brand: string; price: number }>>([]);
+  const [department, setDepartment] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [specific, setSpecific] = useState("");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const calendar = useMemo(() => monthGrid(`${month}-01`), [month]);
@@ -330,38 +343,27 @@ function ScheduleEditor({
     }
   }, [fromCart, schedule]);
 
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      void searchScheduleProducts(query).then(setResults);
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [query]);
-
-  function addResult(result: { id: string; name: string; brand: string; price: number }) {
+  function addProduct(product: FoodVaultProduct) {
+    if (product.stock_quantity <= 0) return;
     setItems((current) => {
-      const existing = current.find((item) => item.productId === result.id);
+      const existing = current.find((item) => item.productId === product.id);
       if (existing) {
         return current.map((item) =>
-          item.productId === result.id ? { ...item, quantity: Math.min(99, item.quantity + 1) } : item
+          item.productId === product.id ? { ...item, quantity: Math.min(99, item.quantity + 1) } : item
         );
       }
       return [
         ...current,
         {
-          productId: result.id,
-          name: result.name,
-          brand: result.brand,
-          price: result.price,
+          productId: product.id,
+          name: product.name,
+          brand: product.brand,
+          price: offerPrice(product),
           quantity: 1,
+          imageUrl: product.image_url,
         },
       ];
     });
-    setQuery("");
-    setResults([]);
   }
 
   function submit() {
@@ -516,74 +518,24 @@ function ScheduleEditor({
         </div>
       )}
 
-      <div className="mt-4">
-        <label className="text-sm font-semibold text-slate-800">
-          Add products
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search oats, coffee, olive oil"
-            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
-          />
-        </label>
-        {results.length > 0 ? (
-          <ul className="mt-2 overflow-hidden rounded-md border border-slate-200 bg-white">
-            {results.map((result) => (
-              <li key={result.id}>
-                <button
-                  type="button"
-                  onClick={() => addResult(result)}
-                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-emerald-50"
-                >
-                  <span>
-                    {result.brand} {result.name}
-                  </span>
-                  <span>{formatNzPrice(result.price)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <ul className="mt-3 space-y-2">
-          {items.map((item) => (
-            <li key={item.productId} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm">
-              <span>
-                {item.name}
-                <span className="ml-2 text-slate-500">{formatNzPrice(item.price)}</span>
-              </span>
-              <span className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={item.quantity}
-                  onChange={(event) =>
-                    setItems((current) =>
-                      current.map((line) =>
-                        line.productId === item.productId
-                          ? { ...line, quantity: Math.min(99, Math.max(1, Number(event.target.value) || 1)) }
-                          : line
-                      )
-                    )
-                  }
-                  className="w-16 rounded border border-slate-300 px-2 py-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => setItems((current) => current.filter((line) => line.productId !== item.productId))}
-                  className="text-xs font-semibold text-red-700"
-                >
-                  Remove
-                </button>
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-2 text-sm text-slate-700">
-          Estimated subtotal {formatNzPrice(subtotal)} · Freight{" "}
-          {vaultMarketFreight(subtotal) === 0 ? "$0.00" : formatNzPrice(vaultMarketFreight(subtotal))}
-        </p>
-      </div>
+      <ScheduleProductPicker
+        query={query}
+        department={department}
+        subcategory={subcategory}
+        specific={specific}
+        onQuery={setQuery}
+        onDepartment={(value) => {
+          setDepartment(value);
+          setSubcategory("");
+          setSpecific("");
+        }}
+        onSubcategory={(value) => {
+          setSubcategory(value);
+          setSpecific("");
+        }}
+        onSpecific={setSpecific}
+        onAdd={addProduct}
+      />
 
       <fieldset className="mt-4 grid gap-3 sm:grid-cols-2">
         <legend className="text-sm font-semibold text-slate-800">Delivery address</legend>
@@ -610,6 +562,63 @@ function ScheduleEditor({
         ))}
       </fieldset>
 
+      <div className="mt-4">
+        <p className="text-sm font-semibold text-slate-800">Items on this schedule</p>
+        {items.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-600">Added products appear here before you save.</p>
+        ) : (
+          <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {items.map((item) => (
+              <li key={item.productId} className="flex gap-3 rounded-md bg-white p-2">
+                <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                  <SafeImage
+                    src={item.imageUrl ?? ""}
+                    alt=""
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                    fallbackVariant="muted"
+                  />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 text-sm font-semibold text-slate-900">{item.name}</span>
+                  <span className="mt-1 flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      aria-label={`Quantity for ${item.name}`}
+                      value={item.quantity}
+                      onChange={(event) =>
+                        setItems((current) =>
+                          current.map((line) =>
+                            line.productId === item.productId
+                              ? { ...line, quantity: Math.min(99, Math.max(1, Number(event.target.value) || 1)) }
+                              : line
+                          )
+                        )
+                      }
+                      className="w-16 rounded border border-slate-300 px-2 py-1 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setItems((current) => current.filter((line) => line.productId !== item.productId))}
+                      className="text-xs font-semibold text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-2 text-sm text-slate-700">
+          Estimated subtotal {formatNzPrice(subtotal)} · Freight{" "}
+          {vaultMarketFreight(subtotal) === 0 ? "$0.00" : formatNzPrice(vaultMarketFreight(subtotal))}
+        </p>
+      </div>
+
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
       <button
         type="submit"
@@ -619,6 +628,158 @@ function ScheduleEditor({
         {pending ? "Saving..." : "Save schedule"}
       </button>
     </form>
+  );
+}
+
+function ScheduleProductPicker({
+  query,
+  department,
+  subcategory,
+  specific,
+  onQuery,
+  onDepartment,
+  onSubcategory,
+  onSpecific,
+  onAdd,
+}: {
+  query: string;
+  department: string;
+  subcategory: string;
+  specific: string;
+  onQuery: (value: string) => void;
+  onDepartment: (value: string) => void;
+  onSubcategory: (value: string) => void;
+  onSpecific: (value: string) => void;
+  onAdd: (product: FoodVaultProduct) => void;
+}) {
+  const { products } = usePantryMarket();
+  const departments = useMemo(() => {
+    return getVaultMarketBrowseDepartments().filter((entry) =>
+      products.some(
+        (product) =>
+          product.is_active && catalogSlug(resolveProductDepartment(product)) === entry.slug
+      )
+    );
+  }, [products]);
+  const activeDepartment = departments.find((entry) => entry.slug === department) ?? null;
+  const activeSubcategory =
+    activeDepartment?.subcategories.find((entry) => entry.slug === subcategory) ?? null;
+  const selectionMade = Boolean(department || query.trim().length >= 2);
+  const matches = useMemo(() => {
+    if (!selectionMade) return [];
+    return filterCatalogProducts(
+      products.filter((product) => product.is_active),
+      {
+        query: query.trim().length >= 2 ? query : "",
+        department,
+        subcategory,
+        specific,
+      }
+    );
+  }, [department, products, query, selectionMade, specific, subcategory]);
+
+  return (
+    <div className="mt-4">
+      <p className="text-sm font-semibold text-slate-800">Add products</p>
+      <div className="mt-2 grid gap-2 sm:grid-cols-3">
+        <label className="text-sm text-slate-700">
+          Department
+          <select
+            value={department}
+            onChange={(event) => onDepartment(event.target.value)}
+            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2"
+          >
+            <option value="">Choose a department</option>
+            {departments.map((entry) => (
+              <option key={entry.slug} value={entry.slug}>
+                {entry.department}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-slate-700">
+          Subcategory
+          <select
+            value={subcategory}
+            disabled={!activeDepartment}
+            onChange={(event) => onSubcategory(event.target.value)}
+            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 disabled:opacity-50"
+          >
+            <option value="">All subcategories</option>
+            {activeDepartment?.subcategories.map((entry) => (
+              <option key={entry.slug} value={entry.slug}>
+                {entry.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-slate-700">
+          Specific
+          <select
+            value={specific}
+            disabled={!activeSubcategory}
+            onChange={(event) => onSpecific(event.target.value)}
+            className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 disabled:opacity-50"
+          >
+            <option value="">All</option>
+            {activeSubcategory?.specifics.map((entry) => (
+              <option key={entry.slug} value={entry.slug}>
+                {entry.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <label className="mt-3 block text-sm text-slate-700">
+        Search
+        <input
+          value={query}
+          onChange={(event) => onQuery(event.target.value)}
+          placeholder="Search products"
+          className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2"
+        />
+      </label>
+      {selectionMade ? (
+        matches.length > 0 ? (
+          <ul className="mt-3 grid max-h-[32rem] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
+            {matches.map((product) => {
+              const outOfStock = product.stock_quantity <= 0;
+              return (
+                <li key={product.id} className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <span className="relative aspect-square bg-slate-100">
+                    <SafeImage
+                      src={product.image_url ?? ""}
+                      alt=""
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                      fallbackVariant="muted"
+                    />
+                  </span>
+                  <span className="flex flex-1 flex-col p-2">
+                    <span className="text-[11px] font-semibold uppercase text-[#064E3B]">{product.brand}</span>
+                    <span className="mt-0.5 line-clamp-2 text-sm font-semibold text-slate-900">{product.name}</span>
+                    <span className="mt-1 text-sm font-bold text-[#064E3B]">{formatNzPrice(offerPrice(product))}</span>
+                    <button
+                      type="button"
+                      disabled={outOfStock}
+                      onClick={() => onAdd(product)}
+                      className="mt-2 inline-flex h-9 items-center justify-center rounded-sm bg-[#064E3B] px-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {outOfStock ? "Out of stock" : "Add to Schedule"}
+                    </button>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-slate-600">No products match that selection.</p>
+        )
+      ) : (
+        <p className="mt-3 text-sm text-slate-600">Choose a department to see products.</p>
+      )}
+    </div>
   );
 }
 

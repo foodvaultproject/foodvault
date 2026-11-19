@@ -36,7 +36,7 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
         paragraphs: [
           [
             {
-              text: "StockUp is built for an easy online shopping experience. Browse the supermarket, add what you need, and check out in New Zealand dollars.",
+              text: "StockUp is built for an easy online shopping experience. Browse the supermarket and add what you need.",
             },
           ],
           [
@@ -191,15 +191,13 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
         paragraphs: [
           [
             {
-              text: "Yes. The shop includes a wide range of organic products NZ households look for, alongside conventional groceries. Where a product is certified organic, that is stated on the product itself. StockUp does not label a conventional item as organic.",
+              text: "Yes. StockUp has a wide range of certified organic products to shop from.",
             },
           ],
           [
             { text: "Browse the " },
             { text: "pantry", href: "/pantry" },
-            {
-              text: " and search for organic, or filter by the brand you already buy. The range covers pantry food and household lines, not a separate organic-only store.",
-            },
+            { text: " and add them to your cart or an Auto-Restock schedule." },
           ],
         ],
       },

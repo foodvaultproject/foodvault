@@ -3,7 +3,6 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import { SafeImage } from "@/components/media/SafeImage";
-import { AutoRestockButton } from "@/components/pantry/AutoRestockButton";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
@@ -104,9 +103,6 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
           >
             {outOfStock ? "Out of stock" : added ? "Added" : "Add to Cart"}
           </button>
-          {outOfStock ? null : (
-            <AutoRestockButton productId={product.id} productName={product.name} compact />
-          )}
         </div>
       </div>
     </article>

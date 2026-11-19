@@ -45,7 +45,14 @@ export default async function AutoRestockPage({
       fromCart={params.from === "cart"}
       seedProduct={
         seeded?.is_active
-          ? { productId: seeded.id, name: seeded.name, brand: seeded.brand, price: offerPrice(seeded), quantity }
+          ? {
+              productId: seeded.id,
+              name: seeded.name,
+              brand: seeded.brand,
+              price: offerPrice(seeded),
+              quantity,
+              imageUrl: seeded.image_url,
+            }
           : null
       }
     />

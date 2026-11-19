@@ -330,6 +330,7 @@ function SaveBasketButton({ items, onClose }: { items: CartItem[]; onClose: () =
               brand: item.brand,
               price: item.member_price,
               quantity: item.quantity,
+              imageUrl: item.image_url,
             }))
           )
         );
