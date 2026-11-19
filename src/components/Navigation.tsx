@@ -442,11 +442,11 @@ export function Navigation({ appMode }: { appMode: AppMode }) {
   const stockup = appMode === "stockup";
   const menuPreview = !stockup && NAV_MENU_PREVIEW_ENABLED;
   const chromeBg = stockup ? VAULT_MARKET_CHROME_BG : navChromeBgClass(false, menuPreview);
-  return (
+  const header = (
     <header
-      className={`sticky top-0 print:hidden ${mobileMenuOpen ? "z-[101]" : "z-50"} ${
-        menuPreview || stockup ? chromeBg : "bg-white"
-      }`}
+      className={`${stockup ? "fixed inset-x-0 top-0" : "sticky top-0"} print:hidden ${
+        mobileMenuOpen ? "z-[101]" : "z-50"
+      } ${menuPreview || stockup ? chromeBg : "bg-white"}`}
     >
       {stockup ? <VaultMarketShippingBar /> : null}
       {!menuPreview && !stockup ? <NzAnnouncementBar /> : null}
@@ -502,5 +502,17 @@ export function Navigation({ appMode }: { appMode: AppMode }) {
         </div>
       </nav>
     </header>
+  );
+
+  if (!stockup) return header;
+
+  return (
+    <>
+      {header}
+      <div
+        aria-hidden="true"
+        className="h-[calc(4.25rem+22px)] shrink-0 print:hidden md:h-[calc(4.25rem+26px)]"
+      />
+    </>
   );
 }

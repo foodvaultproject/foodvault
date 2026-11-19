@@ -29,52 +29,37 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
     id: "online-shopping",
     title: "Easy New Zealand Online Shopping & Delivery",
     intro:
-      "How StockUp online grocery shopping works across New Zealand, including Auckland, with fast checkout, GST-inclusive prices, and NZ Post tracking.",
+      "How StockUp online grocery shopping works across New Zealand, with New Zealand-wide delivery and NZ Post tracking.",
     items: [
       {
         question: "How does New Zealand online shopping work on StockUp?",
         paragraphs: [
           [
             {
-              text: "StockUp is built for an easy online shopping experience. Browse the supermarket, add what you need, and check out in New Zealand dollars. Shelf prices already include GST, so the total you see is the total you pay for the goods.",
+              text: "StockUp is built for an easy online shopping experience. Browse the supermarket, add what you need, and check out in New Zealand dollars.",
             },
           ],
           [
             { text: "Start in the " },
             { text: "pantry", href: "/pantry" },
             {
-              text: ", save the items you buy every week, and come back when you want them delivered. Fast pantry delivery in New Zealand uses the same flow whether you are filling a trolley in Auckland or sending staples further south.",
+              text: ", save the items you buy every week, and come back when you want them delivered. Delivery is New Zealand-wide.",
             },
           ],
         ],
       },
       {
-        question: "Do you deliver online grocery shopping NZ-wide, including Auckland?",
+        question: "Do you deliver online grocery shopping NZ-wide?",
         paragraphs: [
           [
             {
-              text: "Yes. StockUp ships New Zealand online shopping orders nationwide, including Auckland and the rest of the country. Standard delivery is $9.95, and shipping is free on orders of $50 or more.",
+              text: "Yes. StockUp delivers New Zealand-wide. Standard delivery is $9.95, and shipping is free on orders of $50 or more.",
             },
           ],
           [
             {
               text: "Enter a New Zealand street address at checkout. Once the order is dispatched, NZ Post tracking is added to the order so you can follow the parcel from your account history.",
             },
-          ],
-        ],
-      },
-      {
-        question: "Is checkout fast, and are StockUp prices GST-inclusive?",
-        paragraphs: [
-          [
-            {
-              text: "Checkout is a short delivery form, then payment in NZD. Product prices on StockUp are GST-inclusive. You do not add 15% GST on top of the shelf price at the end.",
-            },
-          ],
-          [
-            { text: "Saver pricing on everyday lines is covered in " },
-            { text: "StockUp savings", href: "/discover/savings" },
-            { text: ". Delivery notes are optional if a courier needs extra instructions." },
           ],
         ],
       },
@@ -103,7 +88,7 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
         paragraphs: [
           [
             {
-              text: "Open any product in the shop and tap the heart. That saves it to My Grocery List on this device, which is StockUp’s saved grocery list for the things you buy again. Use it for milk, bread, coffee, cleaning products, or any other everyday item.",
+              text: "Open any product in the shop and tap the heart. That saves it to My Grocery List on this device, which is StockUp’s saved grocery list for the things you buy again.",
             },
           ],
           [
@@ -153,19 +138,19 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
     id: "recurring-essentials",
     title: "Automated Reordering & Recurring Essentials",
     intro:
-      "Repeat the basics on your schedule: coffee, oats, olive oil, tinned goods, cleaning, and other pantry staples, with room to skip or change a shop before you pay.",
+      "Create as many Auto-Restock schedules as you need, choose how often each one runs, and change, pause, or cancel them whenever you want.",
     items: [
       {
         question: "How do automated recurring grocery orders work on StockUp?",
         paragraphs: [
           [
             {
-              text: "StockUp does not charge you on a locked subscription. Automated recurring grocery orders here mean a standing list of basic essentials that you send back to the cart whenever you want the next delivery. Save the items once, then add the list when you are ready to order again.",
+              text: "You can create as many Auto-Restock schedules as you want. Name each one, add the products you want, and set how often it repeats — weekly, fortnightly, monthly, every few days, or on dates you choose. After that it is set and forget, so the essentials you always need keep coming without you having to remember the next shop.",
             },
           ],
           [
             {
-              text: "That is the practical way to auto-reorder basic essentials such as coffee, oats, olive oil, tinned tomatoes, rice, and cleaning products, and to never run out of pantry staples without paying for a delivery you did not ask for.",
+              text: "Every schedule stays in your control. Pause it, skip a delivery, change the items or quantities, or cancel it whenever you want.",
             },
           ],
         ],
@@ -175,14 +160,11 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
         paragraphs: [
           [
             {
-              text: "Yes. Nothing leaves the warehouse until you check out. Pause by waiting. Skip a line by unticking it. Adjust by changing the quantity on the list or in the cart. You can also remove a product and add it back later.",
+              text: "Yes. Open ",
             },
-          ],
-          [
-            { text: "Past orders stay in " },
-            { text: "your account", href: "/account" },
+            { text: "Auto-Restock", href: "/account/schedules" },
             {
-              text: " if you want to compare what you sent last time. The next shop only includes what you select.",
+              text: " to pause a schedule, set a date for it to resume, skip the next delivery, edit the products, or cancel it. You can do this on any schedule, at any time.",
             },
           ],
         ],
@@ -192,13 +174,8 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
         paragraphs: [
           [
             {
-              text: "Keep the items that run out on a predictable cycle: coffee, oats, olive oil, tinned goods, rice, pasta, flour, toilet paper, and everyday cleaning products. Add them to the grocery list at the quantity your household uses, then reorder that set when the cupboard gets low.",
+              text: "Keep the products your household uses on a regular cycle, at the quantity you usually need. Leave one-off items off the schedule.",
             },
-          ],
-          [
-            { text: "Seasonal or one-off products can stay off the list. Compare saver pricing in " },
-            { text: "savings guides", href: "/discover/savings" },
-            { text: " before you lock a staple into the regular shop." },
           ],
         ],
       },
@@ -207,8 +184,7 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
   {
     id: "organic-pantry",
     title: "Wide Range of Organic Products & Pantry Quality",
-    intro:
-      "Certified organic options, wholefoods, bulk pantry staples, and local New Zealand brands in the same shop as everyday groceries.",
+    intro: "Organic products sit in the same shop as everyday groceries.",
     items: [
       {
         question: "Does StockUp have a wide range of organic products in NZ?",
@@ -224,36 +200,6 @@ export const STOCKUP_FAQ_CATEGORIES: StockUpFaqCategory[] = [
             {
               text: " and search for organic, or filter by the brand you already buy. The range covers pantry food and household lines, not a separate organic-only store.",
             },
-          ],
-        ],
-      },
-      {
-        question: "Can I buy organic pantry staples and wholefoods online?",
-        paragraphs: [
-          [
-            {
-              text: "You can. Organic pantry staples New Zealand shoppers reorder often — oats, oils, grains, tinned goods, and other wholefoods — sit in the same catalogue as everyday brands. Add them to a saved grocery list if you want them in the next shop.",
-            },
-          ],
-          [
-            {
-              text: "Bulk-style pantry staples are listed as the pack size the brand sells. Check the product name and size before you add a large pack to the cart.",
-            },
-          ],
-        ],
-      },
-      {
-        question: "Do you stock local New Zealand brands?",
-        paragraphs: [
-          [
-            {
-              text: "StockUp is a Kiwi-owned supermarket shop, and the catalogue includes local New Zealand brands as well as imported pantry lines. Brand is shown on every product card, so you can build a list that prefers the producers you want to support.",
-            },
-          ],
-          [
-            { text: "New arrivals and pricing notes are published under " },
-            { text: "News & Savings", href: "/discover/savings" },
-            { text: "." },
           ],
         ],
       },

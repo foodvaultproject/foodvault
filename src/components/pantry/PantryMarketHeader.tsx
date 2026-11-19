@@ -239,7 +239,8 @@ export function PantryMarketHeader() {
   const showSuggestions = searchOpen && suggestions.length > 0;
 
   return (
-    <div className="sticky top-[calc(4.25rem+22px)] z-30 border-b border-border bg-background shadow-sm print:hidden md:top-[calc(4.25rem+26px)]">
+    <>
+    <div className="fixed inset-x-0 top-[calc(4.25rem+22px)] z-30 border-b border-border bg-background shadow-sm print:hidden md:top-[calc(4.25rem+26px)]">
       <div className="relative" ref={searchRef}>
       <div className="mx-auto flex max-w-[1200px] items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
         <div className="relative shrink-0" ref={browseRef}>
@@ -593,5 +594,7 @@ export function PantryMarketHeader() {
           ) : null}
       </div>
     </div>
+    <div aria-hidden="true" className="h-[calc(4.25rem+1px)] shrink-0 print:hidden" />
+    </>
   );
 }

@@ -147,16 +147,15 @@ export function StockUpFaqPage() {
         </div>
 
         <section className="mt-14 rounded-2xl bg-[#064E3B] px-6 py-8 text-white sm:px-8">
-          <h2 className="text-2xl font-bold tracking-tight">Start Your First Shopping List</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Explore and Shop Now</h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
-            Save the pantry staples you buy every week, then send the whole list to your cart when
-            you are ready for the next New Zealand delivery.
+            Browse the StockUp shop and order for New Zealand-wide delivery.
           </p>
           <Link
             href="/pantry"
             className="mt-5 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-bold text-[#064E3B] hover:bg-emerald-50"
           >
-            Start Your First Shopping List
+            Explore and Shop Now
           </Link>
         </section>
       </div>
