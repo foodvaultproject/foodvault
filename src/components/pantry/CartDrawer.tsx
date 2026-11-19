@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SafeImage } from "@/components/media/SafeImage";
 import { cartItemLineTotal, cartMemberSavings, cartMemberSubtotal } from "@/lib/commerce/cart";
+import { listScheduleChoices } from "@/lib/commerce/schedule-actions";
 import {
   CONSUMER_VAULT_MARKET_PATH,
   STOREFRONT_CHECKOUT_PATH,
@@ -293,6 +294,7 @@ export function CartDrawer({
           >
             Proceed to Checkout
           </button>
+          {items.length > 0 ? <SaveBasketButton items={items} onClose={onClose} /> : null}
         </div>
       </aside>
     </div>
@@ -300,4 +302,43 @@ export function CartDrawer({
 
   if (!mounted) return null;
   return createPortal(drawer, document.body);
+}
+
+function SaveBasketButton({ items, onClose }: { items: CartItem[]; onClose: () => void }) {
+  const router = useRouter();
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (!document.documentElement.classList.contains("stockup")) return;
+    void listScheduleChoices()
+      .then((access) => setAuthenticated(access.authenticated))
+      .catch(() => setAuthenticated(false));
+  }, []);
+
+  if (!authenticated) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        window.sessionStorage.setItem(
+          "stockup.auto-restock-draft",
+          JSON.stringify(
+            items.map((item) => ({
+              productId: item.product_id,
+              name: item.name,
+              brand: item.brand,
+              price: item.member_price,
+              quantity: item.quantity,
+            }))
+          )
+        );
+        onClose();
+        router.push("/account/schedules?new=1&from=cart");
+      }}
+      className="mt-2 inline-flex h-11 w-full items-center justify-center text-sm font-semibold text-[#064E3B] underline decoration-[#064E3B]/30 underline-offset-2"
+    >
+      Save basket as Auto-Restock schedule
+    </button>
+  );
 }

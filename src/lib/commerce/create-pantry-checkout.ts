@@ -6,6 +6,7 @@ import {
   vaultMarketFreight,
   type VaultMarketDeliveryDetails,
 } from "@/lib/commerce/shipping";
+import { getStockupBillingCustomerId } from "@/lib/commerce/stockup-billing";
 import { resolvePaymentReturnOrigin } from "@/lib/payment-service/config";
 import {
   getStripeClient,
@@ -198,7 +199,8 @@ export async function createPantryCheckoutSession(input: {
   const subtotal = pantryCheckoutSubtotal(input.items);
   const freight = vaultMarketFreight(subtotal);
   const origin = input.origin.replace(/\/$/, "");
-  const stripeCustomerId = input.stripeCustomerId?.trim() || null;
+  const billingCustomerId = input.userId ? await getStockupBillingCustomerId(input.userId) : null;
+  const stripeCustomerId = billingCustomerId || input.stripeCustomerId?.trim() || null;
   const membershipId = input.membershipId?.trim() || input.userId?.trim() || "";
   const recipientEmail = input.delivery.email || input.customerEmail?.trim() || "";
   const deliveryAddress = formatDeliveryAddress(input.delivery);

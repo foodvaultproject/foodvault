@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
 import { PantryProductGallery } from "@/components/pantry/PantryProductGallery";
+import { AutoRestockButton } from "@/components/pantry/AutoRestockButton";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
@@ -287,6 +288,9 @@ export function PantryProductDetail({
             >
               {outOfStock ? "Out of stock" : added ? "Added to cart" : "Add to Cart"}
             </button>
+            {outOfStock ? null : (
+              <AutoRestockButton productId={product.id} productName={product.name} quantity={quantity} />
+            )}
           </div>
           <p className="mt-2 text-xs text-muted">SKU {product.sku}</p>
           {guides.length > 0 ? (

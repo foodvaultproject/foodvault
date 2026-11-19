@@ -257,6 +257,31 @@ export const getActiveVaultMarketProducts = cache(async function getActiveVaultM
     .map(toCatalogProduct);
 });
 
+export async function searchActivePantryProducts(query: string, limit = 8): Promise<FoodVaultProduct[]> {
+  const needle = query.trim().replace(/[%_,]/g, " ").replace(/\s+/g, " ");
+  if (needle.length < 2) return [];
+  const supabase = createPublicReadClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("foodvault_products")
+    .select("*")
+    .ilike("name", `%${needle}%`)
+    .limit(24);
+
+  if (error) {
+    console.error("[vault-market] product search failed", error.message);
+    return [];
+  }
+
+  const products = (data ?? [])
+    .map((row) => mapProduct(row as Record<string, unknown>))
+    .filter((product): product is FoodVaultProduct => product !== null && product.is_active)
+    .slice(0, limit);
+  const stock = await fetchInventoryStockByProductId();
+  return applyInventoryStock(products, stock);
+}
+
 export const getVaultMarketProductById = cache(async function getVaultMarketProductById(
   id: string
 ): Promise<FoodVaultProduct | null> {

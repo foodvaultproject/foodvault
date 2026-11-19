@@ -3,6 +3,7 @@
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import { SafeImage } from "@/components/media/SafeImage";
+import { AutoRestockButton } from "@/components/pantry/AutoRestockButton";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { MultibuyBadge } from "@/components/pantry/MultibuyBadge";
 import {
@@ -94,14 +95,19 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
           ) : null}
         </div>
 
-        <button
-          type="button"
-          disabled={outOfStock}
-          onClick={() => addToCart(product)}
-          className="mt-auto inline-flex h-9 w-full items-center justify-center rounded-sm bg-vm-primary px-3 text-xs font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
-        >
-          {outOfStock ? "Out of stock" : added ? "Added" : "Add to Cart"}
-        </button>
+        <div className="mt-auto space-y-2">
+          <button
+            type="button"
+            disabled={outOfStock}
+            onClick={() => addToCart(product)}
+            className="inline-flex h-9 w-full items-center justify-center rounded-sm bg-vm-primary px-3 text-xs font-semibold text-white transition-colors hover:bg-vm-surface disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
+          >
+            {outOfStock ? "Out of stock" : added ? "Added" : "Add to Cart"}
+          </button>
+          {outOfStock ? null : (
+            <AutoRestockButton productId={product.id} productName={product.name} compact />
+          )}
+        </div>
       </div>
     </article>
   );
