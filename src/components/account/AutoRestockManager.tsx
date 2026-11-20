@@ -105,19 +105,17 @@ export function AutoRestockManager({
   const [editing, setEditing] = useState<string | "new" | null>(startNew ? "new" : null);
   const [resumeOn, setResumeOn] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
-  const [pending, startTransition] = useTransition();
+  const [scheduleList, setScheduleList] = useState(schedules);
+  const [skipNotice, setSkipNotice] = useState<{ name: string; nextRunDate: string | null } | null>(null);
 
-  function run(action: () => Promise<{ error?: string }>, success: string) {
-    setMessage("");
-    startTransition(async () => {
-      const result = await action();
-      if (result.error) {
-        setMessage(result.error);
-        return;
-      }
-      setMessage(success);
-      router.refresh();
-    });
+  useEffect(() => {
+    setScheduleList(schedules);
+  }, [schedules]);
+
+  function updateSchedule(id: string, patch: Partial<ScheduleRecord>) {
+    setScheduleList((current) =>
+      current.map((item) => (item.id === id ? { ...item, ...patch } : item))
+    );
   }
 
   return (
@@ -149,7 +147,7 @@ export function AutoRestockManager({
                 key={editing}
                 email={email}
                 savedAddress={savedAddress}
-                schedule={editing === "new" ? null : schedules.find((item) => item.id === editing) ?? null}
+                schedule={editing === "new" ? null : scheduleList.find((item) => item.id === editing) ?? null}
                 fromCart={editing === "new" && fromCart}
                 seedProduct={editing === "new" ? seedProduct : null}
                 onClose={() => setEditing(null)}
@@ -161,13 +159,15 @@ export function AutoRestockManager({
               />
             ) : null}
 
-            {schedules.length === 0 && !editing ? (
+            {scheduleList.filter((schedule) => schedule.status !== "CANCELLED").length === 0 && !editing ? (
               <p className="rounded-xl border border-dashed border-slate-300 p-6 text-sm text-slate-600">
                 No schedules yet. Create one for the staples you want delivered again.
               </p>
             ) : null}
 
-            {schedules.map((schedule) => (
+            {scheduleList
+              .filter((schedule) => schedule.status !== "CANCELLED")
+              .map((schedule) => (
               <article key={schedule.id} className="rounded-xl border border-slate-200 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -223,7 +223,6 @@ export function AutoRestockManager({
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      disabled={pending}
                       onClick={() => setEditing(schedule.id)}
                       className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold"
                     >
@@ -231,13 +230,18 @@ export function AutoRestockManager({
                     </button>
                     <button
                       type="button"
-                      disabled={pending}
-                      onClick={() =>
-                        run(
-                          () => skipNextScheduleDelivery(schedule.id),
-                          "Next delivery skipped"
-                        )
-                      }
+                      onClick={() => {
+                        const current = schedule;
+                        void skipNextScheduleDelivery(current.id).then((result) => {
+                          if (result.error) {
+                            setMessage(result.error);
+                            return;
+                          }
+                          const nextRunDate = result.nextRunDate ?? null;
+                          updateSchedule(current.id, { nextRunDate });
+                          setSkipNotice({ name: current.name, nextRunDate });
+                        });
+                      }}
                       className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold"
                     >
                       Skip next delivery
@@ -245,8 +249,18 @@ export function AutoRestockManager({
                     {schedule.status === "PAUSED" ? (
                       <button
                         type="button"
-                        disabled={pending}
-                        onClick={() => run(() => setSchedulePaused(schedule.id, false, null), "Schedule resumed")}
+                        onClick={() => {
+                          const current = schedule;
+                          updateSchedule(current.id, { status: "ACTIVE", pausedUntil: null });
+                          void setSchedulePaused(current.id, false, null).then((result) => {
+                            if (!result.error) return;
+                            updateSchedule(current.id, {
+                              status: "PAUSED",
+                              pausedUntil: current.pausedUntil,
+                            });
+                            setMessage(result.error);
+                          });
+                        }}
                         className="rounded-full bg-orange-500 px-3 py-1.5 text-sm font-semibold text-white"
                       >
                         Resume
@@ -265,13 +279,15 @@ export function AutoRestockManager({
                         />
                         <button
                           type="button"
-                          disabled={pending}
-                          onClick={() =>
-                            run(
-                              () => setSchedulePaused(schedule.id, true, resumeOn[schedule.id] || null),
-                              "Schedule paused"
-                            )
-                          }
+                          onClick={() => {
+                            const resumeDate = resumeOn[schedule.id] || null;
+                            updateSchedule(schedule.id, { status: "PAUSED", pausedUntil: resumeDate });
+                            void setSchedulePaused(schedule.id, true, resumeDate).then((result) => {
+                              if (!result.error) return;
+                              updateSchedule(schedule.id, { status: "ACTIVE", pausedUntil: null });
+                              setMessage(result.error);
+                            });
+                          }}
                           className="rounded-full bg-orange-500 px-3 py-1.5 text-sm font-semibold text-white"
                         >
                           Pause
@@ -280,10 +296,16 @@ export function AutoRestockManager({
                     )}
                     <button
                       type="button"
-                      disabled={pending}
                       onClick={() => {
                         if (!window.confirm(`Cancel ${schedule.name}? Future deliveries will stop.`)) return;
-                        run(() => cancelSchedule(schedule.id), "Schedule cancelled");
+                        const removed = schedule;
+                        setScheduleList((current) => current.filter((item) => item.id !== removed.id));
+                        if (editing === removed.id) setEditing(null);
+                        void cancelSchedule(removed.id).then((result) => {
+                          if (!result.error) return;
+                          setScheduleList((current) => [removed, ...current]);
+                          setMessage(result.error);
+                        });
                       }}
                       className="rounded-full px-3 py-1.5 text-sm font-semibold text-red-700"
                     >
@@ -297,8 +319,44 @@ export function AutoRestockManager({
           <SavedCardForm card={card} onSaved={setCard} />
         </div>
       </div>
+      {skipNotice ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="skip-delivery-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="skip-delivery-title" className="text-lg font-bold text-[#064E3B]">
+              Next delivery skipped
+            </h2>
+            <p className="mt-2 text-sm text-slate-700">
+              {skipNotice.name}: the next delivery is now{" "}
+              {skipNotice.nextRunDate ? formatScheduleDate(skipNotice.nextRunDate) : "not scheduled"}.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSkipNotice(null)}
+              className="mt-5 inline-flex h-10 items-center rounded-full bg-[#064E3B] px-5 text-sm font-semibold text-white"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function formatScheduleDate(isoDate: string) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-NZ", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function ScheduleEditor({

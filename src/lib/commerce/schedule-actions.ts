@@ -89,6 +89,7 @@ export async function loadAutoRestockPage(member: {
       .from("recurring_schedules")
       .select("*, recurring_schedule_items(*), recurring_schedule_dates(*)")
       .eq("user_id", member.id)
+      .neq("status", "CANCELLED")
       .order("created_at", { ascending: false }),
     getStockupCardSummary(member.id),
   ]);
@@ -106,6 +107,7 @@ export async function loadAutoRestockPage(member: {
       .from("recurring_schedules")
       .select("*")
       .eq("user_id", member.id)
+      .neq("status", "CANCELLED")
       .order("created_at", { ascending: false });
     if (fallback.error) throw new Error(fallback.error.message);
     rows = (fallback.data ?? []) as Record<string, unknown>[];
@@ -416,7 +418,9 @@ export async function setSchedulePaused(
   return {};
 }
 
-export async function skipNextScheduleDelivery(scheduleId: string): Promise<{ error?: string }> {
+export async function skipNextScheduleDelivery(
+  scheduleId: string
+): Promise<{ error?: string; nextRunDate?: string | null }> {
   const { supabase, user } = await requireStockupUser();
   if (!user) return { error: "Sign in to manage Auto-Restock" };
   const { data: schedule, error } = await supabase
@@ -453,7 +457,7 @@ export async function skipNextScheduleDelivery(scheduleId: string): Promise<{ er
       .from("recurring_schedules")
       .update({ next_run_date: following, updated_at: new Date().toISOString() })
       .eq("id", scheduleId);
-    return {};
+    return { nextRunDate: following };
   }
 
   const current = schedule.next_run_date || today;
@@ -462,7 +466,7 @@ export async function skipNextScheduleDelivery(scheduleId: string): Promise<{ er
     .from("recurring_schedules")
     .update({ next_run_date: next, updated_at: new Date().toISOString() })
     .eq("id", scheduleId);
-  return updateError ? { error: updateError.message } : {};
+  return updateError ? { error: updateError.message } : { nextRunDate: next };
 }
 
 export async function cancelSchedule(scheduleId: string): Promise<{ error?: string }> {
@@ -470,8 +474,15 @@ export async function cancelSchedule(scheduleId: string): Promise<{ error?: stri
   if (!user) return { error: "Sign in to manage Auto-Restock" };
   const { error } = await supabase
     .from("recurring_schedules")
+    .delete()
+    .eq("id", scheduleId)
+    .eq("user_id", user.id);
+  if (!error) return {};
+
+  const { error: cancelError } = await supabase
+    .from("recurring_schedules")
     .update({ status: "CANCELLED", updated_at: new Date().toISOString() })
     .eq("id", scheduleId)
     .eq("user_id", user.id);
-  return error ? { error: error.message } : {};
+  return cancelError ? { error: cancelError.message } : {};
 }
