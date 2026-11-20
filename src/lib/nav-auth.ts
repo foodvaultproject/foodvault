@@ -43,8 +43,6 @@ export const stockupMemberNavMenuItems = [
   { href: "/account/history", label: "My History" },
   { href: "/account/schedules", label: "Auto-Restock" },
   { href: MEMBER_ACCOUNT_PATH, label: "My Account" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/contact", label: "Help & Support" },
 ] as const;
 
 export { MEMBER_FAVORITES_PATH };

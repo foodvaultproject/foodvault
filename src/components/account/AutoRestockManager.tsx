@@ -14,6 +14,7 @@ import {
 } from "@/lib/commerce/catalog";
 import { formatNzPrice } from "@/lib/partner-offer";
 import {
+  advanceScheduleDate,
   aucklandToday,
   frequencyLabel,
   type ScheduleFrequency,
@@ -107,6 +108,7 @@ export function AutoRestockManager({
   const [message, setMessage] = useState("");
   const [scheduleList, setScheduleList] = useState(schedules);
   const [skipNotice, setSkipNotice] = useState<{ name: string; nextRunDate: string | null } | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<ScheduleRecord | null>(null);
 
   useEffect(() => {
     setScheduleList(schedules);
@@ -173,8 +175,11 @@ export function AutoRestockManager({
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">{schedule.name}</h2>
                     <p className="mt-1 text-sm text-slate-600">
-                      {frequencyLabel(schedule.frequencyType, schedule.intervalDays)}
-                      {schedule.nextRunDate ? ` · Next delivery ${schedule.nextRunDate}` : ""}
+                      {schedule.status === "PAUSED"
+                        ? "Schedule currently paused — no deliveries scheduled"
+                        : `${frequencyLabel(schedule.frequencyType, schedule.intervalDays)}${
+                            schedule.nextRunDate ? ` · Next delivery ${schedule.nextRunDate}` : ""
+                          }`}
                     </p>
                   </div>
                   <span
@@ -232,14 +237,23 @@ export function AutoRestockManager({
                       type="button"
                       onClick={() => {
                         const current = schedule;
+                        const skipped = previewSkippedDelivery(current);
+                        updateSchedule(current.id, skipped);
+                        setSkipNotice({ name: current.name, nextRunDate: skipped.nextRunDate });
                         void skipNextScheduleDelivery(current.id).then((result) => {
-                          if (result.error) {
-                            setMessage(result.error);
+                          if (!result.error) {
+                            if ((result.nextRunDate ?? null) !== skipped.nextRunDate) {
+                              updateSchedule(current.id, { nextRunDate: result.nextRunDate ?? null });
+                              setSkipNotice({ name: current.name, nextRunDate: result.nextRunDate ?? null });
+                            }
                             return;
                           }
-                          const nextRunDate = result.nextRunDate ?? null;
-                          updateSchedule(current.id, { nextRunDate });
-                          setSkipNotice({ name: current.name, nextRunDate });
+                          updateSchedule(current.id, {
+                            nextRunDate: current.nextRunDate,
+                            customDates: current.customDates,
+                          });
+                          setSkipNotice(null);
+                          setMessage(result.error);
                         });
                       }}
                       className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold"
@@ -296,17 +310,7 @@ export function AutoRestockManager({
                     )}
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!window.confirm(`Cancel ${schedule.name}? Future deliveries will stop.`)) return;
-                        const removed = schedule;
-                        setScheduleList((current) => current.filter((item) => item.id !== removed.id));
-                        if (editing === removed.id) setEditing(null);
-                        void cancelSchedule(removed.id).then((result) => {
-                          if (!result.error) return;
-                          setScheduleList((current) => [removed, ...current]);
-                          setMessage(result.error);
-                        });
-                      }}
+                      onClick={() => setCancelTarget(schedule)}
                       className="rounded-full px-3 py-1.5 text-sm font-semibold text-red-700"
                     >
                       Cancel schedule
@@ -319,6 +323,49 @@ export function AutoRestockManager({
           <SavedCardForm card={card} onSaved={setCard} />
         </div>
       </div>
+      {cancelTarget ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-schedule-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="cancel-schedule-title" className="text-lg font-bold text-slate-900">
+              Cancel this schedule?
+            </h2>
+            <p className="mt-2 text-sm text-slate-700">
+              Cancelling {cancelTarget.name} cannot be undone. Future deliveries will stop.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setCancelTarget(null)}
+                className="inline-flex h-10 items-center rounded-full border border-slate-300 px-5 text-sm font-semibold text-slate-800"
+              >
+                Keep schedule
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const removed = cancelTarget;
+                  setCancelTarget(null);
+                  setScheduleList((current) => current.filter((item) => item.id !== removed.id));
+                  if (editing === removed.id) setEditing(null);
+                  void cancelSchedule(removed.id).then((result) => {
+                    if (!result.error) return;
+                    setScheduleList((current) => [removed, ...current]);
+                    setMessage(result.error);
+                  });
+                }}
+                className="inline-flex h-10 items-center rounded-full bg-red-700 px-5 text-sm font-semibold text-white"
+              >
+                Cancel schedule
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {skipNotice ? (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4">
           <div
@@ -346,6 +393,28 @@ export function AutoRestockManager({
       ) : null}
     </div>
   );
+}
+
+function previewSkippedDelivery(schedule: ScheduleRecord): Pick<ScheduleRecord, "nextRunDate" | "customDates"> {
+  const today = aucklandToday();
+  if (schedule.frequencyType === "CUSTOM_DATES") {
+    const upcoming = schedule.customDates
+      .filter((date) => !date.skipped && date.date >= today)
+      .sort((left, right) => left.date.localeCompare(right.date));
+    const skipped = upcoming[0];
+    if (!skipped) return { nextRunDate: null, customDates: schedule.customDates };
+    return {
+      nextRunDate: upcoming[1]?.date ?? null,
+      customDates: schedule.customDates.map((date) =>
+        date.date === skipped.date ? { ...date, skipped: true } : date
+      ),
+    };
+  }
+  const current = schedule.nextRunDate || today;
+  return {
+    nextRunDate: advanceScheduleDate(current, schedule.frequencyType, schedule.intervalDays),
+    customDates: schedule.customDates,
+  };
 }
 
 function formatScheduleDate(isoDate: string) {
