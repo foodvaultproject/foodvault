@@ -213,11 +213,6 @@ export function AutoRestockManager({
                       <span className="mt-1 block line-clamp-2 text-xs font-semibold text-slate-900">
                         {item.quantity} × {item.name}
                       </span>
-                      {item.description ? (
-                        <span className="mt-0.5 block line-clamp-2 text-[11px] leading-snug text-slate-500">
-                          {item.description}
-                        </span>
-                      ) : null}
                       {item.available ? null : (
                         <span className="mt-0.5 block text-[11px] text-red-700">Unavailable</span>
                       )}
