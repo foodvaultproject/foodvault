@@ -18,6 +18,7 @@ export type ScheduleLine = {
   quantity: number;
   unitPrice: number;
   imageUrl: string | null;
+  description: string | null;
   available: boolean;
 };
 

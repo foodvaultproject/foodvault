@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { createPublicReadClient } from "@/lib/supabase/public-read";
 import {
@@ -233,7 +234,8 @@ function toCatalogProduct(product: FoodVaultProduct): FoodVaultProduct {
   };
 }
 
-export const getActiveVaultMarketProducts = cache(async function getActiveVaultMarketProducts(): Promise<FoodVaultProduct[]> {
+const loadActiveVaultMarketProducts = unstable_cache(
+  async function loadActiveVaultMarketProducts(): Promise<FoodVaultProduct[]> {
   const supabase = createPublicReadClient();
   if (!supabase) return [];
 
@@ -255,7 +257,68 @@ export const getActiveVaultMarketProducts = cache(async function getActiveVaultM
   return applyInventoryStock(products, stock)
     .filter(isStorefrontVisible)
     .map(toCatalogProduct);
-});
+  },
+  ["stockup-storefront-products"],
+  { revalidate: 60 }
+);
+
+export const getActiveVaultMarketProducts = cache(loadActiveVaultMarketProducts);
+
+export type ScheduleProductSnapshot = {
+  id: string;
+  name: string;
+  brand: string;
+  description: string | null;
+  image_url: string | null;
+  member_price: number;
+  retail_price: number;
+  is_active: boolean;
+  is_multibuy?: boolean;
+  multibuy_quantity?: number | null;
+  multibuy_price?: number | null;
+};
+
+/** Name, image, and price for schedule cards. Skips the full inventory scan. */
+export async function getScheduleProductSnapshots(ids: string[]): Promise<ScheduleProductSnapshot[]> {
+  const unique = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  if (!unique.length) return [];
+  const supabase = createPublicReadClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("foodvault_products")
+    .select(
+      "id, name, brand, description, image_url, member_price, retail_price, is_active, is_multibuy, multibuy_quantity, multibuy_price"
+    )
+    .in("id", unique);
+
+  if (error) {
+    console.error("[vault-market] schedule product lookup failed", error.message);
+    return [];
+  }
+
+  return (data ?? []).flatMap((row) => {
+    const record = row as Record<string, unknown>;
+    const id = asString(record.id);
+    const name = asString(record.name);
+    if (!id || !name) return [];
+    return [
+      {
+        id,
+        name,
+        brand: asString(record.brand),
+        description: catalogDescriptionSnippet(asOptionalString(record.description) ?? null),
+        image_url: asOptionalString(record.image_url) ?? null,
+        member_price: asNumber(record.member_price),
+        retail_price: asNumber(record.retail_price),
+        is_active: record.is_active !== false,
+        is_multibuy: Boolean(record.is_multibuy),
+        multibuy_quantity: asOptionalNumber(record.multibuy_quantity) ?? null,
+        multibuy_price: asOptionalNumber(record.multibuy_price) ?? null,
+      },
+    ];
+  });
+}
 
 export async function searchActivePantryProducts(query: string, limit = 8): Promise<FoodVaultProduct[]> {
   const needle = query.trim().replace(/[%_,]/g, " ").replace(/\s+/g, " ");

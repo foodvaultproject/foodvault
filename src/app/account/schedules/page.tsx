@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { AutoRestockManager } from "@/components/account/AutoRestockManager";
 import { getAppMode } from "@/lib/app-mode";
 import { offerPrice } from "@/lib/commerce/catalog";
-import { getVaultMarketProductsByIds } from "@/lib/commerce/products";
-import { getCheckoutAccountDefaults } from "@/lib/commerce/saved-delivery-actions";
+import { getScheduleProductSnapshots } from "@/lib/commerce/products";
+import { parseSavedDelivery, STOCKUP_DELIVERY_METADATA_KEY } from "@/lib/commerce/saved-delivery";
 import { loadAutoRestockPage } from "@/lib/commerce/schedule-actions";
 import { requireAuthenticatedMember } from "@/lib/member/auth";
 
@@ -24,34 +24,34 @@ export default async function AutoRestockPage({
     notFound();
   }
 
-  await requireAuthenticatedMember();
-  const [page, account, params] = await Promise.all([
-    loadAutoRestockPage(),
-    getCheckoutAccountDefaults(),
-    searchParams,
+  const member = await requireAuthenticatedMember();
+  const params = await searchParams;
+  const quantity = Math.min(99, Math.max(1, Math.trunc(Number(params.qty) || 1)));
+  const [page, seeded] = await Promise.all([
+    loadAutoRestockPage(member),
+    params.productId ? getScheduleProductSnapshots([params.productId]) : Promise.resolve([]),
   ]);
   if (!page) notFound();
-
-  const quantity = Math.min(99, Math.max(1, Math.trunc(Number(params.qty) || 1)));
-  const seeded = params.productId ? (await getVaultMarketProductsByIds([params.productId]))[0] : null;
+  const accountSaved = parseSavedDelivery(member.metadata[STOCKUP_DELIVERY_METADATA_KEY]);
+  const seed = seeded[0];
 
   return (
     <AutoRestockManager
       email={page.email}
       card={page.card}
       schedules={page.schedules}
-      savedAddress={account.saved}
+      savedAddress={accountSaved}
       startNew={params.new === "1"}
       fromCart={params.from === "cart"}
       seedProduct={
-        seeded?.is_active
+        seed?.is_active
           ? {
-              productId: seeded.id,
-              name: seeded.name,
-              brand: seeded.brand,
-              price: offerPrice(seeded),
+              productId: seed.id,
+              name: seed.name,
+              brand: seed.brand,
+              price: offerPrice(seed),
               quantity,
-              imageUrl: seeded.image_url,
+              imageUrl: seed.image_url,
             }
           : null
       }

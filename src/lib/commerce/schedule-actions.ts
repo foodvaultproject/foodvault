@@ -3,7 +3,11 @@
 import { headers } from "next/headers";
 import { getAppMode } from "@/lib/app-mode";
 import { multibuyAwareLineTotal, offerPrice } from "@/lib/commerce/catalog";
-import { getVaultMarketProductsByIds, searchActivePantryProducts } from "@/lib/commerce/products";
+import {
+  getScheduleProductSnapshots,
+  getVaultMarketProductsByIds,
+  searchActivePantryProducts,
+} from "@/lib/commerce/products";
 import {
   advanceScheduleDate,
   aucklandToday,
@@ -66,38 +70,58 @@ function lineSubtotal(
   });
 }
 
-export async function loadAutoRestockPage(): Promise<{
+export async function loadAutoRestockPage(member: {
+  id: string;
+  email: string;
+}): Promise<{
   email: string;
   card: StockupCardSummary | null;
   schedules: ScheduleRecord[];
 } | null> {
-  const { supabase, user } = await requireStockupUser();
-  if (!user) return null;
+  const headerStore = await headers();
+  if (getAppMode(headerStore.get("x-forwarded-host") ?? headerStore.get("host")) !== "stockup") {
+    return null;
+  }
+  const supabase = await createClient();
 
   const [{ data: schedules, error }, card] = await Promise.all([
     supabase
       .from("recurring_schedules")
-      .select("*")
-      .eq("user_id", user.id)
+      .select("*, recurring_schedule_items(*), recurring_schedule_dates(*)")
+      .eq("user_id", member.id)
       .order("created_at", { ascending: false }),
-    getStockupCardSummary(user.id),
-  ]);
-  if (error) throw new Error(error.message);
-
-  const rows = (schedules ?? []) as Record<string, unknown>[];
-  const ids = rows.map((row) => text(row.id)).filter(Boolean);
-  const [{ data: items }, { data: dates }] = await Promise.all([
-    ids.length
-      ? supabase.from("recurring_schedule_items").select("*").in("schedule_id", ids)
-      : Promise.resolve({ data: [] }),
-    ids.length
-      ? supabase.from("recurring_schedule_dates").select("*").in("schedule_id", ids)
-      : Promise.resolve({ data: [] }),
+    getStockupCardSummary(member.id),
   ]);
 
-  const itemRows = (items ?? []) as Record<string, unknown>[];
-  const dateRows = (dates ?? []) as Record<string, unknown>[];
-  const products = await getVaultMarketProductsByIds(
+  let rows = (schedules ?? []) as Record<string, unknown>[];
+  let itemRows = rows.flatMap((row) =>
+    Array.isArray(row.recurring_schedule_items) ? (row.recurring_schedule_items as Record<string, unknown>[]) : []
+  );
+  let dateRows = rows.flatMap((row) =>
+    Array.isArray(row.recurring_schedule_dates) ? (row.recurring_schedule_dates as Record<string, unknown>[]) : []
+  );
+
+  if (error) {
+    const fallback = await supabase
+      .from("recurring_schedules")
+      .select("*")
+      .eq("user_id", member.id)
+      .order("created_at", { ascending: false });
+    if (fallback.error) throw new Error(fallback.error.message);
+    rows = (fallback.data ?? []) as Record<string, unknown>[];
+    const ids = rows.map((row) => text(row.id)).filter(Boolean);
+    const [items, dates] = await Promise.all([
+      ids.length
+        ? supabase.from("recurring_schedule_items").select("*").in("schedule_id", ids)
+        : Promise.resolve({ data: [] }),
+      ids.length
+        ? supabase.from("recurring_schedule_dates").select("*").in("schedule_id", ids)
+        : Promise.resolve({ data: [] }),
+    ]);
+    itemRows = (items.data ?? []) as Record<string, unknown>[];
+    dateRows = (dates.data ?? []) as Record<string, unknown>[];
+  }
+  const products = await getScheduleProductSnapshots(
     itemRows.map((row) => text(row.product_id)).filter(Boolean)
   );
   const productById = new Map(products.map((product) => [product.id, product]));
@@ -118,6 +142,7 @@ export async function loadAutoRestockPage(): Promise<{
           quantity,
           unitPrice,
           imageUrl: product?.image_url ?? null,
+          description: product?.description ?? null,
           available: Boolean(product?.is_active),
           subtotal: product ? lineSubtotal(product, quantity) : 0,
         };
@@ -147,7 +172,7 @@ export async function loadAutoRestockPage(): Promise<{
     };
   });
 
-  return { email: user.email ?? "", card, schedules: records };
+  return { email: member.email, card, schedules: records };
 }
 
 export async function listScheduleChoices(): Promise<{

@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 export type AuthenticatedMember = {
   id: string;
   email: string;
+  metadata: Record<string, unknown>;
 };
 
 export function memberUserFilter<T extends { or: (filters: string) => T }>(
@@ -22,6 +23,7 @@ export async function requireAuthenticatedMember(): Promise<AuthenticatedMember>
     return {
       id: "dev-member",
       email: "member@example.com",
+      metadata: {},
     };
   }
 
@@ -49,7 +51,11 @@ export async function requireAuthenticatedMember(): Promise<AuthenticatedMember>
     redirect(LOGIN_PATH);
   }
 
-  return { id: user.id, email: user.email };
+  return {
+    id: user.id,
+    email: user.email,
+    metadata: (user.user_metadata ?? {}) as Record<string, unknown>,
+  };
 }
 
 export async function requireMemberFavoritesAccess(): Promise<AuthenticatedMember> {

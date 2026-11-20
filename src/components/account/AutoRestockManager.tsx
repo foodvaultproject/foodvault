@@ -177,7 +177,13 @@ export function AutoRestockManager({
                       {schedule.nextRunDate ? ` · Next delivery ${schedule.nextRunDate}` : ""}
                     </p>
                   </div>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase text-[#064E3B]">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
+                      schedule.status === "PAUSED"
+                        ? "bg-orange-500 text-white"
+                        : "bg-emerald-50 text-[#064E3B]"
+                    }`}
+                  >
                     {statusLabel(schedule.status)}
                   </span>
                 </div>
@@ -191,11 +197,30 @@ export function AutoRestockManager({
                     ? ` · Auto-resume on ${schedule.pausedUntil}`
                     : ""}
                 </p>
-                <ul className="mt-3 space-y-1 text-sm text-slate-600">
+                <ul className="mt-3 flex gap-3 overflow-x-auto pb-1">
                   {schedule.items.map((item) => (
-                    <li key={item.productId}>
-                      {item.quantity} × {item.name}
-                      {item.available ? "" : " (unavailable)"}
+                    <li key={item.productId} className="w-28 shrink-0">
+                      <span className="relative block aspect-square overflow-hidden rounded-md bg-slate-100">
+                        <SafeImage
+                          src={item.imageUrl ?? ""}
+                          alt=""
+                          fill
+                          sizes="112px"
+                          className="object-cover"
+                          fallbackVariant="muted"
+                        />
+                      </span>
+                      <span className="mt-1 block line-clamp-2 text-xs font-semibold text-slate-900">
+                        {item.quantity} × {item.name}
+                      </span>
+                      {item.description ? (
+                        <span className="mt-0.5 block line-clamp-2 text-[11px] leading-snug text-slate-500">
+                          {item.description}
+                        </span>
+                      ) : null}
+                      {item.available ? null : (
+                        <span className="mt-0.5 block text-[11px] text-red-700">Unavailable</span>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -227,7 +252,7 @@ export function AutoRestockManager({
                         type="button"
                         disabled={pending}
                         onClick={() => run(() => setSchedulePaused(schedule.id, false, null), "Schedule resumed")}
-                        className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold"
+                        className="rounded-full bg-orange-500 px-3 py-1.5 text-sm font-semibold text-white"
                       >
                         Resume
                       </button>
@@ -252,7 +277,7 @@ export function AutoRestockManager({
                               "Schedule paused"
                             )
                           }
-                          className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold"
+                          className="rounded-full bg-orange-500 px-3 py-1.5 text-sm font-semibold text-white"
                         >
                           Pause
                         </button>
@@ -535,6 +560,7 @@ function ScheduleEditor({
         }}
         onSpecific={setSpecific}
         onAdd={addProduct}
+        addedIds={items.map((item) => item.productId)}
       />
 
       <fieldset className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -641,6 +667,7 @@ function ScheduleProductPicker({
   onSubcategory,
   onSpecific,
   onAdd,
+  addedIds,
 }: {
   query: string;
   department: string;
@@ -651,6 +678,7 @@ function ScheduleProductPicker({
   onSubcategory: (value: string) => void;
   onSpecific: (value: string) => void;
   onAdd: (product: FoodVaultProduct) => void;
+  addedIds: string[];
 }) {
   const { products } = usePantryMarket();
   const departments = useMemo(() => {
@@ -744,6 +772,7 @@ function ScheduleProductPicker({
           <ul className="mt-3 grid max-h-[32rem] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
             {matches.map((product) => {
               const outOfStock = product.stock_quantity <= 0;
+              const added = addedIds.includes(product.id);
               return (
                 <li key={product.id} className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
                   <span className="relative aspect-square bg-slate-100">
@@ -764,9 +793,11 @@ function ScheduleProductPicker({
                       type="button"
                       disabled={outOfStock}
                       onClick={() => onAdd(product)}
-                      className="mt-2 inline-flex h-9 items-center justify-center rounded-sm bg-[#064E3B] px-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      className={`mt-2 inline-flex h-9 items-center justify-center rounded-sm px-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
+                        added ? "bg-orange-500" : "bg-[#064E3B]"
+                      }`}
                     >
-                      {outOfStock ? "Out of stock" : "Add to Schedule"}
+                      {outOfStock ? "Out of stock" : added ? "Added" : "Add to Schedule"}
                     </button>
                   </span>
                 </li>
