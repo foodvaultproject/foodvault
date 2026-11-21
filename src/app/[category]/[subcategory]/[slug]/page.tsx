@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PantryProductDetail } from "@/components/pantry/PantryProductDetail";
+import { getAppMode } from "@/lib/app-mode";
 import {
   catalogSlug,
   findCatalogProduct,
@@ -42,6 +43,7 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams() {
+  if (getAppMode() !== "stockup") return [];
   const products = await getActiveVaultMarketProducts();
   return products.map((product) => ({
     category: catalogSlug(resolveProductDepartment(product)),
@@ -51,6 +53,7 @@ export async function generateStaticParams() {
 }
 
 export default async function StorefrontProductPage({ params }: ProductPageProps) {
+  if (getAppMode() !== "stockup") notFound();
   const { category, subcategory, slug } = await params;
   const products = await getActiveVaultMarketProducts();
   const listed = findCatalogProduct(products, { category, subcategory, slug });
