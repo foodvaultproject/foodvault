@@ -196,15 +196,26 @@ function CheckEmailContent() {
     setChecking(true);
     setActionError(null);
 
-    const completed = await trySignInAndContinue();
-    if (!completed) {
-      setActionError(
-        "We haven't detected your verification yet. Open the email link, then try again in a moment."
-      );
+    const finalize = await finalizeVerifiedSessionAction(account);
+    if (finalize.ready && !finalize.error) {
+      finishRedirect(finalize.redirectPath);
+      return;
     }
 
+    const completed = await trySignInAndContinue();
+    if (completed) return;
+
+    const status = email ? await getVerificationStatusAction(email, account) : { found: false as const };
+    if (status.found && status.verified) {
+      finishRedirect(stockup ? "/" : resolveVerifiedRedirectPath(account));
+      return;
+    }
+
+    setActionError(
+      "We haven't detected your verification yet. Open the email link, then try again in a moment."
+    );
     setChecking(false);
-  }, [trySignInAndContinue]);
+  }, [account, email, finishRedirect, stockup, trySignInAndContinue]);
 
   const handleResend = useCallback(async () => {
     if (!email || cooldownSeconds > 0) {

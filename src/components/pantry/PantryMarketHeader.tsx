@@ -268,7 +268,7 @@ export function PantryMarketHeader() {
             onMouseLeave={() => {
               if (canHoverFinePointer()) setBrowseOpen(false);
             }}
-            className="absolute left-0 z-40 mt-2 w-[min(42rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-background shadow-xl md:w-[min(54rem,calc(100vw-2rem))]"
+            className="fixed left-4 right-4 z-40 mt-2 max-h-[min(70vh,32rem)] overflow-y-auto rounded-lg border border-border bg-background shadow-xl md:absolute md:left-0 md:right-auto md:w-[min(54rem,calc(100vw-2rem))] md:max-h-none"
           >
             <div className="md:hidden">
               {browseStep !== "departments" ? (

@@ -81,7 +81,7 @@ export default async function RootLayout({
       lang={locale.localeTag}
       className={`${hankenGrotesk.variable} h-full antialiased${appMode === "stockup" ? " stockup" : ""}`}
     >
-      <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
+      <body className="flex min-h-full w-full min-w-0 max-w-full flex-col overflow-x-clip font-sans">
         <SiteLayout appMode={appMode} products={products}>
           {children}
         </SiteLayout>

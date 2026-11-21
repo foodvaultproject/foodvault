@@ -245,7 +245,7 @@ export function Footer({
         />
       ) : null}
       <div
-        className={`relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
+        className={`relative z-10 mx-auto w-full min-w-0 max-w-[1200px] px-4 sm:px-6 lg:px-8 ${
           branded ? "py-5" : "py-7"
         }`}
       >

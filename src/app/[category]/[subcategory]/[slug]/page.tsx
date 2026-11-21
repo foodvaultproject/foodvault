@@ -12,7 +12,7 @@ import { getActiveVaultMarketProducts, getVaultMarketProductById } from "@/lib/c
 import { getStockUpGuidesForProduct } from "@/lib/discover/queries";
 import { PAGE_PY } from "@/lib/section-spacing";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 type ProductPageProps = {
   params: Promise<{

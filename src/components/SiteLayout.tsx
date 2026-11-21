@@ -95,7 +95,7 @@ export function SiteLayout({
         </div>
       ) : null}
       <main
-        className={`min-w-0 flex-1 bg-page print:bg-white print:p-0 ${
+        className={`w-full min-w-0 max-w-full flex-1 overflow-x-clip bg-page print:bg-white print:p-0 ${
           showConsumerSecondaryNav
             ? "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-0"
             : ""

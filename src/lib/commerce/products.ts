@@ -259,7 +259,7 @@ const loadActiveVaultMarketProducts = unstable_cache(
     .map(toCatalogProduct);
   },
   ["stockup-storefront-products"],
-  { revalidate: 60 }
+  { revalidate: 3600, tags: ["stockup-catalog"] }
 );
 
 export const getActiveVaultMarketProducts = cache(loadActiveVaultMarketProducts);

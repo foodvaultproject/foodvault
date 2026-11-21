@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateStockupCatalog } from "@/lib/cache/stockup-catalog";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
 import {
   applyStockDelta,
@@ -33,6 +34,7 @@ function revalidatePantry() {
   revalidatePath("/");
   revalidatePath("/pantry");
   revalidatePath("/pantry", "layout");
+  revalidateStockupCatalog();
 }
 
 function readNumber(formData: FormData, key: string): number {

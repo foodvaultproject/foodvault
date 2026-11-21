@@ -107,7 +107,8 @@ export function AutoRestockManager({
   const [resumeOn, setResumeOn] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [scheduleList, setScheduleList] = useState(schedules);
-  const [skipNotice, setSkipNotice] = useState<{ name: string; nextRunDate: string | null } | null>(null);
+  const [skipNotice, setSkipNotice] = useState<{ schedule: ScheduleRecord; nextRunDate: string | null } | null>(null);
+  const [pauseNotice, setPauseNotice] = useState<{ schedule: ScheduleRecord; resume: boolean; resumeDate: string | null } | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ScheduleRecord | null>(null);
 
   useEffect(() => {
@@ -121,8 +122,8 @@ export function AutoRestockManager({
   }
 
   return (
-    <div className="bg-white">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+    <div className="w-full min-w-0 max-w-full overflow-x-clip bg-white">
+      <div className="mx-auto w-full min-w-0 max-w-5xl px-4 py-8 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#064E3B]">StockUp</p>
@@ -142,7 +143,7 @@ export function AutoRestockManager({
 
         {message ? <p className="mt-4 text-sm text-slate-700">{message}</p> : null}
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <div className="space-y-4">
             {editing ? (
               <ScheduleEditor
@@ -170,7 +171,7 @@ export function AutoRestockManager({
             {scheduleList
               .filter((schedule) => schedule.status !== "CANCELLED")
               .map((schedule) => (
-              <article key={schedule.id} className="rounded-xl border border-slate-200 p-4">
+              <article key={schedule.id} className="min-w-0 rounded-xl border border-slate-200 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">{schedule.name}</h2>
@@ -202,7 +203,7 @@ export function AutoRestockManager({
                     ? ` · Auto-resume on ${schedule.pausedUntil}`
                     : ""}
                 </p>
-                <ul className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                <ul className="mt-3 flex min-w-0 max-w-full gap-3 overflow-x-auto pb-1">
                   {schedule.items.map((item) => (
                     <li key={item.productId} className="w-28 shrink-0">
                       <span className="relative block aspect-square overflow-hidden rounded-md bg-slate-100">
@@ -236,25 +237,8 @@ export function AutoRestockManager({
                     <button
                       type="button"
                       onClick={() => {
-                        const current = schedule;
-                        const skipped = previewSkippedDelivery(current);
-                        updateSchedule(current.id, skipped);
-                        setSkipNotice({ name: current.name, nextRunDate: skipped.nextRunDate });
-                        void skipNextScheduleDelivery(current.id).then((result) => {
-                          if (!result.error) {
-                            if ((result.nextRunDate ?? null) !== skipped.nextRunDate) {
-                              updateSchedule(current.id, { nextRunDate: result.nextRunDate ?? null });
-                              setSkipNotice({ name: current.name, nextRunDate: result.nextRunDate ?? null });
-                            }
-                            return;
-                          }
-                          updateSchedule(current.id, {
-                            nextRunDate: current.nextRunDate,
-                            customDates: current.customDates,
-                          });
-                          setSkipNotice(null);
-                          setMessage(result.error);
-                        });
+                        const skipped = previewSkippedDelivery(schedule);
+                        setSkipNotice({ schedule, nextRunDate: skipped.nextRunDate });
                       }}
                       className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold"
                     >
@@ -263,18 +247,7 @@ export function AutoRestockManager({
                     {schedule.status === "PAUSED" ? (
                       <button
                         type="button"
-                        onClick={() => {
-                          const current = schedule;
-                          updateSchedule(current.id, { status: "ACTIVE", pausedUntil: null });
-                          void setSchedulePaused(current.id, false, null).then((result) => {
-                            if (!result.error) return;
-                            updateSchedule(current.id, {
-                              status: "PAUSED",
-                              pausedUntil: current.pausedUntil,
-                            });
-                            setMessage(result.error);
-                          });
-                        }}
+                        onClick={() => setPauseNotice({ schedule, resume: true, resumeDate: null })}
                         className="rounded-full bg-orange-500 px-3 py-1.5 text-sm font-semibold text-white"
                       >
                         Resume
@@ -289,19 +262,17 @@ export function AutoRestockManager({
                             setResumeOn((current) => ({ ...current, [schedule.id]: event.target.value }))
                           }
                           aria-label={`Auto-resume date for ${schedule.name}`}
-                          className="h-9 rounded-md border border-slate-300 px-2 text-sm"
+                          className="h-9 w-full min-w-0 max-w-full rounded-md border border-slate-300 px-2 text-sm sm:w-auto"
                         />
                         <button
                           type="button"
-                          onClick={() => {
-                            const resumeDate = resumeOn[schedule.id] || null;
-                            updateSchedule(schedule.id, { status: "PAUSED", pausedUntil: resumeDate });
-                            void setSchedulePaused(schedule.id, true, resumeDate).then((result) => {
-                              if (!result.error) return;
-                              updateSchedule(schedule.id, { status: "ACTIVE", pausedUntil: null });
-                              setMessage(result.error);
-                            });
-                          }}
+                          onClick={() =>
+                            setPauseNotice({
+                              schedule,
+                              resume: false,
+                              resumeDate: resumeOn[schedule.id] || null,
+                            })
+                          }
                           className="rounded-full bg-orange-500 px-3 py-1.5 text-sm font-semibold text-white"
                         >
                           Pause
@@ -375,19 +346,110 @@ export function AutoRestockManager({
             className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
           >
             <h2 id="skip-delivery-title" className="text-lg font-bold text-[#064E3B]">
-              Next delivery skipped
+              Skip the next delivery?
             </h2>
             <p className="mt-2 text-sm text-slate-700">
-              {skipNotice.name}: the next delivery is now{" "}
+              {skipNotice.schedule.name} will skip this delivery. The next one will be{" "}
               {skipNotice.nextRunDate ? formatScheduleDate(skipNotice.nextRunDate) : "not scheduled"}.
             </p>
-            <button
-              type="button"
-              onClick={() => setSkipNotice(null)}
-              className="mt-5 inline-flex h-10 items-center rounded-full bg-[#064E3B] px-5 text-sm font-semibold text-white"
-            >
-              OK
-            </button>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSkipNotice(null)}
+                className="inline-flex h-10 items-center rounded-full border border-slate-300 px-5 text-sm font-semibold text-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const pending = skipNotice;
+                  const previous = pending.schedule;
+                  const skipped = previewSkippedDelivery(previous);
+                  setSkipNotice(null);
+                  updateSchedule(previous.id, skipped);
+                  void skipNextScheduleDelivery(previous.id).then((result) => {
+                    if (!result.error) {
+                      if ((result.nextRunDate ?? null) !== skipped.nextRunDate) {
+                        updateSchedule(previous.id, { nextRunDate: result.nextRunDate ?? null });
+                      }
+                      return;
+                    }
+                    updateSchedule(previous.id, {
+                      nextRunDate: previous.nextRunDate,
+                      customDates: previous.customDates,
+                    });
+                    setMessage(result.error);
+                  });
+                }}
+                className="inline-flex h-10 items-center rounded-full bg-[#064E3B] px-5 text-sm font-semibold text-white"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {pauseNotice ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/40 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pause-schedule-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="pause-schedule-title" className="text-lg font-bold text-[#064E3B]">
+              {pauseNotice.resume ? "Resume this schedule?" : "Pause this schedule?"}
+            </h2>
+            <p className="mt-2 text-sm text-slate-700">
+              {pauseNotice.resume
+                ? `Resuming ${pauseNotice.schedule.name} turns deliveries back on. The next delivery stays on ${
+                    pauseNotice.schedule.nextRunDate
+                      ? formatScheduleDate(pauseNotice.schedule.nextRunDate)
+                      : "its current date"
+                  }.`
+                : `Pausing ${pauseNotice.schedule.name} stops deliveries. Nothing is ordered until you resume.`}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setPauseNotice(null)}
+                className="inline-flex h-10 items-center rounded-full border border-slate-300 px-5 text-sm font-semibold text-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const pending = pauseNotice;
+                  setPauseNotice(null);
+                  if (pending.resume) {
+                    updateSchedule(pending.schedule.id, { status: "ACTIVE", pausedUntil: null });
+                    void setSchedulePaused(pending.schedule.id, false, null).then((result) => {
+                      if (!result.error) return;
+                      updateSchedule(pending.schedule.id, {
+                        status: "PAUSED",
+                        pausedUntil: pending.schedule.pausedUntil,
+                      });
+                      setMessage(result.error);
+                    });
+                    return;
+                  }
+                  updateSchedule(pending.schedule.id, {
+                    status: "PAUSED",
+                    pausedUntil: pending.resumeDate,
+                  });
+                  void setSchedulePaused(pending.schedule.id, true, pending.resumeDate).then((result) => {
+                    if (!result.error) return;
+                    updateSchedule(pending.schedule.id, { status: "ACTIVE", pausedUntil: null });
+                    setMessage(result.error);
+                  });
+                }}
+                className="inline-flex h-10 items-center rounded-full bg-[#064E3B] px-5 text-sm font-semibold text-white"
+              >
+                OK
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -537,7 +599,7 @@ function ScheduleEditor({
 
   return (
     <form
-      className="rounded-xl border border-[#064E3B]/20 bg-emerald-50/40 p-4"
+      className="min-w-0 max-w-full overflow-x-clip rounded-xl border border-[#064E3B]/20 bg-emerald-50/40 p-4"
       onSubmit={(event) => {
         event.preventDefault();
         submit();
@@ -649,7 +711,7 @@ function ScheduleEditor({
               min={today}
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="mt-1 box-border w-full min-w-0 max-w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
             />
           </label>
           <label className="text-sm font-semibold text-slate-800">
@@ -659,7 +721,7 @@ function ScheduleEditor({
               min={startDate || today}
               value={endDate}
               onChange={(event) => setEndDate(event.target.value)}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="mt-1 box-border w-full min-w-0 max-w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
             />
           </label>
         </div>
@@ -891,12 +953,12 @@ function ScheduleProductPicker({
       </label>
       {selectionMade ? (
         matches.length > 0 ? (
-          <ul className="mt-3 grid max-h-[32rem] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
+          <ul className="mt-3 grid max-h-[32rem] min-w-0 grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
             {matches.map((product) => {
               const outOfStock = product.stock_quantity <= 0;
               const added = addedIds.includes(product.id);
               return (
-                <li key={product.id} className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <li key={product.id} className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
                   <span className="relative aspect-square bg-slate-100">
                     <SafeImage
                       src={product.image_url ?? ""}

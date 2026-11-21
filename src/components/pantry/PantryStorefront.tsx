@@ -1,24 +1,36 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+import type { ReactNode } from "react";
 import { LostSaleTracker } from "@/components/pantry/LostSaleTracker";
 import { PantryHeroBanner } from "@/components/pantry/PantryHeroBanner";
 import { PantryProductCard } from "@/components/pantry/PantryProductCard";
 import { usePantryMarket } from "@/components/pantry/PantryMarketProvider";
 import { filterCatalogProducts, hasSaverPrice, offerPrice } from "@/lib/commerce/catalog";
 
-export function PantryStorefront({
-  query = "",
-  department = "",
-  subcategory = "",
-  specific = "",
-  deals = false,
-}: {
-  query?: string;
-  department?: string;
-  subcategory?: string;
-  specific?: string;
-  deals?: boolean;
-}) {
+export function StockUpCatalog({ children }: { children: ReactNode }) {
+  const params = useSearchParams();
+  const browsing = !["q", "department", "subcategory", "specific", "deals"].some((key) =>
+    params.get(key)
+  );
+
+  return (
+    <>
+      <div className="mx-auto min-w-0 max-w-[1200px] px-4 pb-10 pt-5 sm:px-6 sm:pb-12 sm:pt-6 md:pb-16 md:pt-8 lg:px-8">
+        <PantryStorefront />
+      </div>
+      {browsing ? children : null}
+    </>
+  );
+}
+
+export function PantryStorefront() {
+  const params = useSearchParams();
+  const query = params.get("q") ?? "";
+  const department = params.get("department") ?? "";
+  const subcategory = params.get("subcategory") ?? "";
+  const specific = params.get("specific") ?? "";
+  const deals = params.get("deals") === "1";
   const { products, liveQuery } = usePantryMarket();
   const matched = filterCatalogProducts(products, {
     query: liveQuery || query,
@@ -71,7 +83,7 @@ export function PantryStorefront({
           </p>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
+        <div className="mt-6 grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
           {filtered.map((product) => (
             <PantryProductCard key={product.id} product={product} />
           ))}

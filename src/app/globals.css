@@ -270,9 +270,15 @@ body {
   font-family: var(--font-hanken-grotesk), system-ui, sans-serif;
   font-size: 18px;
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
 }
 
 @layer base {

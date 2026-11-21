@@ -28,7 +28,7 @@ export function PantryProductCard({ product }: { product: FoodVaultProduct }) {
   const href = pantryProductPath(product);
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-vm-primary/30 bg-background">
+    <article className="flex h-full min-w-0 w-full flex-col overflow-hidden rounded-lg border border-vm-primary/30 bg-background">
       <div className="relative aspect-square overflow-hidden bg-surface">
         <Link href={href} onClick={rememberReturnScroll} className="absolute inset-0">
           <SafeImage

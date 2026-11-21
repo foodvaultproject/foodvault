@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateStockupCatalog } from "@/lib/cache/stockup-catalog";
 import type Stripe from "stripe";
 import { getAdminUser, logAuditAction } from "@/lib/admin/auth";
 import { isSupabaseConfigured } from "@/lib/auth";
@@ -523,6 +524,7 @@ async function finalizeOrder(input: {
   revalidatePath("/admin/products");
   revalidatePath("/");
   revalidatePath("/account/orders");
+  revalidateStockupCatalog();
   await sendPickerOutcomeEmail({
     order: input.order,
     orderId: input.orderId,
